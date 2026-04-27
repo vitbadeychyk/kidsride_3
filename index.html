@@ -1,0 +1,1786 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KidsRide — Дитячі електромобілі</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- Swiper CDN з fallback -->
+<style>
+:root {
+  --orange:#FF6B35; --orange-dark:#e85520;
+  --navy:#1B2A4A;   --navy-light:#2d4270;
+  --bg:#FFFFFF;     --bg-soft:#F8F9FC; --bg-warm:#FFF8F5;
+  --green:#27AE60;  --text:#1a1a2e; --text-muted:#6b7280;
+  --border:#e8ecf4;
+  --shadow-sm:0 2px 12px rgba(27,42,74,.07);
+  --shadow-md:0 8px 32px rgba(27,42,74,.12);
+  --shadow-lg:0 20px 60px rgba(27,42,74,.16);
+  --r:16px; --r-sm:10px; --r-lg:24px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Manrope',sans-serif;color:var(--text);background:var(--bg);overflow-x:hidden}
+h1,h2,h3,h4{font-family:'Nunito',sans-serif;font-weight:800}
+img{display:block;max-width:100%}
+
+/* ── SVG ICONS ── */
+.icon{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+
+/* ── HEADER ── */
+.header{
+  position:fixed;top:0;left:0;right:0;z-index:1000;
+  height:72px;padding:0 48px;
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(255,255,255,.9);
+  backdrop-filter:blur(20px) saturate(180%);
+  border-bottom:1px solid rgba(232,236,244,.7);
+  transition:box-shadow .3s;
+}
+.header.scrolled{box-shadow:var(--shadow-md)}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:'Nunito',sans-serif;font-weight:900;font-size:24px;color:var(--navy)}
+.logo-mark{
+  width:38px;height:38px;background:var(--orange);border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 12px rgba(255,107,53,.35)
+}
+.logo span{color:var(--orange)}
+nav{display:flex;gap:2px}
+nav a{text-decoration:none;color:var(--text-muted);font-weight:600;font-size:14px;padding:8px 14px;border-radius:8px;transition:all .2s}
+nav a:hover{color:var(--navy);background:var(--bg-soft)}
+nav a.active{color:var(--orange)}
+.h-right{display:flex;align-items:center;gap:6px}
+.ic-btn{width:40px;height:40px;border:none;background:none;cursor:pointer;border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);transition:all .2s;position:relative}
+.ic-btn:hover{background:var(--bg-soft);color:var(--navy)}
+.ic-btn .badge{position:absolute;top:4px;right:4px;width:18px;height:18px;background:var(--orange);border-radius:50%;font-size:10px;font-weight:700;color:white;display:flex;align-items:center;justify-content:center;font-family:'Nunito',sans-serif}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:10px;font-family:'Nunito',sans-serif;font-weight:700;font-size:14px;text-decoration:none;border:none;cursor:pointer;transition:all .25s cubic-bezier(.34,1.56,.64,1)}
+.btn-primary{background:var(--orange);color:white;box-shadow:0 4px 16px rgba(255,107,53,.3)}
+.btn-primary:hover{background:var(--orange-dark);transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,107,53,.4)}
+.btn-outline{background:transparent;color:var(--navy);border:2px solid var(--border)}
+.btn-outline:hover{border-color:var(--orange);color:var(--orange);transform:translateY(-2px)}
+.btn-white{background:white;color:var(--navy);box-shadow:var(--shadow-md)}
+.btn-white:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+
+/* ── HERO ── */
+.hero{margin-top:72px;position:relative;height:calc(100vh - 72px);min-height:560px;max-height:780px;background:linear-gradient(135deg,#1B2A4A 0%,#243660 100%);overflow:hidden}
+.swiper-hero{height:100%;overflow:hidden;background:linear-gradient(135deg,#1B2A4A 0%,#243660 100%)}
+/* Swiper wrapper — works without CDN */
+.swiper-hero .swiper-wrapper{display:flex;width:100%;height:100%;position:relative}
+/* Fade slides — слайди завжди є і завжди показані, opacity керується через .swiper-slide-active або інлайн стилі від Swiper.
+   Це усуває "білий" блимок при ініціалізації Swiper. */
+.swiper-hero .swiper-slide{flex-shrink:0;width:100%;height:100%;position:absolute;top:0;left:0;opacity:0;transition:opacity .9s ease;pointer-events:none}
+.swiper-hero .swiper-slide.swiper-slide-active{opacity:1!important;pointer-events:auto;position:relative;z-index:1}
+/* Fallback: якщо Swiper ще не ініціалізувався — показати перший слайд як активний */
+.swiper-hero:not(.swiper-initialized) .swiper-slide:first-child{opacity:1!important;pointer-events:auto;position:relative;z-index:1}
+.hero-slide{position:relative;width:100%;height:100%;display:flex;align-items:center;overflow:hidden}
+.s1{background:linear-gradient(135deg,#1B2A4A 0%,#243660 100%)}
+.s2{background:linear-gradient(135deg,#0f1e36 0%,#1b3a6b 100%)}
+.s3{background:linear-gradient(135deg,#1e2d50 0%,#2d4270 100%)}
+.hero-grain{position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");opacity:.5}
+.hero-glow{position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(255,107,53,.18) 0%,transparent 70%);top:-100px;right:-100px;pointer-events:none}
+.hero-content{position:relative;z-index:2;max-width:1280px;margin:0 auto;padding:0 64px;width:100%;display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:48px}
+.hero-text{color:white}
+.hero-chip{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:100px;padding:7px 16px;font-size:12px;font-weight:600;margin-bottom:22px;backdrop-filter:blur(10px);animation:fu .6s ease both}
+.hero-chip-dot{width:7px;height:7px;border-radius:50%;background:var(--orange)}
+.hero-h1{font-size:clamp(38px,5vw,66px);line-height:1.08;margin-bottom:18px;animation:fu .6s .1s ease both}
+.hero-h1 em{font-style:normal;color:var(--orange)}
+.hero-p{font-size:17px;line-height:1.65;opacity:.8;margin-bottom:34px;max-width:460px;animation:fu .6s .2s ease both}
+.hero-btns{display:flex;gap:12px;animation:fu .6s .3s ease both}
+.hero-stats{display:flex;gap:36px;margin-top:44px;animation:fu .6s .4s ease both;padding-top:32px;border-top:1px solid rgba(255,255,255,.1)}
+.stat-n{font-family:'Nunito',sans-serif;font-size:30px;font-weight:900;color:white;line-height:1}
+.stat-l{font-size:12px;opacity:.6;margin-top:4px;font-weight:500}
+.hero-img-wrap{position:relative;display:flex;align-items:center;justify-content:center;animation:fr .8s .2s ease both}
+.hero-img-card{
+  width:100%;max-width:540px;aspect-ratio:16/11;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:var(--r-lg);
+  overflow:hidden;
+  position:relative;
+  backdrop-filter:blur(4px);
+}
+.hero-img-card img{width:100%;height:100%;object-fit:cover;object-position:center}
+.hero-img-card::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(27,42,74,.4) 0%,transparent 50%)}
+.hero-float-tag{
+  position:absolute;
+  background:white;border-radius:14px;padding:12px 16px;
+  box-shadow:var(--shadow-lg);
+  display:flex;align-items:center;gap:10px;
+  font-size:13px;font-weight:700;color:var(--navy);
+}
+.hft-1{top:20px;right:-16px;animation:float 3s ease-in-out infinite}
+.hft-2{bottom:28px;left:-16px;animation:float 3s 1.5s ease-in-out infinite}
+.hft-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center}
+.hft-icon.orange{background:rgba(255,107,53,.12)}
+.hft-icon.green{background:rgba(39,174,96,.12)}
+
+/* Hero pagination */
+.hero-pagination{position:absolute;bottom:28px;left:64px;z-index:10;display:flex;gap:8px;align-items:center}
+.hp-dot{width:8px;height:8px;border-radius:4px;background:rgba(255,255,255,.35);transition:all .3s;cursor:pointer}
+.hp-dot.active{background:white;width:32px}
+
+/* ── MARQUEE ── */
+.marquee-bar{background:var(--navy);padding:14px 0;overflow:hidden}
+.m-track{display:flex;animation:marquee 28s linear infinite;white-space:nowrap}
+.m-item{display:inline-flex;align-items:center;gap:10px;padding:0 32px;color:rgba(255,255,255,.8);font-size:13px;font-weight:600}
+.m-sep{color:var(--orange);padding:0 4px;font-size:10px}
+
+/* ── LAYOUT ── */
+.section{padding:100px 48px}
+.section-sm{padding:64px 48px}
+.container{max-width:1280px;margin:0 auto}
+.s-label{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--orange);margin-bottom:12px}
+.s-label::before{content:'';width:24px;height:2px;background:var(--orange);border-radius:2px}
+.s-title{font-size:clamp(28px,3.5vw,46px);color:var(--navy);line-height:1.15;margin-bottom:14px}
+.s-title em{font-style:normal;color:var(--orange)}
+.s-desc{font-size:16px;color:var(--text-muted);line-height:1.7;max-width:560px}
+
+/* ── BENEFITS ── */
+.benefits-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;margin-top:56px}
+.b-card{
+  padding:28px;border-radius:var(--r);
+  background:white;border:1.5px solid var(--border);
+  transition:all .3s cubic-bezier(.34,1.56,.64,1);
+  position:relative;overflow:hidden;
+  display:flex;flex-direction:column;gap:0;
+}
+.b-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg)}
+.b-icon-wrap{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;margin-bottom:18px;flex-shrink:0}
+.b-icon-wrap svg{width:56px;height:56px}
+.b-title{font-family:'Nunito',sans-serif;font-weight:800;font-size:17px;color:var(--navy);margin-bottom:8px}
+.b-text{font-size:13px;color:var(--text-muted);line-height:1.65;margin-bottom:14px;flex:1}
+.b-text strong{color:var(--navy)}
+.b-tag{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--orange);background:rgba(255,107,53,.08);border:1px solid rgba(255,107,53,.15);border-radius:6px;padding:4px 10px;margin-top:auto}
+
+/* ── PRODUCTS ── */
+.products-section{background:var(--bg-warm)}
+.products-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:48px}
+.products-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+
+.p-card{background:white;border-radius:var(--r);overflow:hidden;border:1.5px solid var(--border);transition:all .3s cubic-bezier(.34,1.56,.64,1);cursor:pointer}
+.p-card:hover{transform:translateY(-8px);box-shadow:var(--shadow-lg);border-color:transparent}
+.p-img{position:relative;aspect-ratio:4/3;overflow:hidden;background:#f0f2f7}
+.p-img img{width:100%;height:100%;object-fit:cover;transition:transform .5s ease}
+.p-img .p-img-hover{position:absolute;inset:0;object-fit:cover;opacity:0;transition:opacity .4s ease}
+.p-card:hover .p-img img{transform:scale(1.04)}
+.p-card:hover .p-img-hover{opacity:1}
+.p-overlay{position:absolute;inset:0;background:rgba(27,42,74,.45);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .25s;backdrop-filter:blur(2px)}
+.p-card:hover .p-overlay{opacity:1}
+.p-badge{position:absolute;top:12px;left:12px;padding:5px 11px;border-radius:7px;font-family:'Nunito',sans-serif;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;z-index:2}
+.badge-hot{background:var(--orange);color:white}
+.badge-new{background:var(--navy);color:white}
+.badge-sale{background:var(--green);color:white}
+.p-wish{position:absolute;top:12px;right:12px;width:34px;height:34px;background:white;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-sm);transition:all .2s;z-index:2}
+.p-wish:hover{transform:scale(1.15)}
+.p-wish svg{width:16px;height:16px;stroke:#94a3b8;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:all .2s}
+.p-wish.liked svg{stroke:#ef4444;fill:#ef4444}
+.p-body{padding:18px 20px 22px}
+.p-brand{font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}
+.p-name{font-family:'Nunito',sans-serif;font-weight:800;font-size:16px;color:var(--navy);margin-bottom:10px;line-height:1.3}
+.p-specs{display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.p-spec{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--text-muted);font-weight:500}
+.p-spec svg{width:13px;height:13px;stroke:var(--text-muted);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.p-row{display:flex;align-items:center;justify-content:space-between}
+.p-price{font-family:'Nunito',sans-serif;font-size:22px;font-weight:900;color:var(--navy)}
+.p-price-old{font-size:13px;color:var(--text-muted);text-decoration:line-through;margin-left:6px;font-weight:500}
+.p-cart{width:40px;height:40px;border-radius:11px;border:none;background:var(--orange);color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .25s cubic-bezier(.34,1.56,.64,1);box-shadow:0 4px 14px rgba(255,107,53,.32);flex-shrink:0}
+.p-cart:hover{transform:scale(1.13);box-shadow:0 6px 20px rgba(255,107,53,.45)}
+.p-cart svg{width:18px;height:18px;stroke:white;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.p-cart.added{background:var(--green)}
+
+/* ── AGE ── */
+.age-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:48px}
+.age-card{
+  background:white;border-radius:var(--r-lg);padding:28px 24px;
+  text-align:center;cursor:pointer;text-decoration:none;
+  transition:all .3s cubic-bezier(.34,1.56,.64,1);
+  border:2px solid rgba(255,107,53,.1);
+  display:flex;flex-direction:column;align-items:center;
+}
+.age-card:hover{transform:translateY(-8px);box-shadow:var(--shadow-lg)}
+.age-emoji-wrap{width:96px;height:72px;border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;transition:transform .3s}
+.age-card:hover .age-emoji-wrap{transform:scale(1.08) rotate(-2deg)}
+.age-range{font-family:'Nunito',sans-serif;font-size:26px;font-weight:900;color:var(--orange);margin-bottom:6px}
+.age-sub{font-size:13px;color:var(--text-muted);font-weight:500;margin-bottom:14px;line-height:1.5}
+.age-feats{display:flex;flex-direction:column;gap:4px;margin-bottom:16px;width:100%}
+.age-feats span{display:flex;align-items:center;justify-content:center;gap:6px;font-size:11px;color:var(--text-muted);font-weight:500}
+.age-feats span::before{content:'✓';color:var(--green);font-weight:800;font-size:12px}
+.age-count{font-size:12px;font-weight:700;color:var(--orange);background:rgba(255,107,53,.08);border-radius:6px;padding:4px 12px;margin-bottom:16px}
+.age-link{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--orange)}
+
+/* ── REVIEWS ── */
+.reviews-section{background:var(--bg-soft)}
+.reviews-top{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:48px}
+.rating-big{font-family:'Nunito',sans-serif;font-size:52px;font-weight:900;color:var(--navy);line-height:1}
+.stars-row{display:flex;gap:3px;margin:6px 0 4px}
+.star svg{width:18px;height:18px;fill:#f59e0b;stroke:none}
+.rating-ct{font-size:13px;color:var(--text-muted)}
+.reviews-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;align-items:stretch}
+.reviews-grid .r-card:nth-child(n+6){display:none}
+.r-card{background:white;border-radius:14px;padding:18px 18px 16px;border:1.5px solid var(--border);height:100%;display:flex;flex-direction:column;min-width:0}
+.r-head{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px}
+.r-avatar{width:36px;height:36px;border-radius:50%;object-fit:cover;background:var(--bg-soft);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:var(--navy);font-family:'Nunito',sans-serif;flex-shrink:0}
+.r-head > div:nth-child(2){min-width:0;flex:1}
+.r-name{font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;color:var(--navy);line-height:1.25;word-break:break-word;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.r-loc{font-size:11px;color:var(--text-muted);margin-top:2px}
+.r-stars-sm{display:flex;gap:1px;margin-left:auto;flex-shrink:0;padding-top:2px}
+.r-stars-sm svg{width:10px;height:10px;fill:#f59e0b;stroke:none}
+.r-text{font-size:13px;color:var(--text);line-height:1.55;margin-bottom:12px;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden;flex:1}
+.r-product{display:flex;align-items:center;gap:6px;padding:7px 10px;background:var(--bg-soft);border-radius:8px;margin-top:auto}
+.r-product-img{width:30px;height:30px;object-fit:cover;border-radius:6px;background:#e8ecf4}
+.r-product-name{font-size:11px;font-weight:600;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+@media(max-width:1180px){.reviews-grid{grid-template-columns:repeat(4,1fr)}.reviews-grid .r-card:nth-child(n+5){display:none}}
+@media(max-width:900px){.reviews-grid{grid-template-columns:repeat(3,1fr)}.reviews-grid .r-card:nth-child(n+4){display:none}}
+@media(max-width:640px){.reviews-grid{grid-template-columns:repeat(2,1fr);gap:12px}.reviews-grid .r-card:nth-child(n+3){display:none}}
+@media(max-width:440px){.reviews-grid{grid-template-columns:1fr}.reviews-grid .r-card:nth-child(n+2){display:none}}
+
+/* ── DELIVERY ── */
+.delivery-section{background:var(--navy);color:white}
+.delivery-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:start}
+.d-label{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,107,53,.9);margin-bottom:14px}
+.d-label::before{content:'';width:24px;height:2px;background:var(--orange);border-radius:2px}
+.d-title{font-size:clamp(28px,3.5vw,44px);color:white;line-height:1.15;margin-bottom:14px}
+.d-title em{font-style:normal;color:var(--orange)}
+.d-desc{color:rgba(255,255,255,.6);font-size:16px;line-height:1.7;margin-bottom:36px}
+.d-chips{display:flex;gap:10px;flex-wrap:wrap}
+.d-chip{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;backdrop-filter:blur(10px)}
+.d-chip svg{width:16px;height:16px;stroke:var(--orange);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.pay-list{display:flex;flex-direction:column;gap:12px}
+.pay-item{display:flex;align-items:center;gap:16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:var(--r);padding:18px 20px;transition:all .2s}
+.pay-item:hover{background:rgba(255,255,255,.09);border-color:rgba(255,107,53,.3)}
+.pay-icon{width:44px;height:44px;background:rgba(255,255,255,.08);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pay-icon svg{width:22px;height:22px;stroke:white;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.pay-name{font-family:'Nunito',sans-serif;font-weight:700;font-size:15px;color:white}
+.pay-sub{font-size:12px;color:rgba(255,255,255,.5);margin-top:3px}
+.pay-tag{margin-left:auto;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;background:rgba(255,107,53,.2);color:var(--orange);flex-shrink:0}
+
+/* ── WARRANTY ── */
+.warranty-section{background:var(--bg-warm)}
+.warranty-grid{display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:center}
+.warranty-vis{
+  background:linear-gradient(135deg,var(--navy) 0%,#2d4270 100%);
+  border-radius:var(--r-lg);padding:56px 48px;text-align:center;
+  position:relative;overflow:hidden;
+}
+.warranty-vis::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 70% 20%,rgba(255,107,53,.18) 0%,transparent 60%)}
+.warranty-vis::after{content:'';position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='20' cy='20' r='1' fill='rgba(255,255,255,0.05)'/%3E%3C/svg%3E");background-size:40px 40px}
+.w-big{font-family:'Nunito',sans-serif;font-size:100px;font-weight:900;color:white;line-height:1;position:relative;z-index:1}
+.w-big span{color:var(--orange)}
+.w-sub{color:rgba(255,255,255,.65);font-size:18px;font-weight:600;position:relative;z-index:1;margin-top:4px}
+.w-shield{position:relative;z-index:1;margin-top:28px;display:flex;justify-content:center}
+.w-shield svg{width:64px;height:64px;stroke:rgba(255,255,255,.25);fill:none;stroke-width:1.5}
+.w-points{display:flex;flex-direction:column;gap:18px;margin-top:32px}
+.w-point{display:flex;align-items:flex-start;gap:16px}
+.w-pt-icon{width:46px;height:46px;background:rgba(255,107,53,.1);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.w-pt-icon svg{width:22px;height:22px;stroke:var(--orange);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.w-pt-title{font-family:'Nunito',sans-serif;font-weight:800;font-size:16px;color:var(--navy)}
+.w-pt-text{font-size:13px;color:var(--text-muted);line-height:1.55;margin-top:3px}
+
+/* ── FAQ ── */
+.faq-section{background:var(--bg)}
+.faq-layout{display:grid;grid-template-columns:1fr 2fr;gap:80px;align-items:start}
+.faq-item{border-bottom:1px solid var(--border)}
+.faq-q{width:100%;display:flex;align-items:center;justify-content:space-between;padding:20px 0;background:none;border:none;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:700;font-size:16px;color:var(--navy);text-align:left;gap:16px;transition:color .2s}
+.faq-q:hover,.faq-q.open{color:var(--orange)}
+.faq-ico{width:28px;height:28px;border-radius:50%;background:var(--bg-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .3s}
+.faq-ico svg{width:14px;height:14px;stroke:var(--text-muted);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;transition:all .3s}
+.faq-q.open .faq-ico{background:var(--orange)}
+.faq-q.open .faq-ico svg{stroke:white;transform:rotate(45deg)}
+.faq-a{font-size:14px;color:var(--text-muted);line-height:1.7;max-height:0;overflow:hidden;transition:max-height .35s ease,padding .35s ease}
+.faq-a.open{max-height:200px;padding-bottom:20px}
+
+/* ── INSTAGRAM ── */
+.ig-section{background:var(--bg-soft)}
+.ig-head{text-align:center;margin-bottom:44px}
+.ig-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:40px}
+.ig-post{aspect-ratio:1;border-radius:var(--r-sm);overflow:hidden;position:relative;cursor:pointer}
+.ig-post img{width:100%;height:100%;object-fit:cover;transition:transform .4s}
+.ig-post:hover img{transform:scale(1.06)}
+.ig-post-ov{position:absolute;inset:0;background:rgba(27,42,74,.55);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .25s;gap:18px;color:white;font-size:13px;font-weight:600;backdrop-filter:blur(2px)}
+.ig-post:hover .ig-post-ov{opacity:1}
+.ig-post-ov svg{width:16px;height:16px;fill:white;stroke:none}
+.ig-cta{text-align:center}
+
+/* ── FOOTER ── */
+footer{background:var(--navy);color:white;padding:72px 48px 0}
+.f-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:48px;max-width:1280px;margin:0 auto;padding-bottom:56px;border-bottom:1px solid rgba(255,255,255,.08)}
+.f-brand-desc{font-size:14px;color:rgba(255,255,255,.5);line-height:1.65;margin:16px 0 24px}
+.f-socials{display:flex;gap:8px}
+.f-soc{width:38px;height:38px;background:rgba(255,255,255,.07);border-radius:10px;display:flex;align-items:center;justify-content:center;text-decoration:none;border:1px solid rgba(255,255,255,.1);transition:all .2s}
+.f-soc:hover{background:var(--orange);border-color:var(--orange);transform:translateY(-2px)}
+.f-soc svg{width:17px;height:17px;stroke:rgba(255,255,255,.7);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.f-soc:hover svg{stroke:white}
+.f-col-t{font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;color:white;margin-bottom:20px}
+.f-links{display:flex;flex-direction:column;gap:10px}
+.f-links a{color:rgba(255,255,255,.5);text-decoration:none;font-size:14px;transition:color .2s}
+.f-links a:hover{color:var(--orange)}
+.f-bot{max-width:1280px;margin:0 auto;padding:24px 0;display:flex;align-items:center;justify-content:space-between}
+.f-copy{font-size:13px;color:rgba(255,255,255,.3)}
+.f-bot-links{display:flex;gap:24px}
+.f-bot-links a{font-size:13px;color:rgba(255,255,255,.3);text-decoration:none;transition:color .2s}
+.f-bot-links a:hover{color:rgba(255,255,255,.6)}
+
+/* ── FLOAT ── */
+.float-wrap{position:fixed;bottom:32px;right:32px;z-index:900}
+.float-main{width:56px;height:56px;background:var(--orange);border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 28px rgba(255,107,53,.4);transition:all .3s cubic-bezier(.34,1.56,.64,1)}
+.float-main svg{width:24px;height:24px;stroke:white;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .3s}
+.float-main.open svg{transform:rotate(45deg)}
+.float-items{position:absolute;bottom:70px;right:0;display:flex;flex-direction:column;gap:10px;align-items:flex-end;opacity:0;pointer-events:none;transform:translateY(16px);transition:all .3s cubic-bezier(.34,1.56,.64,1)}
+.float-items.open{opacity:1;pointer-events:all;transform:translateY(0)}
+.fl-item{display:flex;align-items:center;gap:10px;text-decoration:none}
+.fl-label{background:white;padding:7px 14px;border-radius:9px;font-size:13px;font-weight:600;color:var(--navy);box-shadow:var(--shadow-md);white-space:nowrap}
+.fl-icon{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-md)}
+.fl-icon svg{width:20px;height:20px;stroke:white;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.fl-tg{background:#2AABEE}
+.fl-ig{background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)}
+.fl-item:nth-child(2) .fl-icon{animation:igPulse 2s ease-in-out infinite;}
+@keyframes igPulse{0%,100%{box-shadow:0 0 0 0 rgba(225,48,108,.6)}50%{box-shadow:0 0 0 8px rgba(225,48,108,0)}}
+.fl-ph{background:var(--green)}
+
+/* ── SCROLL REVEAL ── */
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .65s ease,transform .65s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+.d1{transition-delay:.1s}.d2{transition-delay:.2s}.d3{transition-delay:.3s}.d4{transition-delay:.4s}
+
+/* ── ANIMATIONS ── */
+@keyframes fu{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fr{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:translateX(0)}}
+@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+
+/* ── RESPONSIVE ── */
+@media(max-width:1024px){
+  .header{padding:0 24px}
+  nav{display:none}
+  .hero-content{grid-template-columns:1fr;padding:0 32px}
+  .hero-img-wrap{display:none}
+  .benefits-grid{grid-template-columns:repeat(2,1fr)}
+  .products-grid{grid-template-columns:repeat(2,1fr)}
+  .age-grid{grid-template-columns:repeat(3,1fr)}
+  .delivery-grid,.warranty-grid{grid-template-columns:1fr;gap:48px}
+  .faq-layout{grid-template-columns:1fr}
+  .ig-grid{grid-template-columns:repeat(3,1fr)}
+  .f-grid{grid-template-columns:1fr 1fr}
+  .section,.section-sm{padding:64px 24px}
+}
+@media(max-width:640px){
+  .benefits-grid,.products-grid{grid-template-columns:1fr}
+  .age-grid{grid-template-columns:1fr}
+  .ig-grid{grid-template-columns:repeat(2,1fr)}
+  .f-grid{grid-template-columns:1fr}
+}
+
+/* ── MOBILE BURGER ── */
+.mobile-burger{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;transition:background .2s}
+.mobile-burger:hover{background:var(--bg-soft)}
+.mobile-burger span{display:block;width:22px;height:2px;background:var(--navy);border-radius:2px;transition:all .3s}
+.mobile-burger.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.mobile-burger.open span:nth-child(2){opacity:0;transform:scaleX(0)}
+.mobile-burger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+
+/* ── MOBILE DRAWER ── */
+.mobile-drawer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:998;backdrop-filter:blur(4px)}
+.mobile-drawer-overlay.open{display:block}
+.mobile-drawer{position:fixed;top:0;right:0;bottom:0;width:280px;background:white;z-index:999;transform:translateX(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);padding:24px 20px;display:flex;flex-direction:column;gap:4px;overflow-y:auto;box-shadow:-8px 0 32px rgba(0,0,0,.15)}
+.mobile-drawer.open{transform:translateX(0)}
+.mobile-drawer-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.mobile-drawer-logo{font-family:'Nunito',sans-serif;font-weight:900;font-size:20px;color:var(--navy)}
+.mobile-drawer-logo span{color:var(--orange)}
+.mobile-drawer-close{width:32px;height:32px;border:none;background:var(--bg-soft);border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted)}
+.mobile-drawer a{display:flex;align-items:center;gap:12px;padding:13px 16px;border-radius:10px;color:var(--navy);font-weight:600;font-size:15px;text-decoration:none;transition:all .2s}
+.mobile-drawer a:hover,.mobile-drawer a.active{background:rgba(255,107,53,.08);color:var(--orange)}
+.mobile-drawer-divider{height:1px;background:var(--border);margin:8px 0}
+.mobile-drawer-social{display:flex;gap:10px;margin-top:auto;padding-top:20px;border-top:1px solid var(--border)}
+.mobile-drawer-social a{width:40px;height:40px;border-radius:10px;background:var(--bg-soft);display:flex;align-items:center;justify-content:center;border:1px solid var(--border);transition:all .2s;padding:0}
+.mobile-drawer-social a:hover{background:var(--orange);border-color:var(--orange);color:white}
+.mobile-drawer-social svg{width:18px;height:18px;stroke:var(--text-muted);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.mobile-drawer-social a:hover svg{stroke:white}
+
+@media(max-width:1024px){
+  .mobile-burger{display:flex}
+  nav{display:none !important}
+}
+@media(max-width:640px){
+  .h-right .btn-primary{display:none}
+  .h-right{gap:2px}
+}
+
+/* ── SEARCH OVERLAY ── */
+.search-overlay{position:fixed;inset:0;background:rgba(15,25,55,.55);backdrop-filter:blur(6px);z-index:2000;display:none;align-items:flex-start;justify-content:center;padding:80px 20px 20px;opacity:0;transition:opacity .2s ease}
+.search-overlay.open{display:flex;opacity:1}
+.search-modal{background:white;border-radius:18px;width:100%;max-width:640px;box-shadow:0 30px 80px rgba(0,0,0,.35);overflow:hidden;animation:searchIn .25s cubic-bezier(.34,1.56,.64,1)}
+@keyframes searchIn{from{transform:translateY(-12px) scale(.97);opacity:0}to{transform:none;opacity:1}}
+.search-form{display:flex;align-items:center;gap:12px;padding:18px 22px;border-bottom:1px solid var(--border)}
+.search-form svg.search-icon{width:20px;height:20px;stroke:var(--text-muted);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.search-form input{flex:1;border:none;outline:none;font-family:'Manrope',sans-serif;font-size:17px;color:var(--navy);background:none;padding:4px 0}
+.search-form input::placeholder{color:#9aa4bf}
+.search-kbd{font-family:'Manrope',sans-serif;font-size:11px;font-weight:700;color:var(--text-muted);background:var(--bg-soft);border:1px solid var(--border);padding:3px 8px;border-radius:6px}
+.search-close{width:30px;height:30px;border:none;background:var(--bg-soft);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted);transition:all .2s}
+.search-close:hover{background:#fee2e2;color:#dc2626}
+.search-close svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round}
+.search-body{max-height:60vh;overflow-y:auto;padding:8px 0}
+.search-body-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);padding:12px 22px 6px}
+.search-sug{display:flex;align-items:center;gap:14px;padding:11px 22px;text-decoration:none;color:var(--navy);font-size:14px;font-weight:600;transition:background .12s}
+.search-sug:hover{background:var(--bg-soft)}
+.search-sug-emoji{font-size:22px;width:32px;text-align:center;flex-shrink:0}
+.search-sug-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.search-sug-arr{width:14px;height:14px;color:var(--text-muted);flex-shrink:0;opacity:0;transition:all .15s}
+.search-sug:hover .search-sug-arr{opacity:1;color:var(--orange);transform:translateX(2px)}
+.search-empty{padding:28px 22px;text-align:center;color:var(--text-muted);font-size:14px}
+.search-empty strong{color:var(--navy)}
+.search-empty a{color:var(--orange);font-weight:700;text-decoration:none}
+.search-empty a:hover{text-decoration:underline}
+.search-foot{padding:12px 22px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--text-muted);background:var(--bg-soft)}
+.search-foot kbd{font-family:'Manrope',sans-serif;background:white;border:1px solid var(--border);padding:2px 7px;border-radius:5px;font-size:10px;font-weight:700;color:var(--navy)}
+@media(max-width:520px){
+  .search-overlay{padding:60px 12px 12px}
+  .search-form{padding:14px 16px}
+  .search-form input{font-size:15px}
+  .search-foot{display:none}
+  .search-kbd{display:none}
+}
+
+/* ── SWIPER FALLBACK (якщо CDN не завантажився) ── */
+.swiper{overflow:hidden;position:relative}
+.swiper-wrapper{display:flex;width:100%;height:100%;transition-property:transform;box-sizing:content-box}
+.swiper-slide{flex-shrink:0;width:100%;height:100%;position:relative}
+.swiper-fade .swiper-slide{pointer-events:none;transition-property:opacity}
+.swiper-fade .swiper-slide.swiper-slide-active{pointer-events:auto}
+
+/* Swiper Core CSS (inlined) */
+.swiper,.swiper-container{margin-left:auto;margin-right:auto;position:relative;overflow:hidden;list-style:none;padding:0;z-index:1}
+.swiper-vertical>.swiper-wrapper{flex-direction:column}
+.swiper-wrapper{position:relative;width:100%;height:100%;z-index:1;display:flex;transition-property:transform;box-sizing:content-box}
+.swiper-android .swiper-slide,.swiper-ios .swiper-slide,.swiper-wrapper{transform:translate3d(0px,0,0)}
+.swiper-pointer-events{touch-action:pan-y}.swiper-pointer-events.swiper-vertical{touch-action:pan-x}
+.swiper-slide{flex-shrink:0;width:100%;height:100%;position:relative;transition-property:transform}
+.swiper-slide-invisible-blank{visibility:hidden}
+.swiper-autoheight,.swiper-autoheight .swiper-slide{height:auto}
+.swiper-autoheight .swiper-wrapper{align-items:flex-start;transition-property:transform,height}
+.swiper-fade.swiper-free-mode .swiper-slide{transition-timing-function:ease-out}
+.swiper-fade .swiper-slide{pointer-events:none;transition-property:opacity}
+.swiper-fade .swiper-slide .swiper-slide{pointer-events:none}
+.swiper-fade .swiper-slide-active,.swiper-fade .swiper-slide-active .swiper-slide-active{pointer-events:auto}
+.swiper-pagination{position:absolute;text-align:center;transition:.3s opacity;transform:translate3d(0,0,0);z-index:10}
+.swiper-pagination.swiper-pagination-hidden{opacity:0}
+.swiper-pagination-disabled>.swiper-pagination,.swiper-pagination.swiper-pagination-disabled{display:none!important}
+
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header" id="hdr">
+  <a href="index.html" class="logo">
+    <div class="logo-mark">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect x="9" y="11" width="14" height="10" rx="2"/><circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/></svg>
+    </div>
+    Kids<span>Ride</span>
+  </a>
+  <nav>
+    <a href="index.html" class="active">Головна</a>
+    <a href="catalog.html">Каталог</a>
+    <a href="calculator.html">Підбір</a>
+    <a href="compare.html">Порівняння</a>
+    <a href="#delivery-section">Доставка</a>
+    <a href="#warranty-section">Гарантія</a>
+    <a href="#contacts-section">Контакти</a>
+  </nav>
+  <button class="mobile-burger" id="mobileBurger" onclick="toggleMobileMenu()" aria-label="Меню">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="h-right">
+    <button class="ic-btn" title="Пошук" onclick="openSearchOverlay()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    </button>
+    <button class="ic-btn" title="Список бажань" onclick="showWishlistToastSafe()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+    </button>
+    <button class="ic-btn" title="Кошик" id="cartBtn" onclick="window.location.href='cart.html'" style="cursor:pointer">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+      <span class="badge" id="cartBadge">0</span>
+    </button>
+    <a href="auth.html" class="btn btn-primary" style="margin-left:6px;font-size:13px;padding:9px 18px">Увійти</a>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="swiper swiper-hero">
+    <div class="swiper-wrapper">
+
+      <div class="swiper-slide">
+        <div class="hero-slide s1">
+          <div class="hero-grain"></div>
+          <div class="hero-glow"></div>
+          <div class="hero-content container">
+            <div class="hero-text">
+              <div class="hero-chip"><span class="hero-chip-dot"></span> Понад 500 щасливих родин</div>
+              <h1 class="hero-h1">Подаруй дитині<br><em>справжні емоції</em></h1>
+              <p class="hero-p">Преміум електромобілі для дітей від 1 до 10 років. Гарантія якості, безпека — на першому місці.</p>
+              <div class="hero-btns">
+                <a href="catalog.html" class="btn btn-primary" style="font-size:15px;padding:14px 28px">Переглянути каталог</a>
+                <a href="calculator.html" class="btn btn-white" style="font-size:15px;padding:14px 28px">Підібрати за віком</a>
+              </div>
+              <div class="hero-stats">
+                <div><div class="stat-n">500+</div><div class="stat-l">щасливих родин</div></div>
+                <div><div class="stat-n">12 міс</div><div class="stat-l">гарантія</div></div>
+                <div><div class="stat-n">1–3 дні</div><div class="stat-l">доставка НП</div></div>
+              </div>
+            </div>
+            <div class="hero-img-wrap">
+              <div class="hero-img-card">
+                <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.04)">
+                <svg viewBox="0 0 240 160" xmlns="http://www.w3.org/2000/svg" style="width:65%;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)">
+  <rect x="20" y="75" width="200" height="55" rx="14" fill="#1B2A4A" opacity=".15"/>
+  <rect x="50" y="40" width="130" height="52" rx="12" fill="#1B2A4A" opacity=".18"/>
+  <rect x="55" y="45" width="55" height="34" rx="6" fill="#64B5F6" opacity=".35"/>
+  <rect x="118" y="45" width="55" height="34" rx="6" fill="#64B5F6" opacity=".35"/>
+  <rect x="185" y="72" width="32" height="34" rx="5" fill="#1B2A4A" opacity=".12"/>
+  <rect x="18" y="82" width="25" height="26" rx="4" fill="#1B2A4A" opacity=".12"/>
+  <circle cx="65" cy="132" r="22" fill="#1B2A4A" opacity=".2"/>
+  <circle cx="65" cy="132" r="12" fill="#FF6B35" opacity=".3"/>
+  <circle cx="175" cy="132" r="22" fill="#1B2A4A" opacity=".2"/>
+  <circle cx="175" cy="132" r="12" fill="#FF6B35" opacity=".3"/>
+  <rect x="100" y="78" width="45" height="6" rx="3" fill="#FF6B35" opacity=".3"/>
+</svg>
+              </div>
+              </div>
+              <div class="hero-float-tag hft-1">
+                <div class="hft-icon orange">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                </div>
+                <span>12V акумулятор</span>
+              </div>
+              <div class="hero-float-tag hft-2">
+                <div class="hft-icon green">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <span>Гарантія 12 міс</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="swiper-slide">
+        <div class="hero-slide s2">
+          <div class="hero-grain"></div>
+          <div class="hero-glow" style="background:radial-gradient(circle,rgba(100,149,237,.2) 0%,transparent 70%)"></div>
+          <div class="hero-content container">
+            <div class="hero-text">
+              <div class="hero-chip"><span class="hero-chip-dot"></span> Хіт сезону</div>
+              <h1 class="hero-h1">Джипи та<br><em>квадроцикли</em><br>для справжніх героїв</h1>
+              <p class="hero-p">4-моторні електромобілі з пультом 2.4G, шкіряним сидінням та колесами EVA.</p>
+              <div class="hero-btns">
+                <a href="catalog.html" class="btn btn-primary" style="font-size:15px;padding:14px 28px">Дивитись джипи</a>
+                <a href="catalog.html" class="btn btn-white" style="font-size:15px;padding:14px 28px">Всі категорії</a>
+              </div>
+            </div>
+            <div class="hero-img-wrap">
+              <div class="hero-img-card">
+                <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.04)">
+                <svg viewBox="0 0 240 160" xmlns="http://www.w3.org/2000/svg" style="width:65%;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)">
+  <rect x="50" y="70" width="140" height="45" rx="10" fill="#3B4A8A" opacity=".18"/>
+  <rect x="70" y="42" width="100" height="42" rx="10" fill="#3B4A8A" opacity=".2"/>
+  <rect x="80" y="48" width="40" height="26" rx="5" fill="#90CAF9" opacity=".4"/>
+  <rect x="128" y="48" width="30" height="26" rx="5" fill="#90CAF9" opacity=".35"/>
+  <circle cx="68" cy="120" r="24" fill="#2d4270" opacity=".2"/>
+  <circle cx="68" cy="120" r="13" fill="#FF6B35" opacity=".28"/>
+  <circle cx="172" cy="120" r="24" fill="#2d4270" opacity=".2"/>
+  <circle cx="172" cy="120" r="13" fill="#FF6B35" opacity=".28"/>
+  <rect x="30" y="80" width="18" height="28" rx="4" fill="#2d4270" opacity=".15"/>
+  <rect x="192" y="80" width="18" height="28" rx="4" fill="#2d4270" opacity=".15"/>
+</svg>
+              </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="swiper-slide">
+        <div class="hero-slide s3">
+          <div class="hero-grain"></div>
+          <div class="hero-glow" style="background:radial-gradient(circle,rgba(39,174,96,.15) 0%,transparent 70%);left:-100px;right:auto"></div>
+          <div class="hero-content container">
+            <div class="hero-text">
+              <div class="hero-chip"><span class="hero-chip-dot"></span> Державна підтримка</div>
+              <h1 class="hero-h1"><em>Пакунок малюка</em><br>та 7000 грн<br>підтримка</h1>
+              <p class="hero-p">Купуй з використанням державних виплат. Приймаємо "Пакунок малюка" та держпідтримку до 1 року.</p>
+              <div class="hero-btns">
+                <a href="#delivery-section" class="btn btn-primary" style="font-size:15px;padding:14px 28px">Дізнатись більше</a>
+                <a href="#delivery-section" class="btn btn-white" style="font-size:15px;padding:14px 28px">Умови оплати</a>
+              </div>
+            </div>
+            <div class="hero-img-wrap">
+              <div class="hero-img-card">
+                <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.04)">
+                <svg viewBox="0 0 240 160" xmlns="http://www.w3.org/2000/svg" style="width:60%;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)">
+  <ellipse cx="120" cy="95" rx="80" ry="18" fill="#1B2A4A" opacity=".08"/>
+  <circle cx="65" cy="118" r="28" fill="#1B2A4A" opacity=".2"/>
+  <circle cx="65" cy="118" r="15" fill="#FF6B35" opacity=".3"/>
+  <circle cx="175" cy="118" r="28" fill="#1B2A4A" opacity=".2"/>
+  <circle cx="175" cy="118" r="15" fill="#FF6B35" opacity=".3"/>
+  <path d="M65 90 Q90 55 140 60 L170 90 Q145 95 110 93 Z" fill="#1B2A4A" opacity=".2"/>
+  <rect x="100" y="55" width="40" height="22" rx="6" fill="#90CAF9" opacity=".4"/>
+  <path d="M140 65 L170 75 L165 90 L135 85 Z" fill="#1B2A4A" opacity=".15"/>
+  <rect x="58" y="78" width="12" height="35" rx="3" fill="#1B2A4A" opacity=".15"/>
+</svg>
+              </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <div class="hero-pagination" id="heroPag"></div>
+  <div id="heroPrev" style="position:absolute;left:20px;top:50%;transform:translateY(-50%);z-index:10;width:44px;height:44px;background:rgba(255,255,255,.12);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:white;font-size:18px;transition:background .2s">‹</div>
+  <div id="heroNext" style="position:absolute;right:20px;top:50%;transform:translateY(-50%);z-index:10;width:44px;height:44px;background:rgba(255,255,255,.12);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:white;font-size:18px;transition:background .2s">›</div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-bar">
+  <div class="m-track">
+    <span class="m-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg> Доставка Новою Поштою</span>
+    <span class="m-sep">✦</span>
+    <span class="m-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Гарантія 12 місяців</span>
+    <span class="m-sep">✦</span>
+    <span class="m-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> Оплата частинами ПриватБанк</span>
+    <span class="m-sep">✦</span>
+    <span class="m-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg> Пакунок малюка</span>
+    <span class="m-sep">✦</span>
+    <span class="m-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> 500+ задоволених родин</span>
+    <span class="m-sep">✦</span>
+    <span class="m-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Сервісне обслуговування</span>
+    <span class="m-sep">✦</span>
+    <span class="m-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> 7000 грн держпідтримка</span>
+    <span class="m-sep">✦</span>
+    <!-- duplicate -->
+    <span class="m-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg> Доставка Новою Поштою</span>
+    <span class="m-sep">✦</span>
+    <span class="m-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Гарантія 12 місяців</span>
+    <span class="m-sep">✦</span>
+    <span class="m-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> Оплата частинами ПриватБанк</span>
+    <span class="m-sep">✦</span>
+    <span class="m-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg> Пакунок малюка</span>
+    <span class="m-sep">✦</span>
+    <span class="m-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> 500+ задоволених родин</span>
+    <span class="m-sep">✦</span>
+    <span class="m-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Сервісне обслуговування</span>
+    <span class="m-sep">✦</span>
+    <span class="m-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> 7000 грн держпідтримка</span>
+    <span class="m-sep">✦</span>
+  </div>
+</div>
+
+<!-- BENEFITS -->
+<section class="section" style="background:var(--bg)">
+  <div class="container">
+    <div style="text-align:center;max-width:600px;margin:0 auto 56px">
+      <div class="s-label">Чому обирають нас</div>
+      <h2 class="s-title">Купуй з <em>впевненістю</em></h2>
+      <p class="s-desc" style="margin:0 auto">Кожен електромобіль проходить перевірку якості перед відправкою. Ми відповідаємо за кожен товар.</p>
+    </div>
+    <div class="benefits-grid">
+
+      <div class="b-card reveal" style="border-color:rgba(255,107,53,.12)">
+        <div class="b-icon-wrap">
+          <svg viewBox="0 0 64 64" fill="none">
+            <rect width="64" height="64" rx="16" fill="rgba(255,107,53,.1)"/>
+            <rect x="8" y="18" width="28" height="22" rx="4" fill="none" stroke="#FF6B35" stroke-width="2.5"/>
+            <path d="M36 26h8l6 10v6H36V26z" fill="none" stroke="#FF6B35" stroke-width="2.5" stroke-linejoin="round"/>
+            <circle cx="16" cy="42" r="5" fill="none" stroke="#FF6B35" stroke-width="2.5"/>
+            <circle cx="42" cy="42" r="5" fill="none" stroke="#FF6B35" stroke-width="2.5"/>
+            <path d="M12 34h4" stroke="#FF6B35" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="b-title">Доставка Новою Поштою</div>
+        <p class="b-text">По всій Україні за <strong>1–3 дні</strong>. Відправляємо після підтвердження замовлення. Номер ТТН — в SMS або Telegram.</p>
+        <div class="b-tag">📦 Безкоштовно від 3 000 ₴</div>
+      </div>
+
+      <div class="b-card reveal d1" style="border-color:rgba(39,174,96,.12)">
+        <div class="b-icon-wrap" style="background:rgba(39,174,96,.1)">
+          <svg viewBox="0 0 64 64" fill="none">
+            <rect width="64" height="64" rx="16" fill="rgba(39,174,96,.1)"/>
+            <path d="M32 12L14 20v12c0 10 8 18 18 20 10-2 18-10 18-20V20L32 12z" fill="none" stroke="#27AE60" stroke-width="2.5" stroke-linejoin="round"/>
+            <path d="M24 32l5 5 10-10" stroke="#27AE60" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="b-title">Гарантія 12 місяців</div>
+        <p class="b-text">Офіційна гарантія на всі електромобілі. <strong>Безкоштовний ремонт</strong> або заміна при виробничому дефекті. Сервіс після гарантії.</p>
+        <div class="b-tag" style="color:var(--green);background:rgba(39,174,96,.08);border-color:rgba(39,174,96,.2)">🛡️ Офіційний сервісний центр</div>
+      </div>
+
+      <div class="b-card reveal d2" style="border-color:rgba(33,150,243,.12)">
+        <div class="b-icon-wrap" style="background:rgba(33,150,243,.1)">
+          <svg viewBox="0 0 64 64" fill="none">
+            <rect width="64" height="64" rx="16" fill="rgba(33,150,243,.1)"/>
+            <rect x="12" y="20" width="40" height="28" rx="5" fill="none" stroke="#2196F3" stroke-width="2.5"/>
+            <line x1="12" y1="30" x2="52" y2="30" stroke="#2196F3" stroke-width="2.5"/>
+            <line x1="22" y1="38" x2="32" y2="38" stroke="#2196F3" stroke-width="2" stroke-linecap="round"/>
+            <line x1="22" y1="43" x2="28" y2="43" stroke="#2196F3" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="b-title">5 способів оплати</div>
+        <p class="b-text">Рахунок ФОП, часткова передоплата, <strong>ПриватБанк частинами</strong> до 12 міс, Пакунок малюка, держпідтримка 7 000 грн.</p>
+        <div class="b-tag" style="color:#2196F3;background:rgba(33,150,243,.08);border-color:rgba(33,150,243,.2)">💳 ПриватБанк від 1 436 ₴/міс</div>
+      </div>
+
+      <div class="b-card reveal d3" style="border-color:rgba(107,114,128,.12)">
+        <div class="b-icon-wrap" style="background:rgba(107,114,128,.08)">
+          <svg viewBox="0 0 64 64" fill="none">
+            <rect width="64" height="64" rx="16" fill="rgba(107,114,128,.08)"/>
+            <path d="M32 14c-8 0-14 6-14 14 0 6 4 11 10 13v5h8v-5c6-2 10-7 10-13 0-8-6-14-14-14z" fill="none" stroke="#6b7280" stroke-width="2.5"/>
+            <line x1="32" y1="46" x2="32" y2="50" stroke="#6b7280" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="32" cy="30" r="4" fill="none" stroke="#FF6B35" stroke-width="2.5"/>
+          </svg>
+        </div>
+        <div class="b-title">Підтримка 7 днів/тиждень</div>
+        <p class="b-text">Telegram <a href="https://t.me/kids_ride" target="_blank" style="color:var(--orange)">@kids_ride</a> та Instagram <a href="https://www.instagram.com/kidsride.ua/" target="_blank" style="color:var(--orange)">@kidsride.ua</a>. Відповідаємо швидко, допоможемо з вибором.</p>
+        <div class="b-tag">⚡ Відповідаємо за 15 хвилин</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- PRODUCTS -->
+<section class="section products-section" id="catalog" style="background:var(--bg-warm)">
+  <div class="container">
+    <div class="products-head">
+      <div>
+        <div class="s-label">Популярні товари</div>
+        <h2 class="s-title">Хіти <em>сезону</em></h2>
+      </div>
+      <a href="catalog.html" class="btn btn-outline">Весь каталог →</a>
+    </div>
+    <div class="products-grid">
+
+      <!-- Джип -->
+      <div class="p-card reveal">
+        <div class="p-img-wrap">
+          <div class="p-img" style="background:linear-gradient(145deg,#e8ecf7,#c8d0ea)">
+            <svg viewBox="0 0 240 160" style="width:78%;position:relative;z-index:1">
+              <rect x="20" y="75" width="200" height="55" rx="14" fill="#1B2A4A" opacity=".15"/>
+              <rect x="50" y="40" width="130" height="52" rx="12" fill="#1B2A4A" opacity=".18"/>
+              <rect x="55" y="45" width="55" height="34" rx="6" fill="#64B5F6" opacity=".4"/>
+              <rect x="118" y="45" width="55" height="34" rx="6" fill="#64B5F6" opacity=".35"/>
+              <rect x="185" y="72" width="32" height="34" rx="5" fill="#1B2A4A" opacity=".12"/>
+              <rect x="18" y="82" width="25" height="26" rx="4" fill="#1B2A4A" opacity=".12"/>
+              <circle cx="65" cy="132" r="22" fill="#1B2A4A" opacity=".2"/>
+              <circle cx="65" cy="132" r="12" fill="#FF6B35" opacity=".5"/>
+              <circle cx="175" cy="132" r="22" fill="#1B2A4A" opacity=".2"/>
+              <circle cx="175" cy="132" r="12" fill="#FF6B35" opacity=".5"/>
+              <rect x="95" y="72" width="50" height="5" rx="2" fill="#FF6B35" opacity=".3"/>
+              <line x1="160" y1="38" x2="160" y2="22" stroke="#9aa8c8" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="160" cy="20" r="3" fill="#FF6B35" opacity=".6"/>
+            </svg>
+            <div class="p-overlay">
+              <a href="product.html" class="p-overlay-btn ob-white">
+                <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                Детальніше
+              </a>
+              <button class="p-overlay-btn ob-orange" onclick="addToCartIndex(this,'Джип M 3804EBLR-1',17224,'Bambi Racer')">
+                <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                В кошик
+              </button>
+            </div>
+          </div>
+          <span class="p-badge badge-hot">🔥 Хіт</span>
+          <button class="p-wish" onclick="toggleWishIndex(this,'Джип M 3804EBLR-1',17224)">
+            <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </button>
+        </div>
+        <div class="p-body">
+          <div class="p-brand">Bambi Racer</div>
+          <div class="p-name">Джип M 3804EBLR — 4 мотори 45W</div>
+          <div class="p-specs">
+            <span class="p-spec"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>3–8 р.</span>
+            <span class="p-spec"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>12V</span>
+            <span class="p-spec"><svg viewBox="0 0 24 24"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>2.4G</span>
+            <span class="p-spec">Шкіра</span>
+          </div>
+          <div class="p-bottom">
+            <div><span class="p-price">17 224 ₴</span></div>
+            <button class="btn-cart" onclick="addToCartIndex(this,'Джип M 3804EBLR-1',17224,'Bambi Racer')">
+              <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Квадроцикл -->
+      <div class="p-card reveal d1">
+        <div class="p-img-wrap">
+          <div class="p-img" style="background:linear-gradient(145deg,#eef0ff,#d6dcff)">
+            <svg viewBox="0 0 240 160" style="width:78%;position:relative;z-index:1">
+              <rect x="50" y="70" width="140" height="45" rx="10" fill="#3B4A8A" opacity=".18"/>
+              <rect x="70" y="42" width="100" height="42" rx="10" fill="#3B4A8A" opacity=".2"/>
+              <rect x="80" y="48" width="40" height="26" rx="5" fill="#90CAF9" opacity=".4"/>
+              <rect x="128" y="48" width="30" height="26" rx="5" fill="#90CAF9" opacity=".35"/>
+              <circle cx="68" cy="120" r="24" fill="#2d4270" opacity=".2"/>
+              <circle cx="68" cy="120" r="13" fill="#FF6B35" opacity=".4"/>
+              <circle cx="172" cy="120" r="24" fill="#2d4270" opacity=".2"/>
+              <circle cx="172" cy="120" r="13" fill="#FF6B35" opacity=".4"/>
+              <rect x="30" y="80" width="18" height="28" rx="4" fill="#2d4270" opacity=".15"/>
+              <rect x="192" y="80" width="18" height="28" rx="4" fill="#2d4270" opacity=".15"/>
+            </svg>
+            <div class="p-overlay">
+              <a href="product.html" class="p-overlay-btn ob-white"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Детальніше</a>
+              <button class="p-overlay-btn ob-orange" onclick="addToCartIndex(this,'Квадроцикл M 4795EBLR',12210,'Bambi Racer')"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>В кошик</button>
+            </div>
+          </div>
+          <span class="p-badge badge-new">✨ Новинка</span>
+          <button class="p-wish" onclick="toggleWishIndex(this,'Квадроцикл M 4795EBLR',12210)"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
+        </div>
+        <div class="p-body">
+          <div class="p-brand">Bambi Racer</div>
+          <div class="p-name">Квадроцикл M 4795EBLR — EVA колеса</div>
+          <div class="p-specs">
+            <span class="p-spec"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>3–8 р.</span>
+            <span class="p-spec"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>12V</span>
+            <span class="p-spec">EVA</span>
+          </div>
+          <div class="p-bottom">
+            <div><span class="p-price">12 210 ₴</span></div>
+            <button class="btn-cart" onclick="addToCartIndex(this,'Квадроцикл M 4795EBLR',12210,'Bambi Racer')"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Трактор -->
+      <div class="p-card reveal d2">
+        <div class="p-img-wrap">
+          <div class="p-img" style="background:linear-gradient(145deg,#edfff5,#d5f5e5)">
+            <svg viewBox="0 0 240 160" style="width:78%;position:relative;z-index:1">
+              <rect x="85" y="65" width="130" height="50" rx="10" fill="#2E7D32" opacity=".2"/>
+              <rect x="90" y="38" width="75" height="40" rx="9" fill="#2E7D32" opacity=".22"/>
+              <rect x="96" y="44" width="35" height="26" rx="5" fill="#A5D6A7" opacity=".5"/>
+              <circle cx="110" cy="122" r="28" fill="#1B5E20" opacity=".2"/>
+              <circle cx="110" cy="122" r="16" fill="#27AE60" opacity=".4"/>
+              <circle cx="200" cy="126" r="18" fill="#1B5E20" opacity=".18"/>
+              <circle cx="200" cy="126" r="10" fill="#27AE60" opacity=".3"/>
+              <rect x="20" y="85" width="65" height="35" rx="8" fill="#2E7D32" opacity=".15"/>
+              <rect x="25" y="90" width="20" height="25" rx="4" fill="#A5D6A7" opacity=".35"/>
+              <rect x="170" y="105" width="38" height="10" rx="3" fill="#1B5E20" opacity=".15"/>
+            </svg>
+            <div class="p-overlay">
+              <a href="product.html" class="p-overlay-btn ob-white"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Детальніше</a>
+              <button class="p-overlay-btn ob-orange" onclick="addToCartIndex(this,'Трактор M 4419EBLR',10231,'Bambi Racer')"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>В кошик</button>
+            </div>
+          </div>
+          <span class="p-badge badge-sale">−15%</span>
+          <button class="p-wish liked" onclick="toggleWishIndex(this,'Трактор M 4419EBLR',10231)"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
+        </div>
+        <div class="p-body">
+          <div class="p-brand">Bambi Racer</div>
+          <div class="p-name">Трактор M 4419EBLR з причепом</div>
+          <div class="p-specs">
+            <span class="p-spec"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>2–7 р.</span>
+            <span class="p-spec"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>12V</span>
+            <span class="p-spec">Причеп</span>
+          </div>
+          <div class="p-bottom">
+            <div><span class="p-price">10 231 ₴</span><span class="p-price-old">12 037 ₴</span></div>
+            <button class="btn-cart" onclick="addToCartIndex(this,'Трактор M 4419EBLR',10231,'Bambi Racer')"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Мотоцикл -->
+      <div class="p-card reveal d3">
+        <div class="p-img-wrap">
+          <div class="p-img" style="background:linear-gradient(145deg,#fff8e1,#ffebb0)">
+            <svg viewBox="0 0 240 160" style="width:72%;position:relative;z-index:1">
+              <ellipse cx="120" cy="118" rx="80" ry="11" fill="#1B2A4A" opacity=".07"/>
+              <circle cx="65" cy="108" r="26" fill="#1B2A4A" opacity=".18"/>
+              <circle cx="65" cy="108" r="14" fill="#FF6B35" opacity=".35"/>
+              <circle cx="175" cy="108" r="26" fill="#1B2A4A" opacity=".18"/>
+              <circle cx="175" cy="108" r="14" fill="#FF6B35" opacity=".35"/>
+              <path d="M65 85 Q90 52 140 56 L170 85 Q145 90 110 88 Z" fill="#1B2A4A" opacity=".18"/>
+              <rect x="100" y="50" width="38" height="20" rx="5" fill="#90CAF9" opacity=".4"/>
+              <path d="M140 60 L168 72 L163 86 L133 80 Z" fill="#1B2A4A" opacity=".14"/>
+              <rect x="58" y="74" width="11" height="32" rx="3" fill="#1B2A4A" opacity=".14"/>
+              <rect x="95" y="84" width="26" height="6" rx="3" fill="#FF6B35" opacity=".25"/>
+            </svg>
+            <div class="p-overlay">
+              <a href="product.html" class="p-overlay-btn ob-white"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Детальніше</a>
+              <button class="p-overlay-btn ob-orange" onclick="addToCartIndex(this,'Мотоцикл M 4274EL',8114,'Bambi Racer')"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>В кошик</button>
+            </div>
+          </div>
+          <span class="p-badge badge-hot">🔥 Хіт</span>
+          <button class="p-wish" onclick="toggleWishIndex(this,'Мотоцикл M 4274EL',8114)"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
+        </div>
+        <div class="p-body">
+          <div class="p-brand">Bambi Racer</div>
+          <div class="p-name">Мотоцикл M 4274EL — шкіра, EVA</div>
+          <div class="p-specs">
+            <span class="p-spec"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>3–8 р.</span>
+            <span class="p-spec"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>12V</span>
+            <span class="p-spec">MP3</span>
+          </div>
+          <div class="p-bottom">
+            <div><span class="p-price">8 114 ₴</span></div>
+            <button class="btn-cart" onclick="addToCartIndex(this,'Мотоцикл M 4274EL',8114,'Bambi Racer')"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- AGE -->
+<section class="section" style="background:var(--bg)">
+  <div class="container">
+    <div style="text-align:center;max-width:580px;margin:0 auto 48px">
+      <div class="s-label">Підбір по віку</div>
+      <h2 class="s-title">Знайди <em>ідеальний</em> варіант</h2>
+      <p class="s-desc" style="margin:0 auto">Кожна вікова група — окремий підбір моделей з урахуванням ваги, швидкості та безпеки</p>
+    </div>
+    <div class="age-grid">
+
+      <a href="catalog.html" class="age-card reveal">
+        <div class="age-emoji-wrap" style="background:linear-gradient(135deg,#FFE4D6,#ffc9a8)">
+          <svg viewBox="0 0 80 60" style="width:72px;height:54px">
+            <rect x="8" y="18" width="64" height="22" rx="8" fill="#FF6B35" opacity=".3"/>
+            <rect x="18" y="8" width="42" height="18" rx="6" fill="#FF6B35" opacity=".35"/>
+            <rect x="22" y="11" width="16" height="11" rx="3" fill="#90CAF9" opacity=".6"/>
+            <rect x="41" y="11" width="14" height="11" rx="3" fill="#90CAF9" opacity=".5"/>
+            <circle cx="20" cy="42" r="9" fill="#1B2A4A" opacity=".25"/>
+            <circle cx="20" cy="42" r="5" fill="#FF6B35" opacity=".6"/>
+            <circle cx="60" cy="42" r="9" fill="#1B2A4A" opacity=".25"/>
+            <circle cx="60" cy="42" r="5" fill="#FF6B35" opacity=".6"/>
+            <line x1="72" y1="22" x2="72" y2="15" stroke="#9ca3af" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="age-range">1 – 3 роки</div>
+        <p class="age-sub">Каталки та перші<br>електромобілі</p>
+        <div class="age-feats">
+          <span>6V акумулятор</span>
+          <span>Батьківська ручка</span>
+          <span>Повільна швидкість</span>
+        </div>
+        <div class="age-count">14 моделей</div>
+        <div class="age-link">Переглянути <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+      </a>
+
+      <a href="catalog.html" class="age-card reveal d1" style="border-color:rgba(27,42,74,.1)">
+        <div class="age-emoji-wrap" style="background:linear-gradient(135deg,#E8EEFF,#c8d4ff)">
+          <svg viewBox="0 0 80 60" style="width:72px;height:54px">
+            <rect x="5" y="20" width="70" height="24" rx="9" fill="#1B2A4A" opacity=".2"/>
+            <rect x="14" y="8" width="46" height="20" rx="7" fill="#1B2A4A" opacity=".22"/>
+            <rect x="18" y="11" width="18" height="13" rx="3" fill="#90CAF9" opacity=".5"/>
+            <rect x="38" y="11" width="16" height="13" rx="3" fill="#90CAF9" opacity=".45"/>
+            <rect x="64" y="21" width="12" height="16" rx="3" fill="#1B2A4A" opacity=".12"/>
+            <circle cx="19" cy="46" r="10" fill="#2d4270" opacity=".22"/>
+            <circle cx="19" cy="46" r="5" fill="#FF6B35" opacity=".5"/>
+            <circle cx="61" cy="46" r="10" fill="#2d4270" opacity=".22"/>
+            <circle cx="61" cy="46" r="5" fill="#FF6B35" opacity=".5"/>
+          </svg>
+        </div>
+        <div class="age-range" style="color:var(--navy-light)">3 – 6 років</div>
+        <p class="age-sub">Джипи, квадроцикли,<br>мотоцикли</p>
+        <div class="age-feats">
+          <span>12V акумулятор</span>
+          <span>Пульт 2.4G</span>
+          <span>EVA колеса</span>
+        </div>
+        <div class="age-count" style="color:var(--navy-light)">28 моделей</div>
+        <div class="age-link" style="color:var(--navy)">Переглянути <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+      </a>
+
+      <a href="catalog.html" class="age-card reveal d2" style="border-color:rgba(39,174,96,.12)">
+        <div class="age-emoji-wrap" style="background:linear-gradient(135deg,#E0F8EC,#b8f0d0)">
+          <svg viewBox="0 0 80 60" style="width:72px;height:54px">
+            <rect x="4" y="18" width="72" height="26" rx="10" fill="#1B5E20" opacity=".18"/>
+            <rect x="12" y="6" width="52" height="22" rx="8" fill="#1B5E20" opacity=".2"/>
+            <rect x="16" y="9" width="22" height="14" rx="4" fill="#A5D6A7" opacity=".5"/>
+            <rect x="42" y="9" width="18" height="14" rx="4" fill="#A5D6A7" opacity=".45"/>
+            <rect x="66" y="18" width="12" height="18" rx="3" fill="#1B5E20" opacity=".12"/>
+            <rect x="2" y="24" width="8" height="14" rx="2" fill="#1B5E20" opacity=".12"/>
+            <circle cx="18" cy="46" r="11" fill="#1B5E20" opacity=".2"/>
+            <circle cx="18" cy="46" r="6" fill="#27AE60" opacity=".5"/>
+            <circle cx="62" cy="46" r="11" fill="#1B5E20" opacity=".2"/>
+            <circle cx="62" cy="46" r="6" fill="#27AE60" opacity=".5"/>
+          </svg>
+        </div>
+        <div class="age-range" style="color:var(--green)">6 – 10 років</div>
+        <p class="age-sub">Потужні моделі 24V<br>для старших</p>
+        <div class="age-feats">
+          <span>24V акумулятор</span>
+          <span>4 мотори 4WD</span>
+          <span>До 8 км/год</span>
+        </div>
+        <div class="age-count" style="color:var(--green)">12 моделей</div>
+        <div class="age-link" style="color:var(--green)">Переглянути <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+      </a>
+
+    </div>
+
+    <!-- CTA калькулятор -->
+    <div style="text-align:center;margin-top:36px;padding:28px;background:linear-gradient(135deg,var(--navy),var(--navy-light));border-radius:var(--r-lg);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px">
+      <div style="text-align:left">
+        <div style="font-family:'Nunito',sans-serif;font-weight:800;font-size:18px;color:white;margin-bottom:4px">Не знаєш що обрати?</div>
+        <div style="font-size:13px;color:rgba(255,255,255,.65)">Пройди 3-хвилинний калькулятор підбору — підберемо ідеальну модель</div>
+      </div>
+      <a href="calculator.html" class="btn btn-primary" style="font-size:14px;padding:13px 24px;flex-shrink:0">
+        <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:white;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Підібрати за 3 хвилини
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- REVIEWS -->
+<section class="section reviews-section" id="reviews" style="background:var(--bg-soft);scroll-margin-top:90px">
+  <div class="container">
+    <div class="reviews-top">
+      <div>
+        <div class="s-label">Відгуки покупців</div>
+        <h2 class="s-title">Що кажуть <em>батьки</em></h2>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px">
+        <div class="rating-big">4.9</div>
+        <div>
+          <div class="stars-row">
+            <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <div class="rating-ct">127 відгуків</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grid відгуків 2 ряди по 4 -->
+    <div class="reviews-grid">
+
+      <div class="r-card">
+        <div class="r-head">
+          <div class="r-avatar" style="background:linear-gradient(135deg,#FF6B35,#ff9a6c)">О</div>
+          <div><div class="r-name">Олена Савченко</div><div class="r-loc">Київ</div></div>
+          <div class="r-stars-sm" style="margin-left:auto">
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+        </div>
+        <p class="r-text">Замовили джип синові на 4 роки. Якість відмінна — шкіряне сидіння, EVA колеса, пульт. Доставили за 2 дні. Дитина в захваті!</p>
+        <div class="r-product"><div style="font-size:20px">🚙</div><div class="r-product-name">Джип M 3804EBLR</div></div>
+      </div>
+
+      <div class="r-card">
+        <div class="r-head">
+          <div class="r-avatar" style="background:linear-gradient(135deg,#1B2A4A,#2d4270)">А</div>
+          <div><div class="r-name">Андрій Коваленко</div><div class="r-loc">Харків</div></div>
+          <div class="r-stars-sm" style="margin-left:auto">
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+        </div>
+        <p class="r-text">Брали квадроцикл доньці. Оплатили частинами ПриватБанк — дуже зручно. Менеджер відповів швидко. Товар прийшов добре запакованим!</p>
+        <div class="r-product"><div style="font-size:20px">🏎️</div><div class="r-product-name">Квадроцикл M 4795EBLR</div></div>
+      </div>
+
+      <div class="r-card">
+        <div class="r-head">
+          <div class="r-avatar" style="background:linear-gradient(135deg,#ec407a,#f48fb1)">М</div>
+          <div><div class="r-name">Марія Ткаченко</div><div class="r-loc">Одеса</div></div>
+          <div class="r-stars-sm" style="margin-left:auto">
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+        </div>
+        <p class="r-text">Скористалась Пакунком малюка — все оформили без проблем. Менеджер пояснив покроково. Електромобіль гарний, дитина дуже рада!</p>
+        <div class="r-product"><div style="font-size:20px">🚗</div><div class="r-product-name">Машина M 4140EBLR</div></div>
+      </div>
+
+      <div class="r-card">
+        <div class="r-head">
+          <div class="r-avatar" style="background:linear-gradient(135deg,#27AE60,#52d98a)">Д</div>
+          <div><div class="r-name">Дмитро Мельник</div><div class="r-loc">Львів</div></div>
+          <div class="r-stars-sm" style="margin-left:auto">
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+        </div>
+        <p class="r-text">Другий раз купую в KidsRide. Трактор відпрацював 1.5 роки без проблем. Тепер взяв мотоцикл. Якість стабільна, ціни чесні!</p>
+        <div class="r-product"><div style="font-size:20px">🏍️</div><div class="r-product-name">Мотоцикл M 4274EL</div></div>
+      </div>
+
+      <div class="r-card">
+        <div class="r-head">
+          <div class="r-avatar" style="background:linear-gradient(135deg,#9C27B0,#ce93d8)">І</div>
+          <div><div class="r-name">Ірина Бондаренко</div><div class="r-loc">Дніпро</div></div>
+          <div class="r-stars-sm" style="margin-left:auto">
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+        </div>
+        <p class="r-text">Взяли PROF1 SPORT 24V для 7-річного сина. Їздить по двору і траві — просто бомба! Дуже задоволені якістю та швидкою доставкою.</p>
+        <div class="r-product"><div style="font-size:20px">🚙</div><div class="r-product-name">PROF1 SPORT 24V</div></div>
+      </div>
+
+      <div class="r-card">
+        <div class="r-head">
+          <div class="r-avatar" style="background:linear-gradient(135deg,#F59E0B,#fcd34d)">В</div>
+          <div><div class="r-name">Василь Шевченко</div><div class="r-loc">Вінниця</div></div>
+          <div class="r-stars-sm" style="margin-left:auto">
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+        </div>
+        <p class="r-text">Трактор з причепом — просто хіт! Дочка 4 роки возить іграшки і в захваті. Причеп від'єднується — дуже зручно. Рекомендую!</p>
+        <div class="r-product"><div style="font-size:20px">🚜</div><div class="r-product-name">Трактор M 4419EBLR</div></div>
+      </div>
+
+      <div class="r-card">
+        <div class="r-head">
+          <div class="r-avatar" style="background:linear-gradient(135deg,#2196F3,#90CAF9)">Н</div>
+          <div><div class="r-name">Наталія Кравець</div><div class="r-loc">Запоріжжя</div></div>
+          <div class="r-stars-sm" style="margin-left:auto">
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+        </div>
+        <p class="r-text">Замовила мотоцикл через держпідтримку 7000 грн. Менеджер дуже допоміг з оформленням. Syn zadovolenyy, katayet'sya vіd ranku do vechora!</p>
+        <div class="r-product"><div style="font-size:20px">🏍️</div><div class="r-product-name">Мотоцикл M 4274EL</div></div>
+      </div>
+
+      <div class="r-card">
+        <div class="r-head">
+          <div class="r-avatar" style="background:linear-gradient(135deg,#e53935,#ff8a80)">С</div>
+          <div><div class="r-name">Сергій Романенко</div><div class="r-loc">Полтава</div></div>
+          <div class="r-stars-sm" style="margin-left:auto">
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+        </div>
+        <p class="r-text">Відмінний магазин! Швидко відповіли, допомогли з вибором. Доставка за день! Джип виглядає дорого і солідно. Дуже задоволений покупкою.</p>
+        <div class="r-product"><div style="font-size:20px">🚙</div><div class="r-product-name">Джип M 3804EBLR</div></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- DELIVERY & PAYMENT -->
+<section class="section delivery-section" id="delivery-section">
+  <div class="container">
+    <div class="delivery-grid">
+      <div>
+        <div class="d-label">Доставка та оплата</div>
+        <h2 class="d-title">Зручно <em>замовити</em>,<br>швидко отримати</h2>
+        <p class="d-desc">Доставляємо Новою Поштою по всій Україні. Приймаємо всі зручні способи оплати, включно з державними програмами підтримки.</p>
+        <div class="d-chips">
+          <div class="d-chip"><svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg> Нова Пошта</div>
+          <div class="d-chip"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> По всій Україні</div>
+          <div class="d-chip"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 1–3 дні</div>
+        </div>
+      </div>
+      <div>
+        <div style="color:rgba(255,255,255,.4);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;margin-bottom:16px">Способи оплати</div>
+        <div class="pay-list">
+          <div class="pay-item"><div class="pay-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg></div><div><div class="pay-name">Рахунок ФОП</div><div class="pay-sub">Повна оплата на розрахунковий рахунок</div></div></div>
+          <div class="pay-item"><div class="pay-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div><div class="pay-name">Часткова передоплата</div><div class="pay-sub">Умови узгоджуються з менеджером</div></div></div>
+          <div class="pay-item"><div class="pay-icon"><svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div><div><div class="pay-name">Частинами від ПриватБанк</div><div class="pay-sub">До 12 місяців без переплат</div></div><div class="pay-tag">Популярне</div></div>
+          <div class="pay-item"><div class="pay-icon"><svg viewBox="0 0 24 24"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div><div><div class="pay-name">Пакунок малюка</div><div class="pay-sub">Державна підтримка новонароджених</div></div></div>
+          <div class="pay-item"><div class="pay-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div><div class="pay-name">7000 грн держпідтримка</div><div class="pay-sub">Для дітей до 1 року</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WARRANTY -->
+<section class="section warranty-section" id="warranty-section">
+  <div class="container">
+    <div class="warranty-grid">
+      <div class="warranty-vis">
+        <div class="w-big"><span>12</span></div>
+        <div class="w-sub">місяців гарантії</div>
+        <div class="w-shield">
+          <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+      </div>
+      <div>
+        <div class="s-label">Гарантія та сервіс</div>
+        <h2 class="s-title">Купуй з <em>впевненістю</em></h2>
+        <p class="s-desc" style="margin-bottom:32px">Ми стоїмо за якість кожного товару і готові допомогти в будь-якій ситуації.</p>
+        <div class="w-points">
+          <div class="w-point reveal"><div class="w-pt-icon"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div><div><div class="w-pt-title">Гарантійне обслуговування</div><p class="w-pt-text">12 місяців гарантії. Безкоштовний ремонт або заміна при виробничому дефекті.</p></div></div>
+          <div class="w-point reveal d1"><div class="w-pt-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></div><div><div class="w-pt-title">Документи та сертифікати</div><p class="w-pt-text">Всі товари сертифіковані. Надаємо гарантійний талон та фіскальний чек.</p></div></div>
+          <div class="w-point reveal d2"><div class="w-pt-icon"><svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.57"/></svg></div><div><div class="w-pt-title">Повернення та обмін</div><p class="w-pt-text">14 днів на повернення товару. Швидке вирішення будь-яких питань.</p></div></div>
+          <div class="w-point reveal d3"><div class="w-pt-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><div><div class="w-pt-title">Сервіс після гарантії</div><p class="w-pt-text">Запчастини та платний ремонт після закінчення гарантійного терміну.</p></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="section faq-section">
+  <div class="container">
+    <div class="faq-layout">
+      <div>
+        <div class="s-label">Відповіді</div>
+        <h2 class="s-title">Часті <em>запитання</em></h2>
+        <p class="s-desc" style="margin-bottom:32px">Не знайшли відповідь? Напишіть нам — відповімо швидко.</p>
+        <a href="auth.html" class="btn btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          Написати нам
+        </a>
+      </div>
+      <div>
+        <div class="faq-item">
+          <button class="faq-q open" onclick="toggleFaq(this)">
+            Як відбувається доставка?
+            <div class="faq-ico"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+          </button>
+          <div class="faq-a open">Доставляємо Новою Поштою по всій Україні. Після підтвердження відправляємо протягом 1 робочого дня. Термін 1–3 дні залежно від регіону. Номер ТТН надсилаємо в SMS або Telegram.</div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">Яка гарантія на електромобілі?<div class="faq-ico"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div></button>
+          <div class="faq-a">12 місяців офіційної гарантії. При виробничому дефекті — безкоштовний ремонт або заміна. Не поширюється на механічні пошкодження та неправильну експлуатацію.</div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">Як оплатити частинами ПриватБанк?<div class="faq-ico"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div></button>
+          <div class="faq-a">Оформлюємо при замовленні. Потрібна картка ПриватБанку. Розстрочка до 12 місяців. Менеджер надішле посилання або допоможе оформити через додаток.</div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">Що таке «Пакунок малюка»?<div class="faq-ico"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div></button>
+          <div class="faq-a">Державна допомога при народженні дитини у вигляді сертифіката. Ми приймаємо його як оплату. Зв'яжіться з менеджером — пояснимо покрокову процедуру.</div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">Як вибрати електромобіль за віком?<div class="faq-ico"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div></button>
+          <div class="faq-a">1–3 роки: каталки та легкі машинки з батьківською ручкою. 3–6 років: джипи та квадроцикли 12V. 6–10 років: потужніші моделі 24V. Скористайтесь нашим калькулятором підбору.</div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">Скільки часу заряджається акумулятор?<div class="faq-ico"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div></button>
+          <div class="faq-a">12V акумулятор — 8–12 годин, 24V — до 12 годин. Рекомендуємо заряджати вночі. Ресурс акумулятора — 2–3 роки при правильній експлуатації.</div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">Чи можна повернути товар?<div class="faq-ico"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div></button>
+          <div class="faq-a">Так, протягом 14 днів якщо товар не використовувався і збережена оригінальна упаковка. Зв'яжіться з нами — організуємо повернення через Нову Пошту.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- INSTAGRAM -->
+<section class="section-sm ig-section">
+  <div class="container">
+    <div class="ig-head">
+      <div class="s-label" style="justify-content:center">Ми в Instagram</div>
+      <h2 class="s-title" style="text-align:center">@<em>kidsride.ua</em></h2>
+      <p class="s-desc" style="text-align:center;margin:8px auto 0">Слідкуй за новинками, акціями та реальними відео</p>
+    </div>
+    <div class="ig-grid">
+      <div class="ig-post" style="background:linear-gradient(145deg,#e8ecf7,#d0d8f0)"><div class="ig-post-ov"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> 124</div></div>
+      <div class="ig-post" style="background:linear-gradient(145deg,#eef0ff,#d6dcff)"><div class="ig-post-ov"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> 89</div></div>
+      <div class="ig-post" style="background:linear-gradient(145deg,#edfff5,#d5f5e5)"><div class="ig-post-ov"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> 203</div></div>
+      <div class="ig-post" style="background:linear-gradient(145deg,#fff8e1,#ffebb0)"><div class="ig-post-ov"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> 156</div></div>
+      <div class="ig-post" style="background:linear-gradient(145deg,#fce4ec,#f8bbd0)"><div class="ig-post-ov"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> 91</div></div>
+      <div class="ig-post" style="background:linear-gradient(145deg,#e8f5e9,#c8e6c9)"><div class="ig-post-ov"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> 178</div></div>
+    </div>
+    <div class="ig-cta">
+      <a href="https://www.instagram.com/kidsride.ua/" target="_blank" class="btn btn-outline" style="font-size:15px;padding:13px 32px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+        Підписатись на Instagram
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer id="contacts-section">
+  <div class="f-grid">
+    <div>
+      <a href="/" class="logo footer-logo" style="margin-bottom:16px;display:inline-flex">
+        <div class="logo-mark"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect x="9" y="11" width="14" height="10" rx="2"/><circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/></svg></div>
+        Kids<span style="color:var(--orange)">Ride</span>
+      </a>
+      <p class="f-brand-desc">Преміум дитячі електромобілі з доставкою по всій Україні. Гарантія 12 місяців, офіційний сервіс.</p>
+      <div class="f-socials">
+        <a href="https://www.instagram.com/kidsride.ua/" class="f-soc"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+        <a href="#" class="f-soc"><svg viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
+        <a href="#" class="f-soc"><svg viewBox="0 0 24 24"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.95C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.95C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.95A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02"/></svg></a>
+        <a href="#" class="f-soc"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></a>
+      </div>
+    </div>
+    <div>
+      <div class="f-col-t">Каталог</div>
+      <div class="f-links">
+        <a href="catalog.html">Всі електромобілі</a>
+        <a href="#">Джипи</a>
+        <a href="#">Квадроцикли</a>
+        <a href="#">Мотоцикли</a>
+        <a href="#">Трактори</a>
+        <a href="#">Каталки-толокари</a>
+        <a href="#">Запчастини</a>
+      </div>
+    </div>
+    <div>
+      <div class="f-col-t">Покупцям</div>
+      <div class="f-links">
+        <a href="#">Доставка та оплата</a>
+        <a href="#">Гарантія та сервіс</a>
+        <a href="#">Підбір за віком</a>
+        <a href="#">Калькулятор підбору</a>
+        <a href="#">Повернення</a>
+        <a href="#">FAQ</a>
+      </div>
+    </div>
+    <div>
+      <div class="f-col-t">Контакти</div>
+      <div class="f-links">
+        <a href="tel:+380XXXXXXXXX">+380 XX XXX XX XX</a>
+        <a href="#">Telegram</a>
+        <a href="https://www.instagram.com/kidsride.ua/">Instagram</a>
+        <a href="#">Пн–Нд: 9:00–21:00</a>
+      </div>
+      <div style="margin-top:24px">
+        <a href="auth.html" class="btn btn-primary" style="width:100%;justify-content:center;font-size:13px">Зв'язатись з нами</a>
+      </div>
+    </div>
+  </div>
+  <div class="f-bot">
+    <div class="f-copy">© 2024 KidsRide. Всі права захищено.</div>
+    <div class="f-bot-links">
+      <a href="#">Політика конфіденційності</a>
+      <a href="#">Публічна оферта</a>
+    </div>
+  </div>
+</footer>
+
+<!-- FLOATING BUBBLE -->
+<div class="float-wrap">
+  <div class="float-items" id="fItems">
+    <a href="https://t.me/kids_ride" target="_blank" class="fl-item"><span class="fl-label">Telegram</span><span class="fl-icon fl-tg"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></span></a>
+    <a href="https://www.instagram.com/kidsride.ua/" class="fl-item"><span class="fl-label">Instagram</span><span class="fl-icon fl-ig"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></span></a>
+    <a href="tel:+380XXXXXXXXX" class="fl-item"><span class="fl-label">Подзвонити</span><span class="fl-icon fl-ph"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span></a>
+  </div>
+  <button class="float-main" id="fBtn" onclick="toggleFloat()">
+    <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+  </button>
+</div>
+
+<script>
+
+/* Swiper Mini (fade only) — fallback if CDN unavailable */
+if(typeof Swiper === 'undefined') {
+  class Swiper {
+    constructor(el, opts={}) {
+      this.el = typeof el==='string' ? document.querySelector(el) : el;
+      if(!this.el) return;
+      this.opts = opts;
+      this.wrapper = this.el.querySelector('.swiper-wrapper');
+      this.slides = this.el.querySelectorAll('.swiper-slide');
+      this.realIndex = 0;
+      this.total = this.slides.length;
+      this._init();
+    }
+    _init() {
+      this.slides.forEach((s,i) => {
+        s.style.cssText = 'position:absolute;inset:0;opacity:' + (i===0?'1':'0') + ';transition:opacity 0.9s ease;pointer-events:' + (i===0?'auto':'none');
+      });
+      if(this.wrapper) this.wrapper.style.cssText = 'position:relative;height:100%';
+      this.opts.on?.slideChange?.call(this);
+      if(this.opts.autoplay) this._startAuto();
+      if(this.opts.pagination?.el) this._initPag();
+    }
+    _goTo(n) {
+      const prev = this.realIndex;
+      this.realIndex = ((n % this.total) + this.total) % this.total;
+      this.slides[prev].style.opacity = '0';
+      this.slides[prev].style.pointerEvents = 'none';
+      this.slides[this.realIndex].style.opacity = '1';
+      this.slides[this.realIndex].style.pointerEvents = 'auto';
+      this.opts.on?.slideChange?.call(this);
+      if(this.opts.pagination?.el) this._updatePag();
+    }
+    _startAuto() {
+      const delay = this.opts.autoplay?.delay || 5000;
+      this._timer = setInterval(() => this._goTo(this.realIndex + 1), delay);
+    }
+    slideNext() { this._goTo(this.realIndex + 1); if(this._timer){clearInterval(this._timer);this._startAuto();} }
+    slidePrev() { this._goTo(this.realIndex - 1); if(this._timer){clearInterval(this._timer);this._startAuto();} }
+    slideToLoop(n) { this._goTo(n); }
+    _initPag() {
+      const pEl = document.querySelector(this.opts.pagination.el);
+      if(!pEl) return;
+      pEl.querySelectorAll('.hp-dot').forEach((d,i) => d.addEventListener('click', () => this._goTo(i)));
+    }
+    _updatePag() {
+      document.querySelectorAll('.hp-dot').forEach((d,i) => d.classList.toggle('active', i===this.realIndex));
+    }
+  }
+  window.Swiper = Swiper;
+}
+
+</script>
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js" onerror="console.log('CDN unavailable, using fallback Swiper')"></script>
+<script>
+// Custom pagination — спочатку готуємо DOM, бо Swiper може викликати slideChange під час init
+const pag = document.getElementById('heroPag');
+function updatePag(idx) {
+  if (!pag) return;
+  pag.querySelectorAll('.hp-dot').forEach((d, i) => d.classList.toggle('active', i === idx));
+}
+if (pag) {
+  ['', '', ''].forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'hp-dot' + (i === 0 ? ' active' : '');
+    d.dataset.index = i;
+    pag.appendChild(d);
+  });
+}
+
+// Hero Swiper
+let heroIdx = 0;
+const heroSwiper = new Swiper('.swiper-hero', {
+  loop: true,
+  autoplay: { delay: 5500, disableOnInteraction: false },
+  speed: 900,
+  effect: 'fade',
+  fadeEffect: { crossFade: true },
+  on: {
+    slideChange() { updatePag(this.realIndex); }
+  }
+});
+
+// Wire pagination clicks after Swiper exists
+if (pag) {
+  pag.querySelectorAll('.hp-dot').forEach((d) => {
+    d.addEventListener('click', () => heroSwiper.slideToLoop(Number(d.dataset.index)));
+  });
+}
+
+document.getElementById('heroPrev').onclick = () => heroSwiper.slidePrev();
+document.getElementById('heroNext').onclick = () => heroSwiper.slideNext();
+document.getElementById('heroPrev').onmouseenter = function(){ this.style.background = 'rgba(255,255,255,.22)'; }
+document.getElementById('heroPrev').onmouseleave = function(){ this.style.background = 'rgba(255,255,255,.12)'; }
+document.getElementById('heroNext').onmouseenter = function(){ this.style.background = 'rgba(255,255,255,.22)'; }
+document.getElementById('heroNext').onmouseleave = function(){ this.style.background = 'rgba(255,255,255,.12)'; }
+
+// Reviews Swiper
+new Swiper('.swiper-reviews', {
+  slidesPerView: 1, spaceBetween: 24, loop: true,
+  autoplay: { delay: 4500, disableOnInteraction: false },
+  pagination: { el: '.swiper-reviews .swiper-pagination', clickable: true },
+  breakpoints: { 768: { slidesPerView: 2 }, 1024: { slidesPerView: 3 } }
+});
+
+// Header scroll
+window.addEventListener('scroll', () => {
+  document.getElementById('hdr').classList.toggle('scrolled', scrollY > 40);
+});
+
+// Scroll reveal — показуємо одразу якщо вже у viewport
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.05, rootMargin: '0px 0px -20px 0px' });
+
+document.querySelectorAll('.reveal').forEach(el => {
+  // Якщо елемент вже видимий при завантаженні — показати без затримки
+  const rect = el.getBoundingClientRect();
+  if (rect.top < window.innerHeight + 50) {
+    el.classList.add('visible');
+  } else {
+    obs.observe(el);
+  }
+});
+
+// FAQ
+function toggleFaq(btn) {
+  const a = btn.nextElementSibling;
+  const open = btn.classList.contains('open');
+  document.querySelectorAll('.faq-q.open').forEach(q => {
+    q.classList.remove('open'); q.nextElementSibling.classList.remove('open');
+  });
+  if (!open) { btn.classList.add('open'); a.classList.add('open'); }
+}
+
+// Float
+function toggleFloat() {
+  document.getElementById('fBtn').classList.toggle('open');
+  document.getElementById('fItems').classList.toggle('open');
+}
+
+// Cart
+let cartCount = 0;
+function addToCart(btn) {
+  const svg = btn.innerHTML;
+  btn.classList.add('added');
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  cartCount++;
+  const badge = document.getElementById('cartBadge');
+  badge.textContent = cartCount;
+  badge.style.transform = 'scale(1.5)';
+  setTimeout(() => { badge.style.transform = ''; }, 300);
+  setTimeout(() => { btn.classList.remove('added'); btn.innerHTML = svg; }, 1400);
+}
+
+// Wishlist
+function toggleWish(btn) {
+  btn.classList.toggle('liked');
+  btn.style.transform = 'scale(1.3)';
+  setTimeout(() => btn.style.transform = '', 200);
+}
+</script>
+<script src="shared.js"></script>
+
+<!-- SEARCH OVERLAY -->
+<div class="search-overlay" id="searchOverlay" onclick="if(event.target===this)closeSearchOverlay()" role="dialog" aria-modal="true" aria-label="Пошук по сайту">
+  <div class="search-modal">
+    <form class="search-form" onsubmit="return submitSearch(event)" autocomplete="off">
+      <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="searchOverlayInput" placeholder="Шукати електромобіль, бренд, модель…" oninput="renderSearchSuggestions(this.value)" />
+      <span class="search-kbd">ESC</span>
+      <button type="button" class="search-close" onclick="closeSearchOverlay()" aria-label="Закрити пошук">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </form>
+    <div class="search-body">
+      <div class="search-body-label">Популярні моделі</div>
+      <div id="searchSuggestions"></div>
+      <div class="search-empty" id="searchEmpty" style="display:none">
+        Нічого не знайдено за запитом «<strong></strong>».<br>
+        <a href="#" onclick="submitSearch(event)">Шукати в каталозі →</a>
+      </div>
+    </div>
+    <div class="search-foot">
+      <span><kbd>↵</kbd> перейти до каталогу</span>
+      <span><kbd>⌘</kbd> + <kbd>K</kbd> швидкий виклик</span>
+    </div>
+  </div>
+</div>
+
+<!-- MOBILE DRAWER -->
+<div class="mobile-drawer-overlay" id="mobileOverlay" onclick="closeMobileMenu()"></div>
+<div class="mobile-drawer" id="mobileDrawer">
+  <div class="mobile-drawer-head">
+    <div class="mobile-drawer-logo">Kids<span>Ride</span></div>
+    <button class="mobile-drawer-close" onclick="closeMobileMenu()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <a href="index.html" class="active">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Головна
+  </a>
+  <a href="catalog.html">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    Каталог
+  </a>
+  <a href="calculator.html">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    Підбір за віком
+  </a>
+  <a href="compare.html">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    Порівняння
+  </a>
+  <div class="mobile-drawer-divider"></div>
+  <a href="#delivery-section" onclick="closeMobileMenu()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+    Доставка та оплата
+  </a>
+  <a href="#warranty-section" onclick="closeMobileMenu()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    Гарантія та сервіс
+  </a>
+  <a href="#contacts-section" onclick="closeMobileMenu()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+    Контакти
+  </a>
+  <div class="mobile-drawer-divider"></div>
+  <a href="auth.html" style="background:var(--orange);color:white;justify-content:center;font-family:'Nunito',sans-serif;font-weight:700">
+    Увійти в акаунт
+  </a>
+  <div class="mobile-drawer-social">
+    <a href="https://www.instagram.com/kidsride.ua/" target="_blank" title="Instagram">
+      <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+    </a>
+    <a href="https://t.me/kids_ride" target="_blank" title="Telegram">
+      <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </a>
+    <a href="tel:+380XXXXXXXXX" title="Телефон">
+      <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+    </a>
+  </div>
+</div>
+<script>
+
+// Cart + Wishlist functions for index page
+function addToCartIndex(btn, name, price, brand) {
+  let cart = [];
+  try { cart = JSON.parse(localStorage.getItem('kr_cart') || '[]'); } catch{}
+  const existing = cart.find(i => i.name === name);
+  if (existing) { existing.qty = (existing.qty||1) + 1; }
+  else { cart.push({id:'idx-'+Date.now(), name, price, brand, color:'Стандарт', qty:1}); }
+  localStorage.setItem('kr_cart', JSON.stringify(cart));
+
+  // Оновити лічильник
+  const total = cart.reduce((s,i) => s + (i.qty||1), 0);
+  const badge = document.getElementById('cartBadge');
+  if (badge) { badge.textContent = total; badge.style.transform = 'scale(1.5)'; setTimeout(()=>badge.style.transform='',300); }
+
+  // Анімація кнопки
+  const isCartBtn = btn.classList.contains('btn-cart');
+  const origHTML = btn.innerHTML;
+  if (isCartBtn) {
+    btn.style.background = 'var(--green)';
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+    setTimeout(() => { btn.style.background = 'var(--orange)'; btn.innerHTML = origHTML; }, 1400);
+  }
+  showToast('✓ ' + name + ' додано в кошик', 'success');
+}
+
+function toggleWishIndex(btn, name, price) {
+  btn.classList.toggle('liked');
+  btn.style.transform = 'scale(1.3)';
+  setTimeout(() => btn.style.transform = '', 200);
+  let list = [];
+  try { list = JSON.parse(localStorage.getItem('kr_wishlist') || '[]'); } catch{}
+  if (btn.classList.contains('liked')) {
+    list.push({id:'idx-w-'+Date.now(), name, price, addedAt: Date.now()});
+    showToast('❤️ Додано до списку бажань');
+  } else {
+    list = list.filter(i => i.name !== name);
+    showToast('🤍 Видалено зі списку бажань');
+  }
+  localStorage.setItem('kr_wishlist', JSON.stringify(list));
+}
+
+// Mobile drawer
+function showWishlistToastSafe() {
+  if (window.KR && typeof window.KR.toast === 'function') {
+    window.KR.toast('Список бажань скоро з\'явиться 💛', 'info');
+  } else {
+    alert('Список бажань скоро з\'явиться');
+  }
+}
+function toggleMobileMenu() {
+  const burger = document.getElementById('mobileBurger');
+  const drawer = document.getElementById('mobileDrawer');
+  const overlay = document.getElementById('mobileOverlay');
+  burger.classList.toggle('open');
+  drawer.classList.toggle('open');
+  overlay.classList.toggle('open');
+  document.body.style.overflow = drawer.classList.contains('open') ? 'hidden' : '';
+}
+function closeMobileMenu() {
+  document.getElementById('mobileBurger').classList.remove('open');
+  document.getElementById('mobileDrawer').classList.remove('open');
+  document.getElementById('mobileOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+// Close drawer on nav link click (anchor links)
+document.querySelectorAll('.mobile-drawer a[href^="#"]').forEach(a => {
+  a.addEventListener('click', closeMobileMenu);
+});
+
+/* ===== SEARCH OVERLAY ===== */
+const KR_SEARCH_INDEX = [
+  {name:'Джип M 3804EBLR — 4 мотори 45W', emoji:'🚙', cat:'jeep'},
+  {name:'Джип PROF1 SPORT — 24V потужний', emoji:'🚙', cat:'jeep'},
+  {name:'Квадроцикл M 4795EBLR — EVA колеса', emoji:'🏎️', cat:'quad'},
+  {name:'Квадроцикл BAMBI 24V', emoji:'🏎️', cat:'quad'},
+  {name:'Мотоцикл M 4274EL — шкіра, EVA', emoji:'🏍️', cat:'moto'},
+  {name:'Мотоцикл BAMBI Cross', emoji:'🏍️', cat:'moto'},
+  {name:'Машина M 4140EBLR — з відкидним капотом', emoji:'🚗', cat:'car'},
+  {name:'Машина Mercedes-Benz GLE63', emoji:'🚗', cat:'car'},
+  {name:'Трактор M 4419EBLR з причепом', emoji:'🚜', cat:'tractor'},
+  {name:'Трактор BAMBI з ковшем', emoji:'🚜', cat:'tractor'},
+  {name:'Каталка-толокар PROF1', emoji:'🛴', cat:'walker'},
+  {name:'Вантажівка M 4225EBLR', emoji:'🚚', cat:'truck'},
+];
+
+function openSearchOverlay() {
+  document.getElementById('searchOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => {
+    const inp = document.getElementById('searchOverlayInput');
+    inp.focus();
+    renderSearchSuggestions(inp.value);
+  }, 50);
+}
+function closeSearchOverlay() {
+  document.getElementById('searchOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function renderSearchSuggestions(query) {
+  const list = document.getElementById('searchSuggestions');
+  const empty = document.getElementById('searchEmpty');
+  const q = (query || '').trim().toLowerCase();
+  let items;
+  if (!q) {
+    items = KR_SEARCH_INDEX.slice(0, 6);
+  } else {
+    items = KR_SEARCH_INDEX.filter(p => p.name.toLowerCase().includes(q)).slice(0, 8);
+  }
+  list.innerHTML = '';
+  if (items.length === 0) {
+    empty.style.display = 'block';
+    empty.querySelector('strong').textContent = q;
+    return;
+  }
+  empty.style.display = 'none';
+  items.forEach(p => {
+    const a = document.createElement('a');
+    a.href = 'product.html?model=' + encodeURIComponent(p.name);
+    a.className = 'search-sug';
+    a.innerHTML = `<span class="search-sug-emoji">${p.emoji}</span><span class="search-sug-name">${p.name}</span><svg class="search-sug-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>`;
+    list.appendChild(a);
+  });
+}
+function submitSearch(e) {
+  if (e) e.preventDefault();
+  const q = document.getElementById('searchOverlayInput').value.trim();
+  if (!q) return false;
+  window.location.href = 'catalog.html?search=' + encodeURIComponent(q);
+  return false;
+}
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeSearchOverlay();
+  if ((e.key === 'k' || e.key === 'K') && (e.metaKey || e.ctrlKey)) {
+    e.preventDefault();
+    openSearchOverlay();
+  }
+});
+</script>
+</body>
+</html>

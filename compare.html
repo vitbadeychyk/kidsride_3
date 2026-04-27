@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Порівняння товарів — KidsRide</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --orange:#FF6B35;--orange-dark:#e85520;
+  --navy:#1B2A4A;--navy-light:#2d4270;
+  --bg:#fff;--bg-soft:#F8F9FC;--bg-warm:#FFF8F5;
+  --green:#27AE60;--red:#e53935;
+  --text:#1a1a2e;--text-muted:#6b7280;
+  --border:#e8ecf4;
+  --shadow-sm:0 2px 12px rgba(27,42,74,.07);
+  --shadow-md:0 8px 32px rgba(27,42,74,.12);
+  --shadow-lg:0 20px 60px rgba(27,42,74,.16);
+  --r:14px;--r-sm:8px;--r-lg:20px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Manrope',sans-serif;color:var(--text);background:var(--bg-soft)}
+h1,h2,h3{font-family:'Nunito',sans-serif;font-weight:800}
+a{text-decoration:none;color:inherit}
+
+/* HEADER */
+.header{position:fixed;top:0;left:0;right:0;z-index:100;height:64px;padding:0 40px;display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.93);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+.logo{display:flex;align-items:center;gap:10px;font-family:'Nunito',sans-serif;font-weight:900;font-size:22px;color:var(--navy)}
+.logo-mark{width:36px;height:36px;background:var(--orange);border-radius:9px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(255,107,53,.3)}
+.logo-mark svg{width:20px;height:20px;stroke:white;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.logo span{color:var(--orange)}
+nav{display:flex;gap:2px}
+nav a{color:var(--text-muted);font-weight:600;font-size:14px;padding:7px 13px;border-radius:7px;transition:all .2s}
+nav a:hover{color:var(--navy);background:var(--bg-soft)}
+.h-right{display:flex;align-items:center;gap:6px}
+.ic-btn{width:38px;height:38px;border:none;background:none;cursor:pointer;border-radius:9px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);transition:all .2s;position:relative}
+.ic-btn:hover{background:var(--bg-soft);color:var(--navy)}
+.ic-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.badge{position:absolute;top:4px;right:4px;width:17px;height:17px;background:var(--orange);border-radius:50%;font-size:9px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Nunito',sans-serif}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:10px 20px;border-radius:9px;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;border:none;cursor:pointer;transition:all .2s}
+.btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.btn-primary{background:var(--orange);color:#fff;box-shadow:0 4px 14px rgba(255,107,53,.3)}
+.btn-primary:hover{background:var(--orange-dark);transform:translateY(-1px)}
+.btn-outline{background:white;color:var(--navy);border:1.5px solid var(--border)}
+.btn-outline:hover{border-color:var(--orange);color:var(--orange)}
+
+/* BREADCRUMB */
+.breadcrumb{margin-top:64px;background:white;border-bottom:1px solid var(--border);padding:13px 40px;display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted)}
+.breadcrumb a{color:var(--text-muted);transition:color .2s}.breadcrumb a:hover{color:var(--orange)}
+.breadcrumb svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;opacity:.5}
+
+/* PAGE */
+.page{max-width:1200px;margin:0 auto;padding:24px 40px 64px}
+.page-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
+.page-title{font-size:24px;color:var(--navy)}
+.page-title span{color:var(--orange)}
+
+/* COMPARE TABLE */
+.compare-wrap{overflow-x:auto;border-radius:var(--r-lg);border:1.5px solid var(--border);background:white;box-shadow:var(--shadow-sm)}
+.compare-wrap::-webkit-scrollbar{height:6px}
+.compare-wrap::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+table.cmp{width:100%;border-collapse:collapse;min-width:640px}
+
+/* Fixed first column */
+.cmp td:first-child,.cmp th:first-child{
+  width:200px;min-width:160px;
+  background:var(--bg-soft);
+  font-size:13px;font-weight:600;color:var(--text-muted);
+  padding:14px 18px;
+  position:sticky;left:0;z-index:2;
+  border-right:1px solid var(--border);
+}
+.cmp td,.cmp th{
+  padding:14px 20px;
+  border-bottom:1px solid var(--border-light, #f0f2f8);
+  vertical-align:middle;
+  text-align:center;
+  font-size:14px;
+}
+.cmp tr:last-child td{border-bottom:none}
+.cmp tbody tr:hover td{background:rgba(248,249,252,.6)}
+.cmp tbody tr:hover td:first-child{background:var(--bg-soft)}
+
+/* Section rows */
+.cmp tr.section-row td{
+  background:var(--navy);
+  color:white;
+  font-family:'Nunito',sans-serif;
+  font-weight:700;
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:.1em;
+  padding:8px 18px;
+}
+.cmp tr.section-row td:first-child{
+  background:var(--navy);
+  color:rgba(255,255,255,.7);
+  border-right:1px solid rgba(255,255,255,.1);
+}
+
+/* Header row */
+.cmp thead tr th{
+  padding:0;
+  border-bottom:2px solid var(--border);
+  vertical-align:top;
+}
+.cmp thead tr th:first-child{
+  background:var(--bg-soft);
+  border-right:1px solid var(--border);
+  border-bottom:2px solid var(--border);
+  padding:16px 18px;
+  text-align:left;
+  font-size:13px;
+  color:var(--text-muted);
+  font-weight:600;
+  vertical-align:middle;
+}
+
+.prod-header{padding:20px 16px;text-align:center;position:relative}
+.prod-img{aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;border-radius:var(--r-sm);overflow:hidden;margin-bottom:14px;background:var(--bg-soft)}
+.prod-img svg{width:78%}
+.prod-remove{position:absolute;top:12px;right:12px;width:26px;height:26px;border-radius:50%;background:var(--bg-soft);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted);transition:all .2s}
+.prod-remove:hover{background:var(--red-soft,rgba(229,57,53,.1));color:var(--red)}
+.prod-remove svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.prod-brand{font-size:10px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
+.prod-name{font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;color:var(--navy);line-height:1.3;margin-bottom:10px}
+.prod-price{font-family:'Nunito',sans-serif;font-weight:900;font-size:20px;color:var(--navy);margin-bottom:12px}
+.prod-cart{width:100%;padding:10px;border-radius:9px;background:var(--orange);color:white;border:none;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s;box-shadow:0 4px 12px rgba(255,107,53,.3)}
+.prod-cart:hover{background:var(--orange-dark);transform:translateY(-1px)}
+.prod-cart svg{width:14px;height:14px;stroke:white;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* Empty slot */
+.empty-slot{padding:32px 20px;text-align:center;border:2px dashed var(--border);border-radius:var(--r);margin:16px;cursor:pointer;transition:all .2s}
+.empty-slot:hover{border-color:var(--orange);background:rgba(255,107,53,.04)}
+.empty-slot svg{width:32px;height:32px;stroke:var(--text-muted);fill:none;stroke-width:1.5;margin:0 auto 10px;display:block}
+.empty-slot p{font-size:13px;color:var(--text-muted);font-weight:500}
+.empty-slot span{font-size:11px;color:var(--text-light,#9ca3af)}
+
+/* Values */
+.val-yes{color:var(--green);font-weight:700;display:flex;align-items:center;justify-content:center;gap:4px}
+.val-yes svg{width:15px;height:15px;stroke:var(--green);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.val-no{color:var(--text-muted);font-size:18px;letter-spacing:2px}
+.val-highlight{background:rgba(39,174,96,.08);font-weight:700;color:var(--green)}
+.val-price-best{color:var(--green);font-family:'Nunito',sans-serif;font-weight:800}
+.val-price-high{color:var(--text-muted)}
+
+/* Empty state */
+.empty-compare{text-align:center;padding:80px 24px;background:white;border-radius:var(--r-lg);border:1.5px solid var(--border)}
+.empty-compare svg{width:72px;height:72px;stroke:var(--border);fill:none;stroke-width:1.2;margin:0 auto 20px;display:block}
+.empty-compare h3{font-size:20px;color:var(--navy);margin-bottom:8px}
+.empty-compare p{font-size:14px;color:var(--text-muted);margin-bottom:24px}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .header{height:58px;padding:0 16px}
+  nav{display:none}
+  .h-right .btn{display:none}
+  .breadcrumb{margin-top:58px;padding:10px 16px;font-size:11px}
+  .page{padding:16px 16px 64px}
+}
+</style>
+</head>
+<body>
+
+<header class="header" id="hdr">
+  <a href="index.html" class="logo">
+    <div class="logo-mark"><svg viewBox="0 0 24 24"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect x="9" y="11" width="14" height="10" rx="2"/><circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/></svg></div>
+    Kids<span>Ride</span>
+  </a>
+  <nav>
+    <a href="index.html">Головна</a>
+    <a href="catalog.html">Каталог</a>
+    <a href="calculator.html">Підбір</a>
+    <a href="#" style="color:var(--orange)">Порівняння</a>
+  </nav>
+  <div class="h-right">
+    <button class="ic-btn"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
+    <button class="ic-btn" onclick="location.href='cart.html'">
+      <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+      <span class="badge" id="cartBadge">0</span>
+    </button>
+  </div>
+</header>
+
+<div class="breadcrumb">
+  <a href="index.html">Головна</a>
+  <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+  <a href="catalog.html">Каталог</a>
+  <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+  <span style="color:var(--navy);font-weight:600">Порівняння</span>
+</div>
+
+<div class="page">
+  <div class="page-head">
+    <h1 class="page-title">Порівняння <span id="cmpCount"></span></h1>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-outline" onclick="clearAll()">
+        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+        Очистити
+      </button>
+      <a href="catalog.html" class="btn btn-primary">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Додати товар
+      </a>
+    </div>
+  </div>
+
+  <div id="compareContent"></div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+// Demo products for comparison
+const DEMO_PRODUCTS = [
+  {
+    id: 'jeep-1',
+    name: 'Джип M 3804EBLR-1',
+    brand: 'Bambi Racer',
+    price: 17224,
+    img: 'jeep',
+    specs: {
+      'Вік': '3 – 8 років',
+      'Акумулятор': '12V 10A',
+      'Кількість моторів': '4 × 45W',
+      'Швидкість': 'до 5 км/год',
+      'Тип коліс': 'EVA',
+      'Пульт ДК': '2.4G, 30 м',
+      'Шкіряне сидіння': true,
+      'MP3 / USB': true,
+      'Bluetooth': true,
+      'LED фари': true,
+      'Ремінь безпеки': true,
+      'Вага': '17.5 кг',
+      'Час їзди': 'до 1.5 год',
+      'Гарантія': '12 місяців',
+    }
+  },
+  {
+    id: 'quad-1',
+    name: 'Квадроцикл M 4795EBLR-6',
+    brand: 'Bambi Racer',
+    price: 12210,
+    img: 'quad',
+    specs: {
+      'Вік': '3 – 8 років',
+      'Акумулятор': '12V 7A',
+      'Кількість моторів': '2 × 35W',
+      'Швидкість': 'до 4 км/год',
+      'Тип коліс': 'EVA',
+      'Пульт ДК': '2.4G, 25 м',
+      'Шкіряне сидіння': false,
+      'MP3 / USB': true,
+      'Bluetooth': false,
+      'LED фари': true,
+      'Ремінь безпеки': true,
+      'Вага': '13.2 кг',
+      'Час їзди': 'до 1 год',
+      'Гарантія': '12 місяців',
+    }
+  },
+  {
+    id: 'moto-1',
+    name: 'Мотоцикл M 4274EL-8',
+    brand: 'Bambi Racer',
+    price: 8114,
+    img: 'moto',
+    specs: {
+      'Вік': '3 – 8 років',
+      'Акумулятор': '12V 7A',
+      'Кількість моторів': '1 × 35W',
+      'Швидкість': 'до 3 км/год',
+      'Тип коліс': 'EVA',
+      'Пульт ДК': 'Немає',
+      'Шкіряне сидіння': true,
+      'MP3 / USB': true,
+      'Bluetooth': false,
+      'LED фари': false,
+      'Ремінь безпеки': false,
+      'Вага': '10.8 кг',
+      'Час їзди': 'до 1 год',
+      'Гарантія': '12 місяців',
+    }
+  }
+];
+
+const SVG_MAP = {
+  jeep: `<svg viewBox="0 0 240 160"><rect x="20" y="75" width="200" height="55" rx="14" fill="#c8d0ea"/><rect x="50" y="40" width="130" height="52" rx="12" fill="#d0d8f0"/><rect x="55" y="45" width="55" height="34" rx="6" fill="#64B5F6" opacity=".4"/><rect x="118" y="45" width="55" height="34" rx="6" fill="#64B5F6" opacity=".35"/><rect x="185" y="72" width="32" height="34" rx="5" fill="#c0c8e0"/><circle cx="65" cy="132" r="22" fill="#2d3748"/><circle cx="65" cy="132" r="12" fill="#FF6B35" opacity=".6"/><circle cx="175" cy="132" r="22" fill="#2d3748"/><circle cx="175" cy="132" r="12" fill="#FF6B35" opacity=".6"/></svg>`,
+  quad: `<svg viewBox="0 0 240 160"><rect x="50" y="70" width="140" height="45" rx="10" fill="#3B4A8A" opacity=".25"/><rect x="70" y="42" width="100" height="42" rx="10" fill="#3B4A8A" opacity=".28"/><rect x="80" y="48" width="40" height="26" rx="5" fill="#90CAF9" opacity=".5"/><rect x="128" y="48" width="30" height="26" rx="5" fill="#90CAF9" opacity=".45"/><circle cx="68" cy="120" r="24" fill="#2d4270" opacity=".25"/><circle cx="68" cy="120" r="13" fill="#FF6B35" opacity=".4"/><circle cx="172" cy="120" r="24" fill="#2d4270" opacity=".25"/><circle cx="172" cy="120" r="13" fill="#FF6B35" opacity=".4"/></svg>`,
+  moto: `<svg viewBox="0 0 240 160"><circle cx="65" cy="110" r="26" fill="#2d3748" opacity=".25"/><circle cx="65" cy="110" r="14" fill="#FF6B35" opacity=".3"/><circle cx="175" cy="110" r="26" fill="#2d3748" opacity=".25"/><circle cx="175" cy="110" r="14" fill="#FF6B35" opacity=".3"/><path d="M65 88 Q88 56 136 58 L168 88 Q148 92 110 90 Z" fill="#2d3748" opacity=".2"/><rect x="100" y="52" width="36" height="20" rx="5" fill="#90CAF9" opacity=".5"/><rect x="60" y="76" width="10" height="30" rx="3" fill="#2d3748" opacity=".18"/></svg>`,
+};
+
+// State: currently comparing
+let comparing = []; // Буде завантажено з localStorage
+
+function render() {
+  const content = document.getElementById('compareContent');
+  const count = comparing.length;
+  document.getElementById('cmpCount').textContent = count ? `(${count} товари)` : '';
+
+  if (!count) {
+    content.innerHTML = `
+      <div class="empty-compare">
+        <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <h3>Немає товарів для порівняння</h3>
+        <p>Додайте від 2 до 3 товарів з каталогу натиснувши кнопку "Порівняти" на картці</p>
+        <a href="catalog.html" class="btn btn-primary">Перейти до каталогу →</a>
+      </div>`;
+    return;
+  }
+
+  // Find min price
+  const minPrice = Math.min(...comparing.map(p => p.price));
+
+  // All spec keys
+  const specSections = {
+    'Основне': ['Вік', 'Акумулятор', 'Кількість моторів', 'Швидкість', 'Тип коліс'],
+    'Управління': ['Пульт ДК'],
+    'Комфорт': ['Шкіряне сидіння', 'MP3 / USB', 'Bluetooth', 'LED фари', 'Ремінь безпеки'],
+    'Технічні': ['Вага', 'Час їзди', 'Гарантія'],
+  };
+
+  // Empty slots to add
+  const emptySlots = 3 - count;
+
+  let headerCols = `<th><div style="padding:16px 18px;font-size:12px;color:var(--text-muted);font-weight:600">Характеристики</div></th>`;
+  comparing.forEach((p, i) => {
+    headerCols += `
+      <th>
+        <div class="prod-header">
+          <button class="prod-remove" onclick="removeProduct(${i})" title="Видалити з порівняння">
+            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+          <div class="prod-img">${SVG_MAP[p.img] || SVG_MAP.jeep}</div>
+          <div class="prod-brand">${p.brand}</div>
+          <div class="prod-name">${p.name}</div>
+          <div class="prod-price ${p.price === minPrice ? 'val-price-best' : ''}">${p.price.toLocaleString('uk-UA')} ₴${p.price === minPrice ? ' 🏆' : ''}</div>
+          <button class="prod-cart" onclick="addToCartFromCompare('${p.id}', ${p.price}, '${p.name}', '${p.brand}', this)">
+            <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+            В кошик
+          </button>
+        </div>
+      </th>`;
+  });
+
+  // Empty slots
+  for (let i = 0; i < emptySlots; i++) {
+    headerCols += `
+      <th>
+        <div class="empty-slot" onclick="location.href='catalog.html'">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <p>Додати товар</p>
+          <span>Перейти до каталогу</span>
+        </div>
+      </th>`;
+  }
+
+  // Build rows
+  let rows = '';
+  for (const [section, keys] of Object.entries(specSections)) {
+    rows += `<tr class="section-row"><td colspan="${count + emptySlots + 1}">${section}</td></tr>`;
+    keys.forEach(key => {
+      const values = comparing.map(p => p.specs[key]);
+      // Highlight best: for booleans highlight true, for numbers highlight highest
+      let cols = `<td>${key}</td>`;
+      values.forEach((val, i) => {
+        let cell = '';
+        if (val === true) {
+          cell = `<td class="val-highlight"><span class="val-yes"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Є</span></td>`;
+        } else if (val === false) {
+          cell = `<td><span class="val-no">—</span></td>`;
+        } else {
+          // Check if this value is better (numerically)
+          const numVal = parseFloat(String(val));
+          const allNums = values.map(v => parseFloat(String(v))).filter(n => !isNaN(n));
+          const isBest = !isNaN(numVal) && allNums.length > 1 && numVal === Math.max(...allNums);
+          cell = `<td ${isBest ? 'class="val-highlight"' : ''}>${val}</td>`;
+        }
+        cols += cell;
+      });
+      // Empty slot cells
+      for (let e = 0; e < emptySlots; e++) cols += '<td style="background:rgba(248,249,252,.4)"></td>';
+      rows += `<tr>${cols}</tr>`;
+    });
+  }
+
+  content.innerHTML = `
+    <div class="compare-wrap">
+      <table class="cmp">
+        <thead><tr>${headerCols}</tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+function removeProduct(idx) {
+  comparing.splice(idx, 1);
+  localStorage.setItem('kr_compare', JSON.stringify(comparing));
+  render();
+  if (typeof KR !== 'undefined') KR.showToast('Товар видалено з порівняння');
+}
+
+function clearAll() {
+  comparing = [];
+  localStorage.removeItem('kr_compare');
+  render();
+}
+
+function addToCartFromCompare(id, price, name, brand, btn) {
+  if (typeof KR !== 'undefined') {
+    KR.addToCart({ id, name, brand, price, color: 'Стандарт' });
+  }
+  const orig = btn.innerHTML;
+  btn.style.background = 'var(--green)';
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Додано!';
+  setTimeout(() => { btn.style.background = 'var(--orange)'; btn.innerHTML = orig; }, 1500);
+}
+
+// Load compare list from localStorage if available
+window.addEventListener('DOMContentLoaded', () => {
+  try {
+    const saved = JSON.parse(localStorage.getItem('kr_compare') || '[]');
+    if (saved.length) {
+      comparing = saved;
+    } else {
+      // Якщо localStorage порожній — показуємо порожній стан (не демо)
+      comparing = [];
+    }
+  } catch { comparing = []; }
+  render();
+});
+
+window.addEventListener('scroll', () => {
+  document.getElementById('hdr').classList.toggle('scrolled', scrollY > 40);
+});
+</script>
+</body>
+</html>

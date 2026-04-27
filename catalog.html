@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Каталог — KidsRide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --orange:#FF6B35;--orange-dark:#e85520;
+  --navy:#1B2A4A;--navy-light:#2d4270;
+  --bg:#fff;--bg-soft:#F8F9FC;--bg-warm:#FFF8F5;
+  --green:#27AE60;--text:#1a1a2e;--text-muted:#6b7280;
+  --border:#e8ecf4;
+  --shadow-sm:0 2px 12px rgba(27,42,74,.07);
+  --shadow-md:0 8px 32px rgba(27,42,74,.12);
+  --shadow-lg:0 20px 60px rgba(27,42,74,.16);
+  --r:14px;--r-sm:8px;--r-lg:20px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Manrope',sans-serif;color:var(--text);background:var(--bg-soft);overflow-x:hidden}
+h1,h2,h3,h4{font-family:'Nunito',sans-serif;font-weight:800}
+a{text-decoration:none}
+
+/* ── HEADER ── */
+.header{position:fixed;top:0;left:0;right:0;z-index:1000;height:68px;padding:0 40px;display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);transition:box-shadow .3s}
+.header.scrolled{box-shadow:var(--shadow-md)}
+.logo{display:flex;align-items:center;gap:10px;font-family:'Nunito',sans-serif;font-weight:900;font-size:22px;color:var(--navy);text-decoration:none}
+.logo-mark{width:36px;height:36px;background:var(--orange);border-radius:9px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(255,107,53,.3)}
+.logo span{color:var(--orange)}
+nav{display:flex;gap:2px}
+nav a{color:var(--text-muted);font-weight:600;font-size:14px;padding:7px 13px;border-radius:7px;transition:all .2s}
+nav a:hover{color:var(--navy);background:var(--bg-soft)}
+nav a.active{color:var(--orange)}
+.h-right{display:flex;align-items:center;gap:6px}
+.ic-btn{width:38px;height:38px;border:none;background:none;cursor:pointer;border-radius:9px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);transition:all .2s;position:relative}
+.ic-btn:hover{background:var(--bg-soft);color:var(--navy)}
+.badge{position:absolute;top:4px;right:4px;width:17px;height:17px;background:var(--orange);border-radius:50%;font-size:9px;font-weight:700;color:white;display:flex;align-items:center;justify-content:center;font-family:'Nunito',sans-serif}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:10px 20px;border-radius:9px;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;border:none;cursor:pointer;transition:all .25s cubic-bezier(.34,1.56,.64,1)}
+.btn-primary{background:var(--orange);color:white;box-shadow:0 4px 14px rgba(255,107,53,.28)}
+.btn-primary:hover{background:var(--orange-dark);transform:translateY(-1px)}
+.btn-outline{background:transparent;color:var(--navy);border:1.5px solid var(--border)}
+.btn-outline:hover{border-color:var(--orange);color:var(--orange)}
+.btn-ghost{background:transparent;color:var(--text-muted);border:none}
+.btn-ghost:hover{color:var(--orange)}
+
+/* ── BREADCRUMB ── */
+.breadcrumb{margin-top:68px;padding:16px 40px;background:white;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-muted)}
+.breadcrumb a{color:var(--text-muted);transition:color .2s}
+.breadcrumb a:hover{color:var(--orange)}
+.breadcrumb-sep{opacity:.4}
+.breadcrumb-current{color:var(--navy);font-weight:600}
+
+/* ── CATALOG HEADER ── */
+.catalog-head{background:white;border-bottom:1px solid var(--border);padding:20px 40px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.catalog-title-row{display:flex;align-items:center;gap:16px}
+.catalog-title{font-size:22px;color:var(--navy)}
+.catalog-count{background:var(--bg-soft);border:1px solid var(--border);border-radius:6px;padding:3px 10px;font-size:13px;font-weight:600;color:var(--text-muted)}
+.catalog-controls{display:flex;align-items:center;gap:10px}
+.sort-select{appearance:none;background:var(--bg-soft);border:1.5px solid var(--border);border-radius:9px;padding:9px 36px 9px 14px;font-family:'Manrope',sans-serif;font-size:13px;font-weight:600;color:var(--navy);cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b7280' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;transition:border-color .2s}
+.sort-select:focus{outline:none;border-color:var(--orange)}
+.view-btns{display:flex;gap:4px}
+.view-btn{width:36px;height:36px;border:1.5px solid var(--border);border-radius:8px;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted);transition:all .2s}
+.view-btn.active,.view-btn:hover{border-color:var(--orange);color:var(--orange);background:rgba(255,107,53,.06)}
+
+/* ── LAYOUT ── */
+.catalog-layout{display:grid;grid-template-columns:272px 1fr;min-height:calc(100vh - 140px)}
+
+/* ── SIDEBAR ── */
+.sidebar{background:white;border-right:1px solid var(--border);padding:24px;position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto;scrollbar-width:thin}
+.sidebar::-webkit-scrollbar{width:4px}
+.sidebar::-webkit-scrollbar-track{background:transparent}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+
+.filter-block{margin-bottom:28px}
+.filter-block:last-child{margin-bottom:0}
+.filter-title{display:flex;align-items:center;justify-content:space-between;font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;color:var(--navy);margin-bottom:14px;cursor:pointer}
+.filter-title svg{width:14px;height:14px;stroke:var(--text-muted);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;transition:transform .25s;flex-shrink:0}
+.filter-title.collapsed svg{transform:rotate(-90deg)}
+.filter-body{transition:all .3s}
+.filter-body.hidden{display:none}
+
+/* Search in sidebar */
+.sidebar-search{position:relative;margin-bottom:20px}
+.sidebar-search input{width:100%;padding:10px 14px 10px 38px;border:1.5px solid var(--border);border-radius:9px;font-family:'Manrope',sans-serif;font-size:13px;color:var(--navy);background:var(--bg-soft);transition:border-color .2s}
+.sidebar-search input:focus{outline:none;border-color:var(--orange);background:white}
+.sidebar-search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:14px;height:14px;stroke:var(--text-muted);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* Checkboxes */
+.filter-option{display:flex;align-items:center;gap:10px;padding:7px 0;cursor:pointer;transition:color .15s}
+.filter-option:hover .filter-label{color:var(--orange)}
+.filter-checkbox{width:18px;height:18px;border:2px solid var(--border);border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;background:white}
+.filter-option.checked .filter-checkbox{background:var(--orange);border-color:var(--orange)}
+.filter-option.checked .filter-checkbox svg{display:block}
+.filter-checkbox svg{display:none;width:10px;height:10px;stroke:white;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.filter-label{font-size:13px;font-weight:500;color:var(--text);flex:1}
+.filter-cnt{font-size:11px;color:var(--text-muted);background:var(--bg-soft);border-radius:4px;padding:1px 7px;font-weight:600}
+
+/* Price range */
+.price-inputs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.price-inp-wrap{position:relative}
+.price-inp-wrap span{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--text-muted);font-weight:600}
+.price-inp{width:100%;padding:9px 28px 9px 12px;border:1.5px solid var(--border);border-radius:9px;font-family:'Manrope',sans-serif;font-size:13px;color:var(--navy);background:var(--bg-soft);transition:border-color .2s}
+.price-inp:focus{outline:none;border-color:var(--orange);background:white}
+.range-slider{position:relative;height:4px;background:var(--border);border-radius:2px;margin:8px 4px}
+.range-fill{position:absolute;height:100%;background:var(--orange);border-radius:2px}
+.range-thumb{position:absolute;top:50%;transform:translate(-50%,-50%);width:18px;height:18px;background:white;border:2.5px solid var(--orange);border-radius:50%;cursor:pointer;transition:transform .2s;box-shadow:var(--shadow-sm)}
+.range-thumb:hover{transform:translate(-50%,-50%) scale(1.2)}
+.range-thumb:active{transform:translate(-50%,-50%) scale(1.15)}
+
+/* Reset filters */
+.reset-filters{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--text-muted);cursor:pointer;padding:8px 0;transition:color .2s;background:none;border:none;font-family:'Manrope',sans-serif}
+.reset-filters:hover{color:var(--orange)}
+.reset-filters svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+
+/* Active filters */
+.active-filters{display:flex;flex-wrap:wrap;gap:6px;padding:14px 40px;background:white;border-bottom:1px solid var(--border)}
+.active-filters:empty{display:none}
+.filter-tag{display:inline-flex;align-items:center;gap:6px;background:rgba(255,107,53,.08);border:1px solid rgba(255,107,53,.2);border-radius:6px;padding:5px 10px;font-size:12px;font-weight:600;color:var(--navy)}
+.filter-tag button{background:none;border:none;cursor:pointer;color:var(--text-muted);display:flex;align-items:center;padding:0;transition:color .2s;line-height:1}
+.filter-tag button:hover{color:var(--orange)}
+.filter-tag svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+
+/* ── PRODUCTS AREA ── */
+.products-area{padding:24px}
+.products-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;transition:all .3s}
+.products-grid.cols-2{grid-template-columns:repeat(2,1fr)}
+.products-grid.cols-4{grid-template-columns:repeat(4,1fr)}
+.products-grid.list{grid-template-columns:1fr}
+
+/* ── PRODUCT CARD ── */
+.p-card{background:white;border-radius:var(--r);overflow:hidden;border:1.5px solid var(--border);transition:all .3s cubic-bezier(.34,1.56,.64,1);cursor:pointer;position:relative}
+.p-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg);border-color:transparent}
+.p-img-wrap{position:relative;overflow:hidden}
+.p-img{aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;width:100%}
+.p-img svg{transition:transform .4s ease}
+.p-card:hover .p-img svg{transform:scale(1.06) translateY(-3px)}
+.p-overlay{position:absolute;inset:0;background:rgba(27,42,74,.45);display:flex;align-items:center;justify-content:center;gap:10px;opacity:0;transition:opacity .25s;backdrop-filter:blur(3px)}
+.p-card:hover .p-overlay{opacity:1}
+.p-overlay-btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:8px;font-family:'Nunito',sans-serif;font-weight:700;font-size:12px;border:none;cursor:pointer;transition:all .2s}
+.ob-white{background:white;color:var(--navy)}
+.ob-white:hover{background:var(--bg-soft)}
+.ob-orange{background:var(--orange);color:white}
+.ob-orange:hover{background:var(--orange-dark)}
+.ob-white svg,.ob-orange svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+.p-badge{position:absolute;top:10px;left:10px;padding:4px 10px;border-radius:6px;font-family:'Nunito',sans-serif;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;z-index:2}
+.badge-hot{background:var(--orange);color:white}
+.badge-new{background:var(--navy);color:white}
+.badge-sale{background:var(--green);color:white}
+
+.p-wish{position:absolute;top:10px;right:10px;width:32px;height:32px;background:white;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-sm);transition:all .2s;z-index:2}
+.p-wish:hover{transform:scale(1.15)}
+.p-wish svg{width:15px;height:15px;stroke:#94a3b8;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:all .2s}
+.p-wish.liked svg{stroke:#ef4444;fill:#ef4444}
+
+.p-compare{position:absolute;bottom:10px;right:10px;width:30px;height:30px;background:white;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-sm);transition:all .2s;z-index:2;opacity:0}
+.p-card:hover .p-compare{opacity:1}
+.p-compare:hover{transform:scale(1.15)}
+.p-compare svg{width:14px;height:14px;stroke:var(--text-muted);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.p-compare.active svg{stroke:var(--orange)}
+
+.p-body{padding:16px 18px 18px}
+.p-brand{font-size:10px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
+.p-name{font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;color:var(--navy);margin-bottom:8px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.p-specs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.p-spec{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--text-muted);font-weight:500;background:var(--bg-soft);border-radius:5px;padding:3px 8px}
+.p-spec svg{width:11px;height:11px;stroke:var(--text-muted);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.p-bottom{display:flex;align-items:center;justify-content:space-between}
+.p-price{font-family:'Nunito',sans-serif;font-size:20px;font-weight:900;color:var(--navy)}
+.p-price-old{font-size:12px;color:var(--text-muted);text-decoration:line-through;margin-left:5px;font-weight:500}
+.p-actions{display:flex;gap:6px}
+.btn-cart{width:38px;height:38px;border-radius:9px;border:none;background:var(--orange);color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .25s cubic-bezier(.34,1.56,.64,1);box-shadow:0 4px 12px rgba(255,107,53,.28);flex-shrink:0}
+.btn-cart:hover{transform:scale(1.12);box-shadow:0 6px 18px rgba(255,107,53,.4)}
+.btn-cart svg{width:16px;height:16px;stroke:white;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.btn-cart.added{background:var(--green)}
+.btn-quick{width:38px;height:38px;border-radius:9px;border:1.5px solid var(--border);background:white;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.btn-quick:hover{border-color:var(--orange);color:var(--orange)}
+.btn-quick svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* LIST VIEW */
+.products-grid.list .p-card{display:grid;grid-template-columns:220px 1fr}
+.products-grid.list .p-img{aspect-ratio:unset;height:100%;min-height:160px}
+.products-grid.list .p-body{padding:20px 24px;display:flex;flex-direction:column;justify-content:space-between}
+.products-grid.list .p-name{-webkit-line-clamp:unset;font-size:17px}
+.products-grid.list .p-specs{gap:10px}
+
+/* ── PAGINATION ── */
+.pagination{display:flex;align-items:center;justify-content:center;gap:6px;padding:32px 0 16px}
+.pag-btn{width:38px;height:38px;border-radius:9px;border:1.5px solid var(--border);background:white;font-family:'Nunito',sans-serif;font-weight:700;font-size:14px;color:var(--navy);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.pag-btn:hover{border-color:var(--orange);color:var(--orange)}
+.pag-btn.active{background:var(--orange);border-color:var(--orange);color:white;box-shadow:0 4px 12px rgba(255,107,53,.3)}
+.pag-btn.arrow{color:var(--text-muted)}
+.pag-btn.arrow svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.pag-dots{color:var(--text-muted);font-weight:700;padding:0 4px}
+
+/* ── EMPTY STATE ── */
+.empty-state{text-align:center;padding:64px 24px;color:var(--text-muted)}
+.empty-state svg{width:64px;height:64px;stroke:var(--border);fill:none;stroke-width:1.5;margin:0 auto 20px;display:block}
+.empty-title{font-family:'Nunito',sans-serif;font-weight:800;font-size:20px;color:var(--navy);margin-bottom:8px}
+.empty-desc{font-size:14px;line-height:1.6;margin-bottom:24px}
+
+/* ── MOBILE FILTER BTN ── */
+.mobile-filter-btn{display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:500;background:var(--navy);color:white;border:none;cursor:pointer;border-radius:100px;padding:13px 26px;font-family:'Nunito',sans-serif;font-weight:700;font-size:14px;box-shadow:0 8px 32px rgba(27,42,74,.35);white-space:nowrap}
+.mobile-filter-btn svg{width:16px;height:16px;stroke:white;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* ── DRAWER (mobile sidebar) ── */
+.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:800;opacity:0;pointer-events:none;transition:opacity .3s}
+.drawer-overlay.open{opacity:1;pointer-events:all}
+.drawer{position:fixed;left:0;top:0;bottom:0;width:300px;background:white;z-index:900;transform:translateX(-100%);transition:transform .35s cubic-bezier(.4,0,.2,1);overflow-y:auto;padding:20px}
+.drawer.open{transform:translateX(0)}
+.drawer-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.drawer-head h3{font-size:18px;color:var(--navy)}
+.drawer-close{width:36px;height:36px;border:none;background:var(--bg-soft);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted)}
+
+/* ── SCROLL REVEAL ── */
+.reveal{opacity:0;transform:translateY(20px);transition:opacity .45s ease,transform .45s ease}.reveal.visible{opacity:1;transform:translateY(0)}
+.reveal.visible{opacity:1;transform:translateY(0)}
+.d1{transition-delay:.05s}.d2{transition-delay:.1s}.d3{transition-delay:.15s}.d4{transition-delay:.2s}.d5{transition-delay:.25s}.d6{transition-delay:.3s}
+
+/* ── RESPONSIVE ── */
+@media(max-width:1200px){
+  .products-grid{grid-template-columns:repeat(2,1fr)}
+}
+
+@media(max-width:900px){
+  /* Header */
+  .header{padding:0 16px;height:60px}
+  nav{display:none}
+  .h-right .btn{display:none}
+
+  /* Breadcrumb */
+  .breadcrumb{margin-top:60px;padding:12px 16px;font-size:12px}
+
+  /* Catalog head */
+  .catalog-head{padding:14px 16px;flex-wrap:wrap;gap:10px}
+  .catalog-title{font-size:18px}
+  .catalog-controls{width:100%;justify-content:space-between}
+  .sort-select{flex:1}
+
+  /* Active filters */
+  .active-filters{padding:10px 16px}
+
+  /* Layout — hide sidebar, show full width */
+  .catalog-layout{grid-template-columns:1fr;margin-top:0}
+  .sidebar{display:none}
+
+  /* Products area */
+  .products-area{padding:12px 16px}
+  .products-grid{grid-template-columns:repeat(2,1fr);gap:12px}
+  .products-grid.list{grid-template-columns:1fr}
+  .products-grid.list .p-card{grid-template-columns:120px 1fr}
+  .products-grid.list .p-img{min-height:120px}
+
+  /* Mobile filter button */
+  .mobile-filter-btn{display:flex}
+
+  /* Pagination */
+  .pagination{padding:20px 0 80px}
+}
+
+@media(max-width:480px){
+  /* Cards — single column on small phones */
+  .products-grid{grid-template-columns:1fr;gap:12px}
+
+  /* Card adjustments */
+  .p-body{padding:12px 14px 14px}
+  .p-name{font-size:14px}
+  .p-price{font-size:18px}
+  .p-specs{gap:6px}
+  .p-spec{font-size:10px;padding:2px 6px}
+
+  /* Header shrink */
+  .logo{font-size:18px}
+  .logo-mark{width:30px;height:30px;border-radius:7px}
+  .ic-btn{width:34px;height:34px}
+
+  /* Catalog head */
+  .catalog-title{font-size:16px}
+  .catalog-count{font-size:11px}
+}
+
+/* Tablet landscape */
+@media(min-width:901px) and (max-width:1100px){
+  .products-grid{grid-template-columns:repeat(2,1fr)}
+  .sidebar{width:240px}
+  .catalog-layout{grid-template-columns:240px 1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header" id="hdr">
+  <a href="index.html" class="logo">
+    <div class="logo-mark">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect x="9" y="11" width="14" height="10" rx="2"/><circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/></svg>
+    </div>
+    Kids<span>Ride</span>
+  </a>
+  <nav>
+    <a href="index.html">Головна</a>
+    <a href="catalog.html" class="active">Каталог</a>
+    <a href="calculator.html">Підбір</a>
+    <a href="compare.html">Порівняння</a>
+    <a href="#">Доставка</a>
+    <a href="#">Гарантія</a>
+    <a href="#">Контакти</a>
+  </nav>
+  <div class="h-right">
+    <button class="ic-btn" onclick="toggleSearch()">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    </button>
+    <button class="ic-btn">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+    </button>
+    <button class="ic-btn" id="cartBtn" onclick="window.location.href='cart.html'" style="cursor:pointer">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+      <span class="badge" id="cartBadge">0</span>
+    </button>
+    <a href="auth.html" class="btn btn-primary" style="margin-left:6px;font-size:13px;padding:9px 18px">Увійти</a>
+  </div>
+</header>
+
+<!-- BREADCRUMB -->
+<div class="breadcrumb">
+  <a href="index.html">Головна</a>
+  <span class="breadcrumb-sep">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+  </span>
+  <span class="breadcrumb-current">Каталог електромобілів</span>
+</div>
+
+<!-- ACTIVE FILTERS -->
+<div class="active-filters" id="activeFilters">
+  <!-- populated by JS -->
+</div>
+
+<!-- CATALOG HEAD -->
+<div class="catalog-head">
+  <div class="catalog-title-row">
+    <h1 class="catalog-title">Каталог електромобілів</h1>
+    <span class="catalog-count" id="catalogCount">809 товарів</span>
+  </div>
+  <div class="catalog-controls">
+    <select class="sort-select" id="sortSelect" onchange="applyFilters()">
+      <option value="popular">Популярні</option>
+      <option value="price_asc">Ціна: від дешевших</option>
+      <option value="price_desc">Ціна: від дорожчих</option>
+      <option value="new">Новинки</option>
+    </select>
+    <div class="view-btns">
+      <button class="view-btn active" onclick="setView('grid3',this)" title="3 колонки">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="2" width="8" height="8" rx="1"/><rect x="14" y="2" width="8" height="8" rx="1"/><rect x="2" y="14" width="8" height="8" rx="1"/><rect x="14" y="14" width="8" height="8" rx="1"/></svg>
+      </button>
+      <button class="view-btn" onclick="setView('list',this)" title="Список">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- CATALOG LAYOUT -->
+<div class="catalog-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <span style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;color:var(--navy)">Фільтри</span>
+      <button class="reset-filters" id="resetBtn" onclick="resetFilters()">
+        <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.57"/></svg>
+        Скинути всі
+      </button>
+    </div>
+
+    <!-- Search -->
+    <div class="sidebar-search">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" placeholder="Пошук по назві..." id="searchInput" oninput="applyFilters()">
+    </div>
+
+    <!-- Availability -->
+    <div class="filter-block">
+      <div class="filter-title" onclick="toggleFilter(this)">
+        Наявність
+        <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="filter-body">
+        <label class="filter-option checked" onclick="toggleCheck(this,'available')">
+          <div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <span class="filter-label">В наявності</span>
+          <span class="filter-cnt">809</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Type -->
+    <div class="filter-block">
+      <div class="filter-title" onclick="toggleFilter(this)">
+        Тип транспорту
+        <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="filter-body" id="typeFilter">
+        <label class="filter-option" onclick="toggleCheck(this,'type')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">Джип</span><span class="filter-cnt">287</span></label>
+        <label class="filter-option" onclick="toggleCheck(this,'type')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">Квадроцикл</span><span class="filter-cnt">134</span></label>
+        <label class="filter-option" onclick="toggleCheck(this,'type')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">Мотоцикл</span><span class="filter-cnt">98</span></label>
+        <label class="filter-option" onclick="toggleCheck(this,'type')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">Машина</span><span class="filter-cnt">112</span></label>
+        <label class="filter-option" onclick="toggleCheck(this,'type')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">Трактор</span><span class="filter-cnt">67</span></label>
+        <label class="filter-option" onclick="toggleCheck(this,'type')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">Каталка-толокар</span><span class="filter-cnt">45</span></label>
+        <label class="filter-option" onclick="toggleCheck(this,'type')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">Вантажівка</span><span class="filter-cnt">38</span></label>
+        <label class="filter-option" onclick="toggleCheck(this,'type')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">Баггі</span><span class="filter-cnt">28</span></label>
+      </div>
+    </div>
+
+    <!-- Age -->
+    <div class="filter-block">
+      <div class="filter-title" onclick="toggleFilter(this)">
+        Вік дитини
+        <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="filter-body">
+        <label class="filter-option" onclick="toggleCheck(this,'age')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">1 – 3 роки</span><span class="filter-cnt">89</span></label>
+        <label class="filter-option" onclick="toggleCheck(this,'age')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">3 – 6 років</span><span class="filter-cnt">524</span></label>
+        <label class="filter-option" onclick="toggleCheck(this,'age')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">6 – 10 років</span><span class="filter-cnt">196</span></label>
+      </div>
+    </div>
+
+    <!-- Price -->
+    <div class="filter-block">
+      <div class="filter-title" onclick="toggleFilter(this)">
+        Ціна, ₴
+        <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="filter-body">
+        <div class="price-inputs">
+          <div class="price-inp-wrap">
+            <input class="price-inp" type="number" id="priceMin" value="664" min="664" max="86610" onchange="applyFilters()">
+            <span>від</span>
+          </div>
+          <div class="price-inp-wrap">
+            <input class="price-inp" type="number" id="priceMax" value="86610" min="664" max="86610" onchange="applyFilters()">
+            <span>до</span>
+          </div>
+        </div>
+        <div class="range-slider" id="priceSlider">
+          <div class="range-fill" id="rangeFill" style="left:0%;right:0%"></div>
+          <div class="range-thumb" id="thumbMin" style="left:0%"></div>
+          <div class="range-thumb" id="thumbMax" style="left:100%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Brand -->
+    <div class="filter-block">
+      <div class="filter-title" onclick="toggleFilter(this)">
+        Бренд
+        <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="filter-body">
+        <label class="filter-option" onclick="toggleCheck(this,'brand')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">Bambi Racer</span><span class="filter-cnt">412</span></label>
+        <label class="filter-option" onclick="toggleCheck(this,'brand')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">PROF1</span><span class="filter-cnt">187</span></label>
+        <label class="filter-option" onclick="toggleCheck(this,'brand')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">Bambi kart</span><span class="filter-cnt">94</span></label>
+        <label class="filter-option" onclick="toggleCheck(this,'brand')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">EL CAMINO</span><span class="filter-cnt">116</span></label>
+      </div>
+    </div>
+
+    <!-- Voltage -->
+    <div class="filter-block">
+      <div class="filter-title" onclick="toggleFilter(this)">
+        Акумулятор
+        <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="filter-body">
+        <label class="filter-option" onclick="toggleCheck(this,'voltage')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">6V</span><span class="filter-cnt">42</span></label>
+        <label class="filter-option" onclick="toggleCheck(this,'voltage')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">12V</span><span class="filter-cnt">589</span></label>
+        <label class="filter-option" onclick="toggleCheck(this,'voltage')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">24V</span><span class="filter-cnt">178</span></label>
+      </div>
+    </div>
+  </aside>
+
+  <!-- PRODUCTS -->
+  <main class="products-area">
+    <div class="products-grid" id="productsGrid">
+
+      <!-- Card 1 -->
+      <div class="p-card reveal">
+        <div class="p-img-wrap">
+          <div class="p-img" style="background:linear-gradient(145deg,#e8ecf7,#d0d8f0)">
+            <svg viewBox="0 0 240 160" style="width:78%;position:relative;z-index:1">
+              <rect x="20" y="75" width="200" height="55" rx="14" fill="#1B2A4A" opacity=".15"/>
+              <rect x="50" y="40" width="130" height="52" rx="12" fill="#1B2A4A" opacity=".18"/>
+              <rect x="55" y="45" width="55" height="34" rx="6" fill="#64B5F6" opacity=".4"/>
+              <rect x="118" y="45" width="55" height="34" rx="6" fill="#64B5F6" opacity=".35"/>
+              <rect x="185" y="72" width="32" height="34" rx="5" fill="#1B2A4A" opacity=".12"/>
+              <rect x="18" y="82" width="25" height="26" rx="4" fill="#1B2A4A" opacity=".12"/>
+              <circle cx="65" cy="132" r="22" fill="#1B2A4A" opacity=".2"/>
+              <circle cx="65" cy="132" r="12" fill="#FF6B35" opacity=".3"/>
+              <circle cx="175" cy="132" r="22" fill="#1B2A4A" opacity=".2"/>
+              <circle cx="175" cy="132" r="12" fill="#FF6B35" opacity=".3"/>
+            </svg>
+          </div>
+          <div class="p-overlay">
+            <button class="p-overlay-btn ob-white"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Детальніше</button>
+            <button class="p-overlay-btn ob-orange" onclick="addToCart(this)"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>В кошик</button>
+          </div>
+          <span class="p-badge badge-hot">🔥 Хіт</span>
+          <button class="p-wish" onclick="toggleWish(this)"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
+          <button class="p-compare" title="Порівняти" onclick="toggleCompare(this)"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></button>
+        </div>
+        <div class="p-body">
+          <div class="p-brand">Bambi Racer</div>
+          <div class="p-name">Джип M 3804EBLR — 4 мотори 45W</div>
+          <div class="p-specs">
+            <span class="p-spec"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>3–8 р.</span>
+            <span class="p-spec"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>12V</span>
+            <span class="p-spec"><svg viewBox="0 0 24 24"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>2.4G</span>
+            <span class="p-spec"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Шкіра</span>
+          </div>
+          <div class="p-bottom">
+            <div><span class="p-price">17 224 ₴</span></div>
+            <div class="p-actions">
+              <button class="btn-quick" title="Купити в 1 клік" onclick="quickOrder()"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button>
+              <button class="btn-cart" onclick="addToCart(this)"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2 -->
+      <div class="p-card reveal d1">
+        <div class="p-img-wrap">
+          <div class="p-img" style="background:linear-gradient(145deg,#eef0ff,#d6dcff)">
+            <svg viewBox="0 0 240 160" style="width:78%;position:relative;z-index:1">
+              <rect x="50" y="70" width="140" height="45" rx="10" fill="#3B4A8A" opacity=".18"/>
+              <rect x="70" y="42" width="100" height="42" rx="10" fill="#3B4A8A" opacity=".2"/>
+              <rect x="80" y="48" width="40" height="26" rx="5" fill="#90CAF9" opacity=".4"/>
+              <rect x="128" y="48" width="30" height="26" rx="5" fill="#90CAF9" opacity=".35"/>
+              <circle cx="68" cy="120" r="24" fill="#2d4270" opacity=".2"/>
+              <circle cx="68" cy="120" r="13" fill="#FF6B35" opacity=".28"/>
+              <circle cx="172" cy="120" r="24" fill="#2d4270" opacity=".2"/>
+              <circle cx="172" cy="120" r="13" fill="#FF6B35" opacity=".28"/>
+              <rect x="30" y="80" width="18" height="28" rx="4" fill="#2d4270" opacity=".15"/>
+              <rect x="192" y="80" width="18" height="28" rx="4" fill="#2d4270" opacity=".15"/>
+            </svg>
+          </div>
+          <div class="p-overlay">
+            <button class="p-overlay-btn ob-white"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Детальніше</button>
+            <button class="p-overlay-btn ob-orange" onclick="addToCart(this)"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>В кошик</button>
+          </div>
+          <span class="p-badge badge-new">✨ Новинка</span>
+          <button class="p-wish" onclick="toggleWish(this)"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
+          <button class="p-compare" onclick="toggleCompare(this)"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></button>
+        </div>
+        <div class="p-body">
+          <div class="p-brand">Bambi Racer</div>
+          <div class="p-name">Квадроцикл M 4795EBLR — EVA колеса</div>
+          <div class="p-specs">
+            <span class="p-spec"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>3–8 р.</span>
+            <span class="p-spec"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>12V</span>
+            <span class="p-spec">EVA</span>
+          </div>
+          <div class="p-bottom">
+            <div><span class="p-price">12 210 ₴</span></div>
+            <div class="p-actions">
+              <button class="btn-quick" onclick="quickOrder()"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button>
+              <button class="btn-cart" onclick="addToCart(this)"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="p-card reveal d2">
+        <div class="p-img-wrap">
+          <div class="p-img" style="background:linear-gradient(145deg,#edfff5,#d5f5e5)">
+            <svg viewBox="0 0 240 160" style="width:78%;position:relative;z-index:1">
+              <rect x="85" y="65" width="130" height="50" rx="10" fill="#2E7D32" opacity=".2"/>
+              <rect x="90" y="38" width="75" height="40" rx="9" fill="#2E7D32" opacity=".22"/>
+              <rect x="96" y="44" width="35" height="26" rx="5" fill="#A5D6A7" opacity=".5"/>
+              <circle cx="110" cy="122" r="28" fill="#1B5E20" opacity=".2"/>
+              <circle cx="110" cy="122" r="16" fill="#27AE60" opacity=".3"/>
+              <circle cx="200" cy="126" r="18" fill="#1B5E20" opacity=".18"/>
+              <circle cx="200" cy="126" r="10" fill="#27AE60" opacity=".28"/>
+              <rect x="20" y="85" width="65" height="35" rx="8" fill="#2E7D32" opacity=".15"/>
+              <rect x="25" y="90" width="20" height="25" rx="4" fill="#A5D6A7" opacity=".35"/>
+            </svg>
+          </div>
+          <div class="p-overlay">
+            <button class="p-overlay-btn ob-white"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Детальніше</button>
+            <button class="p-overlay-btn ob-orange" onclick="addToCart(this)"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>В кошик</button>
+          </div>
+          <span class="p-badge badge-sale">−15%</span>
+          <button class="p-wish liked" onclick="toggleWish(this)"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
+          <button class="p-compare" onclick="toggleCompare(this)"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></button>
+        </div>
+        <div class="p-body">
+          <div class="p-brand">Bambi Racer</div>
+          <div class="p-name">Трактор M 4419EBLR з причепом</div>
+          <div class="p-specs">
+            <span class="p-spec"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>2–7 р.</span>
+            <span class="p-spec"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>12V</span>
+            <span class="p-spec">Причеп</span>
+          </div>
+          <div class="p-bottom">
+            <div><span class="p-price">10 231 ₴</span><span class="p-price-old">12 037 ₴</span></div>
+            <div class="p-actions">
+              <button class="btn-quick" onclick="quickOrder()"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button>
+              <button class="btn-cart" onclick="addToCart(this)"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 4 -->
+      <div class="p-card reveal d3">
+        <div class="p-img-wrap">
+          <div class="p-img" style="background:linear-gradient(145deg,#fff8e1,#ffebb0)">
+            <svg viewBox="0 0 240 160" style="width:72%;position:relative;z-index:1">
+              <ellipse cx="120" cy="110" rx="80" ry="14" fill="#1B2A4A" opacity=".07"/>
+              <circle cx="65" cy="108" r="26" fill="#1B2A4A" opacity=".18"/>
+              <circle cx="65" cy="108" r="14" fill="#FF6B35" opacity=".28"/>
+              <circle cx="175" cy="108" r="26" fill="#1B2A4A" opacity=".18"/>
+              <circle cx="175" cy="108" r="14" fill="#FF6B35" opacity=".28"/>
+              <path d="M65 85 Q90 52 140 56 L170 85 Q145 90 110 88 Z" fill="#1B2A4A" opacity=".18"/>
+              <rect x="100" y="50" width="38" height="20" rx="5" fill="#90CAF9" opacity=".4"/>
+              <path d="M140 60 L168 72 L163 86 L133 80 Z" fill="#1B2A4A" opacity=".14"/>
+              <rect x="58" y="74" width="11" height="32" rx="3" fill="#1B2A4A" opacity=".14"/>
+            </svg>
+          </div>
+          <div class="p-overlay">
+            <button class="p-overlay-btn ob-white"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Детальніше</button>
+            <button class="p-overlay-btn ob-orange" onclick="addToCart(this)"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>В кошик</button>
+          </div>
+          <span class="p-badge badge-hot">🔥 Хіт</span>
+          <button class="p-wish" onclick="toggleWish(this)"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
+          <button class="p-compare" onclick="toggleCompare(this)"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></button>
+        </div>
+        <div class="p-body">
+          <div class="p-brand">Bambi Racer</div>
+          <div class="p-name">Мотоцикл M 4274EL — шкіра, EVA</div>
+          <div class="p-specs">
+            <span class="p-spec"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>3–8 р.</span>
+            <span class="p-spec"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>12V</span>
+            <span class="p-spec"><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>MP3</span>
+          </div>
+          <div class="p-bottom">
+            <div><span class="p-price">8 114 ₴</span></div>
+            <div class="p-actions">
+              <button class="btn-quick" onclick="quickOrder()"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button>
+              <button class="btn-cart" onclick="addToCart(this)"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 5 -->
+      <div class="p-card reveal d4">
+        <div class="p-img-wrap">
+          <div class="p-img" style="background:linear-gradient(145deg,#fce4ec,#f8bbd0)">
+            <svg viewBox="0 0 240 160" style="width:78%;position:relative;z-index:1">
+              <rect x="25" y="78" width="190" height="48" rx="12" fill="#880E4F" opacity=".14"/>
+              <rect x="55" y="48" width="120" height="44" rx="10" fill="#880E4F" opacity=".16"/>
+              <rect x="60" y="53" width="50" height="28" rx="5" fill="#F48FB1" opacity=".45"/>
+              <rect x="118" y="53" width="50" height="28" rx="5" fill="#F48FB1" opacity=".4"/>
+              <circle cx="62" cy="130" r="20" fill="#880E4F" opacity=".18"/>
+              <circle cx="62" cy="130" r="11" fill="#FF6B35" opacity=".3"/>
+              <circle cx="178" cy="130" r="20" fill="#880E4F" opacity=".18"/>
+              <circle cx="178" cy="130" r="11" fill="#FF6B35" opacity=".3"/>
+              <rect x="180" y="76" width="28" height="32" rx="5" fill="#880E4F" opacity=".12"/>
+            </svg>
+          </div>
+          <div class="p-overlay">
+            <button class="p-overlay-btn ob-white"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Детальніше</button>
+            <button class="p-overlay-btn ob-orange" onclick="addToCart(this)"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>В кошик</button>
+          </div>
+          <span class="p-badge badge-new">✨ Новинка</span>
+          <button class="p-wish" onclick="toggleWish(this)"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
+          <button class="p-compare" onclick="toggleCompare(this)"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></button>
+        </div>
+        <div class="p-body">
+          <div class="p-brand">Bambi Racer</div>
+          <div class="p-name">Машина M 4140EBLR — з відкидним капотом</div>
+          <div class="p-specs">
+            <span class="p-spec"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>3–6 р.</span>
+            <span class="p-spec"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>12V</span>
+            <span class="p-spec"><svg viewBox="0 0 24 24"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>2.4G</span>
+          </div>
+          <div class="p-bottom">
+            <div><span class="p-price">12 120 ₴</span></div>
+            <div class="p-actions">
+              <button class="btn-quick" onclick="quickOrder()"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button>
+              <button class="btn-cart" onclick="addToCart(this)"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 6 -->
+      <div class="p-card reveal d5">
+        <div class="p-img-wrap">
+          <div class="p-img" style="background:linear-gradient(145deg,#e8f5e9,#c8e6c9)">
+            <svg viewBox="0 0 240 160" style="width:78%;position:relative;z-index:1">
+              <rect x="20" y="72" width="200" height="52" rx="14" fill="#1B5E20" opacity=".15"/>
+              <rect x="40" y="40" width="145" height="48" rx="12" fill="#1B5E20" opacity=".18"/>
+              <rect x="46" y="46" width="60" height="30" rx="6" fill="#A5D6A7" opacity=".5"/>
+              <rect x="114" y="46" width="60" height="30" rx="6" fill="#A5D6A7" opacity=".45"/>
+              <rect x="190" y="68" width="28" height="36" rx="5" fill="#1B5E20" opacity=".12"/>
+              <rect x="18" y="80" width="20" height="28" rx="4" fill="#1B5E20" opacity=".12"/>
+              <circle cx="62" cy="128" r="22" fill="#1B5E20" opacity=".2"/>
+              <circle cx="62" cy="128" r="12" fill="#27AE60" opacity=".35"/>
+              <circle cx="178" cy="128" r="22" fill="#1B5E20" opacity=".2"/>
+              <circle cx="178" cy="128" r="12" fill="#27AE60" opacity=".35"/>
+            </svg>
+          </div>
+          <div class="p-overlay">
+            <button class="p-overlay-btn ob-white"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Детальніше</button>
+            <button class="p-overlay-btn ob-orange" onclick="addToCart(this)"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>В кошик</button>
+          </div>
+          <span class="p-badge badge-hot">🔥 Хіт</span>
+          <button class="p-wish" onclick="toggleWish(this)"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
+          <button class="p-compare" onclick="toggleCompare(this)"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></button>
+        </div>
+        <div class="p-body">
+          <div class="p-brand">PROF1</div>
+          <div class="p-name">Джип PROF1 SPORT — 24V потужний</div>
+          <div class="p-specs">
+            <span class="p-spec"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>6–10 р.</span>
+            <span class="p-spec"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>24V</span>
+            <span class="p-spec"><svg viewBox="0 0 24 24"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>2.4G</span>
+            <span class="p-spec"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>4 мотори</span>
+          </div>
+          <div class="p-bottom">
+            <div><span class="p-price">24 890 ₴</span></div>
+            <div class="p-actions">
+              <button class="btn-quick" onclick="quickOrder()"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button>
+              <button class="btn-cart" onclick="addToCart(this)"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- PAGINATION -->
+    <div class="pagination">
+      <button class="pag-btn arrow"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <button class="pag-btn active">1</button>
+      <button class="pag-btn">2</button>
+      <button class="pag-btn">3</button>
+      <span class="pag-dots">…</span>
+      <button class="pag-btn">27</button>
+      <button class="pag-btn arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+    </div>
+  </main>
+</div>
+
+<!-- MOBILE FILTER BUTTON -->
+<button class="mobile-filter-btn" onclick="openDrawer()">
+  <svg viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="12" y1="18" x2="20" y2="18"/></svg>
+  Фільтри
+</button>
+
+<!-- MOBILE DRAWER -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-head">
+    <h3>Фільтри</h3>
+    <button class="drawer-close" onclick="closeDrawer()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <p style="font-size:13px;color:var(--text-muted);text-align:center;margin-top:40px">Мобільні фільтри будуть дублювати сайдбар.<br>Реалізуємо при фінальній збірці.</p>
+</div>
+
+<!-- QUICK ORDER MODAL -->
+<div id="quickModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;align-items:center;justify-content:center;backdrop-filter:blur(4px)">
+  <div style="background:white;border-radius:20px;padding:36px;max-width:400px;width:90%;position:relative;animation:modalIn .3s cubic-bezier(.34,1.56,.64,1)">
+    <button onclick="closeQuick()" style="position:absolute;top:16px;right:16px;background:var(--bg-soft);border:none;width:32px;height:32px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div style="font-size:28px;margin-bottom:12px">📞</div>
+    <h3 style="font-size:20px;color:var(--navy);margin-bottom:8px">Купити в 1 клік</h3>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:24px;line-height:1.6">Залиш номер телефону — менеджер передзвонить і оформить замовлення за 2 хвилини.</p>
+    <input type="tel" placeholder="+380 __ ___ __ __" style="width:100%;padding:13px 16px;border:1.5px solid var(--border);border-radius:10px;font-family:'Manrope',sans-serif;font-size:15px;margin-bottom:12px;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='var(--orange)'" onblur="this.style.borderColor='var(--border)'">
+    <button onclick="closeQuick()" class="btn btn-primary" style="width:100%;justify-content:center;font-size:15px;padding:14px">Передзвоніть мені</button>
+    <p style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:12px">Передзвонимо протягом 15 хвилин</p>
+  </div>
+</div>
+
+<style>
+@keyframes modalIn{from{opacity:0;transform:scale(.9) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+</style>
+
+<script>
+// Header scroll
+window.addEventListener('scroll', () => {
+  document.getElementById('hdr').classList.toggle('scrolled', scrollY > 40);
+});
+
+// Scroll reveal
+// Reveal cards — show immediately if in viewport, animate others on scroll
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.05, rootMargin: '0px 0px -40px 0px' });
+
+document.querySelectorAll('.reveal').forEach(el => {
+  const rect = el.getBoundingClientRect();
+  if (rect.top < window.innerHeight) {
+    // Already in viewport on load — show immediately
+    el.classList.add('visible');
+  } else {
+    obs.observe(el);
+  }
+});
+
+// Filter toggle (collapse/expand)
+function toggleFilter(title) {
+  title.classList.toggle('collapsed');
+  title.nextElementSibling.classList.toggle('hidden');
+}
+
+// Checkbox
+function toggleCheck(label, group) {
+  label.classList.toggle('checked');
+  applyFilters();
+  updateActiveFilters();
+}
+
+// Active filters display
+function updateActiveFilters() {
+  const container = document.getElementById('activeFilters');
+  container.innerHTML = '';
+  document.querySelectorAll('.filter-option.checked').forEach(opt => {
+    const label = opt.querySelector('.filter-label').textContent;
+    if (label === 'В наявності') return;
+    const tag = document.createElement('div');
+    tag.className = 'filter-tag';
+    tag.innerHTML = `${label}<button onclick="removeFilter(this,'${label}')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>`;
+    container.appendChild(tag);
+  });
+}
+
+function removeFilter(btn, label) {
+  document.querySelectorAll('.filter-option').forEach(opt => {
+    if (opt.querySelector('.filter-label').textContent === label) {
+      opt.classList.remove('checked');
+    }
+  });
+  applyFilters();
+  updateActiveFilters();
+}
+
+function resetFilters() {
+  document.querySelectorAll('.filter-option.checked').forEach(opt => {
+    if (opt.querySelector('.filter-label').textContent !== 'В наявності') {
+      opt.classList.remove('checked');
+    }
+  });
+  document.getElementById('searchInput').value = '';
+  document.getElementById('priceMin').value = 664;
+  document.getElementById('priceMax').value = 86610;
+  applyFilters();
+  updateActiveFilters();
+}
+
+// Помічники для парсингу даних картки
+function _parseRange(s) {
+  // "1 – 3 роки", "3-6 років", "3–8 р." → [min, max]
+  const m = (s || '').match(/(\d+)\s*[-–—]\s*(\d+)/);
+  return m ? [parseInt(m[1], 10), parseInt(m[2], 10)] : null;
+}
+function _getCheckedLabels(group) {
+  return Array.from(document.querySelectorAll('.filter-option.checked[data-group="' + group + '"]'))
+    .map(opt => (opt.querySelector('.filter-label')?.textContent || '').trim());
+}
+
+// Один раз: проставити data-group на кожен .filter-option, парсячи його onclick
+(function tagFilterGroups(){
+  document.querySelectorAll('.filter-option').forEach(opt => {
+    if (opt.dataset.group) return;
+    const oc = opt.getAttribute('onclick') || '';
+    const m = oc.match(/toggleCheck\s*\(\s*this\s*,\s*['"]([^'"]+)['"]/);
+    if (m) opt.dataset.group = m[1];
+  });
+})();
+
+function applyFilters() {
+  const grid = document.getElementById('productsGrid');
+  const q = (document.getElementById('searchInput')?.value || '').trim().toLowerCase();
+
+  const selTypes    = _getCheckedLabels('type').map(s => s.toLowerCase());
+  const selBrands   = _getCheckedLabels('brand').map(s => s.toLowerCase());
+  const selVoltages = _getCheckedLabels('voltage');
+  const selAges     = _getCheckedLabels('age').map(_parseRange).filter(Boolean);
+
+  const priceMinEl = document.getElementById('priceMin');
+  const priceMaxEl = document.getElementById('priceMax');
+  const priceMin = priceMinEl ? (parseFloat(priceMinEl.value) || 0) : 0;
+  const priceMax = priceMaxEl ? (parseFloat(priceMaxEl.value) || Infinity) : Infinity;
+
+  const cards = grid.querySelectorAll('.p-card');
+  let visible = 0;
+
+  cards.forEach(card => {
+    const name = (card.querySelector('.p-name')?.textContent || '').trim();
+    const nameLower = name.toLowerCase();
+    const brand = (card.querySelector('.p-brand')?.textContent || '').trim().toLowerCase();
+    const specs = Array.from(card.querySelectorAll('.p-spec')).map(s => s.textContent.trim());
+    const priceDigits = (card.querySelector('.p-price')?.textContent || '').replace(/[^\d]/g, '');
+    const price = priceDigits ? parseFloat(priceDigits) : 0;
+
+    // 1) пошук по назві / бренду
+    if (q && !nameLower.includes(q) && !brand.includes(q)) {
+      card.style.display = 'none'; return;
+    }
+    // 2) тип — перше слово назви («Джип», «Квадроцикл», «Каталка-толокар» тощо)
+    if (selTypes.length) {
+      const firstWord = (name.split(/\s+/)[0] || '').toLowerCase();
+      if (!selTypes.includes(firstWord)) { card.style.display = 'none'; return; }
+    }
+    // 3) бренд — точне порівняння тексту
+    if (selBrands.length) {
+      if (!selBrands.includes(brand)) { card.style.display = 'none'; return; }
+    }
+    // 4) акумулятор — спец «12V» / «24V» / «6V»
+    if (selVoltages.length) {
+      const cardVolt = specs.find(s => /^\d+V$/i.test(s));
+      if (!cardVolt || !selVoltages.includes(cardVolt.toUpperCase())) {
+        card.style.display = 'none'; return;
+      }
+    }
+    // 5) вік — спец зі словом «р.», перетин діапазонів
+    if (selAges.length) {
+      const ageSpec = specs.find(s => /р\./i.test(s));
+      const cardRange = ageSpec ? _parseRange(ageSpec) : null;
+      if (!cardRange) { card.style.display = 'none'; return; }
+      const ok = selAges.some(([a, b]) => cardRange[0] <= b && cardRange[1] >= a);
+      if (!ok) { card.style.display = 'none'; return; }
+    }
+    // 6) ціна
+    if (price && (price < priceMin || price > priceMax)) {
+      card.style.display = 'none'; return;
+    }
+
+    card.style.display = '';
+    visible++;
+  });
+
+  // empty state
+  let empty = document.getElementById('searchEmptyState');
+  if (!empty) {
+    empty = document.createElement('div');
+    empty.id = 'searchEmptyState';
+    empty.style.cssText = 'grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--text-muted);font-size:15px';
+    grid.appendChild(empty);
+  }
+  if (visible === 0) {
+    const reason = q
+      ? 'Нічого не знайдено за запитом «<strong style="color:var(--navy)">' + q.replace(/[<>&]/g,'') + '</strong>».'
+      : 'Жоден товар не відповідає обраним фільтрам.';
+    empty.innerHTML = reason + '<br><button onclick="resetFilters()" style="margin-top:14px;padding:9px 18px;border:1.5px solid var(--orange);background:white;color:var(--orange);border-radius:9px;font-weight:700;cursor:pointer;font-family:inherit">Скинути всі фільтри</button>';
+    empty.style.display = '';
+  } else {
+    empty.style.display = 'none';
+  }
+
+  // легка анімація
+  grid.style.opacity = '.5';
+  setTimeout(() => { grid.style.opacity = '1'; }, 180);
+
+  // лічильник у шапці
+  const countEl = document.querySelector('.products-area .count, .catalog-title-row .count');
+  if (countEl) countEl.textContent = visible + ' товарів';
+}
+
+function clearSearch() {
+  document.getElementById('searchInput').value = '';
+  applyFilters();
+}
+
+// Pre-fill search from URL ?search=...
+(function initSearchFromUrl(){
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get('search');
+    if (q) {
+      const inp = document.getElementById('searchInput');
+      if (inp) {
+        inp.value = q;
+        inp.focus();
+        applyFilters();
+        window.scrollTo({ top: 120, behavior: 'smooth' });
+      }
+    }
+  } catch(e) {}
+})();
+
+// View toggle
+let currentView = 'grid3';
+function setView(view, btn) {
+  currentView = view;
+  document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const grid = document.getElementById('productsGrid');
+  grid.className = 'products-grid';
+  if (view === 'list') grid.classList.add('list');
+}
+
+// Cart
+let cartCount = 0;
+function addToCart(btn) {
+  const originalHTML = btn.innerHTML;
+  btn.classList.add('added');
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  cartCount++;
+  const badge = document.getElementById('cartBadge');
+  badge.textContent = cartCount;
+  badge.style.transform = 'scale(1.5)';
+  setTimeout(() => badge.style.transform = '', 300);
+  setTimeout(() => { btn.classList.remove('added'); btn.innerHTML = originalHTML; }, 1400);
+}
+
+// Wishlist
+function toggleWish(btn) {
+  btn.classList.toggle('liked');
+  btn.style.transform = 'scale(1.3)';
+  setTimeout(() => btn.style.transform = '', 200);
+
+  // Зберегти в localStorage
+  const card = btn.closest('.p-card');
+  const name = card.querySelector('.p-name')?.textContent.trim() || 'Товар';
+  const priceEl = card.querySelector('.p-price');
+  const price = priceEl ? parseInt(priceEl.textContent.replace(/\D/g,'')) : 0;
+  const product = { id: 'wish-' + name.slice(0,10), name, price, addedAt: Date.now() };
+
+  let wishlist = [];
+  try { wishlist = JSON.parse(localStorage.getItem('kr_wishlist') || '[]'); } catch{}
+
+  if (btn.classList.contains('liked')) {
+    wishlist.push(product);
+    showToastLocal('❤️ Додано до списку бажань');
+  } else {
+    wishlist = wishlist.filter(p => p.name !== name);
+    showToastLocal('🤍 Видалено зі списку бажань');
+  }
+  localStorage.setItem('kr_wishlist', JSON.stringify(wishlist));
+}
+
+// Compare
+let compareList = [];
+function toggleCompare(btn) {
+  btn.classList.toggle('active');
+  const card = btn.closest('.p-card');
+  const name = card.querySelector('.p-name').textContent.trim();
+  const brand = card.querySelector('.p-brand') ? card.querySelector('.p-brand').textContent.trim() : 'Bambi Racer';
+  const priceEl = card.querySelector('.p-price');
+  const price = priceEl ? parseInt(priceEl.textContent.replace(/\D/g,'')) : 0;
+
+  // Побудувати об'єкт товару для порівняння
+  const product = {
+    id: 'cat-' + Date.now() + '-' + Math.random().toString(36).slice(2,6),
+    name, brand, price, img: 'jeep',
+    specs: {
+      'Бренд': brand,
+      'Ціна': price + ' ₴',
+    }
+  };
+
+  if (btn.classList.contains('active')) {
+    if (compareList.length >= 3) {
+      btn.classList.remove('active');
+      showToastLocal('Можна порівнювати до 3 товарів одночасно');
+      return;
+    }
+    compareList.push(product);
+    if (compareList.length >= 2) showCompareBar();
+  } else {
+    compareList = compareList.filter(p => p.name !== name);
+    if (compareList.length < 2) hideCompareBar();
+  }
+
+  // Зберегти в localStorage
+  localStorage.setItem('kr_compare', JSON.stringify(compareList));
+}
+
+function showToastLocal(msg) {
+  let t = document.getElementById('_catToast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = '_catToast';
+    t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--navy);color:white;padding:11px 20px;border-radius:100px;font-family:"Nunito",sans-serif;font-weight:700;font-size:13px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.2);white-space:nowrap;pointer-events:none;transition:opacity .3s';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg; t.style.opacity = '1';
+  clearTimeout(t._t); t._t = setTimeout(() => t.style.opacity = '0', 2500);
+}
+
+function showCompareBar() {
+  let bar = document.getElementById('compareBar');
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.id = 'compareBar';
+    bar.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:var(--navy);color:white;padding:16px 40px;display:flex;align-items:center;justify-content:space-between;z-index:600;box-shadow:0 -8px 32px rgba(0,0,0,.2);animation:slideUp .3s ease';
+    document.body.appendChild(bar);
+  }
+  bar.innerHTML = `<div style="font-family:'Nunito',sans-serif;font-weight:700">Порівняти товари (${compareList.length})</div><div style="display:flex;gap:10px"><button onclick="hideCompareBar()" style="background:rgba(255,255,255,.1);border:none;color:white;padding:10px 20px;border-radius:9px;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:700">Скасувати</button><button onclick="window.location.href='compare.html'" style="background:var(--orange);border:none;color:white;padding:10px 24px;border-radius:9px;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:700;box-shadow:0 4px 14px rgba(255,107,53,.3)">Порівняти →</button></div>`;
+}
+
+function hideCompareBar() {
+  const bar = document.getElementById('compareBar');
+  if (bar) bar.remove();
+  document.querySelectorAll('.p-compare.active').forEach(b => b.classList.remove('active'));
+  compareList = [];
+}
+
+// Quick order
+function quickOrder() {
+  const modal = document.getElementById('quickModal');
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+function closeQuick() {
+  document.getElementById('quickModal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+// Mobile drawer
+function openDrawer() {
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('drawerOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeDrawer() {
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('drawerOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// Search toggle
+function toggleSearch() {
+  // Could expand a search overlay
+  document.getElementById('sidebar').querySelector('#searchInput').focus();
+  window.scrollTo({ top: 140, behavior: 'smooth' });
+}
+</script>
+<script src="shared.js"></script>
+</body>
+</html>

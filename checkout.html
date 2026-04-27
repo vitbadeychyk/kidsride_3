@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Оформлення замовлення — KidsRide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --orange:#FF6B35;--orange-dark:#e85520;
+  --navy:#1B2A4A;--navy-light:#2d4270;
+  --bg:#fff;--bg-soft:#F8F9FC;--bg-warm:#FFF8F5;
+  --green:#27AE60;--red:#e53935;
+  --text:#1a1a2e;--text-muted:#6b7280;
+  --border:#e8ecf4;
+  --shadow-sm:0 2px 12px rgba(27,42,74,.07);
+  --shadow-md:0 8px 32px rgba(27,42,74,.12);
+  --shadow-lg:0 20px 60px rgba(27,42,74,.16);
+  --r:14px;--r-sm:8px;--r-lg:20px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Manrope',sans-serif;color:var(--text);background:var(--bg-soft)}
+h1,h2,h3,h4{font-family:'Nunito',sans-serif;font-weight:800}
+a{text-decoration:none;color:inherit}
+
+/* HEADER */
+.header{position:fixed;top:0;left:0;right:0;z-index:1000;height:64px;padding:0 40px;display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.93);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+.logo{display:flex;align-items:center;gap:10px;font-family:'Nunito',sans-serif;font-weight:900;font-size:22px;color:var(--navy)}
+.logo-mark{width:36px;height:36px;background:var(--orange);border-radius:9px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(255,107,53,.3)}
+.logo span{color:var(--orange)}
+.header-secure{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted);font-weight:600}
+.header-secure svg{width:15px;height:15px;stroke:var(--green);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* BREADCRUMB */
+.breadcrumb{margin-top:64px;background:white;border-bottom:1px solid var(--border);padding:13px 40px;display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted)}
+.breadcrumb a{color:var(--text-muted);transition:color .2s}.breadcrumb a:hover{color:var(--orange)}
+.breadcrumb svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;opacity:.5}
+.breadcrumb-cur{color:var(--navy);font-weight:600}
+
+/* PROGRESS STEPS */
+.progress-wrap{background:white;border-bottom:1px solid var(--border);padding:16px 40px}
+.progress{display:flex;align-items:center;max-width:560px;margin:0 auto}
+.step{display:flex;align-items:center;gap:10px;flex:1}
+.step-num{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;flex-shrink:0;transition:all .3s}
+.step-info{flex:1;min-width:0}
+.step-label{font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.08em}
+.step-name{font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;color:var(--navy)}
+.step-connector{height:2px;width:32px;flex-shrink:0;border-radius:2px;transition:background .3s;margin:0 4px}
+
+.step.done .step-num{background:var(--green);color:#fff}
+.step.done .step-name{color:var(--green)}
+.step.done .step-connector{background:var(--green)}
+.step.active .step-num{background:var(--orange);color:#fff;box-shadow:0 4px 12px rgba(255,107,53,.35)}
+.step.active .step-name{color:var(--orange)}
+.step.pending .step-num{background:var(--bg-soft);color:var(--text-muted);border:1.5px solid var(--border)}
+.step.pending .step-name{color:var(--text-muted)}
+.step-connector.done{background:var(--green)}
+.step-connector.pending{background:var(--border)}
+
+/* PAGE */
+.page{max-width:1100px;margin:0 auto;padding:32px 40px 80px;display:grid;grid-template-columns:1fr 360px;gap:28px;align-items:start}
+
+/* FORM CARD */
+.form-card{background:white;border-radius:var(--r-lg);border:1.5px solid var(--border)}
+.form-section{padding:28px;border-bottom:1px solid var(--border)}
+.form-section:last-child{border-bottom:none}
+.section-head{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+.section-num{width:28px;height:28px;background:var(--orange);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;color:#fff;flex-shrink:0}
+.section-title{font-size:17px;color:var(--navy)}
+
+/* FORM ELEMENTS */
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.field-row.single{grid-template-columns:1fr}
+.field-row.triple{grid-template-columns:1fr 1fr 1fr}
+.field{display:flex;flex-direction:column;gap:5px;position:relative}
+.field label{font-size:12px;font-weight:700;color:var(--navy);display:flex;align-items:center;gap:4px}
+.field label .req{color:var(--orange)}
+.field input,.field select,.field textarea{
+  padding:12px 14px;border:1.5px solid var(--border);
+  border-radius:10px;font-family:'Manrope',sans-serif;font-size:14px;
+  color:var(--navy);background:white;outline:none;
+  transition:border-color .2s,box-shadow .2s;width:100%
+}
+.field input:focus,.field select:focus,.field textarea:focus{
+  border-color:var(--orange);
+  box-shadow:0 0 0 3px rgba(255,107,53,.1)
+}
+.field input.error{border-color:var(--red)}
+.field input.valid{border-color:var(--green)}
+.field .field-hint{font-size:11px;color:var(--text-muted);margin-top:2px}
+.field .field-error{font-size:11px;color:var(--red);margin-top:2px;display:none}
+.field input.error~.field-error{display:block}
+.field .field-icon{position:absolute;right:12px;top:38px;width:16px;height:16px}
+.field .field-icon svg{width:16px;height:16px;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;fill:none}
+.field .field-icon.valid svg{stroke:var(--green)}
+.field .field-icon.error svg{stroke:var(--red)}
+
+/* NP AUTOCOMPLETE */
+.np-wrap{position:relative;overflow:visible}
+.np-input-row{display:flex;gap:8px;align-items:flex-start}
+.np-input-row .field{flex:1}
+.np-spinner{display:none;width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--orange);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;margin-top:38px}
+.np-spinner.show{display:block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.np-dropdown{
+  position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:9999;
+  background:white;border:1.5px solid var(--border);border-radius:var(--r);
+  box-shadow:0 16px 48px rgba(27,42,74,.2);max-height:280px;overflow-y:auto;
+  display:none;scrollbar-width:thin;
+  /* Prevent parent overflow:hidden from clipping */
+  -webkit-overflow-scrolling:touch;
+}
+.np-dropdown.open{display:block}
+.np-dropdown::-webkit-scrollbar{width:4px}
+.np-dropdown::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+.np-option{padding:11px 16px;cursor:pointer;transition:background .15s;display:flex;align-items:flex-start;gap:10px;border-bottom:1px solid rgba(232,236,244,.5)}
+.np-option:last-child{border-bottom:none}
+.np-option:hover,.np-option.focused{background:rgba(255,107,53,.05)}
+.np-option-icon{width:30px;height:30px;border-radius:8px;background:rgba(255,107,53,.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.np-option-icon svg{width:14px;height:14px;stroke:var(--orange);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.np-option-main{font-size:14px;font-weight:600;color:var(--navy);line-height:1.3}
+.np-option-sub{font-size:11px;color:var(--text-muted);margin-top:2px}
+.np-option-mark{margin-left:auto;font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px;flex-shrink:0}
+.mark-dept{background:rgba(255,107,53,.1);color:var(--orange)}
+.mark-post{background:rgba(39,174,96,.1);color:var(--green)}
+.mark-addr{background:rgba(27,42,74,.08);color:var(--navy)}
+
+.np-empty{padding:20px 16px;text-align:center;font-size:13px;color:var(--text-muted)}
+.np-loading{padding:16px;text-align:center;font-size:13px;color:var(--text-muted);display:flex;align-items:center;justify-content:center;gap:8px}
+.np-loading-spin{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--orange);border-radius:50%;animation:spin .7s linear infinite}
+
+/* Selected city/warehouse display */
+.np-selected{display:none;background:rgba(39,174,96,.06);border:1.5px solid rgba(39,174,96,.2);border-radius:10px;padding:12px 14px;margin-top:8px;flex-direction:column;gap:4px}
+.np-selected.show{display:flex}
+.np-selected-top{display:flex;align-items:center;justify-content:space-between}
+.np-selected-name{font-size:14px;font-weight:700;color:var(--navy)}
+.np-selected-sub{font-size:12px;color:var(--text-muted)}
+.np-selected-clear{background:none;border:none;cursor:pointer;color:var(--text-muted);display:flex;align-items:center;gap:4px;font-size:11px;font-weight:600;font-family:'Manrope',sans-serif;transition:color .2s;padding:0}
+.np-selected-clear:hover{color:var(--red)}
+.np-selected-clear svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+
+/* Delivery type tabs */
+.delivery-tabs{display:flex;gap:0;border:1.5px solid var(--border);border-radius:11px;margin-bottom:20px;overflow:visible}
+.dt-btn{flex:1;padding:12px 10px;border:none;background:white;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;color:var(--text-muted);cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px;border-right:1px solid var(--border)}.dt-btn:first-child{border-radius:10px 0 0 10px}.dt-btn:last-child{border-radius:0 10px 10px 0;border-right:none}
+.dt-btn:last-child{border-right:none}
+.dt-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.dt-btn.active{background:var(--orange);color:#fff;box-shadow:inset 0 2px 8px rgba(0,0,0,.1)}
+.dt-btn.active svg{stroke:#fff}
+.dt-panel{display:none}
+.dt-panel.active{display:block}
+
+/* Payment methods */
+.pay-list{display:flex;flex-direction:column;gap:10px}
+.pay-option{border:1.5px solid var(--border);border-radius:var(--r);padding:16px 18px;cursor:pointer;transition:all .2s;display:flex;align-items:flex-start;gap:14px}
+.pay-option:hover{border-color:rgba(255,107,53,.3);background:rgba(255,107,53,.02)}
+.pay-option.selected{border-color:var(--orange);background:rgba(255,107,53,.04)}
+.pay-radio{width:20px;height:20px;border:2px solid var(--border);border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s;margin-top:1px}
+.pay-option.selected .pay-radio{border-color:var(--orange)}
+.pay-radio-dot{width:10px;height:10px;border-radius:50%;background:var(--orange);transform:scale(0);transition:transform .2s}
+.pay-option.selected .pay-radio-dot{transform:scale(1)}
+.pay-icon-wrap{width:40px;height:40px;border-radius:10px;background:var(--bg-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pay-icon-wrap svg{width:20px;height:20px;stroke:var(--navy);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.pay-name{font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;color:var(--navy)}
+.pay-desc{font-size:12px;color:var(--text-muted);line-height:1.5;margin-top:3px}
+.pay-badge{display:inline-block;background:rgba(255,107,53,.12);color:var(--orange);font-size:10px;font-weight:800;padding:2px 8px;border-radius:5px;margin-top:5px;font-family:'Nunito',sans-serif}
+.pay-badge.green{background:rgba(39,174,96,.12);color:var(--green)}
+.pay-expand{display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
+.pay-option.selected .pay-expand{display:block}
+
+/* Comment field */
+.field textarea{min-height:88px;resize:vertical;line-height:1.6}
+
+/* Submit */
+.submit-btn{width:100%;padding:15px;border-radius:12px;background:var(--orange);color:#fff;border:none;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:800;font-size:16px;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 6px 20px rgba(255,107,53,.35);transition:all .25s cubic-bezier(.34,1.56,.64,1);margin-top:24px}
+.submit-btn:hover{background:var(--orange-dark);transform:translateY(-2px);box-shadow:0 10px 28px rgba(255,107,53,.4)}
+.submit-btn svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+
+/* ORDER SUMMARY SIDEBAR */
+.order-sidebar{background:white;border-radius:var(--r-lg);border:1.5px solid var(--border);padding:24px;position:sticky;top:80px}
+.os-title{font-size:16px;color:var(--navy);margin-bottom:18px}
+.os-items{display:flex;flex-direction:column;gap:14px;margin-bottom:18px}
+.os-item{display:flex;gap:12px;align-items:flex-start}
+.os-img{width:56px;height:48px;border-radius:8px;background:var(--bg-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid var(--border)}
+.os-img svg{width:80%}
+.os-item-name{font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;color:var(--navy);line-height:1.3}
+.os-item-meta{font-size:11px;color:var(--text-muted);margin-top:2px}
+.os-item-price{font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;color:var(--navy);margin-left:auto;white-space:nowrap;flex-shrink:0}
+.os-divider{height:1px;background:var(--border);margin:14px 0}
+.os-row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px}
+.os-row:last-child{margin-bottom:0}
+.os-label{color:var(--text-muted)}
+.os-val{color:var(--navy);font-weight:600}
+.os-total-row{display:flex;justify-content:space-between;align-items:baseline;margin-top:4px}
+.os-total-label{font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;color:var(--navy)}
+.os-total-val{font-family:'Nunito',sans-serif;font-weight:900;font-size:22px;color:var(--navy)}
+
+/* Trust */
+.os-trust{margin-top:18px;display:flex;flex-direction:column;gap:7px}
+.os-trust-item{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text-muted)}
+.os-trust-item svg{width:13px;height:13px;stroke:var(--green);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+
+/* SUCCESS PAGE */
+.success-wrap{max-width:560px;margin:60px auto;padding:0 24px;text-align:center;display:none}
+.success-icon{width:80px;height:80px;background:rgba(39,174,96,.1);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;animation:popIn .5s cubic-bezier(.34,1.56,.64,1) both}
+.success-icon svg{width:40px;height:40px;stroke:var(--green);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.success-title{font-size:28px;color:var(--navy);margin-bottom:10px}
+.success-desc{font-size:15px;color:var(--text-muted);line-height:1.65;margin-bottom:32px}
+.success-order{background:white;border-radius:var(--r-lg);border:1.5px solid var(--border);padding:24px;margin-bottom:24px;text-align:left}
+.success-order-row{display:flex;justify-content:space-between;margin-bottom:10px;font-size:14px}
+.success-order-row:last-child{margin-bottom:0}
+.success-order-label{color:var(--text-muted)}
+.success-order-val{font-weight:700;color:var(--navy)}
+.success-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+@keyframes popIn{from{opacity:0;transform:scale(.5)}to{opacity:1;transform:scale(1)}}
+
+/* RESPONSIVE */
+@media(max-width:960px){
+  .page{grid-template-columns:1fr;padding:20px 20px 100px}
+  .order-sidebar{position:static;order:-1}
+  .os-items{display:none}
+  .os-title::after{content:' (' attr(data-count) ' товари)';font-size:13px;font-weight:600;color:var(--text-muted)}
+  .breadcrumb,.progress-wrap{padding-left:20px;padding-right:20px}
+}
+@media(max-width:640px){
+  .header{height:58px;padding:0 16px}
+  .header-secure span:not(.secure-label){display:none}
+  .breadcrumb{margin-top:58px;padding:10px 16px;font-size:11px}
+  .progress-wrap{padding:12px 16px}
+  .step-info{display:none}
+  .step-connector{width:20px}
+  .page{padding:14px 16px 80px}
+  .form-section{padding:18px 16px}
+  .field-row{grid-template-columns:1fr}
+  .field-row.triple{grid-template-columns:1fr 1fr}
+  .delivery-tabs{flex-wrap:nowrap}
+  .dt-btn{font-size:11px;padding:10px 6px}
+  .os-total-val{font-size:18px}
+}
+@media(max-width:380px){
+  .progress .step-num{width:28px;height:28px;font-size:12px}
+  .delivery-tabs{flex-direction:column}
+  .dt-btn{border-right:none;border-bottom:1px solid var(--border)}
+  .dt-btn:last-child{border-bottom:none}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <a href="index.html" class="logo">
+    <div class="logo-mark">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect x="9" y="11" width="14" height="10" rx="2"/><circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/></svg>
+    </div>
+    Kids<span>Ride</span>
+  </a>
+  <div class="header-secure">
+    <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    <span class="secure-label">Безпечне оформлення</span>
+  </div>
+</header>
+
+<!-- BREADCRUMB -->
+<div class="breadcrumb">
+  <a href="index.html">Головна</a>
+  <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+  <a href="cart.html">Кошик</a>
+  <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+  <span class="breadcrumb-cur">Оформлення</span>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="progress">
+    <div class="step active" id="step1-el">
+      <div class="step-num">1</div>
+      <div class="step-info">
+        <div class="step-label">Крок 1</div>
+        <div class="step-name">Контакти</div>
+      </div>
+    </div>
+    <div class="step-connector pending" id="conn1"></div>
+    <div class="step pending" id="step2-el">
+      <div class="step-num">2</div>
+      <div class="step-info">
+        <div class="step-label">Крок 2</div>
+        <div class="step-name">Доставка</div>
+      </div>
+    </div>
+    <div class="step-connector pending" id="conn2"></div>
+    <div class="step pending" id="step3-el">
+      <div class="step-num">3</div>
+      <div class="step-info">
+        <div class="step-label">Крок 3</div>
+        <div class="step-name">Оплата</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SUCCESS PAGE (hidden initially) -->
+<div class="success-wrap" id="successPage">
+  <div class="success-icon">
+    <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+  </div>
+  <h2 class="success-title">Замовлення прийнято!</h2>
+  <p class="success-desc">Дякуємо за покупку! Наш менеджер зв'яжеться з вами протягом 15 хвилин для підтвердження.</p>
+  <div class="success-order">
+    <div class="success-order-row"><span class="success-order-label">Номер замовлення</span><span class="success-order-val">#KR-2024-1847</span></div>
+    <div class="success-order-row"><span class="success-order-label">Сума до сплати</span><span class="success-order-val">29 434 ₴</span></div>
+    <div class="success-order-row"><span class="success-order-label">Доставка</span><span class="success-order-val" id="successDelivery">Нова Пошта</span></div>
+    <div class="success-order-row"><span class="success-order-label">Спосіб оплати</span><span class="success-order-val" id="successPayment">—</span></div>
+  </div>
+  <p style="font-size:13px;color:var(--text-muted);margin-bottom:20px">Ми надішлемо підтвердження та номер ТТН на вказаний телефон</p>
+  <div class="success-btns">
+    <a href="catalog.html" class="btn" style="background:var(--navy);color:#fff;padding:13px 24px;border-radius:11px;font-family:'Nunito',sans-serif;font-weight:700;font-size:14px">Продовжити покупки</a>
+    <a href="index.html" class="btn" style="background:white;color:var(--navy);border:1.5px solid var(--border);padding:13px 24px;border-radius:11px;font-family:'Nunito',sans-serif;font-weight:700;font-size:14px">На головну</a>
+  </div>
+</div>
+
+<!-- CHECKOUT PAGE -->
+<div class="page" id="checkoutPage">
+
+  <!-- FORM -->
+  <div>
+
+    <!-- STEP 1: CONTACTS -->
+    <div class="form-card" id="formStep1">
+      <div class="form-section">
+        <div class="section-head">
+          <div class="section-num">1</div>
+          <h2 class="section-title">Контактні дані</h2>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Ім'я <span class="req">*</span></label>
+            <input type="text" id="firstName" placeholder="Іван" oninput="validateField(this,'name')">
+            <div class="field-icon" id="fi-firstName"></div>
+            <div class="field-error">Введіть ваше ім'я</div>
+          </div>
+          <div class="field">
+            <label>Прізвище <span class="req">*</span></label>
+            <input type="text" id="lastName" placeholder="Петренко" oninput="validateField(this,'name')">
+            <div class="field-icon" id="fi-lastName"></div>
+            <div class="field-error">Введіть ваше прізвище</div>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Телефон <span class="req">*</span></label>
+            <input type="tel" id="phone" placeholder="+380 XX XXX XX XX" oninput="validatePhone(this)" maxlength="17">
+            <div class="field-icon" id="fi-phone"></div>
+            <div class="field-error">Введіть коректний номер</div>
+            <div class="field-hint">Менеджер передзвонить для підтвердження</div>
+          </div>
+          <div class="field">
+            <label>Email</label>
+            <input type="email" id="email" placeholder="ivan@gmail.com" oninput="validateField(this,'email')">
+            <div class="field-icon" id="fi-email"></div>
+            <div class="field-hint">Надішлемо підтвердження замовлення</div>
+          </div>
+        </div>
+
+        <!-- Guest or login -->
+        <div style="background:var(--bg-soft);border-radius:var(--r-sm);padding:14px;margin-top:6px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+          <div style="font-size:13px;color:var(--text-muted)">Вже маєте акаунт? Увійдіть щоб відстежувати замовлення</div>
+          <a href="#" style="font-size:13px;font-weight:700;color:var(--orange)">Увійти →</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2: DELIVERY -->
+    <div class="form-card" id="formStep2" style="margin-top:16px">
+      <div class="form-section">
+        <div class="section-head">
+          <div class="section-num">2</div>
+          <h2 class="section-title">Доставка</h2>
+        </div>
+
+        <!-- Delivery type tabs -->
+        <div class="delivery-tabs">
+          <button class="dt-btn active" onclick="setDeliveryType('warehouse',this)">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+            Відділення НП
+          </button>
+          <button class="dt-btn" onclick="setDeliveryType('postomat',this)">
+            <svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+            Поштомат
+          </button>
+          <button class="dt-btn" onclick="setDeliveryType('address',this)">
+            <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Адресна
+          </button>
+        </div>
+
+        <!-- WAREHOUSE / POSTOMAT -->
+        <div class="dt-panel active" id="dt-warehouse">
+          <!-- City search -->
+          <div class="field" style="margin-bottom:14px">
+            <label>Місто або населений пункт <span class="req">*</span></label>
+            <div class="np-wrap" id="cityWrap">
+              <input type="text" id="cityInput"
+                placeholder="Почніть вводити: Київ, Харків, Львів..."
+                autocomplete="off"
+                oninput="searchCity(this.value)"
+                onkeydown="handleDropdownKey(event,'cityDrop')"
+                onfocus="if(cityData.selected) showCityDrop()">
+              <div class="np-dropdown" id="cityDrop" role="listbox"></div>
+              <div class="np-selected" id="citySelected">
+                <div class="np-selected-top">
+                  <div>
+                    <div class="np-selected-name" id="citySelectedName"></div>
+                    <div class="np-selected-sub" id="citySelectedSub"></div>
+                  </div>
+                  <button class="np-selected-clear" onclick="clearCity()">
+                    <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    Змінити
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Warehouse search -->
+          <div class="field" id="warehouseField" style="display:none">
+            <label>Відділення або поштомат <span class="req">*</span></label>
+            <div class="np-wrap" id="warehouseWrap">
+              <input type="text" id="warehouseInput"
+                placeholder="Номер або адреса відділення..."
+                autocomplete="off"
+                oninput="searchWarehouse(this.value)"
+                onkeydown="handleDropdownKey(event,'warehouseDrop')">
+              <div class="np-dropdown" id="warehouseDrop" role="listbox"></div>
+              <div class="np-selected" id="warehouseSelected">
+                <div class="np-selected-top">
+                  <div>
+                    <div class="np-selected-name" id="warehouseSelectedName"></div>
+                    <div class="np-selected-sub" id="warehouseSelectedSub"></div>
+                  </div>
+                  <button class="np-selected-clear" onclick="clearWarehouse()">
+                    <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    Змінити
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ADDRESS -->
+        <div class="dt-panel" id="dt-address">
+          <div class="field" style="margin-bottom:14px">
+            <label>Місто <span class="req">*</span></label>
+            <div class="np-wrap">
+              <input type="text" id="addrCityInput"
+                placeholder="Місто доставки..."
+                autocomplete="off"
+                oninput="searchCity(this.value,'addr')">
+              <div class="np-dropdown" id="addrCityDrop" role="listbox"></div>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>Вулиця <span class="req">*</span></label>
+              <input type="text" id="street" placeholder="вул. Хрещатик">
+            </div>
+            <div class="field">
+              <label>Будинок <span class="req">*</span></label>
+              <input type="text" id="house" placeholder="10-А">
+            </div>
+          </div>
+          <div class="field-row triple">
+            <div class="field">
+              <label>Квартира</label>
+              <input type="text" id="flat" placeholder="52">
+            </div>
+            <div class="field">
+              <label>Поверх</label>
+              <input type="text" id="floor" placeholder="4">
+            </div>
+            <div class="field">
+              <label>Домофон</label>
+              <input type="text" id="intercom" placeholder="52#">
+            </div>
+          </div>
+          <div class="field" style="margin-top:14px">
+            <label>Коментар до адреси</label>
+            <input type="text" id="addrComment" placeholder="Ліфт є, дзвінок не працює...">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3: PAYMENT -->
+    <div class="form-card" id="formStep3" style="margin-top:16px">
+      <div class="form-section">
+        <div class="section-head">
+          <div class="section-num">3</div>
+          <h2 class="section-title">Спосіб оплати</h2>
+        </div>
+        <div class="pay-list">
+
+          <div class="pay-option selected" onclick="selectPay(this,'fop')">
+            <div class="pay-radio"><div class="pay-radio-dot"></div></div>
+            <div class="pay-icon-wrap"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg></div>
+            <div>
+              <div class="pay-name">Оплата на рахунок ФОП</div>
+              <div class="pay-desc">Безготівковий розрахунок. Реквізити надішлемо після підтвердження замовлення.</div>
+              <div class="pay-expand">
+                <div style="font-size:12px;color:var(--text-muted);line-height:1.7">
+                  <strong style="color:var(--navy)">Як це працює:</strong><br>
+                  1. Менеджер підтверджує замовлення<br>
+                  2. Надсилаємо реквізити ФОП на ваш телефон<br>
+                  3. Ви здійснюєте оплату через застосунок банку<br>
+                  4. Відправляємо товар після надходження оплати
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pay-option" onclick="selectPay(this,'partial')">
+            <div class="pay-radio"><div class="pay-radio-dot"></div></div>
+            <div class="pay-icon-wrap"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+            <div>
+              <div class="pay-name">Часткова передоплата</div>
+              <div class="pay-desc">Передплата частини суми, решта — при отриманні. Умови узгоджуються з менеджером.</div>
+              <div class="pay-expand">
+                <div style="font-size:12px;color:var(--text-muted);line-height:1.7">
+                  Мінімальна передоплата — 30% від вартості товару.<br>
+                  Залишок сплачується при отриманні посилки в НП.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pay-option" onclick="selectPay(this,'privat')">
+            <div class="pay-radio"><div class="pay-radio-dot"></div></div>
+            <div class="pay-icon-wrap" style="background:#1DB954;"><svg viewBox="0 0 24 24" style="stroke:white"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
+            <div style="flex:1">
+              <div class="pay-name">Частинами від ПриватБанк</div>
+              <div class="pay-desc">До 12 місяців без переплат. Потрібна картка ПриватБанку.</div>
+              <div class="pay-badge">Від 2 453 ₴/міс × 12</div>
+              <div class="pay-expand">
+                <div style="font-size:12px;color:var(--text-muted);line-height:1.7">
+                  <strong style="color:var(--navy)">Як оформити:</strong><br>
+                  1. Менеджер надішле посилання<br>
+                  2. Відкриваєте у застосунку ПриватБанк<br>
+                  3. Підтверджуєте розстрочку<br>
+                  4. Товар відправляємо одразу
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pay-option" onclick="selectPay(this,'packet')">
+            <div class="pay-radio"><div class="pay-radio-dot"></div></div>
+            <div class="pay-icon-wrap" style="background:linear-gradient(135deg,#5b6af7,#7c3aed)"><svg viewBox="0 0 24 24" style="stroke:white"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div>
+            <div>
+              <div class="pay-name">Пакунок малюка</div>
+              <div class="pay-desc">Державна допомога при народженні дитини. Приймаємо як повну або часткову оплату.</div>
+              <div class="pay-badge green">Держпідтримка</div>
+              <div class="pay-expand">
+                <div style="font-size:12px;color:var(--text-muted);line-height:1.7">
+                  <strong style="color:var(--navy)">Необхідні документи:</strong><br>
+                  • Свідоцтво про народження дитини<br>
+                  • Сертифікат «Пакунок малюка»<br>
+                  Наш менеджер допоможе оформити покупку покроково.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pay-option" onclick="selectPay(this,'state7k')">
+            <div class="pay-radio"><div class="pay-radio-dot"></div></div>
+            <div class="pay-icon-wrap" style="background:linear-gradient(135deg,#0ea5e9,#0284c7)"><svg viewBox="0 0 24 24" style="stroke:white"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+            <div>
+              <div class="pay-name">Держпідтримка 7000 грн</div>
+              <div class="pay-desc">Для дітей до 1 року. Сертифікат видається через застосунок «Дія».</div>
+              <div class="pay-badge green">До 1 року</div>
+              <div class="pay-expand">
+                <div style="font-size:12px;color:var(--text-muted);line-height:1.7">
+                  Сума 7000 грн спрямовується на оплату товару.<br>
+                  Залишок (якщо є) оплачується іншим способом.<br>
+                  Менеджер пояснить процедуру оформлення.
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- COMMENT -->
+      <div class="form-section">
+        <div class="section-head" style="margin-bottom:14px">
+          <div class="section-num" style="background:var(--bg-soft);color:var(--text-muted)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <h2 class="section-title" style="font-size:15px">Коментар до замовлення</h2>
+        </div>
+        <div class="field">
+          <textarea id="comment" placeholder="Побажання щодо доставки, бажаний час отримання, або будь-яка інша інформація для менеджера..."></textarea>
+        </div>
+      </div>
+
+      <!-- SUBMIT -->
+      <div class="form-section">
+        <!-- Terms -->
+        <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:16px;cursor:pointer" onclick="toggleTerms()">
+          <div id="termsCheck" style="width:20px;height:20px;border:2px solid var(--border);border-radius:5px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s;margin-top:1px">
+            <svg id="termsCheckIcon" style="display:none;width:11px;height:11px;stroke:white;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div style="font-size:12px;color:var(--text-muted);line-height:1.6">
+            Я погоджуюсь з <a href="#" style="color:var(--orange)">умовами публічної оферти</a> та <a href="#" style="color:var(--orange)">політикою конфіденційності</a>
+          </div>
+        </div>
+
+        <button class="submit-btn" onclick="submitOrder()" id="submitBtn">
+          <svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          Підтвердити замовлення
+        </button>
+        <div style="text-align:center;margin-top:10px;font-size:11px;color:var(--text-muted)">
+          Після підтвердження менеджер зв'яжеться з вами протягом 15 хвилин
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ORDER SUMMARY SIDEBAR -->
+  <div class="order-sidebar">
+    <h3 class="os-title" data-count="2">Ваше замовлення</h3>
+    <div class="os-items">
+      <div class="os-item">
+        <div class="os-img">
+          <svg viewBox="0 0 60 45">
+            <rect x="5" y="17" width="50" height="17" rx="5" fill="#c8d0ea"/>
+            <rect x="12" y="7" width="32" height="15" rx="3" fill="#d0d8f0"/>
+            <rect x="14" y="9" width="13" height="9" rx="2" fill="#90CAF9" opacity=".6"/>
+            <rect x="29" y="9" width="12" height="9" rx="2" fill="#90CAF9" opacity=".5"/>
+            <circle cx="15" cy="39" r="6" fill="#2d3748"/><circle cx="15" cy="39" r="3" fill="#FF6B35" opacity=".7"/>
+            <circle cx="45" cy="39" r="6" fill="#2d3748"/><circle cx="45" cy="39" r="3" fill="#FF6B35" opacity=".7"/>
+          </svg>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div class="os-item-name">Джип M 3804EBLR-1</div>
+          <div class="os-item-meta">Колір: Білий · 1 шт.</div>
+        </div>
+        <div class="os-item-price">17 224 ₴</div>
+      </div>
+      <div class="os-item">
+        <div class="os-img" style="background:linear-gradient(145deg,#eef0ff,#d6dcff)">
+          <svg viewBox="0 0 60 45">
+            <rect x="12" y="18" width="36" height="14" rx="4" fill="#3B4A8A" opacity=".25"/>
+            <rect x="17" y="9" width="27" height="13" rx="3" fill="#3B4A8A" opacity=".28"/>
+            <rect x="19" y="11" width="11" height="8" rx="2" fill="#90CAF9" opacity=".55"/>
+            <rect x="32" y="11" width="9" height="8" rx="2" fill="#90CAF9" opacity=".5"/>
+            <circle cx="17" cy="38" r="6" fill="#2d4270" opacity=".35"/><circle cx="17" cy="38" r="3" fill="#FF6B35" opacity=".4"/>
+            <circle cx="43" cy="38" r="6" fill="#2d4270" opacity=".35"/><circle cx="43" cy="38" r="3" fill="#FF6B35" opacity=".4"/>
+          </svg>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div class="os-item-name">Квадроцикл M 4795EBLR</div>
+          <div class="os-item-meta">Колір: Синій · 1 шт.</div>
+        </div>
+        <div class="os-item-price">12 210 ₴</div>
+      </div>
+    </div>
+    <div class="os-divider"></div>
+    <div class="os-row"><span class="os-label">Товари</span><span class="os-val">29 434 ₴</span></div>
+    <div class="os-row"><span class="os-label">Доставка</span><span class="os-val" style="color:var(--orange)">за тарифами НП</span></div>
+    <div class="os-divider"></div>
+    <div class="os-total-row">
+      <span class="os-total-label">Разом</span>
+      <span class="os-total-val">29 434 ₴</span>
+    </div>
+    <div class="os-trust">
+      <div class="os-trust-item"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Безпечна транзакція</div>
+      <div class="os-trust-item"><svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.57"/></svg>Повернення 14 днів</div>
+      <div class="os-trust-item"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12"/></svg>Підтримка 7 днів</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── NP API ─────────────────────────────────────────────────────────────────
+// API ключ — замінити на реальний з np.ua
+const NP_API_KEY = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+const NP_API_URL = 'https://api.novaposhta.ua/v2.0/json/';
+
+const cityData = { selected: null, ref: null };
+const warehouseData = { selected: null };
+
+let cityTimer, warehouseTimer;
+
+// Search city via NP API
+async function searchCity(query, mode='main') {
+  const dropId = mode === 'addr' ? 'addrCityDrop' : 'cityDrop';
+  const inputId = mode === 'addr' ? 'addrCityInput' : 'cityInput';
+  const drop = document.getElementById(dropId);
+
+  if (query.length < 2) { drop.classList.remove('open'); return; }
+
+  clearTimeout(cityTimer);
+  showLoading(drop);
+
+  cityTimer = setTimeout(async () => {
+    try {
+      // Try real NP API first
+      const res = await fetch(NP_API_URL, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          apiKey: NP_API_KEY,
+          modelName: 'Address',
+          calledMethod: 'getCities',
+          methodProperties: {
+            FindByString: query,
+            Limit: 12
+          }
+        })
+      });
+      const data = await res.json();
+      if (data.success && data.data?.length > 0) {
+        renderCities(data.data, drop, mode);
+        return;
+      }
+    } catch(e) {}
+
+    // Fallback: mock data для демо
+    renderCities(getMockCities(query), drop, mode);
+  }, 350);
+}
+
+function getMockCities(q) {
+  const all = [
+    {Description:'Київ', AreaDescription:'Київська', Ref:'8d5a980d-391c-11dd-90d9-001a92567626', DeliveryCity:'8d5a980d'},
+    {Description:'Харків', AreaDescription:'Харківська', Ref:'db5c88d7-391c-11dd-90d9-001a92567626', DeliveryCity:'db5c88d7'},
+    {Description:'Одеса', AreaDescription:'Одеська', Ref:'05e58649-d62e-4a0b-9f61-e8e71f4f72e4', DeliveryCity:'05e58649'},
+    {Description:'Дніпро', AreaDescription:'Дніпропетровська', Ref:'db5c88e3-391c-11dd-90d9-001a92567626', DeliveryCity:'db5c88e3'},
+    {Description:'Запоріжжя', AreaDescription:'Запорізька', Ref:'db5c88d5-391c-11dd-90d9-001a92567626', DeliveryCity:'db5c88d5'},
+    {Description:'Львів', AreaDescription:'Львівська', Ref:'5f6b7fff-f34a-4aba-8e9e-55bd66edb4c9', DeliveryCity:'5f6b7fff'},
+    {Description:'Вінниця', AreaDescription:'Вінницька', Ref:'1bb4b2a3-e1c2-11e3-8c4a-0050568002cf', DeliveryCity:'1bb4b2a3'},
+    {Description:'Полтава', AreaDescription:'Полтавська', Ref:'db5c88db-391c-11dd-90d9-001a92567626', DeliveryCity:'db5c88db'},
+    {Description:'Кривий Ріг', AreaDescription:'Дніпропетровська', Ref:'db5c88d9-391c-11dd-90d9-001a92567626', DeliveryCity:'db5c88d9'},
+    {Description:'Миколаїв', AreaDescription:'Миколаївська', Ref:'db5c88e5-391c-11dd-90d9-001a92567626', DeliveryCity:'db5c88e5'},
+    {Description:'Маріуполь', AreaDescription:'Донецька', Ref:'db5c88dd-391c-11dd-90d9-001a92567626', DeliveryCity:'db5c88dd'},
+    {Description:'Луцьк', AreaDescription:'Волинська', Ref:'db5c88d3-391c-11dd-90d9-001a92567626', DeliveryCity:'db5c88d3'},
+    {Description:'Житомир', AreaDescription:'Житомирська', Ref:'db5c88d1-391c-11dd-90d9-001a92567626', DeliveryCity:'db5c88d1'},
+    {Description:'Суми', AreaDescription:'Сумська', Ref:'db5c88e7-391c-11dd-90d9-001a92567626', DeliveryCity:'db5c88e7'},
+    {Description:'Чернігів', AreaDescription:'Чернігівська', Ref:'db5c88eb-391c-11dd-90d9-001a92567626', DeliveryCity:'db5c88eb'},
+    {Description:'Херсон', AreaDescription:'Херсонська', Ref:'db5c88e9-391c-11dd-90d9-001a92567626', DeliveryCity:'db5c88e9'},
+    {Description:'Тернопіль', AreaDescription:'Тернопільська', Ref:'db5c88e1-391c-11dd-90d9-001a92567626', DeliveryCity:'db5c88e1'},
+    {Description:'Хмельницький', AreaDescription:'Хмельницька', Ref:'db5c88df-391c-11dd-90d9-001a92567626', DeliveryCity:'db5c88df'},
+    {Description:'Рівне', AreaDescription:'Рівненська', Ref:'db5c88d7-0000-0000-0000-000000000001', DeliveryCity:'fake1'},
+    {Description:'Черкаси', AreaDescription:'Черкаська', Ref:'db5c88e0-391c-11dd-90d9-001a92567626', DeliveryCity:'db5c88e0'},
+  ];
+  const ql = q.toLowerCase();
+  return all.filter(c => c.Description.toLowerCase().includes(ql) || translitMatch(c.Description, ql));
+}
+
+function translitMatch(uk, q) {
+  const map = {а:'a',б:'b',в:'v',г:'g',д:'d',е:'e',є:'ye',ж:'zh',з:'z',и:'y',і:'i',й:'y',к:'k',л:'l',м:'m',н:'n',о:'o',п:'p',р:'r',с:'s',т:'t',у:'u',ф:'f',х:'kh',ц:'ts',ч:'ch',ш:'sh',щ:'sh',ь:'',ю:'yu',я:'ya',ї:'yi'};
+  let tr = uk.toLowerCase().split('').map(c=>map[c]||c).join('');
+  return tr.includes(q);
+}
+
+function renderCities(cities, drop, mode) {
+  if (!cities.length) {
+    drop.innerHTML = '<div class="np-empty">Місто не знайдено. Спробуйте інший запит.</div>';
+    positionDropdown(drop);
+    drop.classList.add('open');
+    return;
+  }
+  positionDropdown(drop);
+  drop.innerHTML = cities.map((c,i) => `
+    <div class="np-option" role="option" tabindex="-1" onclick="selectCity(${JSON.stringify(c).replace(/"/g,'&quot;')}, '${mode}')">
+      <div class="np-option-icon">
+        <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      </div>
+      <div>
+        <div class="np-option-main">${c.Description}</div>
+        <div class="np-option-sub">${c.AreaDescription} область</div>
+      </div>
+    </div>`).join('');
+  drop.classList.add('open');
+}
+
+function selectCity(city, mode='main') {
+  if (mode !== 'main') {
+    document.getElementById('addrCityInput').value = city.Description;
+    document.getElementById('addrCityDrop').classList.remove('open');
+    return;
+  }
+  cityData.selected = city;
+  cityData.ref = city.Ref || city.DeliveryCity;
+  document.getElementById('cityInput').value = '';
+  document.getElementById('cityDrop').classList.remove('open');
+
+  // Show selected
+  document.getElementById('citySelectedName').textContent = city.Description;
+  document.getElementById('citySelectedSub').textContent = city.AreaDescription + ' область';
+  document.getElementById('citySelected').classList.add('show');
+  document.getElementById('cityInput').style.display = 'none';
+
+  // Show warehouse field
+  document.getElementById('warehouseField').style.display = 'block';
+  document.getElementById('warehouseInput').value = '';
+  document.getElementById('warehouseSelected').classList.remove('show');
+  clearWarehouseData();
+
+  // Auto-load first warehouses
+  searchWarehouse('');
+}
+
+function clearCity() {
+  cityData.selected = null; cityData.ref = null;
+  document.getElementById('cityInput').value = '';
+  document.getElementById('cityInput').style.display = 'block';
+  document.getElementById('citySelected').classList.remove('show');
+  document.getElementById('warehouseField').style.display = 'none';
+  clearWarehouseData();
+}
+
+// Search warehouse
+async function searchWarehouse(query) {
+  if (!cityData.ref) return;
+  const drop = document.getElementById('warehouseDrop');
+  clearTimeout(warehouseTimer);
+  showLoading(drop);
+
+  warehouseTimer = setTimeout(async () => {
+    try {
+      const body = {
+        apiKey: NP_API_KEY,
+        modelName: 'AddressGeneral',
+        calledMethod: 'getWarehouses',
+        methodProperties: {
+          CityRef: cityData.ref,
+          FindByString: query,
+          Limit: 20,
+          Language: 'UA'
+        }
+      };
+      const res = await fetch(NP_API_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+      const data = await res.json();
+      if (data.success && data.data?.length > 0) {
+        renderWarehouses(data.data, drop);
+        return;
+      }
+    } catch(e) {}
+    renderWarehouses(getMockWarehouses(cityData.selected?.Description || '', query), drop);
+  }, 300);
+}
+
+function getMockWarehouses(city, q) {
+  const q_low = q.toLowerCase();
+  const warehouses = [];
+  for (let i = 1; i <= 30; i++) {
+    const isPost = i % 5 === 0;
+    const num = i;
+    const streets = ['вул. Хрещатик','вул. Соборна','вул. Незалежності','вул. Шевченка','пр. Перемоги','вул. Головна','пр. Свободи'];
+    const street = streets[i % streets.length];
+    const desc = isPost
+      ? `Поштомат №${num} (${street}, ${num})`
+      : `Відділення №${num} (${street}, ${num})`;
+    if (!q || desc.toLowerCase().includes(q_low) || String(num).includes(q)) {
+      warehouses.push({
+        Description: desc,
+        ShortAddress: `${city}, ${street}, ${num}`,
+        Number: String(num),
+        TypeOfWarehouse: isPost
+          ? 'Postomat'
+          : 'Branch',
+        Ref: `wh-${city}-${num}`
+      });
+    }
+  }
+  return warehouses.slice(0, 15);
+}
+
+function renderWarehouses(whs, drop) {
+  if (!whs.length) {
+    drop.innerHTML = '<div class="np-empty">Відділення не знайдено. Спробуйте інший запит.</div>';
+    positionDropdown(drop);
+    drop.classList.add('open');
+    return;
+  }
+  positionDropdown(drop);
+  drop.innerHTML = whs.map(w => {
+    const isPost = w.TypeOfWarehouse?.includes('Postomat') || w.TypeOfWarehouse?.includes('postomat');
+    return `
+    <div class="np-option" onclick='selectWarehouse(${JSON.stringify({Description:w.Description,ShortAddress:w.ShortAddress,Number:w.Number,type:isPost?"postomat":"branch"}).replace(/'/g,"&#39;")})'>
+      <div class="np-option-icon">
+        <svg viewBox="0 0 24 24">${isPost
+          ? '<rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>'
+          : '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/>'
+        }</svg>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div class="np-option-main" style="white-space:normal">${w.Description}</div>
+        <div class="np-option-sub">${w.ShortAddress || ''}</div>
+      </div>
+      <span class="np-option-mark ${isPost?'mark-post':'mark-dept'}">${isPost?'Поштомат':'Відділення'}</span>
+    </div>`}).join('');
+  drop.classList.add('open');
+}
+
+function selectWarehouse(wh) {
+  warehouseData.selected = wh;
+  document.getElementById('warehouseInput').value = '';
+  document.getElementById('warehouseDrop').classList.remove('open');
+  document.getElementById('warehouseSelectedName').textContent = wh.Description;
+  document.getElementById('warehouseSelectedSub').textContent = wh.ShortAddress || '';
+  document.getElementById('warehouseSelected').classList.add('show');
+  document.getElementById('warehouseInput').style.display = 'none';
+  updateProgress(2);
+}
+
+function clearWarehouse() {
+  clearWarehouseData();
+  document.getElementById('warehouseInput').value = '';
+  document.getElementById('warehouseInput').style.display = 'block';
+  document.getElementById('warehouseSelected').classList.remove('show');
+}
+
+function clearWarehouseData() {
+  warehouseData.selected = null;
+  document.getElementById('warehouseDrop')?.classList.remove('open');
+}
+
+// Keyboard navigation
+function handleDropdownKey(e, dropId) {
+  const drop = document.getElementById(dropId);
+  const opts = drop.querySelectorAll('.np-option');
+  const focused = drop.querySelector('.np-option.focused');
+  let idx = Array.from(opts).indexOf(focused);
+  if (e.key === 'ArrowDown') { e.preventDefault(); const next = opts[Math.min(idx+1,opts.length-1)]; opts.forEach(o=>o.classList.remove('focused')); next?.classList.add('focused'); next?.scrollIntoView({block:'nearest'}); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); const prev = opts[Math.max(idx-1,0)]; opts.forEach(o=>o.classList.remove('focused')); prev?.classList.add('focused'); prev?.scrollIntoView({block:'nearest'}); }
+  else if (e.key === 'Enter' && focused) { e.preventDefault(); focused.click(); }
+  else if (e.key === 'Escape') { drop.classList.remove('open'); }
+}
+
+// Close dropdowns on outside click
+document.addEventListener('click', e => {
+  if (!e.target.closest('.np-wrap') && !e.target.closest('.np-dropdown')) {
+    document.querySelectorAll('.np-dropdown').forEach(d => d.classList.remove('open'));
+  }
+});
+
+// При скролі/ресайзі оновлювати позицію fixed dropdown
+window.addEventListener('scroll', () => {
+  document.querySelectorAll('.np-dropdown.open').forEach(drop => {
+    positionDropdown(drop);
+  });
+}, {passive:true});
+
+window.addEventListener('resize', () => {
+  document.querySelectorAll('.np-dropdown.open').forEach(drop => {
+    positionDropdown(drop);
+  });
+});
+
+function showLoading(drop) {
+  drop.innerHTML = '<div class="np-loading"><div class="np-loading-spin"></div>Завантаження...</div>';
+  positionDropdown(drop);
+  drop.classList.add('open');
+}
+
+// Позиціонуємо dropdown як fixed на мобайлі щоб уникнути clipping
+function positionDropdown(drop) {
+  const input = drop.previousElementSibling?.tagName === 'INPUT'
+    ? drop.previousElementSibling
+    : drop.closest('.np-wrap')?.querySelector('input');
+  if (!input) return;
+
+  if (window.innerWidth <= 768) {
+    const rect = input.getBoundingClientRect();
+    drop.style.position = 'fixed';
+    drop.style.top = (rect.bottom + 4) + 'px';
+    drop.style.left = rect.left + 'px';
+    drop.style.right = (window.innerWidth - rect.right) + 'px';
+    drop.style.width = rect.width + 'px';
+    drop.style.zIndex = '99999';
+  } else {
+    drop.style.position = 'absolute';
+    drop.style.top = '';
+    drop.style.left = '';
+    drop.style.right = '';
+    drop.style.width = '';
+    drop.style.zIndex = '9999';
+  }
+}
+
+// ── DELIVERY TYPES ─────────────────────────────────────────────────────────
+function setDeliveryType(type, btn) {
+  document.querySelectorAll('.dt-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.dt-panel').forEach(p => p.classList.remove('active'));
+  const targetId = type === 'warehouse' || type === 'postomat' ? 'dt-warehouse' : 'dt-address';
+  document.getElementById(targetId).classList.add('active');
+  // Update warehouse search placeholder
+  if (type === 'postomat') {
+    document.getElementById('warehouseInput').placeholder = 'Номер або адреса поштомату...';
+  } else {
+    document.getElementById('warehouseInput').placeholder = 'Номер або адреса відділення...';
+  }
+}
+
+// ── PAYMENT ──────────────────────────────────────────────────────────────
+let selectedPay = 'fop';
+function selectPay(el, type) {
+  document.querySelectorAll('.pay-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedPay = type;
+}
+
+// ── VALIDATION ─────────────────────────────────────────────────────────────
+function validateField(inp, type) {
+  const id = inp.id;
+  const icon = document.getElementById('fi-' + id);
+  let valid = false;
+  if (type === 'name') valid = inp.value.trim().length >= 2;
+  if (type === 'email') valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inp.value);
+  inp.classList.toggle('valid', valid && inp.value.length > 0);
+  inp.classList.toggle('error', !valid && inp.value.length > 0);
+  if (icon) {
+    if (valid && inp.value.length > 0) {
+      icon.className = 'field-icon valid';
+      icon.innerHTML = '<svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
+    } else if (!valid && inp.value.length > 0) {
+      icon.className = 'field-icon error';
+      icon.innerHTML = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+    } else {
+      icon.className = 'field-icon'; icon.innerHTML = '';
+    }
+  }
+}
+
+function validatePhone(inp) {
+  let v = inp.value.replace(/[^\d+]/g,'');
+  if (v.startsWith('380')) v = '+' + v;
+  if (v.startsWith('0')) v = '+38' + v;
+  // Format: +380 XX XXX XX XX
+  const digits = v.replace(/\D/g,'');
+  let formatted = '';
+  if (digits.length <= 2) formatted = '+' + digits;
+  else if (digits.length <= 4) formatted = '+' + digits.slice(0,2) + ' ' + digits.slice(2);
+  else if (digits.length <= 6) formatted = '+' + digits.slice(0,2) + digits.slice(2,4) + ' ' + digits.slice(4);
+  else if (digits.length <= 9) formatted = '+' + digits.slice(0,2) + digits.slice(2,4) + ' ' + digits.slice(4,7) + ' ' + digits.slice(7);
+  else if (digits.length <= 11) formatted = '+' + digits.slice(0,2) + digits.slice(2,4) + ' ' + digits.slice(4,7) + ' ' + digits.slice(7,9) + ' ' + digits.slice(9);
+  else formatted = '+' + digits.slice(0,2) + digits.slice(2,4) + ' ' + digits.slice(4,7) + ' ' + digits.slice(7,9) + ' ' + digits.slice(9,11);
+  inp.value = formatted;
+  const valid = digits.length === 12;
+  inp.classList.toggle('valid', valid);
+  inp.classList.toggle('error', !valid && digits.length > 3);
+  const icon = document.getElementById('fi-phone');
+  if (icon) {
+    if (valid) { icon.className='field-icon valid'; icon.innerHTML='<svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>'; }
+    else if (digits.length > 3) { icon.className='field-icon error'; icon.innerHTML='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'; }
+    else { icon.className='field-icon'; icon.innerHTML=''; }
+  }
+}
+
+// ── TERMS ──────────────────────────────────────────────────────────────────
+let termsAccepted = false;
+function toggleTerms() {
+  termsAccepted = !termsAccepted;
+  const box = document.getElementById('termsCheck');
+  const icon = document.getElementById('termsCheckIcon');
+  box.style.background = termsAccepted ? 'var(--orange)' : '';
+  box.style.borderColor = termsAccepted ? 'var(--orange)' : '';
+  icon.style.display = termsAccepted ? 'block' : 'none';
+}
+
+// ── PROGRESS ───────────────────────────────────────────────────────────────
+function updateProgress(completedStep) {
+  for (let i = 1; i <= 3; i++) {
+    const el = document.getElementById(`step${i}-el`);
+    if (i < completedStep) { el.className='step done'; el.querySelector('.step-num').innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'; }
+    else if (i === completedStep) el.className='step active';
+    else el.className='step pending';
+  }
+  const conns = ['conn1','conn2'];
+  conns.forEach((id,i) => {
+    document.getElementById(id).className = 'step-connector ' + (i+1 < completedStep ? 'done' : 'pending');
+  });
+}
+
+// ── SUBMIT ─────────────────────────────────────────────────────────────────
+function submitOrder() {
+  const firstName = document.getElementById('firstName').value.trim();
+  const lastName = document.getElementById('lastName').value.trim();
+  const phone = document.getElementById('phone').value.trim();
+
+  if (!firstName || !lastName) { document.getElementById('firstName').focus(); showShake('firstName'); return; }
+  if (phone.replace(/\D/g,'').length !== 12) { document.getElementById('phone').focus(); showShake('phone'); return; }
+  if (!termsAccepted) { showToast('Будь ласка, погодьтесь з умовами'); return; }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<div style="width:20px;height:20px;border:2px solid rgba(255,255,255,.4);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite"></div>Оформляємо...';
+
+  setTimeout(() => {
+    document.getElementById('checkoutPage').style.display = 'none';
+    document.getElementById('successPage').style.display = 'block';
+    document.getElementById('successPayment').textContent = getPayName();
+    window.scrollTo({top:0,behavior:'smooth'});
+  }, 1800);
+}
+
+function getPayName() {
+  const names = {fop:'Рахунок ФОП',partial:'Часткова передоплата',privat:'Частинами ПриватБанк',packet:'Пакунок малюка',state7k:'Держпідтримка 7000 грн'};
+  return names[selectedPay] || '—';
+}
+
+function showShake(id) {
+  const el = document.getElementById(id);
+  el.style.animation = 'shake .4s ease';
+  setTimeout(() => el.style.animation = '', 400);
+}
+
+function showToast(msg) {
+  let t = document.getElementById('_toast');
+  if (!t) { t = document.createElement('div'); t.id='_toast'; t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:11px 22px;border-radius:100px;font-family:Nunito,sans-serif;font-weight:700;font-size:13px;z-index:3000;box-shadow:0 8px 24px rgba(0,0,0,.2);white-space:nowrap;transition:opacity .25s'; document.body.appendChild(t); }
+  t.textContent = msg; t.style.opacity='1';
+  setTimeout(() => t.style.opacity='0', 2500);
+}
+
+// Add shake animation
+const style = document.createElement('style');
+style.textContent = '@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}@keyframes spin{to{transform:rotate(360deg)}}';
+document.head.appendChild(style);
+
+// Header scroll
+window.addEventListener('scroll',()=>document.querySelector('.header')?.classList.toggle('scrolled',scrollY>40));
+</script>
+<script src="shared.js"></script>
+</body>
+</html>
