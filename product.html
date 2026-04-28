@@ -602,6 +602,8 @@ nav a.active{color:var(--orange)}
 
     <!-- DESC -->
     <div class="tab-panel active" id="tab-desc">
+      <!-- Динамічний відеоогляд (заповнюється з Supabase, якщо у товара заповнено video_url) -->
+      <div id="productVideo" style="display:none;margin-bottom:20px"></div>
       <p class="desc-text">Дитячий електромобіль Джип M 3804EBLR — це преміальна іграшка для дітей віком від 3 до 8 років. Оснащений чотирма потужними моторами по 45W, пультом дистанційного керування 2.4G, шкіряним сидінням з ременем безпеки та колесами EVA для комфортної їзди по будь-якому покриттю.</p>
       <p class="desc-text">Вбудований MP3-плеєр з підтримкою USB та SD-карт, підключення до смартфону через Bluetooth, реалістичні звукові ефекти двигуна та музика зроблять кожну поїздку незабутньою.</p>
       <div class="desc-features">
@@ -1250,6 +1252,59 @@ document.addEventListener('keydown', e => {
     closeQuick(); closeReview(); closeZoom();
   }
 });
+
+// ── Динамічне завантаження відеоогляду з Supabase (за ?id=) ────────────
+function _ytEmbedFromUrl(url){
+  if (!url) return '';
+  url = String(url).trim();
+  let m;
+  if ((m = url.match(/youtu\.be\/([A-Za-z0-9_-]{6,})/))) return 'https://www.youtube.com/embed/' + m[1];
+  if ((m = url.match(/youtube\.com\/shorts\/([A-Za-z0-9_-]{6,})/))) return 'https://www.youtube.com/embed/' + m[1];
+  if ((m = url.match(/youtube\.com\/embed\/([A-Za-z0-9_-]{6,})/))) return 'https://www.youtube.com/embed/' + m[1];
+  if ((m = url.match(/[?&]v=([A-Za-z0-9_-]{6,})/))) return 'https://www.youtube.com/embed/' + m[1];
+  return '';
+}
+(async function loadProductVideo(){
+  try{
+    const params = new URLSearchParams(location.search);
+    const id = params.get('id');
+    if (!id) return;
+    if (!window.KR || !KR._SUPA_URL || !KR._SUPA_KEY) return;
+    const r = await fetch(KR._SUPA_URL + '/rest/v1/products?id=eq.' + encodeURIComponent(id) + '&select=video_url,name', {
+      headers: { 'apikey': KR._SUPA_KEY, 'Authorization': 'Bearer ' + KR._SUPA_KEY }
+    });
+    if (!r.ok) return;
+    const arr = await r.json();
+    if (!Array.isArray(arr) || !arr.length) return;
+    const url = arr[0] && arr[0].video_url;
+    if (!url) return;
+    const el = document.getElementById('productVideo');
+    if (!el) return;
+    const embed = _ytEmbedFromUrl(url);
+    const safeUrl = String(url).replace(/"/g, '&quot;');
+    if (embed) {
+      el.innerHTML =
+        '<h3 style="font-size:17px;color:var(--navy);margin:0 0 12px;display:flex;align-items:center;gap:8px">' +
+          '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>' +
+          'Відеоогляд' +
+        '</h3>' +
+        '<div style="position:relative;padding-bottom:56.25%;height:0;border-radius:var(--r-sm);overflow:hidden;background:#000;box-shadow:var(--shadow-sm)">' +
+          '<iframe src="' + embed + '" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen ' +
+          'style="position:absolute;inset:0;width:100%;height:100%;border:0"></iframe>' +
+        '</div>';
+    } else if (/^https?:\/\//i.test(url)) {
+      // Прямий лінк (не YouTube) — даємо просто кнопку відкрити
+      el.innerHTML =
+        '<h3 style="font-size:17px;color:var(--navy);margin:0 0 12px">Відеоогляд</h3>' +
+        '<a href="' + safeUrl + '" target="_blank" rel="noopener" ' +
+          'style="display:inline-flex;align-items:center;gap:8px;padding:10px 18px;background:var(--orange);color:#fff;border-radius:8px;text-decoration:none;font-weight:700">' +
+          'Відкрити відео →</a>';
+    } else {
+      return;
+    }
+    el.style.display = '';
+  }catch(e){ console.warn('productVideo:', e); }
+})();
 
 // Підставляємо назву моделі з URL ?model=...
 (function applyModelFromUrl(){

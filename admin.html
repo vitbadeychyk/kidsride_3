@@ -1238,26 +1238,34 @@ async function sbSaveProduct(productData, editId = null) {
     }
   };
 
-  try {
-    await doSave(payload);
-    return { success: true };
-  } catch(e) {
-    // Якщо колонка preorder_days ще не створена в Supabase — повторюємо без неї
-    const msg = (e && e.message) ? String(e.message) : '';
-    if (/preorder_days/i.test(msg) || /PGRST204/i.test(msg) || /column.*not.*exist/i.test(msg) || /schema cache/i.test(msg)) {
-      console.warn('Supabase: колонка preorder_days відсутня. Збереження без неї. Додайте її SQL: ALTER TABLE products ADD COLUMN preorder_days int DEFAULT 0;');
-      const { preorder_days, ...rest } = payload;
-      try {
-        await doSave(rest);
-        return { success: true, warning: 'preorder_days column missing in DB' };
-      } catch(e2) {
-        console.error('sbSaveProduct retry:', e2);
-        return { success: false, error: e2.message };
-      }
+  // Якщо PostgREST повертає помилку про відсутню колонку,
+  // витягуємо назву і повторюємо БЕЗ неї. До 6 спроб поспіль.
+  const droppedCols = [];
+  let body = { ...payload };
+  let lastErr = null;
+  for (let attempt = 0; attempt < 6; attempt++) {
+    try {
+      await doSave(body);
+      return droppedCols.length
+        ? { success: true, warning: 'Колонки відсутні в БД: ' + droppedCols.join(', ') + '. Додайте їх SQL.' }
+        : { success: true };
+    } catch(e) {
+      lastErr = e;
+      const msg = (e && e.message) ? String(e.message) : '';
+      // Витягуємо назву колонки з помилки PostgREST/Postgres
+      let col = null;
+      let m = msg.match(/'([a-z_]+)' column of '[a-z_]+'/i)         // PGRST204
+           || msg.match(/column ['"]?([a-z_]+)['"]? .* does not exist/i)
+           || msg.match(/Could not find the ['"]?([a-z_]+)['"]?/i);
+      if (m) col = m[1];
+      if (!col || !(col in body)) break;
+      console.warn('Supabase: колонка "' + col + '" відсутня. Зберігаємо без неї. SQL: ALTER TABLE products ADD COLUMN ' + col + ' ...;');
+      droppedCols.push(col);
+      delete body[col];
     }
-    console.error('sbSaveProduct:', e);
-    return { success: false, error: e.message };
   }
+  console.error('sbSaveProduct:', lastErr);
+  return { success: false, error: (lastErr && lastErr.message) || 'Помилка збереження' };
 }
 
 async function sbDeleteProduct(id) {
