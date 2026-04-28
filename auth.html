@@ -250,6 +250,7 @@ a{text-decoration:none;color:inherit}
           <div class="check-box"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
           <div class="check-label">Запам'ятати мене на цьому пристрої</div>
         </div>
+        <div id="loginError" style="display:none;color:#e53935;font-size:13px;font-weight:600;margin-bottom:12px;padding:10px 14px;background:rgba(229,57,53,.08);border-radius:8px;border:1px solid rgba(229,57,53,.2)"></div>
         <button class="submit-btn" id="loginBtn" onclick="submitLogin()">
           <svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
           Увійти
@@ -464,7 +465,7 @@ function checkLoginReady() {}
 // Login submit
 function submitLogin() {
   const email = document.getElementById('loginEmail').value.trim();
-  const pwd   = document.getElementById('loginPwd').value;
+  const pwd   = document.getElementById('loginPassword').value;
   const btn   = document.getElementById('loginBtn');
   const errEl = document.getElementById('loginError');
 
@@ -671,7 +672,7 @@ async function checkExistingSession() {
 // Логін
 async function submitLogin() {
   const email = document.getElementById('loginEmail').value.trim();
-  const pwd   = document.getElementById('loginPwd').value;
+  const pwd   = document.getElementById('loginPassword').value;
   const btn   = document.getElementById('loginBtn');
   const errEl = document.getElementById('loginError');
 
