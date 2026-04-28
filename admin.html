@@ -629,7 +629,7 @@ tr:hover td{background:rgba(240,242,248,.5)}
           </div>
         </div>
         <table>
-          <thead><tr><th>Фото</th><th class="sortable">Назва / Артикул</th><th>Бренд</th><th class="sortable">Ціна</th><th>РРЦ</th><th>Залишок</th><th>Статус</th><th>Дії</th></tr></thead>
+          <thead><tr><th>Фото</th><th class="sortable">Назва / Артикул</th><th>Бренд</th><th class="sortable">Ціна</th><th>РРЦ</th><th>Залишок</th><th>Під замовлення</th><th>Статус</th><th>Дії</th></tr></thead>
           <tbody id="productsBody"></tbody>
         </table>
         <div class="pagination"><span>Показано 1–20 з 809</span><div class="pag-btns"><button class="pag-btn"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button><button class="pag-btn active">1</button><button class="pag-btn">2</button><button class="pag-btn">3</button><span style="padding:0 4px;color:var(--text-muted)">…</span><button class="pag-btn">41</button><button class="pag-btn"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button></div></div>
@@ -901,6 +901,11 @@ tr:hover td{background:rgba(240,242,248,.5)}
 
       <div class="f-row">
         <div class="f-group">
+          <label>Під замовлення (днів готовності)</label>
+          <input type="number" id="pPreorderDays" value="0" min="0" placeholder="0 — недоступно, напр. 10">
+          <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Якщо залишок 0, але тут не 0 — товар показується з підписом "Під замовлення X днів"</div>
+        </div>
+        <div class="f-group">
           <label>Бейдж</label>
           <select id="pBadge">
             <option value="">Без бейджу</option>
@@ -1095,6 +1100,7 @@ async function sbSaveProduct(productData, editId = null) {
     voltage:    productData.voltage,
     age_range:  productData.age,
     stock:      productData.stock,
+    preorder_days: productData.preorderDays || 0,
     badge:      productData.badge || null,
     img_type:   productData.img,
     features:   productData.features || [],
@@ -1102,22 +1108,31 @@ async function sbSaveProduct(productData, editId = null) {
     active:     productData.active
   };
 
-  try {
+  const doSave = async (body) => {
     if (editId) {
-      // Оновити існуючий
-      await sbFetch('products?id=eq.' + editId, {
-        method: 'PATCH',
-        body: JSON.stringify(payload)
-      });
+      await sbFetch('products?id=eq.' + editId, { method: 'PATCH', body: JSON.stringify(body) });
     } else {
-      // Додати новий
-      await sbFetch('products', {
-        method: 'POST',
-        body: JSON.stringify(payload)
-      });
+      await sbFetch('products', { method: 'POST', body: JSON.stringify(body) });
     }
+  };
+
+  try {
+    await doSave(payload);
     return { success: true };
   } catch(e) {
+    // Якщо колонка preorder_days ще не створена в Supabase — повторюємо без неї
+    const msg = (e && e.message) ? String(e.message) : '';
+    if (/preorder_days/i.test(msg) || /PGRST204/i.test(msg) || /column.*not.*exist/i.test(msg) || /schema cache/i.test(msg)) {
+      console.warn('Supabase: колонка preorder_days відсутня. Збереження без неї. Додайте її SQL: ALTER TABLE products ADD COLUMN preorder_days int DEFAULT 0;');
+      const { preorder_days, ...rest } = payload;
+      try {
+        await doSave(rest);
+        return { success: true, warning: 'preorder_days column missing in DB' };
+      } catch(e2) {
+        console.error('sbSaveProduct retry:', e2);
+        return { success: false, error: e2.message };
+      }
+    }
     console.error('sbSaveProduct:', e);
     return { success: false, error: e.message };
   }
@@ -2195,6 +2210,7 @@ function openProductModal(id = null) {
   document.getElementById('pVoltage').value = p?.voltage || '12V';
   document.getElementById('pAge').value = p?.age || '3-8';
   document.getElementById('pStock').value = p?.stock ?? 1;
+  document.getElementById('pPreorderDays').value = p?.preorderDays ?? p?.preorder_days ?? 0;
   document.getElementById('pBadge').value = p?.badge || '';
   document.getElementById('pImg').value = p?.img || 'jeep';
   document.getElementById('pFeatures').value = Array.isArray(p?.features) ? p.features.join(', ') : '';
@@ -2253,6 +2269,7 @@ function saveProduct() {
     voltage: document.getElementById('pVoltage').value,
     age: document.getElementById('pAge').value,
     stock: parseInt(document.getElementById('pStock').value) || 0,
+    preorderDays: parseInt(document.getElementById('pPreorderDays').value) || 0,
     badge: document.getElementById('pBadge').value,
     img: document.getElementById('pImg').value,
     features,
@@ -2326,7 +2343,7 @@ async function renderProductsTable() {
   if (!tbody) return;
 
   // Показати loader
-  tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-muted)"><div style="width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--orange);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px"></div>Завантаження...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--text-muted)"><div style="width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--orange);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px"></div>Завантаження...</td></tr>';
 
   // Завантажити з Supabase
   const supabaseProducts = await sbGetProducts();
@@ -2339,6 +2356,7 @@ async function renderProductsTable() {
     oldPrice: p.old_price,
     category: p.category,
     stock: p.stock,
+    preorderDays: p.preorder_days || 0,
     active: p.active,
     img: p.img_type || 'jeep',
     addedAt: new Date(p.created_at).getTime()
@@ -2351,7 +2369,7 @@ async function renderProductsTable() {
 
   if (!products.length) {
     tbody.innerHTML = `
-      <tr><td colspan="8" style="text-align:center;padding:48px;color:var(--text-muted)">
+      <tr><td colspan="9" style="text-align:center;padding:48px;color:var(--text-muted)">
         <div style="font-size:32px;margin-bottom:12px">📦</div>
         <div style="font-family:'Nunito',sans-serif;font-weight:700;font-size:16px;margin-bottom:8px">Товарів ще немає</div>
         <div style="font-size:13px">Натисніть "Додати товар" щоб почати</div>
@@ -2377,6 +2395,10 @@ async function renderProductsTable() {
       : '<span class="status s-hidden">Прихований</span>';
     const stockColor = p.stock === 0 ? 'var(--red)' : p.stock <= 2 ? 'var(--yellow)' : 'var(--green)';
     const oldP = p.oldPrice ? `<br><span style="font-size:11px;color:var(--text-muted);text-decoration:line-through">${Number(p.oldPrice).toLocaleString('uk-UA')} ₴</span>` : '';
+    const preDays = Number(p.preorderDays || 0);
+    const preorderCell = preDays > 0
+      ? `<span style="font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;color:var(--orange)">${preDays} дн</span>`
+      : '<span style="color:var(--text-muted);font-size:12px">—</span>';
 
     return `
     <tr>
@@ -2398,6 +2420,7 @@ async function renderProductsTable() {
       <td>
         <span style="font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;color:${stockColor}">${p.stock ?? '—'} шт</span>
       </td>
+      <td>${preorderCell}</td>
       <td>${status}</td>
       <td>
         <div class="td-actions">
