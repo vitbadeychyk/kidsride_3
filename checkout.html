@@ -427,7 +427,7 @@ a{text-decoration:none;color:inherit}
 
           <!-- Warehouse search -->
           <div class="field" id="warehouseField" style="display:none">
-            <label>Відділення або поштомат <span class="req">*</span></label>
+            <label id="warehouseLabel">Відділення <span class="req">*</span></label>
             <div class="np-wrap" id="warehouseWrap">
               <input type="text" id="warehouseInput"
                 placeholder="Номер або адреса відділення..."
@@ -466,7 +466,15 @@ a{text-decoration:none;color:inherit}
           <div class="field-row">
             <div class="field">
               <label>Вулиця <span class="req">*</span></label>
-              <input type="text" id="street" placeholder="вул. Хрещатик">
+              <div class="np-wrap" id="streetWrap">
+                <input type="text" id="street"
+                  placeholder="Спочатку оберіть місто..."
+                  autocomplete="off"
+                  disabled
+                  oninput="searchStreet(this.value)"
+                  onkeydown="handleDropdownKey(event,'streetDrop')">
+                <div class="np-dropdown" id="streetDrop" role="listbox"></div>
+              </div>
             </div>
             <div class="field">
               <label>Будинок <span class="req">*</span></label>
@@ -659,8 +667,13 @@ const NP_API_URL = '/api/np';
 
 const cityData = { selected: null, ref: null };
 const warehouseData = { selected: null };
+const addrCityData = { selected: null, ref: null };
+const streetData   = { selected: null };
 
-let cityTimer, warehouseTimer;
+// Який тип НП-точки зараз обраний у вкладках: 'warehouse' (відділення) або 'postomat'
+let currentWhType = 'warehouse';
+
+let cityTimer, warehouseTimer, streetTimer;
 
 // Search city via NP API
 async function searchCity(query, mode='main') {
@@ -755,11 +768,22 @@ function renderCities(cities, drop, mode) {
 }
 
 function selectCity(city, mode='main') {
-  if (mode !== 'main') {
+  if (mode === 'addr') {
+    addrCityData.selected = city;
+    addrCityData.ref = city.Ref || city.DeliveryCity;
     document.getElementById('addrCityInput').value = city.Description;
     document.getElementById('addrCityDrop').classList.remove('open');
+
+    // Розблокувати поле вулиці і скинути попередній вибір
+    const streetInput = document.getElementById('street');
+    streetInput.disabled = false;
+    streetInput.value = '';
+    streetInput.placeholder = 'Почніть вводити: Хрещатик, Соборна...';
+    streetData.selected = null;
+    document.getElementById('streetDrop')?.classList.remove('open');
     return;
   }
+
   cityData.selected = city;
   cityData.ref = city.Ref || city.DeliveryCity;
   document.getElementById('cityInput').value = '';
@@ -777,7 +801,7 @@ function selectCity(city, mode='main') {
   document.getElementById('warehouseSelected').classList.remove('show');
   clearWarehouseData();
 
-  // Auto-load first warehouses
+  // Auto-load first warehouses (з фільтром по поточному типу)
   searchWarehouse('');
 }
 
@@ -790,6 +814,13 @@ function clearCity() {
   clearWarehouseData();
 }
 
+// Ref-и типів НП-точок для server-side фільтра у getWarehouses
+const NP_TYPE_REF = {
+  postomat: 'f9316480-5f2d-425d-bc2c-ac7cd29decf0' // Поштомат
+  // для відділень не передаємо TypeOfWarehouseRef і фільтруємо клієнтом
+  // (бо "відділення" = багато підтипів: Branch, ParcelShop тощо)
+};
+
 // Search warehouse
 async function searchWarehouse(query) {
   if (!cityData.ref) return;
@@ -797,34 +828,52 @@ async function searchWarehouse(query) {
   clearTimeout(warehouseTimer);
   showLoading(drop);
 
+  const wantPostomat = currentWhType === 'postomat';
+
   warehouseTimer = setTimeout(async () => {
     try {
+      const methodProperties = {
+        CityRef: cityData.ref,
+        FindByString: query,
+        Limit: 500,
+        Language: 'UA'
+      };
+      if (wantPostomat) {
+        methodProperties.TypeOfWarehouseRef = NP_TYPE_REF.postomat;
+      }
       const body = {
         modelName: 'AddressGeneral',
         calledMethod: 'getWarehouses',
-        methodProperties: {
-          CityRef: cityData.ref,
-          FindByString: query,
-          Limit: 500,
-          Language: 'UA'
-        }
+        methodProperties
       };
       const res = await fetch(NP_API_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
       const data = await res.json();
-      if (data.success && data.data?.length > 0) {
-        renderWarehouses(data.data, drop);
+      if (data.success && Array.isArray(data.data)) {
+        // Клієнтський фільтр — НП іноді віддає змішане навіть з TypeOfWarehouseRef
+        const filtered = data.data.filter(w => isPostomat(w) === wantPostomat);
+        renderWarehouses(filtered, drop);
         return;
       }
     } catch(e) {}
-    renderWarehouses(getMockWarehouses(cityData.selected?.Description || '', query), drop);
+    renderWarehouses(getMockWarehouses(cityData.selected?.Description || '', query, wantPostomat), drop);
   }, 300);
 }
 
-function getMockWarehouses(city, q) {
+// Чи є дана точка поштоматом (за категорією або назвою)
+function isPostomat(w) {
+  if (!w) return false;
+  if (w.CategoryOfWarehouse === 'Postomat') return true;
+  const t = (w.TypeOfWarehouse || '').toString();
+  if (/postomat/i.test(t)) return true;
+  return /поштомат|postomat/i.test(w.Description || '');
+}
+
+function getMockWarehouses(city, q, wantPostomat) {
   const q_low = q.toLowerCase();
   const warehouses = [];
   for (let i = 1; i <= 30; i++) {
     const isPost = i % 5 === 0;
+    if (wantPostomat !== undefined && isPost !== wantPostomat) continue;
     const num = i;
     const streets = ['вул. Хрещатик','вул. Соборна','вул. Незалежності','вул. Шевченка','пр. Перемоги','вул. Головна','пр. Свободи'];
     const street = streets[i % streets.length];
@@ -836,9 +885,8 @@ function getMockWarehouses(city, q) {
         Description: desc,
         ShortAddress: `${city}, ${street}, ${num}`,
         Number: String(num),
-        TypeOfWarehouse: isPost
-          ? 'Postomat'
-          : 'Branch',
+        CategoryOfWarehouse: isPost ? 'Postomat' : 'Branch',
+        TypeOfWarehouse: isPost ? 'Postomat' : 'Branch',
         Ref: `wh-${city}-${num}`
       });
     }
@@ -966,12 +1014,124 @@ function setDeliveryType(type, btn) {
   document.querySelectorAll('.dt-panel').forEach(p => p.classList.remove('active'));
   const targetId = type === 'warehouse' || type === 'postomat' ? 'dt-warehouse' : 'dt-address';
   document.getElementById(targetId).classList.add('active');
-  // Update warehouse search placeholder
-  if (type === 'postomat') {
-    document.getElementById('warehouseInput').placeholder = 'Номер або адреса поштомату...';
-  } else {
-    document.getElementById('warehouseInput').placeholder = 'Номер або адреса відділення...';
+
+  // Перемикання між "Відділення" та "Поштомат"
+  if (type === 'warehouse' || type === 'postomat') {
+    const changed = currentWhType !== type;
+    currentWhType = type;
+
+    const whInput = document.getElementById('warehouseInput');
+    const whLabel = document.getElementById('warehouseLabel');
+
+    if (type === 'postomat') {
+      whInput.placeholder = 'Номер або адреса поштомату...';
+      if (whLabel) whLabel.innerHTML = 'Поштомат <span class="req">*</span>';
+    } else {
+      whInput.placeholder = 'Номер або адреса відділення...';
+      if (whLabel) whLabel.innerHTML = 'Відділення <span class="req">*</span>';
+    }
+
+    // Якщо тип змінився — скидаємо попередній вибір і перевантажуємо список
+    if (changed) {
+      warehouseData.selected = null;
+      whInput.value = '';
+      whInput.style.display = 'block';
+      document.getElementById('warehouseSelected').classList.remove('show');
+      document.getElementById('warehouseDrop').classList.remove('open');
+      if (cityData.ref) searchWarehouse('');
+    }
   }
+}
+
+// ── STREET SEARCH (для адресної доставки) ─────────────────────────────────
+async function searchStreet(query) {
+  const drop = document.getElementById('streetDrop');
+  if (!addrCityData.ref) { drop.classList.remove('open'); return; }
+  if (!query || query.length < 1) { drop.classList.remove('open'); return; }
+
+  clearTimeout(streetTimer);
+  showLoading(drop);
+
+  streetTimer = setTimeout(async () => {
+    let streets = [];
+    try {
+      // Основний метод: Address.getStreet (приймає CityRef із getCities)
+      const res = await fetch(NP_API_URL, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          modelName: 'Address',
+          calledMethod: 'getStreet',
+          methodProperties: {
+            CityRef: addrCityData.ref,
+            FindByString: query,
+            Limit: 50
+          }
+        })
+      });
+      const data = await res.json();
+      if (data?.success && Array.isArray(data.data)) {
+        streets = data.data.map(s => ({
+          Description: ((s.StreetsTypeDescription || s.StreetsType || '') + ' ' + (s.Description || '')).trim()
+        }));
+      }
+
+      // Резервний метод: searchSettlementStreets (для населених пунктів)
+      if (!streets.length) {
+        const res2 = await fetch(NP_API_URL, {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({
+            modelName: 'Address',
+            calledMethod: 'searchSettlementStreets',
+            methodProperties: {
+              StreetName: query,
+              SettlementRef: addrCityData.ref,
+              Limit: 50
+            }
+          })
+        });
+        const data2 = await res2.json();
+        if (data2?.success && Array.isArray(data2.data) && data2.data[0]?.Addresses) {
+          streets = data2.data[0].Addresses.map(a => ({
+            Description: a.Present || ((a.StreetsType ? a.StreetsType + ' ' : '') + (a.Street || ''))
+          }));
+        }
+      }
+
+      renderStreets(streets, drop);
+    } catch(e) {
+      drop.innerHTML = '<div class="np-empty">Не вдалось завантажити вулиці. Введіть вручну.</div>';
+      positionDropdown(drop);
+      drop.classList.add('open');
+    }
+  }, 300);
+}
+
+function renderStreets(streets, drop) {
+  if (!streets.length) {
+    drop.innerHTML = '<div class="np-empty">Вулицю не знайдено. Можна ввести вручну.</div>';
+    positionDropdown(drop);
+    drop.classList.add('open');
+    return;
+  }
+  positionDropdown(drop);
+  drop.innerHTML = streets.slice(0, 50).map(s => `
+    <div class="np-option" role="option" tabindex="-1" onclick='selectStreet(${JSON.stringify({Description: s.Description}).replace(/'/g,"&#39;")})'>
+      <div class="np-option-icon">
+        <svg viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V9l7-5 7 5v12"/><path d="M10 21v-6h4v6"/></svg>
+      </div>
+      <div>
+        <div class="np-option-main">${s.Description}</div>
+      </div>
+    </div>`).join('');
+  drop.classList.add('open');
+}
+
+function selectStreet(s) {
+  streetData.selected = s;
+  document.getElementById('street').value = s.Description;
+  document.getElementById('streetDrop').classList.remove('open');
 }
 
 // ── PAYMENT ──────────────────────────────────────────────────────────────

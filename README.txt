@@ -62,7 +62,12 @@ SQL у Supabase (SQL Editor → New query → Run):
 
   -- Дозволити адмінці читати/змінювати через anon-ключ
   ALTER TABLE leads ENABLE ROW LEVEL SECURITY;
-  CREATE POLICY leads_all ON leads FOR ALL TO anon USING (true) WITH CHECK (true);
+  CREATE POLICY leads_all ON leads FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+
+  -- Якщо у вас УЖЕ є політика leads_all (TO anon) і заявки в адмінці не видно,
+  -- виконайте:
+  --   DROP POLICY IF EXISTS leads_all ON leads;
+  --   CREATE POLICY leads_all ON leads FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 ШАГ 2. Створіть Telegram-бота:
   1) Відкрийте в Telegram @BotFather → /newbot
