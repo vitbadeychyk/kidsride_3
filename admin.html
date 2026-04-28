@@ -1215,35 +1215,128 @@ const DEFAULT_SLIDES = [
   { id:'slide-3', title:'Пакунок малюка та держпідтримка 7000 грн',       link:'/delivery#payment', enabled:true, image:'', bg:'linear-gradient(135deg,#1B2A4A,#0f1e36)' },
 ];
 
-function loadSlides(){
-  let arr;
-  try { arr = JSON.parse(localStorage.getItem('kr_slides') || 'null'); } catch(e) { arr = null; }
-  if (!Array.isArray(arr) || !arr.length) return JSON.parse(JSON.stringify(DEFAULT_SLIDES));
-  // strip any unknown fields, ensure shape
-  return arr.map(s => ({
+function _normalizeSlide(s, fallbackOrder){
+  return {
     id:      String(s.id || ('slide-' + Math.random().toString(36).slice(2,7))),
     title:   String(s.title || ''),
     link:    String(s.link || ''),
     enabled: s.enabled !== false,
     image:   typeof s.image === 'string' ? s.image : '',
     bg:      String(s.bg || 'linear-gradient(135deg,#1B2A4A,#2d4270)'),
-  }));
+    sort_order: Number.isFinite(s.sort_order) ? s.sort_order : (fallbackOrder || 0),
+  };
 }
-function persistSlides(arr){
+
+function _readLocalSlides(){
+  try {
+    const arr = JSON.parse(localStorage.getItem('kr_slides') || 'null');
+    if (Array.isArray(arr) && arr.length) return arr.map((s,i) => _normalizeSlide(s, i));
+  } catch(e) {}
+  return JSON.parse(JSON.stringify(DEFAULT_SLIDES)).map((s,i)=>_normalizeSlide(s,i));
+}
+
+async function loadSlides(){
+  // 1) Try Supabase
+  try {
+    const data = await sbFetch('slides?select=*&order=sort_order.asc');
+    if (Array.isArray(data) && data.length) {
+      const norm = data.map((s,i) => _normalizeSlide(s, i));
+      // refresh local cache
+      try { localStorage.setItem('kr_slides', JSON.stringify(norm)); } catch(e){}
+      return norm;
+    }
+    // empty table → seed with defaults on first load
+    if (Array.isArray(data) && data.length === 0) {
+      const seeded = JSON.parse(JSON.stringify(DEFAULT_SLIDES)).map((s,i)=>_normalizeSlide(s,i));
+      await _supabaseSyncSlides(seeded).catch(()=>{});
+      try { localStorage.setItem('kr_slides', JSON.stringify(seeded)); } catch(e){}
+      return seeded;
+    }
+  } catch(e) {
+    console.warn('loadSlides: Supabase unavailable, using local cache.', e.message || e);
+    if (String(e.message||'').indexOf('404') >= 0) {
+      _slidesTableMissing = true;
+      showToast('Створіть таблицю "slides" у Supabase (див. README), поки що використовується локальне сховище', 'error');
+    }
+  }
+  // 2) Fallback
+  return _readLocalSlides();
+}
+
+let _slidesTableMissing = false;
+
+async function _supabaseSyncSlides(arr){
+  if (_slidesTableMissing) return;
+  // Upsert all current slides
+  const payload = arr.map((s, i) => ({
+    id: s.id,
+    title: s.title || '',
+    link: s.link || '',
+    enabled: s.enabled !== false,
+    image: s.image || '',
+    bg: s.bg || '',
+    sort_order: i,
+  }));
+  await sbFetch('slides?on_conflict=id', {
+    method: 'POST',
+    headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+    body: JSON.stringify(payload),
+  });
+  // Delete those not present
+  if (payload.length) {
+    const ids = payload.map(p => '"' + String(p.id).replace(/"/g,'\\"') + '"').join(',');
+    await sbFetch('slides?id=not.in.(' + ids + ')', {
+      method: 'DELETE',
+      headers: { 'Prefer': 'return=minimal' },
+    }).catch(()=>{});
+  } else {
+    // empty payload — wipe all
+    await sbFetch('slides?id=neq.__none__', {
+      method: 'DELETE',
+      headers: { 'Prefer': 'return=minimal' },
+    }).catch(()=>{});
+  }
+}
+
+async function persistSlides(arr){
+  // Local cache first (instant UX, also works offline / no admin token)
+  let localOk = true;
   try {
     localStorage.setItem('kr_slides', JSON.stringify(arr));
-    return true;
   } catch(e) {
-    showToast('Помилка збереження: фото занадто велике. Спробуйте менше зображення.', 'error');
-    return false;
+    localOk = false;
+    showToast('Локальне сховище переповнене. Спробуйте менше фото (до 500 КБ).', 'error');
   }
+  // Sync to Supabase (best-effort)
+  try {
+    await _supabaseSyncSlides(arr);
+  } catch(e) {
+    const msg = String(e.message || e);
+    if (msg.indexOf('404') >= 0) {
+      _slidesTableMissing = true;
+      showToast('Таблиці "slides" немає у Supabase — зміни збережено локально', 'error');
+    } else if (msg.indexOf('413') >= 0 || msg.toLowerCase().indexOf('payload') >= 0) {
+      showToast('Фото занадто велике для Supabase (>1 МБ). Зменшіть зображення.', 'error');
+    } else {
+      console.warn('persistSlides Supabase:', msg);
+      showToast('Не вдалось синхронізувати з Supabase: ' + msg.slice(0,80), 'error');
+    }
+    return localOk;
+  }
+  return true;
 }
 
 let _slides = [];
 let _dragSrcIdx = null;
 
-function renderSlidesGrid(){
-  _slides = loadSlides();
+async function renderSlidesGrid(){
+  const grid = document.getElementById('carouselGrid');
+  if (!grid) return;
+  grid.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-muted);grid-column:1/-1">Завантаження…</div>';
+  _slides = await loadSlides();
+  _renderSlidesGridSync();
+}
+function _renderSlidesGridSync(){
   const grid = document.getElementById('carouselGrid');
   if (!grid) return;
   grid.innerHTML = _slides.map((s, idx) => {
@@ -1289,38 +1382,39 @@ function renderSlidesGrid(){
 function escAdmHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function escAdmAttr(s){ return String(s==null?'':s).replace(/"/g,'&quot;').replace(/&/g,'&amp;'); }
 
-function slideToggle(idx){
+async function slideToggle(idx){
   if (!_slides[idx]) return;
   _slides[idx].enabled = !_slides[idx].enabled;
-  if (persistSlides(_slides)) {
-    renderSlidesGrid();
-    showToast(_slides[idx].enabled ? 'Слайд увімкнено' : 'Слайд вимкнено', 'success');
-  }
+  _renderSlidesGridSync();
+  const ok = await persistSlides(_slides);
+  if (ok) showToast(_slides[idx].enabled ? 'Слайд увімкнено' : 'Слайд вимкнено', 'success');
 }
 
-function slideUpdate(idx, field, value){
+async function slideUpdate(idx, field, value){
   if (!_slides[idx]) return;
   _slides[idx][field] = value;
-  persistSlides(_slides);
+  // Debounce-ish: persist on next tick
+  clearTimeout(_slidesSaveDebounce);
+  _slidesSaveDebounce = setTimeout(() => persistSlides(_slides), 500);
 }
+let _slidesSaveDebounce = null;
 
-function slideDelete(idx){
+async function slideDelete(idx){
   if (!_slides[idx]) return;
   if (!confirm('Видалити цей слайд?')) return;
   _slides.splice(idx, 1);
-  if (persistSlides(_slides)) {
-    renderSlidesGrid();
-    showToast('Слайд видалено', 'success');
-  }
+  _renderSlidesGridSync();
+  if (await persistSlides(_slides)) showToast('Слайд видалено', 'success');
 }
 
-function slideClearImage(idx){
+async function slideClearImage(idx){
   if (!_slides[idx]) return;
   _slides[idx].image = '';
-  if (persistSlides(_slides)) { renderSlidesGrid(); showToast('Фото прибрано', 'success'); }
+  _renderSlidesGridSync();
+  if (await persistSlides(_slides)) showToast('Фото прибрано', 'success');
 }
 
-function slideAddNew(){
+async function slideAddNew(){
   const palettes = [
     'linear-gradient(135deg,#1B2A4A,#2d4270)',
     'linear-gradient(135deg,#FF6B35,#ff9a6c)',
@@ -1332,8 +1426,10 @@ function slideAddNew(){
   _slides.push({
     id: newId, title: 'Новий слайд', link: '/catalog',
     enabled: true, image: '', bg: palettes[_slides.length % palettes.length],
+    sort_order: _slides.length,
   });
-  if (persistSlides(_slides)) { renderSlidesGrid(); showToast('Слайд додано', 'success'); }
+  _renderSlidesGridSync();
+  if (await persistSlides(_slides)) showToast('Слайд додано', 'success');
 }
 
 function slideUploadAsk(idx){
@@ -1343,18 +1439,16 @@ function slideUploadAsk(idx){
   inp.click();
 }
 
-function slideHandleFile(idx, file){
+async function slideHandleFile(idx, file){
   if (!file) return;
   if (!file.type.startsWith('image/')) { showToast('Файл має бути зображенням', 'error'); return; }
-  if (file.size > 2 * 1024 * 1024) { showToast('Розмір фото має бути до 2 МБ', 'error'); return; }
+  if (file.size > 1024 * 1024) { showToast('Розмір фото має бути до 1 МБ (для синхронізації з Supabase)', 'error'); return; }
   const reader = new FileReader();
-  reader.onload = function(e){
+  reader.onload = async function(e){
     if (!_slides[idx]) return;
     _slides[idx].image = e.target.result; // base64 dataURL
-    if (persistSlides(_slides)) {
-      renderSlidesGrid();
-      showToast('Фото збережено', 'success');
-    }
+    _renderSlidesGridSync();
+    if (await persistSlides(_slides)) showToast('Фото збережено', 'success');
   };
   reader.onerror = function(){ showToast('Помилка читання файлу', 'error'); };
   reader.readAsDataURL(file);
@@ -1375,13 +1469,14 @@ function slideDragOver(e, idx){
 function slideDragLeave(e){
   e.currentTarget.style.outline = '';
 }
-function slideDrop(e, idx){
+async function slideDrop(e, idx){
   e.preventDefault();
   e.currentTarget.style.outline = '';
   if (_dragSrcIdx === null || _dragSrcIdx === idx) return;
   const moved = _slides.splice(_dragSrcIdx, 1)[0];
   _slides.splice(idx, 0, moved);
-  if (persistSlides(_slides)) { renderSlidesGrid(); showToast('Порядок змінено', 'success'); }
+  _renderSlidesGridSync();
+  if (await persistSlides(_slides)) showToast('Порядок змінено', 'success');
   _dragSrcIdx = null;
 }
 function slideDragEnd(e){
@@ -1390,8 +1485,8 @@ function slideDragEnd(e){
   _dragSrcIdx = null;
 }
 
-function slidesSaveAll(){
-  if (persistSlides(_slides)) showToast('Зміни збережено', 'success');
+async function slidesSaveAll(){
+  if (await persistSlides(_slides)) showToast('Зміни збережено', 'success');
 }
 
 // ── SIDEBAR MOBILE ────────────────────────────────────────────────────────
