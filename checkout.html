@@ -248,6 +248,7 @@ a{text-decoration:none;color:inherit}
 </style>
 </head>
 <body>
+<script src="shared.js"></script>
 
 <!-- HEADER -->
 <header class="header">
@@ -1299,7 +1300,11 @@ function _fallbackImg(){
 }
 
 function renderOrderSummary(){
-  const cart = (window.KR && KR.getCart) ? KR.getCart() : [];
+  // Завжди читаємо напряму з localStorage — це працює навіть якщо shared.js
+  // ще не завантажився / завантажився з помилкою.
+  let cart = [];
+  try { cart = JSON.parse(localStorage.getItem('kr_cart') || '[]'); } catch(e) { cart = []; }
+  if (!Array.isArray(cart)) cart = [];
   const itemsEl = document.getElementById('osItems');
   const titleEl = document.getElementById('osTitle');
   const subEl   = document.getElementById('osSubtotal');
@@ -1372,6 +1377,6 @@ window.addEventListener('storage', e => { if (e.key === 'kr_cart') _refreshCheck
 window.addEventListener('kr:cart-changed', _refreshCheckoutState);
 window.addEventListener('kr:cartUpdated',  _refreshCheckoutState);
 </script>
-<script src="shared.js"></script>
+<!-- shared.js завантажено вгорі сторінки, щоб KR був гарантовано доступний -->
 </body>
 </html>

@@ -512,6 +512,7 @@ footer{background:var(--navy);color:white;padding:72px 48px 0}
 </style>
 </head>
 <body>
+<script src="shared.js"></script>
 
 <!-- HEADER -->
 <header class="header" id="hdr">
@@ -1719,7 +1720,7 @@ function toggleWish(btn) {
   setTimeout(() => btn.style.transform = '', 200);
 }
 </script>
-<script src="shared.js"></script>
+<!-- shared.js завантажено вгорі сторінки, щоб KR був гарантовано доступний -->
 
 <!-- SEARCH OVERLAY -->
 <div class="search-overlay" id="searchOverlay" onclick="if(event.target===this)closeSearchOverlay()" role="dialog" aria-modal="true" aria-label="Пошук по сайту">
