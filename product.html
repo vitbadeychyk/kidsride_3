@@ -1264,7 +1264,17 @@ document.addEventListener('keydown', e => {
 (async function loadFullProduct(){
   try{
     const params = new URLSearchParams(location.search);
-    const id = params.get('id');
+    let id = params.get('id');
+    // Fallback: якщо id немає в URL — спробуємо взяти з sessionStorage (kr_active_product)
+    if (!id) {
+      try {
+        const stored = sessionStorage.getItem('kr_active_product');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed && parsed.id && !/^cat-|^default-/.test(parsed.id)) id = parsed.id;
+        }
+      } catch{}
+    }
     if (!id) return;
     if (!window.KR || !KR._SUPA_URL || !KR._SUPA_KEY) return;
 
@@ -1422,6 +1432,23 @@ function galleryStep(dir){
 // але про всяк випадок)
 window.selectThumb = function(el, idx){ galleryGoTo(idx); };
 
+// Витягти зрозумілу назву кольору з повного тайтла товару
+const COLOR_WORDS = [
+  ['білий','Білий'],['чорний','Чорний'],['червоний','Червоний'],['синій','Синій'],
+  ['зелений','Зелений'],['жовтий','Жовтий'],['рожевий','Рожевий'],
+  ['оранжевий','Оранжевий'],['помаранчевий','Помаранчевий'],['сірий','Сірий'],
+  ['коричневий','Коричневий'],['блакитний','Блакитний'],['фіолетовий','Фіолетовий'],
+  ['золотий','Золотий'],['срібний','Срібний'],['сріблястий','Сріблястий'],
+  ['бордовий','Бордовий'],['бежевий','Бежевий'],['рожевого','Рожевий'],
+  ['червоного','Червоний'],['синього','Синій'],['жовтого','Жовтий'],['зеленого','Зелений']
+];
+function extractColorName(name){
+  if (!name) return '';
+  const lower = String(name).toLowerCase();
+  for (const [k, v] of COLOR_WORDS) if (lower.includes(k)) return v;
+  return '';
+}
+
 // Кольорові варіанти за префіксом артикула: "M 4259EBLR-1" → шукає "M 4259EBLR-*"
 async function buildColorVariants(currentSku, currentId){
   const m = String(currentSku).match(/^(.*?)-(\d+)\s*$/);
@@ -1433,7 +1460,7 @@ async function buildColorVariants(currentSku, currentId){
   const pattern = prefix + '-*';
   const qs = 'products?sku=ilike.' + encodeURIComponent(pattern)
     + '&active=eq.true'
-    + '&select=id,sku,name,images';
+    + '&select=id,sku,name,images,stock';
   let arr;
   try{
     const r = await fetch(KR._SUPA_URL + '/rest/v1/' + qs, {
@@ -1459,38 +1486,107 @@ async function buildColorVariants(currentSku, currentId){
   const label = document.querySelector('.option-label');
   if (!grid) return;
 
-  if (label) label.innerHTML = 'Кольорова версія: <span id="colorName">' + arr.length + ' варіант' + (arr.length === 1 ? '' : (arr.length < 5 ? 'и' : 'ів')) + '</span>';
+  // Назва кольору поточного товару
+  const curVariant = arr.find(v => v.id === currentId) || {};
+  const curColor = extractColorName(curVariant.name) || ('Варіант ' + ((String(curVariant.sku||'').match(/-(\d+)\s*$/)||[])[1] || '1'));
+  if (label) label.innerHTML = 'Колір (модель): <span id="colorName">' + curColor + '</span>';
 
+  // Перетворюємо .color-grid на горизонтальний скролер зі стрілками
   grid.innerHTML = '';
-  grid.style.gap = '10px';
-  grid.style.flexWrap = 'wrap';
+  // Створюємо обгортку зі стрілками (вставляємо після grid)
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'position:relative;margin-bottom:24px';
+
+  const scroller = document.createElement('div');
+  scroller.id = 'variantsScroller';
+  scroller.style.cssText = 'display:flex;gap:14px;overflow-x:auto;scroll-behavior:smooth;padding:6px 2px 8px;scrollbar-width:none';
+  // hide webkit scrollbar inline (одноразово в head)
+  if (!document.getElementById('variantsScrollerStyle')){
+    const s = document.createElement('style');
+    s.id = 'variantsScrollerStyle';
+    s.textContent = '#variantsScroller::-webkit-scrollbar{display:none}';
+    document.head.appendChild(s);
+  }
 
   arr.forEach(v => {
     const isCur = v.id === currentId;
     const mainImg = (Array.isArray(v.images) && v.images[0]) ? v.images[0] : '';
+    const inStock = (typeof v.stock === 'number') ? v.stock > 0 : true;
+    const colorName = extractColorName(v.name) || ('№' + ((String(v.sku||'').match(/-(\d+)\s*$/)||[])[1] || '?'));
+
     const tag = isCur ? 'div' : 'a';
     const el = document.createElement(tag);
     if (!isCur) el.href = 'product.html?id=' + encodeURIComponent(v.id);
-    el.title = (v.name || v.sku || '') + (isCur ? ' (поточний)' : '');
+    el.title = (v.name || v.sku || '') + (isCur ? ' (поточний)' : (inStock ? '' : ' — під замовлення'));
     el.style.cssText =
-      'display:flex;align-items:center;justify-content:center;'
-      + 'width:64px;height:64px;border-radius:10px;overflow:hidden;'
-      + 'background:#fff;border:2px solid ' + (isCur ? 'var(--orange)' : 'var(--border)') + ';'
+      'display:flex;flex-direction:column;align-items:center;gap:6px;'
+      + 'flex-shrink:0;width:84px;text-decoration:none;color:inherit;'
       + 'cursor:' + (isCur ? 'default' : 'pointer') + ';'
-      + 'transition:all .2s;text-decoration:none;flex-shrink:0;'
+      + (inStock ? '' : 'opacity:.55;');
+
+    const tile = document.createElement('div');
+    tile.style.cssText =
+      'width:78px;height:78px;border-radius:12px;overflow:hidden;background:#fff;'
+      + 'border:2px solid ' + (isCur ? 'var(--orange)' : 'var(--border)') + ';'
+      + 'transition:all .2s;display:flex;align-items:center;justify-content:center;'
       + (isCur ? 'box-shadow:0 0 0 3px rgba(255,107,53,.15);' : '');
-    if (!isCur){
-      el.onmouseenter = () => { el.style.transform = 'scale(1.08)'; el.style.borderColor = 'var(--orange)'; };
-      el.onmouseleave = () => { el.style.transform = ''; el.style.borderColor = 'var(--border)'; };
-    }
     if (mainImg){
-      el.innerHTML = '<img src="' + mainImg + '" alt="" style="width:100%;height:100%;object-fit:contain;padding:4px;box-sizing:border-box">';
+      tile.innerHTML = '<img src="' + mainImg + '" alt="" style="width:100%;height:100%;object-fit:contain;padding:5px;box-sizing:border-box" loading="lazy">';
     } else {
       const sfx = (String(v.sku).match(/-(\d+)\s*$/)||[])[1] || '?';
-      el.innerHTML = '<span style="font-family:Nunito,sans-serif;font-weight:800;color:var(--text-muted);font-size:18px">' + sfx + '</span>';
+      tile.innerHTML = '<span style="font-family:Nunito,sans-serif;font-weight:800;color:var(--text-muted);font-size:22px">' + sfx + '</span>';
     }
-    grid.appendChild(el);
+
+    const name = document.createElement('span');
+    name.textContent = colorName.length > 11 ? colorName.slice(0, 10) + '…' : colorName;
+    name.style.cssText = 'font-size:11px;font-weight:600;color:' + (isCur ? 'var(--orange)' : 'var(--text-muted)') + ';text-align:center;line-height:1.2;max-width:80px';
+
+    el.appendChild(tile);
+    el.appendChild(name);
+
+    if (!isCur){
+      el.addEventListener('mouseenter', () => { tile.style.transform = 'scale(1.06)'; tile.style.borderColor = 'var(--orange)'; });
+      el.addEventListener('mouseleave', () => { tile.style.transform = ''; tile.style.borderColor = 'var(--border)'; });
+    }
+    scroller.appendChild(el);
   });
+
+  // Стрілки гортання (показуються лише якщо є переповнення)
+  const mkArrow = (dir) => {
+    const a = document.createElement('button');
+    a.type = 'button';
+    a.setAttribute('aria-label', dir < 0 ? 'Попередні' : 'Наступні');
+    a.textContent = dir < 0 ? '‹' : '›';
+    a.style.cssText = 'position:absolute;top:36px;'
+      + (dir < 0 ? 'left:-6px;' : 'right:-6px;')
+      + 'width:34px;height:34px;border-radius:50%;background:#fff;border:1px solid var(--border);'
+      + 'box-shadow:0 2px 8px rgba(0,0,0,.10);cursor:pointer;font-size:22px;font-weight:600;color:#1B2A4A;'
+      + 'display:none;align-items:center;justify-content:center;line-height:1;padding:0 0 3px;z-index:2;'
+      + 'transition:all .2s';
+    a.onclick = () => { scroller.scrollBy({ left: dir * 220, behavior: 'smooth' }); };
+    a.onmouseenter = () => { a.style.background = 'var(--orange)'; a.style.color = '#fff'; a.style.borderColor = 'var(--orange)'; };
+    a.onmouseleave = () => { a.style.background = '#fff'; a.style.color = '#1B2A4A'; a.style.borderColor = 'var(--border)'; };
+    return a;
+  };
+  const left = mkArrow(-1), right = mkArrow(+1);
+  wrap.appendChild(scroller);
+  wrap.appendChild(left);
+  wrap.appendChild(right);
+  grid.parentNode.insertBefore(wrap, grid);
+  grid.style.display = 'none';
+
+  // Показ/приховування стрілок залежно від скролу і переповнення
+  const updateArrows = () => {
+    const overflow = scroller.scrollWidth > scroller.clientWidth + 4;
+    if (!overflow) { left.style.display = 'none'; right.style.display = 'none'; return; }
+    left.style.display  = scroller.scrollLeft > 4 ? 'flex' : 'none';
+    right.style.display = (scroller.scrollLeft + scroller.clientWidth < scroller.scrollWidth - 4) ? 'flex' : 'none';
+  };
+  scroller.addEventListener('scroll', updateArrows);
+  window.addEventListener('resize', updateArrows);
+  // Перший прорахунок (після того як зображення підвантажаться)
+  setTimeout(updateArrows, 50);
+  setTimeout(updateArrows, 600);
 }
 
 // ── Динамічне завантаження відеоогляду з Supabase (за ?id=) ────────────

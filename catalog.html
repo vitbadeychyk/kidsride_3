@@ -1021,7 +1021,9 @@ function getCardProduct(card) {
   const brand = (card.querySelector('.p-brand')?.textContent || '').trim();
   const priceEl = card.querySelector('.p-price');
   const price = priceEl ? parseInt(priceEl.textContent.replace(/\D/g,'')) || 0 : 0;
-  const id = 'cat-' + name.toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi,'-').slice(0,40);
+  // Реальний id з Supabase (data-id), якщо є — інакше fallback за іменем
+  const realId = card.dataset && card.dataset.id;
+  const id = realId || ('cat-' + name.toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi,'-').slice(0,40));
   return { id, name, brand, price, img: 'jeep' };
 }
 
@@ -1048,7 +1050,9 @@ function openProduct(card) {
   if (product) {
     try { sessionStorage.setItem('kr_active_product', JSON.stringify(product)); } catch{}
   }
-  window.location.href = 'product.html';
+  // Передаємо реальний id Supabase у URL — щоб product.html міг підтягнути фото, ціну, варіанти кольору
+  const realId = card && card.dataset && card.dataset.id;
+  window.location.href = 'product.html' + (realId ? ('?id=' + encodeURIComponent(realId)) : '');
 }
 
 // Wishlist
