@@ -344,7 +344,7 @@ nav a.active{color:var(--orange)}
 <div class="catalog-head">
   <div class="catalog-title-row">
     <h1 class="catalog-title">Каталог електромобілів</h1>
-    <span class="catalog-count" id="catalogCount">809 товарів</span>
+    <span class="catalog-count" id="catalogCount">Завантаження…</span>
   </div>
   <div class="catalog-controls">
     <select class="sort-select" id="sortSelect" onchange="applyFilters()">
@@ -390,10 +390,10 @@ nav a.active{color:var(--orange)}
         <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
       <div class="filter-body">
-        <label class="filter-option checked" onclick="toggleCheck(this,'available')">
+        <label class="filter-option checked" data-group="available" onclick="toggleCheck(this,'available')">
           <div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
           <span class="filter-label">В наявності</span>
-          <span class="filter-cnt">809</span>
+          <span class="filter-cnt">—</span>
         </label>
       </div>
     </div>
@@ -405,14 +405,14 @@ nav a.active{color:var(--orange)}
         <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
       <div class="filter-body" id="typeFilter">
-        <label class="filter-option" onclick="toggleCheck(this,'type')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">Джип</span><span class="filter-cnt">287</span></label>
-        <label class="filter-option" onclick="toggleCheck(this,'type')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">Квадроцикл</span><span class="filter-cnt">134</span></label>
-        <label class="filter-option" onclick="toggleCheck(this,'type')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">Мотоцикл</span><span class="filter-cnt">98</span></label>
-        <label class="filter-option" onclick="toggleCheck(this,'type')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">Машина</span><span class="filter-cnt">112</span></label>
-        <label class="filter-option" onclick="toggleCheck(this,'type')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">Трактор</span><span class="filter-cnt">67</span></label>
-        <label class="filter-option" onclick="toggleCheck(this,'type')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">Каталка-толокар</span><span class="filter-cnt">45</span></label>
-        <label class="filter-option" onclick="toggleCheck(this,'type')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">Вантажівка</span><span class="filter-cnt">38</span></label>
-        <label class="filter-option" onclick="toggleCheck(this,'type')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">Баггі</span><span class="filter-cnt">28</span></label>
+        <label class="filter-option" data-group="type" onclick="toggleCheck(this,'type')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">Джип</span><span class="filter-cnt">—</span></label>
+        <label class="filter-option" data-group="type" onclick="toggleCheck(this,'type')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">Квадроцикл</span><span class="filter-cnt">—</span></label>
+        <label class="filter-option" data-group="type" onclick="toggleCheck(this,'type')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">Мотоцикл</span><span class="filter-cnt">—</span></label>
+        <label class="filter-option" data-group="type" onclick="toggleCheck(this,'type')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">Машина</span><span class="filter-cnt">—</span></label>
+        <label class="filter-option" data-group="type" onclick="toggleCheck(this,'type')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">Трактор</span><span class="filter-cnt">—</span></label>
+        <label class="filter-option" data-group="type" onclick="toggleCheck(this,'type')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">Каталка-толокар</span><span class="filter-cnt">—</span></label>
+        <label class="filter-option" data-group="type" onclick="toggleCheck(this,'type')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">Вантажівка</span><span class="filter-cnt">—</span></label>
+        <label class="filter-option" data-group="type" onclick="toggleCheck(this,'type')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">Баггі</span><span class="filter-cnt">—</span></label>
       </div>
     </div>
 
@@ -423,9 +423,9 @@ nav a.active{color:var(--orange)}
         <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
       <div class="filter-body">
-        <label class="filter-option" onclick="toggleCheck(this,'age')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">1 – 3 роки</span><span class="filter-cnt">89</span></label>
-        <label class="filter-option" onclick="toggleCheck(this,'age')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">3 – 6 років</span><span class="filter-cnt">524</span></label>
-        <label class="filter-option" onclick="toggleCheck(this,'age')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">6 – 10 років</span><span class="filter-cnt">196</span></label>
+        <label class="filter-option" data-group="age" onclick="toggleCheck(this,'age')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">1 – 3 роки</span><span class="filter-cnt">—</span></label>
+        <label class="filter-option" data-group="age" onclick="toggleCheck(this,'age')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">3 – 6 років</span><span class="filter-cnt">—</span></label>
+        <label class="filter-option" data-group="age" onclick="toggleCheck(this,'age')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">6 – 10 років</span><span class="filter-cnt">—</span></label>
       </div>
     </div>
 
@@ -461,10 +461,10 @@ nav a.active{color:var(--orange)}
         <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
       <div class="filter-body">
-        <label class="filter-option" onclick="toggleCheck(this,'brand')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">Bambi Racer</span><span class="filter-cnt">412</span></label>
-        <label class="filter-option" onclick="toggleCheck(this,'brand')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">PROF1</span><span class="filter-cnt">187</span></label>
-        <label class="filter-option" onclick="toggleCheck(this,'brand')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">Bambi kart</span><span class="filter-cnt">94</span></label>
-        <label class="filter-option" onclick="toggleCheck(this,'brand')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">EL CAMINO</span><span class="filter-cnt">116</span></label>
+        <label class="filter-option" data-group="brand" onclick="toggleCheck(this,'brand')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">Bambi Racer</span><span class="filter-cnt">—</span></label>
+        <label class="filter-option" data-group="brand" onclick="toggleCheck(this,'brand')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">PROF1</span><span class="filter-cnt">—</span></label>
+        <label class="filter-option" data-group="brand" onclick="toggleCheck(this,'brand')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">Bambi kart</span><span class="filter-cnt">—</span></label>
+        <label class="filter-option" data-group="brand" onclick="toggleCheck(this,'brand')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">EL CAMINO</span><span class="filter-cnt">—</span></label>
       </div>
     </div>
 
@@ -475,9 +475,9 @@ nav a.active{color:var(--orange)}
         <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
       <div class="filter-body">
-        <label class="filter-option" onclick="toggleCheck(this,'voltage')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">6V</span><span class="filter-cnt">42</span></label>
-        <label class="filter-option" onclick="toggleCheck(this,'voltage')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">12V</span><span class="filter-cnt">589</span></label>
-        <label class="filter-option" onclick="toggleCheck(this,'voltage')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">24V</span><span class="filter-cnt">178</span></label>
+        <label class="filter-option" data-group="voltage" onclick="toggleCheck(this,'voltage')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">6V</span><span class="filter-cnt">—</span></label>
+        <label class="filter-option" data-group="voltage" onclick="toggleCheck(this,'voltage')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">12V</span><span class="filter-cnt">—</span></label>
+        <label class="filter-option" data-group="voltage" onclick="toggleCheck(this,'voltage')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">24V</span><span class="filter-cnt">—</span></label>
       </div>
     </div>
   </aside>
@@ -746,15 +746,7 @@ nav a.active{color:var(--orange)}
     </div>
 
     <!-- PAGINATION -->
-    <div class="pagination">
-      <button class="pag-btn arrow"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
-      <button class="pag-btn active">1</button>
-      <button class="pag-btn">2</button>
-      <button class="pag-btn">3</button>
-      <span class="pag-dots">…</span>
-      <button class="pag-btn">27</button>
-      <button class="pag-btn arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
-    </div>
+    <div class="pagination" id="pagination"></div>
   </main>
 </div>
 
@@ -1648,6 +1640,7 @@ function renderCard(p) {
       <div class="p-body">
         <div class="p-brand">${p.brand}</div>
         <div class="p-name">${p.name}</div>
+        ${p.sku ? `<div class="p-sku" style="font-size:11px;color:var(--text-muted);font-weight:600;margin:2px 0 6px;letter-spacing:.02em">Арт: ${escAttr(p.sku)}</div>` : ''}
         <div class="p-specs">${specs.join('')}</div>
         ${stockBadge}
         <div class="p-bottom">
@@ -1705,6 +1698,11 @@ async function renderCatalog() {
   const countEl = document.getElementById('catalogCount');
   if (countEl) countEl.textContent = allProducts.length + ' товарів';
 
+  // Заповнити лічильники у фільтрах справжніми числами з бази
+  updateFilterCounts();
+  // Підтягнути попередній фільтр з URL (?cat=jeep тощо)
+  applyUrlFilters();
+
   applyFiltersAndRender();
 }
 
@@ -1759,9 +1757,18 @@ function applyFiltersAndRender() {
     return;
   }
 
-  grid.innerHTML = filteredProducts.map(renderCard).join('');
+  // Пагінація: показуємо лише товари поточної сторінки
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / PAGE_SIZE));
+  if (currentPage > totalPages) currentPage = totalPages;
+  if (currentPage < 1) currentPage = 1;
+  const startIdx = (currentPage - 1) * PAGE_SIZE;
+  const pageItems = filteredProducts.slice(startIdx, startIdx + PAGE_SIZE);
+
+  grid.innerHTML = pageItems.map(renderCard).join('');
   if (window.KR && typeof window.KR.updateWishBadge === 'function') window.KR.updateWishBadge();
   if (typeof wireProductCards === 'function') wireProductCards();
+
+  renderPagination(totalPages);
 
   // Reveal animation
   grid.querySelectorAll('.reveal').forEach((el, i) => {
@@ -1773,6 +1780,106 @@ function applyFiltersAndRender() {
       el.style.transform = 'translateY(0)';
     });
   });
+}
+
+// ── PAGINATION ─────────────────────────────────────────────────────────────
+const PAGE_SIZE = 12;
+let currentPage = 1;
+
+function goToPage(n) {
+  currentPage = Math.max(1, n);
+  applyFiltersAndRender();
+  // Прокрутити до початку списку товарів
+  const grid = document.getElementById('productsGrid');
+  if (grid) {
+    const top = grid.getBoundingClientRect().top + window.scrollY - 100;
+    window.scrollTo({ top, behavior: 'smooth' });
+  }
+}
+
+function renderPagination(totalPages) {
+  const pag = document.getElementById('pagination');
+  if (!pag) return;
+  if (totalPages <= 1) { pag.innerHTML = ''; return; }
+
+  const pages = [];
+  const add = (n) => pages.push(n);
+  // Завжди показуємо першу
+  add(1);
+  // Діапазон навколо поточної
+  const start = Math.max(2, currentPage - 1);
+  const end = Math.min(totalPages - 1, currentPage + 1);
+  if (start > 2) add('…');
+  for (let i = start; i <= end; i++) add(i);
+  if (end < totalPages - 1) add('…');
+  if (totalPages > 1) add(totalPages);
+
+  let html = '';
+  html += `<button class="pag-btn arrow" ${currentPage===1?'disabled style="opacity:.4;cursor:not-allowed"':''} onclick="goToPage(${currentPage-1})"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>`;
+  pages.forEach(n => {
+    if (n === '…') html += `<span class="pag-dots">…</span>`;
+    else html += `<button class="pag-btn${n===currentPage?' active':''}" onclick="goToPage(${n})">${n}</button>`;
+  });
+  html += `<button class="pag-btn arrow" ${currentPage===totalPages?'disabled style="opacity:.4;cursor:not-allowed"':''} onclick="goToPage(${currentPage+1})"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>`;
+  pag.innerHTML = html;
+}
+
+// ── FILTER COUNTS ──────────────────────────────────────────────────────────
+// Рахуємо кількість товарів у кожній групі фільтрів та оновлюємо .filter-cnt
+function updateFilterCounts() {
+  const products = (allProducts || []).filter(p => !(p.stock != null && p.stock <= 0 && !(Number(p.preorderDays) > 0)));
+  const total = products.length;
+
+  // Оновити "В наявності" — це загальна кількість видимих товарів
+  document.querySelectorAll('.filter-option[data-group="available"] .filter-cnt').forEach(el => el.textContent = total);
+
+  // Допоміжні мапи: міткаУкр → значенняВДанихТовару
+  const TYPE_MAP = { 'Джип':'jeep','Квадроцикл':'quad','Мотоцикл':'moto','Машина':'car','Трактор':'tractor','Каталка-толокар':'walker','Вантажівка':'truck','Баггі':'buggy' };
+
+  document.querySelectorAll('.filter-option').forEach(opt => {
+    const group = opt.dataset.group;
+    const label = (opt.querySelector('.filter-label')?.textContent || '').trim();
+    const cntEl = opt.querySelector('.filter-cnt');
+    if (!group || !cntEl || group === 'available') return;
+
+    let n = 0;
+    if (group === 'type') {
+      const code = TYPE_MAP[label] || label.toLowerCase();
+      n = products.filter(p => p.category === code).length;
+    } else if (group === 'age') {
+      const m = label.match(/(\d+)\s*[-–—]\s*(\d+)/);
+      if (m) {
+        const rMin = +m[1], rMax = +m[2];
+        n = products.filter(p => {
+          const pAges = String(p.age || '').split('-').map(Number);
+          return pAges[0] <= rMax && (pAges[1] || pAges[0]) >= rMin;
+        }).length;
+      }
+    } else if (group === 'brand') {
+      n = products.filter(p => (p.brand || '') === label).length;
+    } else if (group === 'voltage') {
+      const v = label.toUpperCase().replace(/\s+/g, '');
+      n = products.filter(p => String(p.voltage || '').toUpperCase().replace(/\s+/g,'') === v).length;
+    }
+    cntEl.textContent = n;
+  });
+}
+
+// ── URL FILTER PRE-SELECT ──────────────────────────────────────────────────
+// Підтримуємо ?cat=jeep — попередньо відмічаємо потрібний тип у фільтрах
+function applyUrlFilters() {
+  const params = new URLSearchParams(location.search);
+  const cat = params.get('cat');
+  if (!cat) return;
+  const TYPE_LABELS = { jeep:'Джип', quad:'Квадроцикл', moto:'Мотоцикл', car:'Машина', tractor:'Трактор', walker:'Каталка-толокар', truck:'Вантажівка', buggy:'Баггі' };
+  const target = TYPE_LABELS[cat];
+  if (!target) return;
+  document.querySelectorAll('.filter-option[data-group="type"]').forEach(opt => {
+    const label = (opt.querySelector('.filter-label')?.textContent || '').trim();
+    if (label === target) opt.classList.add('checked');
+  });
+  syncActiveFiltersFromDOM();
+  updateActiveFilters();
 }
 
 // ── FILTER FUNCTIONS ────────────────────────────────────────────────────────
@@ -1804,6 +1911,7 @@ function syncActiveFiltersFromDOM() {
 function toggleCheck(label, group) {
   label.classList.toggle('checked');
   syncActiveFiltersFromDOM();
+  currentPage = 1;
   applyFilters();
   updateActiveFilters();
 }
@@ -1814,6 +1922,7 @@ function applyFilters() {
   activeFilters.priceMin = min;
   activeFilters.priceMax = max;
   activeFilters.search = document.getElementById('searchInput')?.value.trim() || '';
+  currentPage = 1;
   applyFiltersAndRender();
 }
 
@@ -1830,12 +1939,22 @@ function resetFilters() {
   applyFiltersAndRender();
 }
 
+// Знайти товар у завантаженому списку (для отримання img URL, sku та інших полів)
+function _findProd(id) {
+  return (allProducts || []).find(x => String(x.id) === String(id)) || {};
+}
+function _photoOf(p) {
+  return (p && Array.isArray(p.images) && p.images.length > 0) ? p.images[0] : '';
+}
+
 // ── CART / WISH / COMPARE ───────────────────────────────────────────────────
 function catAddToCart(e, id, price, name, brand) {
   e.stopPropagation();
+  const prod = _findProd(id);
+  const img = _photoOf(prod);
   // Маршрутизуємо через KR.addToCart, щоб дедуплікація була єдина по всьому сайту
   if (window.KR && typeof window.KR.addToCart === 'function') {
-    window.KR.addToCart({ id, name, brand, price, color: '' });
+    window.KR.addToCart({ id, name, brand, price, color: '', img });
   } else {
     let cart = [];
     try { cart = JSON.parse(localStorage.getItem('kr_cart') || '[]'); } catch{}
@@ -1864,8 +1983,11 @@ function catToggleWish(btn, id, name, price) {
   btn.classList.toggle('liked');
   btn.style.transform='scale(1.3)'; setTimeout(()=>btn.style.transform='',200);
   let list=[]; try{list=JSON.parse(localStorage.getItem('kr_wishlist')||'[]');}catch{}
+  const prod = _findProd(id);
+  const img = _photoOf(prod);
+  const brand = prod.brand || '';
   if (btn.classList.contains('liked')) {
-    if (!list.some(i => i.id === id)) list.push({id,name,price,addedAt:Date.now()});
+    if (!list.some(i => i.id === id)) list.push({id,name,price,brand,img,addedAt:Date.now()});
     showToastLocal('❤️ Додано до списку бажань');
   } else {
     list=list.filter(i=>i.id!==id);
@@ -1878,9 +2000,11 @@ function catToggleWish(btn, id, name, price) {
 function catToggleCompare(btn, id, name, price, brand, img) {
   btn.classList.toggle('active');
   let list=[]; try{list=JSON.parse(localStorage.getItem('kr_compare')||'[]');}catch{}
+  const prod = _findProd(id);
+  const photo = _photoOf(prod);
   if (btn.classList.contains('active')) {
     if (list.length>=3){btn.classList.remove('active');showToastLocal('Максимум 3 товари для порівняння');return;}
-    list.push({id,name,price,brand,img,specs:{'Бренд':brand,'Ціна':price+' ₴'}});
+    list.push({id,name,price,brand,img,photo,specs:{'Бренд':brand,'Ціна':price+' ₴'}});
     if (list.length>=2) showCompareBar();
   } else {
     list=list.filter(i=>i.id!==id);

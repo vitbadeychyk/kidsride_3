@@ -543,7 +543,7 @@ function renderCartItems() {
     const safeKey = escHtml(key);
     return `
       <div class="cart-item" data-key="${safeKey}">
-        <div class="ci-img">${p.imgSvg || genericSvg()}</div>
+        <div class="ci-img">${p.img && /^(https?:|data:)/.test(String(p.img)) ? `<img src="${escHtml(p.img)}" alt="${escHtml(p.name||'')}" loading="lazy" style="width:100%;height:100%;object-fit:contain;background:#fff;border-radius:10px">` : (p.imgSvg || genericSvg())}</div>
         <div class="ci-info">
           ${p.brand ? `<div class="ci-brand">${escHtml(p.brand)}</div>` : ''}
           <div class="ci-name"><a href="${escHtml(productHref)}">${escHtml(p.name || 'Товар')}</a></div>
