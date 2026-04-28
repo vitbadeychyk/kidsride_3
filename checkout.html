@@ -1175,6 +1175,23 @@ async function _supaInsert(table, body, returnRepresentation=false){
   return null;
 }
 
+async function _supaRpc(fnName, params){
+  const res = await fetch(SUPA_URL + '/rest/v1/rpc/' + fnName, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPA_KEY,
+      'Authorization': 'Bearer ' + SUPA_KEY,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(params)
+  });
+  const txt = await res.text().catch(() => '{}');
+  let data;
+  try { data = JSON.parse(txt); } catch { data = {}; }
+  if (!res.ok) throw new Error('RPC ' + fnName + ': ' + res.status + ' ' + txt.slice(0, 220));
+  return data;
+}
+
 // ── SUBMIT ─────────────────────────────────────────────────────────────────
 let _submitInFlight = false;
 async function submitOrder() {
@@ -1212,20 +1229,22 @@ async function submitOrder() {
       throw new Error('Кошик порожній');
     }
 
-    // 1) INSERT в orders → отримуємо повний рядок (включно з id)
-    const inserted = await _supaInsert('orders', order, true);
-    const created  = Array.isArray(inserted) ? inserted[0] : inserted;
-    if (!created || !created.id) {
-      throw new Error('orders: не отримано id з відповіді Supabase');
+    // Викликаємо RPC-функцію place_order, яка атомарно:
+    // 1) перевіряє залишки (блокує рядки FOR UPDATE)
+    // 2) вставляє orders + order_items
+    // 3) зменшує stock
+    const result = await _supaRpc('place_order', { p_order: order, p_items: items });
+
+    if (!result.success) {
+      // Помилка наявності товару — показуємо окремий styled toast
+      const errMsg = result.error || 'Не вдалось оформити замовлення';
+      showStockError(errMsg);
+      btn.disabled = false;
+      btn.innerHTML = originalHTML;
+      return;
     }
 
-    // 2) INSERT у order_items одним запитом масивом
-    if (items.length) {
-      const withOrderId = items.map(it => ({ ...it, order_id: created.id }));
-      await _supaInsert('order_items', withOrderId, false);
-    }
-
-    // 3) Очистити кошик і показати успіх
+    // Успіх — очистити кошик і показати сторінку підтвердження
     try {
       localStorage.setItem('kr_cart', '[]');
       if (window.KR) {
@@ -1238,8 +1257,7 @@ async function submitOrder() {
     document.getElementById('successPage').style.display = 'block';
     document.getElementById('successPayment').textContent = getPayName();
     const numEl = document.querySelector('.success-order-row .success-order-val');
-    if (numEl) numEl.textContent = '#' + (created.order_number || order.order_number);
-    // Підставити реальну суму у success-блок
+    if (numEl) numEl.textContent = '#' + (result.order_number || order.order_number);
     document.querySelectorAll('.success-order-row').forEach(row => {
       const label = row.querySelector('.success-order-label')?.textContent || '';
       if (/Сума/i.test(label)) {
@@ -1274,6 +1292,32 @@ function showToast(msg) {
   if (!t) { t = document.createElement('div'); t.id='_toast'; t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:11px 22px;border-radius:100px;font-family:Nunito,sans-serif;font-weight:700;font-size:13px;z-index:3000;box-shadow:0 8px 24px rgba(0,0,0,.2);white-space:nowrap;transition:opacity .25s'; document.body.appendChild(t); }
   t.textContent = msg; t.style.opacity='1';
   setTimeout(() => t.style.opacity='0', 2500);
+}
+
+function showStockError(msg) {
+  let el = document.getElementById('_stockErr');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = '_stockErr';
+    el.style.cssText = [
+      'position:fixed','bottom:24px','left:50%','transform:translateX(-50%)',
+      'background:#fff','color:var(--navy)','padding:16px 22px 16px 18px',
+      'border-radius:14px','font-family:Manrope,sans-serif','font-size:13px',
+      'z-index:3000','box-shadow:0 12px 40px rgba(0,0,0,.18)',
+      'border-left:4px solid var(--red)','max-width:420px','line-height:1.5',
+      'display:flex','align-items:flex-start','gap:12px','transition:opacity .3s'
+    ].join(';');
+    el.innerHTML = `
+      <svg style="width:20px;height:20px;flex-shrink:0;margin-top:1px;stroke:var(--red);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <span id="_stockErrMsg"></span>`;
+    document.body.appendChild(el);
+  }
+  document.getElementById('_stockErrMsg').textContent = msg;
+  el.style.opacity = '1';
+  clearTimeout(el._timer);
+  el._timer = setTimeout(() => { el.style.opacity = '0'; }, 5000);
 }
 
 // Add shake animation
