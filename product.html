@@ -952,24 +952,50 @@ function selectColor(btn, name, bg, idx) {
   selectThumb(document.querySelectorAll('.thumb')[idx], idx);
 }
 
-// Cart
-let cartCount = 0;
-function addToCart() {
-  cartCount++;
-  document.getElementById('cartBadge').textContent = cartCount;
-  document.getElementById('cartBadge').style.transform = 'scale(1.5)';
-  setTimeout(() => document.getElementById('cartBadge').style.transform = '', 300);
+// Cart — РЕАЛЬНЕ збереження в localStorage через KR.addToCart
+function _readCurrentProduct() {
+  // Зчитуємо назву/бренд/ціну/колір прямо з DOM
+  const name  = (document.querySelector('.product-title')?.textContent || 'Товар').trim();
+  const brand = (document.querySelector('.meta-brand')?.textContent || '').trim();
+  const priceEl = document.querySelector('.price-main');
+  const price = priceEl ? (parseInt(priceEl.textContent.replace(/\D/g,'')) || 0) : 0;
+  const color = (document.getElementById('colorName')?.textContent || '').trim();
+  return { name, brand, price, color };
+}
 
-  // Toast
-  showToast('✓ Додано в кошик');
+function addToCart() {
+  const product = _readCurrentProduct();
+  if (window.KR && typeof window.KR.addToCart === 'function') {
+    window.KR.addToCart(product);
+  } else {
+    // Fallback — пишемо напряму в kr_cart (на випадок, якщо shared.js ще не завантажився)
+    let cart = [];
+    try { cart = JSON.parse(localStorage.getItem('kr_cart') || '[]'); } catch{}
+    const slug = (product.name || '').toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi,'-').slice(0,60);
+    const ex = cart.find(i => ((i.name||'').toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi,'-').slice(0,60) === slug) && (i.color||'') === product.color);
+    if (ex) ex.qty = Math.min((ex.qty||1)+1, 10);
+    else cart.push({ id:'p-'+slug, ...product, qty:1, addedAt:Date.now() });
+    localStorage.setItem('kr_cart', JSON.stringify(cart));
+    showToast('✓ Додано в кошик');
+  }
+  // Анімація бейджа (KR теж її робить, але задублюємо для плавності)
+  const badge = document.getElementById('cartBadge');
+  if (badge) { badge.style.transform = 'scale(1.5)'; setTimeout(() => badge.style.transform = '', 300); }
 }
 
 function addToCartRelated(btn) {
   const svg = btn.innerHTML;
   btn.style.background = 'var(--green)';
   btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
-  cartCount++;
-  document.getElementById('cartBadge').textContent = cartCount;
+  // Витягаємо дані сусіднього товару з картки .related-card / .r-card
+  const card = btn.closest('.related-card, .r-card, .p-card');
+  const name  = (card?.querySelector('.r-name, .p-name, .product-title')?.textContent || 'Супутній товар').trim();
+  const brand = (card?.querySelector('.r-brand, .p-brand, .meta-brand')?.textContent || '').trim();
+  const priceEl = card?.querySelector('.r-price, .p-price, .price-main');
+  const price = priceEl ? (parseInt(priceEl.textContent.replace(/\D/g,'')) || 0) : 0;
+  if (window.KR && typeof window.KR.addToCart === 'function') {
+    window.KR.addToCart({ name, brand, price, color: '' });
+  }
   setTimeout(() => { btn.style.background = 'var(--orange)'; btn.innerHTML = svg; }, 1400);
 }
 

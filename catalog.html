@@ -1695,13 +1695,20 @@ function resetFilters() {
 // ── CART / WISH / COMPARE ───────────────────────────────────────────────────
 function catAddToCart(e, id, price, name, brand) {
   e.stopPropagation();
-  let cart = [];
-  try { cart = JSON.parse(localStorage.getItem('kr_cart') || '[]'); } catch{}
-  const ex = cart.find(i => i.id === id);
-  if (ex) ex.qty = (ex.qty||1) + 1;
-  else cart.push({id, name, brand, price, color:'Стандарт', qty:1, addedAt:Date.now()});
-  localStorage.setItem('kr_cart', JSON.stringify(cart));
-  const total = cart.reduce((s,i) => s+(i.qty||1), 0);
+  // Маршрутизуємо через KR.addToCart, щоб дедуплікація була єдина по всьому сайту
+  if (window.KR && typeof window.KR.addToCart === 'function') {
+    window.KR.addToCart({ id, name, brand, price, color: '' });
+  } else {
+    let cart = [];
+    try { cart = JSON.parse(localStorage.getItem('kr_cart') || '[]'); } catch{}
+    const slug = (name||'').toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi,'-').slice(0,60);
+    const ex = cart.find(i => ((i.name||'').toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi,'-').slice(0,60) === slug));
+    if (ex) ex.qty = Math.min((ex.qty||1) + 1, 10);
+    else cart.push({id:'p-'+slug, name, brand, price, color:'', qty:1, addedAt:Date.now()});
+    localStorage.setItem('kr_cart', JSON.stringify(cart));
+  }
+  let total = 0;
+  try { total = JSON.parse(localStorage.getItem('kr_cart') || '[]').reduce((s,i) => s+(i.qty||1), 0); } catch{}
   const badge = document.getElementById('cartBadge');
   if (badge) { badge.textContent = total; badge.style.transform='scale(1.5)'; setTimeout(()=>badge.style.transform='',300); }
   // Анімація кнопки

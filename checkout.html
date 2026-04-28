@@ -631,50 +631,15 @@ a{text-decoration:none;color:inherit}
 
   <!-- ORDER SUMMARY SIDEBAR -->
   <div class="order-sidebar">
-    <h3 class="os-title" data-count="2">Ваше замовлення</h3>
-    <div class="os-items">
-      <div class="os-item">
-        <div class="os-img">
-          <svg viewBox="0 0 60 45">
-            <rect x="5" y="17" width="50" height="17" rx="5" fill="#c8d0ea"/>
-            <rect x="12" y="7" width="32" height="15" rx="3" fill="#d0d8f0"/>
-            <rect x="14" y="9" width="13" height="9" rx="2" fill="#90CAF9" opacity=".6"/>
-            <rect x="29" y="9" width="12" height="9" rx="2" fill="#90CAF9" opacity=".5"/>
-            <circle cx="15" cy="39" r="6" fill="#2d3748"/><circle cx="15" cy="39" r="3" fill="#FF6B35" opacity=".7"/>
-            <circle cx="45" cy="39" r="6" fill="#2d3748"/><circle cx="45" cy="39" r="3" fill="#FF6B35" opacity=".7"/>
-          </svg>
-        </div>
-        <div style="flex:1;min-width:0">
-          <div class="os-item-name">Джип M 3804EBLR-1</div>
-          <div class="os-item-meta">Колір: Білий · 1 шт.</div>
-        </div>
-        <div class="os-item-price">17 224 ₴</div>
-      </div>
-      <div class="os-item">
-        <div class="os-img" style="background:linear-gradient(145deg,#eef0ff,#d6dcff)">
-          <svg viewBox="0 0 60 45">
-            <rect x="12" y="18" width="36" height="14" rx="4" fill="#3B4A8A" opacity=".25"/>
-            <rect x="17" y="9" width="27" height="13" rx="3" fill="#3B4A8A" opacity=".28"/>
-            <rect x="19" y="11" width="11" height="8" rx="2" fill="#90CAF9" opacity=".55"/>
-            <rect x="32" y="11" width="9" height="8" rx="2" fill="#90CAF9" opacity=".5"/>
-            <circle cx="17" cy="38" r="6" fill="#2d4270" opacity=".35"/><circle cx="17" cy="38" r="3" fill="#FF6B35" opacity=".4"/>
-            <circle cx="43" cy="38" r="6" fill="#2d4270" opacity=".35"/><circle cx="43" cy="38" r="3" fill="#FF6B35" opacity=".4"/>
-          </svg>
-        </div>
-        <div style="flex:1;min-width:0">
-          <div class="os-item-name">Квадроцикл M 4795EBLR</div>
-          <div class="os-item-meta">Колір: Синій · 1 шт.</div>
-        </div>
-        <div class="os-item-price">12 210 ₴</div>
-      </div>
-    </div>
+    <h3 class="os-title" id="osTitle" data-count="0">Ваше замовлення</h3>
+    <div class="os-items" id="osItems"></div>
     <div class="os-divider"></div>
-    <div class="os-row"><span class="os-label">Товари</span><span class="os-val">29 434 ₴</span></div>
+    <div class="os-row"><span class="os-label">Товари</span><span class="os-val" id="osSubtotal">0 ₴</span></div>
     <div class="os-row"><span class="os-label">Доставка</span><span class="os-val" style="color:var(--orange)">за тарифами НП</span></div>
     <div class="os-divider"></div>
     <div class="os-total-row">
       <span class="os-total-label">Разом</span>
-      <span class="os-total-val">29 434 ₴</span>
+      <span class="os-total-val" id="osTotal">0 ₴</span>
     </div>
     <div class="os-trust">
       <div class="os-trust-item"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Безпечна транзакція</div>
@@ -1140,7 +1105,10 @@ function buildOrderPayload(){
     }
   }
 
-  const cart = (window.KR && KR.getCart) ? KR.getCart() : [];
+  // Якщо передали снапшот (з submitOrder) — використовуємо його, інакше читаємо.
+  const cart = (Array.isArray(arguments[0]) && arguments[0].length)
+    ? arguments[0]
+    : ((window.KR && KR.getCart) ? KR.getCart() : []);
   const subtotal = cart.reduce((s,i) => s + Number(i.price||0) * Number(i.qty||1), 0);
   const total    = subtotal; // доставка/знижки можна додати тут
 
@@ -1207,7 +1175,11 @@ async function _supaInsert(table, body, returnRepresentation=false){
 }
 
 // ── SUBMIT ─────────────────────────────────────────────────────────────────
+let _submitInFlight = false;
 async function submitOrder() {
+  // Захист від подвійного кліку
+  if (_submitInFlight) return;
+
   const firstName = document.getElementById('firstName').value.trim();
   const lastName = document.getElementById('lastName').value.trim();
   const phone = document.getElementById('phone').value.trim();
@@ -1216,16 +1188,28 @@ async function submitOrder() {
   if (phone.replace(/\D/g,'').length !== 12) { document.getElementById('phone').focus(); showShake('phone'); return; }
   if (!termsAccepted) { showToast('Будь ласка, погодьтесь з умовами'); return; }
 
-  const cartCheck = (window.KR && KR.getCart) ? KR.getCart() : [];
-  if (!cartCheck.length) { showToast('Кошик порожній'); return; }
+  // Робимо ОДИН снапшот кошика на самому початку і використовуємо лише його далі.
+  // Це усуває race-condition, коли в іншій вкладці кошик чистять/змінюють під час відправки.
+  let cartSnapshot = [];
+  try { cartSnapshot = JSON.parse(localStorage.getItem('kr_cart') || '[]'); } catch(e) {}
+  if (!Array.isArray(cartSnapshot) || !cartSnapshot.length) {
+    showToast('Кошик порожній — поверніться до каталогу');
+    return;
+  }
 
+  _submitInFlight = true;
   const btn = document.getElementById('submitBtn');
   const originalHTML = btn.innerHTML;
   btn.disabled = true;
   btn.innerHTML = '<div style="width:20px;height:20px;border:2px solid rgba(255,255,255,.4);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite"></div>Оформляємо...';
 
   try {
-    const { order, items } = buildOrderPayload();
+    // Передаємо снапшот, щоб buildOrderPayload не перечитував localStorage
+    const { order, items } = buildOrderPayload(cartSnapshot);
+
+    if (!items.length) {
+      throw new Error('Кошик порожній');
+    }
 
     // 1) INSERT в orders → отримуємо повний рядок (включно з id)
     const inserted = await _supaInsert('orders', order, true);
@@ -1241,19 +1225,35 @@ async function submitOrder() {
     }
 
     // 3) Очистити кошик і показати успіх
-    try { localStorage.setItem('kr_cart', '[]'); window.KR && KR.updateCartBadge && KR.updateCartBadge(); } catch(e) {}
+    try {
+      localStorage.setItem('kr_cart', '[]');
+      if (window.KR) {
+        KR.updateCartBadge && KR.updateCartBadge();
+        KR.dispatchCartEvent && KR.dispatchCartEvent([]);
+      }
+    } catch(e) {}
 
     document.getElementById('checkoutPage').style.display = 'none';
     document.getElementById('successPage').style.display = 'block';
     document.getElementById('successPayment').textContent = getPayName();
     const numEl = document.querySelector('.success-order-row .success-order-val');
     if (numEl) numEl.textContent = '#' + (created.order_number || order.order_number);
+    // Підставити реальну суму у success-блок
+    document.querySelectorAll('.success-order-row').forEach(row => {
+      const label = row.querySelector('.success-order-label')?.textContent || '';
+      if (/Сума/i.test(label)) {
+        const val = row.querySelector('.success-order-val');
+        if (val) val.textContent = (Math.round(order.total||0).toLocaleString('uk-UA').replace(/,/g,' ')) + ' ₴';
+      }
+    });
     window.scrollTo({top:0,behavior:'smooth'});
   } catch (e) {
     console.error('submitOrder Supabase error:', e);
     showToast('Не вдалось зберегти замовлення: ' + (e.message || 'помилка'));
     btn.disabled = false;
     btn.innerHTML = originalHTML;
+  } finally {
+    _submitInFlight = false;
   }
 }
 
@@ -1282,6 +1282,95 @@ document.head.appendChild(style);
 
 // Header scroll
 window.addEventListener('scroll',()=>document.querySelector('.header')?.classList.toggle('scrolled',scrollY>40));
+
+// ── ORDER SUMMARY (рендер реального кошика) ──────────────────────────────
+function _escHtmlCk(s){
+  return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function _fmtPriceCk(n){
+  return Math.round(Number(n)||0).toLocaleString('uk-UA').replace(/,/g,' ') + ' ₴';
+}
+function _fallbackImg(){
+  return `<svg viewBox="0 0 60 45">
+    <rect x="5" y="17" width="50" height="17" rx="5" fill="#c8d0ea"/>
+    <rect x="12" y="7" width="32" height="15" rx="3" fill="#d0d8f0"/>
+    <circle cx="15" cy="39" r="6" fill="#2d3748"/><circle cx="45" cy="39" r="6" fill="#2d3748"/>
+  </svg>`;
+}
+
+function renderOrderSummary(){
+  const cart = (window.KR && KR.getCart) ? KR.getCart() : [];
+  const itemsEl = document.getElementById('osItems');
+  const titleEl = document.getElementById('osTitle');
+  const subEl   = document.getElementById('osSubtotal');
+  const totEl   = document.getElementById('osTotal');
+  if (!itemsEl) return;
+
+  if (!cart.length) {
+    itemsEl.innerHTML = '<div style="text-align:center;padding:18px 0;color:var(--text-muted);font-size:13px">Кошик порожній</div>';
+    if (titleEl) titleEl.setAttribute('data-count','0');
+    if (subEl) subEl.textContent = _fmtPriceCk(0);
+    if (totEl) totEl.textContent = _fmtPriceCk(0);
+    return;
+  }
+
+  let subtotal = 0, totalQty = 0;
+  itemsEl.innerHTML = cart.map(it => {
+    const qty   = Number(it.qty || 1);
+    const price = Number(it.price || 0);
+    subtotal += price * qty;
+    totalQty += qty;
+    const img = it.img && /^https?:\/\//.test(it.img)
+      ? `<img src="${_escHtmlCk(it.img)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:8px">`
+      : _fallbackImg();
+    const meta = [it.color && ('Колір: ' + it.color), qty + ' шт.'].filter(Boolean).join(' · ');
+    return `<div class="os-item">
+      <div class="os-img">${img}</div>
+      <div style="flex:1;min-width:0">
+        <div class="os-item-name">${_escHtmlCk(it.name || 'Товар')}</div>
+        <div class="os-item-meta">${_escHtmlCk(meta)}</div>
+      </div>
+      <div class="os-item-price">${_fmtPriceCk(price * qty)}</div>
+    </div>`;
+  }).join('');
+
+  if (titleEl) titleEl.setAttribute('data-count', String(totalQty));
+  if (subEl) subEl.textContent = _fmtPriceCk(subtotal);
+  if (totEl) totEl.textContent = _fmtPriceCk(subtotal);
+}
+
+// Перерендерити підсумок і синхронізувати стан кнопки submit
+function _refreshCheckoutState(){
+  renderOrderSummary();
+  let cart = [];
+  try { cart = JSON.parse(localStorage.getItem('kr_cart') || '[]'); } catch(e) {}
+  if (!Array.isArray(cart)) cart = [];
+  const btn = document.getElementById('submitBtn');
+  if (!btn) return;
+  if (!cart.length) {
+    btn.disabled = true; btn.style.opacity = '0.6'; btn.title = 'Кошик порожній';
+  } else if (!_submitInFlight) {
+    btn.disabled = false; btn.style.opacity = ''; btn.title = '';
+  }
+}
+
+function _initCheckoutSummary(){
+  _refreshCheckoutState();
+  let cart = [];
+  try { cart = JSON.parse(localStorage.getItem('kr_cart') || '[]'); } catch(e) {}
+  if (!Array.isArray(cart) || !cart.length) {
+    showToast('Кошик порожній — спочатку додайте товари');
+  }
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => setTimeout(_initCheckoutSummary, 50));
+} else {
+  setTimeout(_initCheckoutSummary, 50);
+}
+// Реагуємо на зміни кошика з інших вкладок ТА з цієї сторінки (обидві назви події).
+window.addEventListener('storage', e => { if (e.key === 'kr_cart') _refreshCheckoutState(); });
+window.addEventListener('kr:cart-changed', _refreshCheckoutState);
+window.addEventListener('kr:cartUpdated',  _refreshCheckoutState);
 </script>
 <script src="shared.js"></script>
 </body>

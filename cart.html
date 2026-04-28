@@ -402,8 +402,8 @@ nav a:hover{color:var(--navy);background:var(--bg-soft)}
         <h3 class="summary-title">Підсумок замовлення</h3>
         <div class="summary-rows">
           <div class="sum-row">
-            <span class="sum-label">Товари (<span id="sumQty">2</span> шт.)</span>
-            <span class="sum-val" id="sumItems">29 434 ₴</span>
+            <span class="sum-label">Товари (<span id="sumQty">0</span> шт.)</span>
+            <span class="sum-val" id="sumItems">0 ₴</span>
           </div>
           <div class="sum-row" id="discountRow" style="display:none">
             <span class="sum-label">Знижка</span>
@@ -422,7 +422,7 @@ nav a:hover{color:var(--navy);background:var(--bg-soft)}
         <div class="sum-total-row">
           <span class="sum-total-label">До сплати</span>
           <div>
-            <span class="sum-total-val" id="sumTotal">29 434 ₴</span>
+            <span class="sum-total-val" id="sumTotal">0 ₴</span>
             <div class="sum-note">+ доставка НП</div>
           </div>
         </div>
@@ -470,7 +470,7 @@ nav a:hover{color:var(--navy);background:var(--bg-soft)}
 <div class="mobile-checkout" id="mobileCheckout">
   <div>
     <div class="mc-label">До сплати</div>
-    <div class="mc-total" id="mcTotal">29 434 ₴</div>
+    <div class="mc-total" id="mcTotal">0 ₴</div>
   </div>
   <button class="mc-btn" onclick="goCheckout()">Оформити →</button>
 </div>
@@ -520,7 +520,9 @@ function saveCart() {
   localStorage.setItem('kr_cart', JSON.stringify(cartData));
   const badge = document.getElementById('cartBadge');
   if (badge) badge.textContent = cartData.reduce((s,i) => s + (Number(i.qty)||1), 0);
-  try { window.dispatchEvent(new CustomEvent('kr:cartUpdated', { detail: { cart: cartData } })); } catch(e) {}
+  // Шлемо обидва імена події — різні сторінки слухають по-різному
+  try { window.dispatchEvent(new CustomEvent('kr:cartUpdated',  { detail: { cart: cartData } })); } catch(e) {}
+  try { window.dispatchEvent(new CustomEvent('kr:cart-changed', { detail: { cart: cartData } })); } catch(e) {}
 }
 
 // ── RENDER ────────────────────────────────────────────────────────────────
@@ -676,9 +678,29 @@ function applyPromo() {
 }
 
 function goCheckout() {
-  if (!cartData.length) { showToast('Кошик порожній'); return; }
+  // Завжди перечитуємо кошик безпосередньо з localStorage перед переходом,
+  // щоб уникнути ситуації "снапшот сторінки = 1, насправді 0/2"
+  let fresh = [];
+  try { fresh = JSON.parse(localStorage.getItem('kr_cart') || '[]'); } catch(e) { fresh = []; }
+  if (!Array.isArray(fresh) || !fresh.length) {
+    cartData = [];
+    showEmptyCart();
+    showToast('Кошик порожній');
+    return;
+  }
+  cartData = fresh;
   window.location.href = 'checkout.html';
 }
+
+// Синхронізація з іншими вкладками: якщо в іншій вкладці змінили kr_cart —
+// перечитуємо тут і ререндеримо.
+window.addEventListener('storage', e => {
+  if (e.key !== 'kr_cart') return;
+  try { cartData = JSON.parse(e.newValue || '[]'); } catch { cartData = []; }
+  if (!Array.isArray(cartData)) cartData = [];
+  if (!cartData.length) showEmptyCart();
+  else { renderCartItems(); recalc(); }
+});
 
 function checkMobilePrices() {
   const isMobile = window.innerWidth <= 768;
