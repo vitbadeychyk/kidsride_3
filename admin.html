@@ -951,6 +951,15 @@ tr:hover td{background:rgba(240,242,248,.5)}
         </div>
       </div>
 
+      <div class="f-row single">
+        <div class="f-group">
+          <label>Колір цього варіанта
+            <span style="font-weight:400;color:var(--text-muted);font-size:11px">(показується в блоці "В інших кольорах": <b>Чорний</b>, <b>Білий</b>, <b>Червоний</b>...)</span>
+          </label>
+          <input type="text" id="pColor" placeholder="Чорний">
+        </div>
+      </div>
+
       <div class="f-row">
         <div class="f-group">
           <label>Бренд <span style="color:var(--orange)">*</span></label>
@@ -1245,6 +1254,7 @@ async function sbSaveProduct(productData, editId = null) {
   const payload = {
     sku:        productData.sku || null,
     model_code: (productData.modelCode || '').trim() || null,
+    color:      (productData.color || '').trim() || null,
     name:       productData.name,
     description: productData.desc || null,
     brand:      productData.brand,
@@ -2554,6 +2564,7 @@ function openProductModal(id = null) {
   // Заповнити поля
   document.getElementById('pSku').value = p?.sku || '';
   document.getElementById('pModelCode').value = p?.modelCode ?? p?.model_code ?? '';
+  document.getElementById('pColor').value = p?.color || '';
   document.getElementById('pBrand').value = p?.brand || 'Bambi Racer';
   document.getElementById('pName').value = p?.name || '';
   document.getElementById('pDesc').value = p?.desc || '';
@@ -2729,6 +2740,7 @@ function saveProduct() {
     id: editId || 'prod-' + Date.now(),
     sku: document.getElementById('pSku').value.trim(),
     modelCode: document.getElementById('pModelCode').value.trim(),
+    color: document.getElementById('pColor').value.trim(),
     brand: document.getElementById('pBrand').value,
     name,
     desc: document.getElementById('pDesc').value.trim(),

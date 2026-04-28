@@ -386,8 +386,7 @@ nav a.active{color:var(--orange)}
       <div class="gallery-main" id="mainGallery" onclick="openZoom()">
         <span class="gallery-badge">🔥 Хіт</span>
         <div class="gallery-share">
-          <button class="g-share-btn" title="Telegram"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
-          <button class="g-share-btn" title="Копіювати посилання"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>
+          <button class="g-share-btn" type="button" title="Копіювати посилання" onclick="copyProductLink(this)"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>
         </div>
         <!-- Main product SVG illustration -->
         <svg id="mainSvg" viewBox="0 0 320 240" xmlns="http://www.w3.org/2000/svg" style="width:72%">
@@ -547,9 +546,9 @@ nav a.active{color:var(--orange)}
 
       <!-- WISHLIST + COMPARE -->
       <div class="btn-wish-compare">
-        <button class="bc-btn" id="wishBtn" onclick="toggleWish()">
+        <button class="bc-btn" id="wishToggleBtn" onclick="toggleWish()">
           <svg class="heart" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-          В список бажань
+          <span class="wish-label">В список бажань</span>
         </button>
         <span style="color:var(--border);padding:0 4px">|</span>
         <button class="bc-btn" onclick="toggleCompare()">
@@ -1011,27 +1010,168 @@ const toastStyle = document.createElement('style');
 toastStyle.textContent = '@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}';
 document.head.appendChild(toastStyle);
 
-// Wishlist
-let isWished = false;
-function toggleWish() {
-  isWished = !isWished;
-  const btn = document.getElementById('wishBtn');
-  btn.classList.toggle('active', isWished);
-  btn.querySelector('.heart').style.fill = isWished ? 'var(--orange)' : 'none';
-  btn.querySelector('.heart').style.stroke = isWished ? 'var(--orange)' : 'currentColor';
-  showToast(isWished ? '❤️ Додано в список бажань' : '🤍 Видалено зі списку бажань');
+// ── Wishlist (реальне збереження через KR) ────────────────────────────
+function _currentProductForWish() {
+  const id = new URLSearchParams(location.search).get('id') || '';
+  const base = _readCurrentProduct();
+  const img = document.getElementById('mainProductImg');
+  return {
+    id,
+    ...base,
+    image: img && img.src ? img.src : '',
+    images: img && img.src ? [img.src] : []
+  };
 }
 
-// Compare
-function toggleCompare() { showToast('⚖️ Додано до порівняння'); }
+function _refreshWishUI() {
+  const id = new URLSearchParams(location.search).get('id') || '';
+  const btn = document.getElementById('wishToggleBtn');
+  if (!btn || !id || !window.KR || typeof KR.isWished !== 'function') return;
+  const wished = KR.isWished(id);
+  btn.classList.toggle('active', wished);
+  const heart = btn.querySelector('.heart');
+  if (heart) {
+    heart.style.fill   = wished ? '#ef4444' : 'none';
+    heart.style.stroke = wished ? '#ef4444' : 'currentColor';
+  }
+  const label = btn.querySelector('.wish-label');
+  if (label) label.textContent = wished ? 'У списку бажань' : 'В список бажань';
+}
 
-// Share
-function shareProduct() {
-  if (navigator.share) {
-    navigator.share({ title: 'Джип M 3804EBLR — KidsRide', url: window.location.href });
+function toggleWish() {
+  const product = _currentProductForWish();
+  if (!product.id) { showToast('⚠️ Цей товар ще не з бази — оновіть сторінку'); return; }
+  if (window.KR && typeof KR.toggleWishlist === 'function') {
+    KR.toggleWishlist(product); // сам зберігає в localStorage + показує тост + оновлює бейдж
+    _refreshWishUI();
   } else {
-    navigator.clipboard.writeText(window.location.href);
+    // Fallback напряму в localStorage
+    let list = [];
+    try { list = JSON.parse(localStorage.getItem('kr_wishlist') || '[]'); } catch {}
+    const idx = list.findIndex(i => i.id === product.id);
+    if (idx >= 0) { list.splice(idx, 1); showToast('🤍 Видалено зі списку бажань'); }
+    else { list.push({ ...product, addedAt: Date.now() }); showToast('❤️ Додано в список бажань'); }
+    localStorage.setItem('kr_wishlist', JSON.stringify(list));
+    _refreshWishUI();
+  }
+}
+
+// Підсвічуємо стан кнопки при завантаженні / при події оновлення списку
+window.addEventListener('DOMContentLoaded', _refreshWishUI);
+window.addEventListener('kr:wishlistUpdated', _refreshWishUI);
+
+// ── Compare (реальне збереження у kr_compare, сумісне з compare.html) ─
+function _readSpecsTable() {
+  const out = {};
+  document.querySelectorAll('.specs-table tr').forEach(tr => {
+    const tds = tr.querySelectorAll('td');
+    if (tds.length >= 2) out[tds[0].textContent.trim()] = tds[1].textContent.trim();
+  });
+  return out;
+}
+function _buildCompareItem() {
+  const id = new URLSearchParams(location.search).get('id') || '';
+  const base = _readCurrentProduct();
+  const t = _readSpecsTable();
+  const lname = (base.name || '').toLowerCase();
+  let img = 'jeep';
+  if (/квадро/.test(lname)) img = 'quad';
+  else if (/мотоцикл|мото/.test(lname)) img = 'moto';
+  const has = (s) => /(є|так|yes|true|✓|MP3|USB|Bluetooth|LED|шкір|ремінь)/i.test(String(s||''));
+  const specs = {
+    'Вік': t['Вік'] || '—',
+    'Акумулятор': t['Акумулятор'] || '—',
+    'Кількість моторів': t['Кількість моторів'] || '—',
+    'Швидкість': t['Швидкість'] || '—',
+    'Тип коліс': t['Тип коліс'] || '—',
+    'Пульт ДК': t['Пульт керування'] || t['Пульт ДК'] || '—',
+    'Шкіряне сидіння': /шкір/i.test(t['Сидіння'] || ''),
+    'MP3 / USB': /(MP3|USB|SD)/i.test(t['Музика / звук'] || ''),
+    'Bluetooth': /Bluetooth/i.test(t['Музика / звук'] || ''),
+    'LED фари': /LED|світлодіод/i.test(t['Фари'] || ''),
+    'Ремінь безпеки': /ремінь/i.test(t['Сидіння'] || ''),
+    'Вага': t['Вага'] || '—',
+    'Час їзди': t['Час їзди'] || '—',
+    'Гарантія': t['Гарантія'] || '—',
+  };
+  return { id: id || 'p-' + (base.name || '').toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi,'-').slice(0,40),
+           name: base.name, brand: base.brand || 'Bambi Racer', price: base.price || 0, img, specs };
+}
+function _getCompareList() {
+  try { return JSON.parse(localStorage.getItem('kr_compare') || '[]'); } catch { return []; }
+}
+function _refreshCompareUI() {
+  const item = _buildCompareItem();
+  const list = _getCompareList();
+  const inList = list.some(p => p.id === item.id || p.name === item.name);
+  document.querySelectorAll('.btn-wish-compare .bc-btn').forEach(b => {
+    if (b.textContent.trim().startsWith('Порівняти') || b.textContent.trim().startsWith('У порівнянні')) {
+      b.classList.toggle('active', inList);
+      const txtNode = Array.from(b.childNodes).find(n => n.nodeType === 3 && n.textContent.trim());
+      if (txtNode) txtNode.textContent = inList ? ' У порівнянні ' : ' Порівняти ';
+      const svg = b.querySelector('svg');
+      if (svg) svg.style.stroke = inList ? '#FF6B35' : 'currentColor';
+    }
+  });
+}
+function toggleCompare() {
+  const item = _buildCompareItem();
+  let list = _getCompareList();
+  const idx = list.findIndex(p => p.id === item.id || p.name === item.name);
+  if (idx >= 0) {
+    list.splice(idx, 1);
+    showToast('Видалено з порівняння');
+  } else {
+    if (list.length >= 3) { showToast('⚠️ Можна порівнювати до 3 товарів'); return; }
+    list.push(item);
+    showToast('⚖️ Додано до порівняння (' + list.length + ')');
+  }
+  localStorage.setItem('kr_compare', JSON.stringify(list));
+  _refreshCompareUI();
+}
+window.addEventListener('DOMContentLoaded', _refreshCompareUI);
+
+// ── Share / копіювання посилання ──────────────────────────────────────
+async function _copyToClipboard(text) {
+  // 1) Сучасний API (доступний лише на https / localhost)
+  if (navigator.clipboard && window.isSecureContext) {
+    try { await navigator.clipboard.writeText(text); return true; } catch {}
+  }
+  // 2) Старий fallback через прихований textarea + execCommand
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;top:-1000px;left:-1000px;opacity:0';
+    document.body.appendChild(ta);
+    ta.focus(); ta.select(); ta.setSelectionRange(0, text.length);
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return ok;
+  } catch { return false; }
+}
+
+async function copyProductLink(btn) {
+  const ok = await _copyToClipboard(window.location.href);
+  if (ok) {
     showToast('🔗 Посилання скопійовано');
+    if (btn) {
+      // Маленька анімація-підтвердження: галочка на 1 сек
+      const orig = btn.innerHTML;
+      btn.innerHTML = '<svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:#16a34a;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round"><polyline points="20 6 9 17 4 12"/></svg>';
+      setTimeout(() => { btn.innerHTML = orig; }, 1200);
+    }
+  } else {
+    showToast('❗ Не вдалось скопіювати — скопіюйте з адресного рядка');
+  }
+}
+
+function shareProduct() {
+  const url = window.location.href;
+  const title = (document.querySelector('.product-title')?.textContent || 'KidsRide').trim();
+  if (navigator.share) {
+    navigator.share({ title, url }).catch(() => {});
+  } else {
+    copyProductLink();
   }
 }
 
@@ -1258,7 +1398,7 @@ document.addEventListener('keydown', e => {
 });
 
 // ── Динамічне завантаження товару (галерея + варіанти кольору) — KidsRide v3.1 ──
-console.log('[KidsRide] product.html v3.6 — миттєве перемикання кольору без перезавантаження');
+console.log('[KidsRide] product.html v3.9 — працюють: копіювання посилання, список бажань, порівняння');
 (async function loadFullProduct(){
   try{
     // Літерали Supabase (не залежимо від KR — щоб працювало навіть до завантаження shared.js)
@@ -1298,7 +1438,7 @@ console.log('[KidsRide] product.html v3.6 — миттєве перемикан�
 
     // ─ Точний рендер з БД (перекриває кеш найсвіжішими даними) ─
     const r = await fetch(SUPA_URL + '/rest/v1/products?id=eq.' + encodeURIComponent(id)
-      + '&select=id,sku,model_code,name,brand,price,old_price,stock,badge,images,active', {
+      + '&select=id,sku,model_code,color,name,brand,price,old_price,stock,badge,images,active', {
       headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
     });
     if (!r.ok) {
@@ -1498,10 +1638,10 @@ async function switchToVariant(id, supaUrl, supaKey){
   supaUrl = supaUrl || (window.KR && KR._SUPA_URL) || 'https://xczrzdbikkycgpnvolib.supabase.co';
   supaKey = supaKey || (window.KR && KR._SUPA_KEY) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
 
-  // Універсальний запит з model_code; якщо колонки нема — повторимо без неї
+  // Універсальний запит з model_code+color; якщо колонок нема — повторимо без них
   const baseSelect = 'id,sku,name,brand,price,old_price,stock,badge,images,active';
-  const tryFetch = async (withModel) => {
-    const sel = withModel ? ('id,sku,model_code,' + baseSelect.replace(/^id,sku,/, '')) : baseSelect;
+  const tryFetch = async (withExtras) => {
+    const sel = withExtras ? ('id,sku,model_code,color,' + baseSelect.replace(/^id,sku,/, '')) : baseSelect;
     const r = await fetch(supaUrl + '/rest/v1/products?id=eq.' + encodeURIComponent(id) + '&select=' + sel, {
       headers: { 'apikey': supaKey, 'Authorization': 'Bearer ' + supaKey }
     });
@@ -1565,7 +1705,7 @@ async function buildColorVariants(currentSku, currentId, supaUrl, supaKey, model
   if (code){
     const qs = 'products?model_code=eq.' + encodeURIComponent(code)
       + '&active=eq.true'
-      + '&select=id,sku,model_code,name,images,stock';
+      + '&select=id,sku,model_code,color,name,images,stock';
     try{
       const r = await fetch(supaUrl + '/rest/v1/' + qs, {
         headers: { 'apikey': supaKey, 'Authorization': 'Bearer ' + supaKey }
@@ -1589,7 +1729,7 @@ async function buildColorVariants(currentSku, currentId, supaUrl, supaKey, model
     const pattern = prefix + '-*';
     const qs = 'products?sku=ilike.' + encodeURIComponent(pattern)
       + '&active=eq.true'
-      + '&select=id,sku,model_code,name,images,stock';
+      + '&select=id,sku,model_code,color,name,images,stock';
     try{
       const r = await fetch(supaUrl + '/rest/v1/' + qs, {
         headers: { 'apikey': supaKey, 'Authorization': 'Bearer ' + supaKey }
@@ -1625,9 +1765,12 @@ async function buildColorVariants(currentSku, currentId, supaUrl, supaKey, model
   //    видаляємо його, щоб не отримати дві однакові плитки одна над одною.
   document.querySelectorAll('[data-color-variants-wrap]').forEach(el => el.remove());
 
-  // Назва кольору поточного товару
+  // Назва кольору поточного товару — спершу беремо з поля color, потім намагаємось
+  // витягнути з назви, і лише як останній варіант — "Варіант N".
   const curVariant = arr.find(v => v.id === currentId) || {};
-  const curColor = extractColorName(curVariant.name) || ('Варіант ' + ((String(curVariant.sku||'').match(/-(\d+)\s*$/)||[])[1] || '1'));
+  const curColor = (curVariant.color && String(curVariant.color).trim())
+    || extractColorName(curVariant.name)
+    || ('Варіант ' + ((String(curVariant.sku||'').match(/-(\d+)\s*$/)||[])[1] || '1'));
   if (label) {
     label.innerHTML = 'В інших кольорах: <span id="colorName" style="font-weight:600;color:var(--text-muted)">' + curColor + '</span>';
     label.style.marginBottom = '12px';
@@ -1660,7 +1803,9 @@ async function buildColorVariants(currentSku, currentId, supaUrl, supaKey, model
     const mainImg = (Array.isArray(v.images) && v.images[0]) ? v.images[0] : '';
     const inStock = (typeof v.stock === 'number') ? v.stock > 0 : true;
     const sfx = (String(v.sku||'').match(/-(\d+)\s*$/)||[])[1] || '?';
-    const colorName = extractColorName(v.name) || ('Варіант ' + sfx);
+    const colorName = (v.color && String(v.color).trim())
+      || extractColorName(v.name)
+      || ('Варіант ' + sfx);
 
     const tag = isCur ? 'div' : 'a';
     const el = document.createElement(tag);
