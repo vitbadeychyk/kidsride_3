@@ -1046,12 +1046,17 @@ function addToCart(btn) {
 
 function openProduct(card) {
   if (event && event.stopPropagation) event.stopPropagation();
+  const realId = card && card.dataset && card.dataset.id;
+  // Якщо є реальний id з Supabase — використовуємо catOpenProduct (зберігає повний об'єкт у sessionStorage)
+  if (realId && typeof catOpenProduct === 'function') {
+    catOpenProduct(realId);
+    return;
+  }
+  // Fallback: мінімальні дані з картки
   const product = getCardProduct(card);
   if (product) {
     try { sessionStorage.setItem('kr_active_product', JSON.stringify(product)); } catch{}
   }
-  // Передаємо реальний id Supabase у URL — щоб product.html міг підтягнути фото, ціну, варіанти кольору
-  const realId = card && card.dataset && card.dataset.id;
   window.location.href = 'product.html' + (realId ? ('?id=' + encodeURIComponent(realId)) : '');
 }
 

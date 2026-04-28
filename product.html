@@ -1260,89 +1260,117 @@ document.addEventListener('keydown', e => {
   }
 });
 
-// ── Динамічне завантаження товару з Supabase (за ?id=): галерея + варіанти кольору ──
+// ── Динамічне завантаження товару (галерея + варіанти кольору) — KidsRide v3.1 ──
+console.log('[KidsRide] product.html v3.1 — повна галерея + варіанти кольору');
 (async function loadFullProduct(){
   try{
+    // Літерали Supabase (не залежимо від KR — щоб працювало навіть до завантаження shared.js)
+    const SUPA_URL = (window.KR && KR._SUPA_URL) || 'https://xczrzdbikkycgpnvolib.supabase.co';
+    const SUPA_KEY = (window.KR && KR._SUPA_KEY) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
+
     const params = new URLSearchParams(location.search);
     let id = params.get('id');
-    // Fallback: якщо id немає в URL — спробуємо взяти з sessionStorage (kr_active_product)
-    if (!id) {
-      try {
-        const stored = sessionStorage.getItem('kr_active_product');
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (parsed && parsed.id && !/^cat-|^default-/.test(parsed.id)) id = parsed.id;
-        }
-      } catch{}
-    }
-    if (!id) return;
-    if (!window.KR || !KR._SUPA_URL || !KR._SUPA_KEY) return;
 
-    const r = await fetch(KR._SUPA_URL + '/rest/v1/products?id=eq.' + encodeURIComponent(id)
+    // ─ Швидкий первинний рендер з sessionStorage (без очікування мережі) ─
+    let cached = null;
+    try {
+      const stored = sessionStorage.getItem('kr_active_product');
+      if (stored) cached = JSON.parse(stored);
+    } catch{}
+    if (cached && cached.id && !id && !/^cat-|^default-/.test(cached.id)) id = cached.id;
+    if (cached && cached.id && (cached.sku || (Array.isArray(cached.images) && cached.images.length))) {
+      // Уніфікуємо формат camelCase → snake_case для applyProductData
+      const cnorm = {
+        id: cached.id,
+        sku: cached.sku,
+        name: cached.name,
+        brand: cached.brand,
+        price: cached.price,
+        old_price: cached.old_price ?? cached.oldPrice,
+        stock: cached.stock,
+        badge: cached.badge,
+        images: cached.images,
+        active: cached.active
+      };
+      applyProductData(cnorm);
+      if (cnorm.sku) buildColorVariants(cnorm.sku, cnorm.id, SUPA_URL, SUPA_KEY);
+    }
+
+    if (!id) return;
+
+    // ─ Точний рендер з БД (перекриває кеш найсвіжішими даними) ─
+    const r = await fetch(SUPA_URL + '/rest/v1/products?id=eq.' + encodeURIComponent(id)
       + '&select=id,sku,name,brand,price,old_price,stock,badge,images,active', {
-      headers: { 'apikey': KR._SUPA_KEY, 'Authorization': 'Bearer ' + KR._SUPA_KEY }
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
     });
-    if (!r.ok) return;
+    if (!r.ok) { console.warn('[KidsRide] fetch product failed:', r.status); return; }
     const arr = await r.json();
     const p = Array.isArray(arr) && arr[0];
-    if (!p) return;
+    if (!p) { console.warn('[KidsRide] product not found in DB:', id); return; }
+    console.log('[KidsRide] product loaded:', { sku: p.sku, name: p.name, images: Array.isArray(p.images) ? p.images.length : 0 });
 
-    // ─ Текстові поля ─
-    const fmt = n => Number(n||0).toLocaleString('uk-UA').replace(/\u00A0/g,' ');
-
-    if (p.name){
-      document.title = p.name + ' — KidsRide';
-      const h1 = document.querySelector('.product-title');
-      if (h1) h1.textContent = p.name;
-      const crumb = document.querySelector('.breadcrumb-cur');
-      if (crumb) crumb.textContent = p.name;
-    }
-    if (p.brand){
-      const b = document.querySelector('.meta-brand');
-      if (b) b.textContent = String(p.brand).toUpperCase();
-    }
-    if (p.sku){
-      const s = document.querySelector('.meta-sku');
-      if (s) s.textContent = 'Арт: ' + p.sku;
-    }
-    const stockEl = document.querySelector('.meta-stock');
-    if (stockEl){
-      const inStock = (typeof p.stock === 'number' ? p.stock > 0 : true) && p.active !== false;
-      stockEl.className = 'meta-stock ' + (inStock ? 'stock-in' : 'stock-out');
-      stockEl.innerHTML = '<svg viewBox="0 0 8 8"><circle cx="4" cy="4" r="4"/></svg> ' + (inStock ? 'В наявності' : 'Під замовлення');
-    }
-    if (p.price){
-      const priceMain = document.querySelector('.price-main');
-      if (priceMain) priceMain.textContent = fmt(p.price) + ' ₴';
-      const hint = document.querySelector('.price-hint');
-      const oldP = Number(p.old_price)||0;
-      if (hint){
-        if (oldP > Number(p.price)){
-          const save = oldP - Number(p.price);
-          hint.innerHTML = 'РРЦ: <strong>' + fmt(oldP) + ' ₴</strong> — ви економите <strong>' + fmt(save) + ' ₴</strong>';
-        } else {
-          hint.style.display = 'none';
-        }
-      }
-      const inst = document.querySelector('.installment-text span');
-      if (inst) inst.textContent = 'від ' + fmt(Math.round(Number(p.price)/12)) + ' ₴/міс';
-    }
-    if (p.badge){
-      const bd = document.querySelector('.gallery-badge');
-      if (bd) bd.textContent = p.badge;
-    } else {
-      const bd = document.querySelector('.gallery-badge');
-      if (bd) bd.style.display = 'none';
-    }
-
-    // ─ Галерея фото ─
-    const images = Array.isArray(p.images) ? p.images.filter(Boolean) : [];
-    if (images.length > 0) buildPhotoGallery(images);
-
-    // ─ Кольорові варіанти за префіксом артикула ─
-    if (p.sku) await buildColorVariants(p.sku, p.id);
-  } catch(e){ console.warn('loadFullProduct:', e); }
+    applyProductData(p);
+    if (p.sku) await buildColorVariants(p.sku, p.id, SUPA_URL, SUPA_KEY);
+  } catch(e){ console.warn('[KidsRide] loadFullProduct error:', e); }
 })();
+
+// Застосувати дані товару до DOM (текст, ціна, стан, галерея)
+function applyProductData(p){
+  if (!p) return;
+  const fmt = n => Number(n||0).toLocaleString('uk-UA').replace(/\u00A0/g,' ');
+
+  if (p.name){
+    document.title = p.name + ' — KidsRide';
+    const h1 = document.querySelector('.product-title');
+    if (h1) h1.textContent = p.name;
+    const crumb = document.querySelector('.breadcrumb-cur');
+    if (crumb) crumb.textContent = p.name;
+  }
+  if (p.brand){
+    const b = document.querySelector('.meta-brand');
+    if (b) b.textContent = String(p.brand).toUpperCase();
+  }
+  if (p.sku){
+    const s = document.querySelector('.meta-sku');
+    if (s) s.textContent = 'Арт: ' + p.sku;
+  }
+  const stockEl = document.querySelector('.meta-stock');
+  if (stockEl && p){
+    const inStock = (typeof p.stock === 'number' ? p.stock > 0 : true) && p.active !== false;
+    stockEl.className = 'meta-stock ' + (inStock ? 'stock-in' : 'stock-out');
+    stockEl.innerHTML = '<svg viewBox="0 0 8 8"><circle cx="4" cy="4" r="4"/></svg> ' + (inStock ? 'В наявності' : 'Під замовлення');
+  }
+  if (p.price){
+    const priceMain = document.querySelector('.price-main');
+    if (priceMain) priceMain.textContent = fmt(p.price) + ' ₴';
+    const hint = document.querySelector('.price-hint');
+    const oldP = Number(p.old_price)||0;
+    if (hint){
+      if (oldP > Number(p.price)){
+        const save = oldP - Number(p.price);
+        hint.style.display = '';
+        hint.innerHTML = 'РРЦ: <strong>' + fmt(oldP) + ' ₴</strong> — ви економите <strong>' + fmt(save) + ' ₴</strong>';
+      } else {
+        hint.style.display = 'none';
+      }
+    }
+    const inst = document.querySelector('.installment-text span');
+    if (inst) inst.textContent = 'від ' + fmt(Math.round(Number(p.price)/12)) + ' ₴/міс';
+    const mbb = document.querySelector('.mbb-price');
+    if (mbb) mbb.textContent = fmt(p.price) + ' ₴';
+  }
+  if (p.badge){
+    const bd = document.querySelector('.gallery-badge');
+    if (bd){ bd.textContent = p.badge; bd.style.display = ''; }
+  } else {
+    const bd = document.querySelector('.gallery-badge');
+    if (bd) bd.style.display = 'none';
+  }
+
+  // ─ Галерея фото ─
+  const images = Array.isArray(p.images) ? p.images.filter(Boolean) : [];
+  if (images.length > 0) buildPhotoGallery(images);
+}
 
 // Побудова галереї з реальних фото
 function buildPhotoGallery(images){
@@ -1450,7 +1478,11 @@ function extractColorName(name){
 }
 
 // Кольорові варіанти за префіксом артикула: "M 4259EBLR-1" → шукає "M 4259EBLR-*"
-async function buildColorVariants(currentSku, currentId){
+async function buildColorVariants(currentSku, currentId, supaUrl, supaKey){
+  // Дозволяємо викликати без явних креденшіалів — беремо з KR або літералів
+  supaUrl = supaUrl || (window.KR && KR._SUPA_URL) || 'https://xczrzdbikkycgpnvolib.supabase.co';
+  supaKey = supaKey || (window.KR && KR._SUPA_KEY) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
+
   const m = String(currentSku).match(/^(.*?)-(\d+)\s*$/);
   if (!m) return; // нема цифрового суфікса — варіантів нема
   const prefix = m[1].trim();
@@ -1463,13 +1495,14 @@ async function buildColorVariants(currentSku, currentId){
     + '&select=id,sku,name,images,stock';
   let arr;
   try{
-    const r = await fetch(KR._SUPA_URL + '/rest/v1/' + qs, {
-      headers: { 'apikey': KR._SUPA_KEY, 'Authorization': 'Bearer ' + KR._SUPA_KEY }
+    const r = await fetch(supaUrl + '/rest/v1/' + qs, {
+      headers: { 'apikey': supaKey, 'Authorization': 'Bearer ' + supaKey }
     });
     if (!r.ok) return;
     arr = await r.json();
   } catch(e){ return; }
   if (!Array.isArray(arr)) return;
+  console.log('[KidsRide] color variants found:', arr.length, 'for prefix', prefix);
 
   // Тільки ті, що мають числовий суфікс після останнього '-'
   arr = arr.filter(v => /-(\d+)\s*$/.test(String(v.sku||'')));
@@ -1690,8 +1723,9 @@ function _ytEmbedFromUrl(url){
 
 
 <script>
-// ── Динамічне завантаження товару зі sessionStorage або Supabase ──────────
-(function loadActiveProduct() {
+// ── СТАРИЙ БЛОК ВИМКНЕНО — вся логіка живе у loadFullProduct (вище) ──
+(function loadActiveProduct_DISABLED() {
+  return; // навмисне вимкнено, щоб не конфліктувало з loadFullProduct
   try {
     // 1) Читаємо з sessionStorage (збережено каталогом)
     let p = null;
