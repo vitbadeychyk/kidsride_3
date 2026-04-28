@@ -156,11 +156,13 @@ nav a.active{color:var(--orange)}
 .p-wish svg{width:15px;height:15px;stroke:#94a3b8;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:all .2s}
 .p-wish.liked svg{stroke:#ef4444;fill:#ef4444}
 
-.p-compare{position:absolute;bottom:10px;right:10px;width:30px;height:30px;background:white;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-sm);transition:all .2s;z-index:2;opacity:0}
-.p-compare{opacity:1 !important}
-.p-compare:hover{transform:scale(1.15)}
-.p-compare svg{width:14px;height:14px;stroke:var(--text-muted);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.p-compare.active svg{stroke:var(--orange)}
+.p-compare{position:absolute;top:10px;left:10px;width:34px;height:34px;background:var(--navy,#1B2A4A);border-radius:50%;border:2px solid #fff;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.25);transition:all .2s;z-index:3;opacity:1}
+.p-compare:hover{transform:scale(1.12);background:var(--orange,#F97316)}
+.p-compare svg{width:15px;height:15px;stroke:#fff;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.p-compare.active{background:var(--orange,#F97316)}
+.p-compare.active svg{stroke:#fff}
+.p-compare::after{content:"Порівняти";position:absolute;left:42px;top:50%;transform:translateY(-50%);background:rgba(27,42,74,.95);color:#fff;font-size:11px;font-weight:700;padding:4px 8px;border-radius:6px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .2s}
+.p-compare:hover::after{opacity:1}
 
 .p-body{padding:16px 18px 18px}
 .p-brand{font-size:10px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
