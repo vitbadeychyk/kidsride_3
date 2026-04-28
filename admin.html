@@ -349,105 +349,6 @@ tr:hover td{background:rgba(240,242,248,.5)}
 </style>
 
 
-<script>
-// ── ADMIN AUTH GUARD (без SDK — pure REST) ────────────────────────────────
-const SUPABASE_URL = 'https://xczrzdbikkycgpnvolib.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
-
-let _adminToken = null;
-let _adminUser  = null;
-
-// Отримати сесію з localStorage
-function getAdminSession() {
-  try {
-    const s = localStorage.getItem('kr_admin_session');
-    if (!s) return null;
-    const session = JSON.parse(s);
-    if (session.expires_at && Date.now() / 1000 > session.expires_at) {
-      localStorage.removeItem('kr_admin_session');
-      return null;
-    }
-    return session;
-  } catch(e) { return null; }
-}
-
-// Перевірити роль адміна
-async function checkIsAdmin(token) {
-  try {
-    const res = await fetch(SUPABASE_URL + '/rest/v1/user_roles?select=role&limit=1', {
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': 'Bearer ' + token
-      }
-    });
-    if (!res.ok) return false;
-    const data = await res.json();
-    return Array.isArray(data) && data.length > 0 && data[0].role === 'admin';
-  } catch(e) { return false; }
-}
-
-// Захист сторінки
-async function guardAdminPage() {
-  document.body.style.visibility = 'hidden';
-
-  const session = getAdminSession();
-
-  if (!session) {
-    window.location.href = 'auth.html';
-    return;
-  }
-
-  const isAdm = await checkIsAdmin(session.access_token);
-
-  if (!isAdm) {
-    localStorage.removeItem('kr_admin_session');
-    window.location.href = 'auth.html';
-    return;
-  }
-
-  // Адмін підтверджений ✅
-  _adminToken = session.access_token;
-  _adminUser  = session.user;
-
-  // Показати email адміна в sidebar
-  const email = session.user?.email || 'Admin';
-  const nameEl = document.querySelector('.user-name');
-  const roleEl = document.querySelector('.user-role');
-  if (nameEl) nameEl.textContent = email.split('@')[0];
-  if (roleEl) roleEl.textContent = 'Адміністратор';
-
-  document.body.style.visibility = 'visible';
-  // initAdmin викликається після завантаження DOM
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initAdmin);
-  } else {
-    initAdmin();
-  }
-}
-
-// Вихід
-function adminLogout() {
-  localStorage.removeItem('kr_admin_session');
-  window.location.href = 'auth.html';
-}
-
-// Supabase REST запити з токеном адміна
-// sbFetch moved to guard block
-
-// Запустити одразу
-// Завжди показати body через 3 сек як fallback
-const _visTimeout = setTimeout(() => {
-  document.body.style.visibility = 'visible';
-}, 3000);
-
-guardAdminPage().then(() => clearTimeout(_visTimeout)).catch(e => {
-  clearTimeout(_visTimeout);
-  document.body.style.visibility = 'visible';
-  console.error('Guard error:', e);
-  window.location.href = 'auth.html';
-});
-</script>
-
 </head>
 <body>
 
@@ -1179,9 +1080,98 @@ guardAdminPage().then(() => clearTimeout(_visTimeout)).catch(e => {
 
 <script>
 
-// ── SUPABASE CONFIG ────────────────────────────────────────────────────────
+// ── ADMIN AUTH GUARD (без SDK — pure REST) ────────────────────────────────
 const SUPABASE_URL = 'https://xczrzdbikkycgpnvolib.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
+
+let _adminToken = null;
+let _adminUser  = null;
+
+// Отримати сесію з localStorage
+function getAdminSession() {
+  try {
+    const s = localStorage.getItem('kr_admin_session');
+    if (!s) return null;
+    const session = JSON.parse(s);
+    if (session.expires_at && Date.now() / 1000 > session.expires_at) {
+      localStorage.removeItem('kr_admin_session');
+      return null;
+    }
+    return session;
+  } catch(e) { return null; }
+}
+
+// Перевірити роль адміна
+async function checkIsAdmin(token) {
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/user_roles?select=role&limit=1', {
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + token
+      }
+    });
+    if (!res.ok) return false;
+    const data = await res.json();
+    return Array.isArray(data) && data.length > 0 && data[0].role === 'admin';
+  } catch(e) { return false; }
+}
+
+// Захист сторінки
+async function guardAdminPage() {
+  document.body.style.visibility = 'hidden';
+
+  const session = getAdminSession();
+
+  if (!session) {
+    window.location.href = 'auth.html';
+    return;
+  }
+
+  const isAdm = await checkIsAdmin(session.access_token);
+
+  if (!isAdm) {
+    localStorage.removeItem('kr_admin_session');
+    window.location.href = 'auth.html';
+    return;
+  }
+
+  // Адмін підтверджений ✅
+  _adminToken = session.access_token;
+  _adminUser  = session.user;
+
+  // Показати email адміна в sidebar
+  const email = session.user?.email || 'Admin';
+  const nameEl = document.querySelector('.user-name');
+  const roleEl = document.querySelector('.user-role');
+  if (nameEl) nameEl.textContent = email.split('@')[0];
+  if (roleEl) roleEl.textContent = 'Адміністратор';
+
+  document.body.style.visibility = 'visible';
+  // Всі скрипти завантажені (ми в window.load)
+  setTimeout(initAdmin, 0);
+}
+
+// Вихід
+function adminLogout() {
+  localStorage.removeItem('kr_admin_session');
+  window.location.href = 'auth.html';
+}
+
+// Supabase REST запити з токеном адміна
+// sbFetch moved to guard block
+
+// Запустити після завантаження всіх скриптів
+// [window.load moved to end]
+
+});.then(() => clearTimeout(_visTimeout)).catch(e => {
+  clearTimeout(_visTimeout);
+  document.body.style.visibility = 'visible';
+  console.error('Guard error:', e);
+  window.location.href = 'auth.html';
+});
+
+
+
 
 // Базові запити до Supabase
 async function sbFetch(path, options = {}) {
@@ -1794,6 +1784,20 @@ function initAdmin() {
   }
 }
 
+// Запустити захист після завантаження всієї сторінки
+window.addEventListener('load', () => {
+  const _visTimeout = setTimeout(() => {
+    document.body.style.visibility = 'visible';
+  }, 3000);
+
+  guardAdminPage()
+    .then(() => clearTimeout(_visTimeout))
+    .catch(e => {
+      clearTimeout(_visTimeout);
+      document.body.style.visibility = 'visible';
+      console.error('Guard error:', e);
+      window.location.href = 'auth.html';
+    });
 </script>
 </body>
 </html>
