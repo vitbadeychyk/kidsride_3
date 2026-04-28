@@ -1074,7 +1074,10 @@ function closeReview() {
 }
 function getProductKey(){
   try{
-    const m = new URLSearchParams(window.location.search).get('model');
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+    if (id && id.trim()) return id.trim();
+    const m = params.get('model');
     return (m && m.trim()) ? m.trim() : 'default';
   }catch(e){ return 'default'; }
 }
@@ -1119,6 +1122,31 @@ function renderUserReviews(){
       </div>
     `;
   }).join('');
+
+  // Оновлюємо лічильники відгуків скрізь на сторінці
+  updateReviewCounts(all.length);
+}
+
+function updateReviewCounts(count) {
+  // Вкладка "Відгуки N"
+  document.querySelectorAll('.tab-cnt').forEach(el => {
+    if (el.closest('.tab-btn') && /відгуки/i.test(el.closest('.tab-btn').textContent)) {
+      el.textContent = count;
+    }
+  });
+  // Підсумок ".rev-score-cnt"
+  const scoreCnt = document.querySelector('.rev-score-cnt');
+  if (scoreCnt) scoreCnt.textContent = count + ' ' + plural(count, 'відгук', 'відгуки', 'відгуків');
+  // Посилання ".rating-count" біля зірок
+  const ratingCount = document.querySelector('.rating-count');
+  if (ratingCount) ratingCount.textContent = count + ' ' + plural(count, 'відгук', 'відгуки', 'відгуків');
+}
+
+function plural(n, one, few, many) {
+  const mod10 = n % 10, mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return one;
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return few;
+  return many;
 }
 function submitReview() {
   const name = (document.getElementById('revName').value || '').trim();
@@ -1216,6 +1244,95 @@ document.addEventListener('keydown', e => {
 
     hRight.insertBefore(adminBtn, hRight.firstChild);
   } catch(e) {}
+})();
+</script>
+
+
+<script>
+// ── Динамічне завантаження товару зі sessionStorage або Supabase ──────────
+(function loadActiveProduct() {
+  try {
+    // 1) Читаємо з sessionStorage (збережено каталогом)
+    let p = null;
+    try { p = JSON.parse(sessionStorage.getItem('kr_active_product') || 'null'); } catch {}
+
+    // 2) Якщо немає — читаємо ?id= з URL і підтягуємо з Supabase
+    if (!p || !p.name) {
+      const pid = new URLSearchParams(window.location.search).get('id');
+      if (pid) {
+        // Async fallback: fetch from Supabase
+        const SUPA_URL = 'https://xczrzdbikkycgpnvolib.supabase.co';
+        const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYwMjUyNzIsImV4cCI6MjA2MTYwMTI3Mn0.XUyUm-NOFHZ2e43cFYnzP8jABPfHkR5UdGvRz6MBhyI';
+        fetch(SUPA_URL + '/rest/v1/products?id=eq.' + encodeURIComponent(pid) + '&select=*', {
+          headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + SUPA_KEY }
+        })
+          .then(r => r.json())
+          .then(rows => { if (rows && rows[0]) applyProduct(rows[0]); })
+          .catch(() => {});
+        return;
+      }
+      return; // нічого не знайшли
+    }
+
+    applyProduct(p);
+  } catch(e) {}
+
+  function applyProduct(p) {
+    if (!p || !p.name) return;
+
+    // Назва
+    const h1 = document.querySelector('.product-title');
+    if (h1) h1.textContent = p.name;
+
+    // Title + breadcrumb
+    document.title = p.name + ' — KidsRide';
+    const crumb = document.querySelector('.breadcrumb-cur');
+    if (crumb) crumb.textContent = p.name;
+
+    // Бренд
+    const brandEl = document.querySelector('.meta-brand');
+    if (brandEl && p.brand) brandEl.textContent = p.brand;
+
+    // Ціна
+    const fmt = n => Number(n).toLocaleString('uk-UA');
+    const priceMain = document.querySelector('.price-main');
+    if (priceMain && p.price) priceMain.textContent = fmt(p.price) + ' ₴';
+
+    // РРЦ / знижка
+    const priceHint = document.querySelector('.price-hint');
+    if (priceHint) {
+      if (p.oldPrice && Number(p.oldPrice) > Number(p.price)) {
+        const save = Math.round(Number(p.oldPrice) - Number(p.price));
+        priceHint.innerHTML = 'РРЦ: <strong>' + fmt(p.oldPrice) + ' ₴</strong> — ви економите <strong>' + fmt(save) + ' ₴</strong>';
+      } else {
+        priceHint.style.display = 'none';
+      }
+    }
+
+    // Залишок
+    const stockEl = document.querySelector('.meta-stock');
+    if (stockEl) {
+      const s = Number(p.stock || 0);
+      if (s <= 0) {
+        stockEl.className = 'meta-stock stock-out';
+        stockEl.innerHTML = '<svg viewBox="0 0 8 8"><circle cx="4" cy="4" r="4"/></svg> Немає в наявності';
+      } else if (s === 1) {
+        stockEl.className = 'meta-stock stock-out';
+        stockEl.innerHTML = '<svg viewBox="0 0 8 8"><circle cx="4" cy="4" r="4"/></svg> Остання штука';
+      } else {
+        stockEl.className = 'meta-stock stock-in';
+        stockEl.innerHTML = '<svg viewBox="0 0 8 8"><circle cx="4" cy="4" r="4"/></svg> В наявності';
+      }
+    }
+
+    // Розстрочка
+    const inst = document.querySelector('.installment-text span');
+    if (inst && p.price) inst.textContent = 'від ' + fmt(Math.ceil(Number(p.price) / 12)) + ' ₴/міс';
+
+    // Мобільна панель знизу
+    const mbb = document.querySelector('.mbb-price');
+    if (mbb && p.price) mbb.textContent = fmt(p.price) + ' ₴';
+  }
 })();
 </script>
 

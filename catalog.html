@@ -1462,7 +1462,7 @@ function catOpenProduct(id) {
     const p = (allProducts || []).find(x => String(x.id) === String(id));
     if (p) sessionStorage.setItem('kr_active_product', JSON.stringify(p));
   } catch {}
-  window.location.href = 'product.html';
+  window.location.href = 'product.html?id=' + encodeURIComponent(id);
 }
 
 // Рендер однієї картки
