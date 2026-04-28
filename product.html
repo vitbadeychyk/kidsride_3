@@ -1058,9 +1058,59 @@ function closeQuick() {
   document.getElementById('quickModal').style.display = 'none';
   document.body.style.overflow = '';
 }
-function submitQuick() {
-  closeQuick();
-  showToast('✓ Заявка прийнята! Передзвонимо скоро');
+async function submitQuick() {
+  const phone = (document.getElementById('quickPhone')?.value || '').trim();
+  const nameInputs = document.querySelectorAll('#quickModal input[type="text"]');
+  const name = nameInputs[0] ? (nameInputs[0].value || '').trim() : '';
+  const btn = document.querySelector('#quickModal button.btn-primary');
+  const hint = document.querySelector('#quickModal p:last-of-type');
+
+  const digits = phone.replace(/\D/g, '');
+  if (digits.length < 7) {
+    if (hint) { hint.textContent = '⚠ Вкажіть коректний номер телефону'; hint.style.color = '#e53935'; }
+    document.getElementById('quickPhone')?.focus();
+    return;
+  }
+
+  if (btn) { btn.disabled = true; btn.textContent = 'Відправляємо…'; btn.style.opacity = '.6'; }
+  if (hint) { hint.textContent = ''; hint.style.color = ''; }
+
+  // Зібрати інформацію про товар із поточної сторінки
+  const productName = document.querySelector('h1')?.textContent?.trim() || '';
+  const priceEl = document.querySelector('.price-current') || document.querySelector('[class*="price"]');
+  const priceText = priceEl ? priceEl.textContent.replace(/[^\d]/g, '') : '';
+  const productPrice = priceText ? Number(priceText) : null;
+  const productBrand = document.querySelector('.brand-name')?.textContent?.trim()
+    || document.querySelector('[class*="brand"]')?.textContent?.trim() || '';
+  const productId = (new URLSearchParams(window.location.search)).get('id') || '';
+
+  try {
+    const r = await fetch('/api/lead', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        phone, name,
+        productId: productId || null,
+        productName: productName || null,
+        productPrice,
+        productBrand: productBrand || null,
+        source: 'product_page'
+      })
+    });
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({}));
+      throw new Error(err.error || 'Не вдалось відправити заявку');
+    }
+    closeQuick();
+    if (typeof showToast === 'function') showToast('✓ Заявка прийнята! Передзвонимо скоро');
+    else alert('Заявка прийнята! Передзвонимо скоро');
+    document.getElementById('quickPhone').value = '';
+    if (nameInputs[0]) nameInputs[0].value = '';
+    if (hint) hint.textContent = 'Передзвонимо протягом 15 хвилин у робочий час';
+  } catch(e) {
+    if (hint) { hint.textContent = '⚠ ' + (e.message || 'Помилка з\'єднання'); hint.style.color = '#e53935'; }
+    if (btn) { btn.disabled = false; btn.textContent = 'Передзвоніть мені'; btn.style.opacity = ''; }
+  }
 }
 
 // Review form

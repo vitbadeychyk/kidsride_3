@@ -1,4 +1,5 @@
-KidsRide — статичний сайт
+KidsRide — статичний сайт + Vercel API + Supabase
+====================================================
 
 ЯК РОЗГОРНУТИ:
 1. Розпакуйте архів — усі файли мають бути в КОРЕНІ репозиторію
@@ -6,23 +7,114 @@ KidsRide — статичний сайт
 2. Залийте вміст у GitHub-репозиторій.
 3. На Vercel: New Project → імпортуйте репозиторій → Framework
    Preset: "Other" → Root Directory: ./ → Deploy.
-   Жодних build-команд не потрібно — це чистий статичний сайт.
+   Жодних build-команд не потрібно — це чистий статичний сайт
+   + одна serverless-функція /api/lead.js (Vercel її підхопить
+   автоматично з папки api/).
 
 ГОЛОВНЕ:
 - index.html має бути в корені (не в /public/, не в /artifacts/)
-- shared.js теж у корені (не в /public/) — звідти його завантажують
-  усі сторінки.
+- shared.js теж у корені — звідти його завантажують усі сторінки.
+- api/lead.js — серверна функція Vercel для прийому заявок.
 
-ОНОВЛЕННЯ — "Під замовлення":
+═══════════════════════════════════════════════════════════════
+ОНОВЛЕННЯ 1 — "Під замовлення"
+═══════════════════════════════════════════════════════════════
 Додано колонку "Під замовлення" (днів готовності) для товарів.
 Якщо залишок 0, але "Під замовлення" > 0 — товар показується
-в каталозі з підписом "Під замовлення X днів".
+в каталозі з підписом "Під замовлення X днів" (синім).
+Якщо залишок = 1, картка показує зелене "В наявності" + значок
+"остання модель".
 
-Перед використанням виконайте у Supabase (SQL Editor) міграцію:
+SQL у Supabase (SQL Editor → New query → Run):
 
   ALTER TABLE products
   ADD COLUMN IF NOT EXISTS preorder_days int NOT NULL DEFAULT 0;
 
-Поки колонки немає — адмінка зберігає товар без поля
-preorder_days (з попередженням у консолі), а каталог
-показує всі товари як зазвичай.
+═══════════════════════════════════════════════════════════════
+ОНОВЛЕННЯ 2 — "Купити в 1 клік" + Заявки в адмінці + Telegram
+═══════════════════════════════════════════════════════════════
+
+Як це працює:
+  Користувач натискає "Купити в 1 клік" → вводить телефон →
+  заявка одночасно (а) зберігається в Supabase (таблиця leads),
+  і (б) приходить вам у Telegram моментально.
+  В адмінці є вкладка "Заявки" зі списком, статусами і пошуком.
+
+ШАГ 1. Створіть таблицю leads у Supabase (SQL Editor):
+
+  CREATE TABLE IF NOT EXISTS leads (
+    id            BIGSERIAL PRIMARY KEY,
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+    phone         TEXT NOT NULL,
+    name          TEXT,
+    product_id    TEXT,
+    product_name  TEXT,
+    product_price NUMERIC,
+    product_brand TEXT,
+    source        TEXT DEFAULT 'quick_order',
+    status        TEXT NOT NULL DEFAULT 'new',
+    comment       TEXT,
+    items         JSONB,
+    notes         TEXT
+  );
+  CREATE INDEX IF NOT EXISTS leads_created_idx ON leads(created_at DESC);
+  CREATE INDEX IF NOT EXISTS leads_status_idx  ON leads(status);
+
+  -- Дозволити адмінці читати/змінювати через anon-ключ
+  ALTER TABLE leads ENABLE ROW LEVEL SECURITY;
+  CREATE POLICY leads_all ON leads FOR ALL TO anon USING (true) WITH CHECK (true);
+
+ШАГ 2. Створіть Telegram-бота:
+  1) Відкрийте в Telegram @BotFather → /newbot
+  2) Дайте боту назву (наприклад "KidsRide Заявки")
+  3) Дайте йому username (має закінчуватись на "bot",
+     наприклад "kidsride_leads_bot")
+  4) BotFather дасть TOKEN (виглядає як 123456:ABC-DEF...).
+     Збережіть його — це TELEGRAM_BOT_TOKEN.
+
+ШАГ 3. Дізнайтесь свій chat_id:
+  1) Знайдіть у Telegram свого бота і натисніть /start
+  2) Відкрийте у браузері (підставте свій токен):
+     https://api.telegram.org/bot<TOKEN>/getUpdates
+  3) Знайдіть "chat":{"id":123456789, ... — це і є ваш chat_id.
+  4) Якщо хочете отримувати в групу — додайте бота в групу,
+     напишіть будь-яке повідомлення в неї і знову відкрийте
+     getUpdates. У групи chat_id буде з мінусом, наприклад
+     -1001234567890.
+
+ШАГ 4. Дізнайтесь Service Role ключ Supabase (рекомендовано):
+  Supabase → Project Settings → API → "service_role" secret.
+  УВАГА: це секретний ключ — його НЕ можна викладати у фронтенд.
+  У нас він буде тільки на сервері Vercel. Якщо не хочете його
+  давати — пропустіть, тоді функція використає публічний anon-ключ
+  (працюватиме поки RLS-политика дозволяє INSERT для anon).
+
+ШАГ 5. Додайте змінні середовища у Vercel:
+  Vercel → ваш проект → Settings → Environment Variables.
+  Додайте 4 змінні (для Production, Preview, Development):
+
+    SUPABASE_URL              = https://xczrzdbikkycgpnvolib.supabase.co
+    SUPABASE_SERVICE_ROLE_KEY = <ключ із Шагу 4>     (опціонально)
+    SUPABASE_ANON_KEY         = <ваш anon-ключ>       (якщо без service_role)
+    TELEGRAM_BOT_TOKEN        = <токен із Шагу 2>
+    TELEGRAM_CHAT_ID          = <id із Шагу 3>
+
+  Після додавання — натисніть Deploy → Redeploy, щоб змінні
+  підхопились.
+
+ШАГ 6. Перевірка:
+  1) Відкрийте сайт, натисніть "Купити в 1 клік" на товарі,
+     введіть свій реальний телефон.
+  2) В Telegram має одразу прийти повідомлення.
+  3) В адмінці відкрийте "Заявки" — заявка має бути там зі
+     статусом "Нова". Можна змінити статус на
+     "Передзвонили / Оформлено / Скасовано".
+
+ЯКЩО ЩОСЬ НЕ ПРАЦЮЄ:
+  - Заявка не приходить в Telegram → Vercel → Deployments →
+    останній деплой → Functions → /api/lead → Logs. Подивіться
+    помилку. Найчастіше — невірний chat_id або токен.
+  - Заявка не зберігається в Supabase → перевірте, що виконали
+    SQL із Шагу 1, і що змінні SUPABASE_URL та ключ задані.
+  - Адмінка показує "Таблиця leads ще не створена" → виконайте
+    SQL із Шагу 1.
