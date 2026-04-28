@@ -1261,7 +1261,7 @@ document.addEventListener('keydown', e => {
 });
 
 // ── Динамічне завантаження товару (галерея + варіанти кольору) — KidsRide v3.1 ──
-console.log('[KidsRide] product.html v3.1 — повна галерея + варіанти кольору');
+console.log('[KidsRide] product.html v3.2 — галерея + кольори в один рядок (без дублів)');
 (async function loadFullProduct(){
   try{
     // Літерали Supabase (не залежимо від KR — щоб працювало навіть до завантаження shared.js)
@@ -1519,20 +1519,31 @@ async function buildColorVariants(currentSku, currentId, supaUrl, supaKey){
   const label = document.querySelector('.option-label');
   if (!grid) return;
 
+  // ── Ідемпотентність: якщо блок варіантів вже побудований раніше (наприклад, з кешу),
+  //    видаляємо його, щоб не отримати дві однакові плитки одна над одною.
+  document.querySelectorAll('[data-color-variants-wrap]').forEach(el => el.remove());
+
   // Назва кольору поточного товару
   const curVariant = arr.find(v => v.id === currentId) || {};
   const curColor = extractColorName(curVariant.name) || ('Варіант ' + ((String(curVariant.sku||'').match(/-(\d+)\s*$/)||[])[1] || '1'));
-  if (label) label.innerHTML = 'Колір (модель): <span id="colorName">' + curColor + '</span>';
+  if (label) {
+    label.innerHTML = 'В інших кольорах: <span id="colorName" style="font-weight:600;color:var(--text-muted)">' + curColor + '</span>';
+    label.style.marginBottom = '12px';
+  }
 
-  // Перетворюємо .color-grid на горизонтальний скролер зі стрілками
+  // Перетворюємо .color-grid на акуратний рядок плиток (як у конкурента)
   grid.innerHTML = '';
-  // Створюємо обгортку зі стрілками (вставляємо після grid)
+  grid.style.display = 'none';
+
   const wrap = document.createElement('div');
+  wrap.setAttribute('data-color-variants-wrap', '1');
   wrap.style.cssText = 'position:relative;margin-bottom:24px';
 
   const scroller = document.createElement('div');
   scroller.id = 'variantsScroller';
-  scroller.style.cssText = 'display:flex;gap:14px;overflow-x:auto;scroll-behavior:smooth;padding:6px 2px 8px;scrollbar-width:none';
+  // flex-wrap: дозволяємо акуратно перенестись на новий рядок, якщо моделей багато,
+  // а в основному вони вміщуються в один рядок (4–5 плиток на ширині сайдбара).
+  scroller.style.cssText = 'display:flex;flex-wrap:wrap;gap:10px;overflow-x:auto;scroll-behavior:smooth;padding:6px 2px 8px;scrollbar-width:none';
   // hide webkit scrollbar inline (одноразово в head)
   if (!document.getElementById('variantsScrollerStyle')){
     const s = document.createElement('style');
@@ -1545,7 +1556,8 @@ async function buildColorVariants(currentSku, currentId, supaUrl, supaKey){
     const isCur = v.id === currentId;
     const mainImg = (Array.isArray(v.images) && v.images[0]) ? v.images[0] : '';
     const inStock = (typeof v.stock === 'number') ? v.stock > 0 : true;
-    const colorName = extractColorName(v.name) || ('№' + ((String(v.sku||'').match(/-(\d+)\s*$/)||[])[1] || '?'));
+    const sfx = (String(v.sku||'').match(/-(\d+)\s*$/)||[])[1] || '?';
+    const colorName = extractColorName(v.name) || ('Варіант ' + sfx);
 
     const tag = isCur ? 'div' : 'a';
     const el = document.createElement(tag);
@@ -1553,9 +1565,9 @@ async function buildColorVariants(currentSku, currentId, supaUrl, supaKey){
     el.title = (v.name || v.sku || '') + (isCur ? ' (поточний)' : (inStock ? '' : ' — під замовлення'));
     el.style.cssText =
       'display:flex;flex-direction:column;align-items:center;gap:6px;'
-      + 'flex-shrink:0;width:84px;text-decoration:none;color:inherit;'
+      + 'flex:0 0 78px;width:78px;text-decoration:none;color:inherit;'
       + 'cursor:' + (isCur ? 'default' : 'pointer') + ';'
-      + (inStock ? '' : 'opacity:.55;');
+      + (inStock ? '' : 'opacity:.5;');
 
     const tile = document.createElement('div');
     tile.style.cssText =
@@ -1566,7 +1578,6 @@ async function buildColorVariants(currentSku, currentId, supaUrl, supaKey){
     if (mainImg){
       tile.innerHTML = '<img src="' + mainImg + '" alt="" style="width:100%;height:100%;object-fit:contain;padding:5px;box-sizing:border-box" loading="lazy">';
     } else {
-      const sfx = (String(v.sku).match(/-(\d+)\s*$/)||[])[1] || '?';
       tile.innerHTML = '<span style="font-family:Nunito,sans-serif;font-weight:800;color:var(--text-muted);font-size:22px">' + sfx + '</span>';
     }
 
@@ -1584,42 +1595,8 @@ async function buildColorVariants(currentSku, currentId, supaUrl, supaKey){
     scroller.appendChild(el);
   });
 
-  // Стрілки гортання (показуються лише якщо є переповнення)
-  const mkArrow = (dir) => {
-    const a = document.createElement('button');
-    a.type = 'button';
-    a.setAttribute('aria-label', dir < 0 ? 'Попередні' : 'Наступні');
-    a.textContent = dir < 0 ? '‹' : '›';
-    a.style.cssText = 'position:absolute;top:36px;'
-      + (dir < 0 ? 'left:-6px;' : 'right:-6px;')
-      + 'width:34px;height:34px;border-radius:50%;background:#fff;border:1px solid var(--border);'
-      + 'box-shadow:0 2px 8px rgba(0,0,0,.10);cursor:pointer;font-size:22px;font-weight:600;color:#1B2A4A;'
-      + 'display:none;align-items:center;justify-content:center;line-height:1;padding:0 0 3px;z-index:2;'
-      + 'transition:all .2s';
-    a.onclick = () => { scroller.scrollBy({ left: dir * 220, behavior: 'smooth' }); };
-    a.onmouseenter = () => { a.style.background = 'var(--orange)'; a.style.color = '#fff'; a.style.borderColor = 'var(--orange)'; };
-    a.onmouseleave = () => { a.style.background = '#fff'; a.style.color = '#1B2A4A'; a.style.borderColor = 'var(--border)'; };
-    return a;
-  };
-  const left = mkArrow(-1), right = mkArrow(+1);
   wrap.appendChild(scroller);
-  wrap.appendChild(left);
-  wrap.appendChild(right);
   grid.parentNode.insertBefore(wrap, grid);
-  grid.style.display = 'none';
-
-  // Показ/приховування стрілок залежно від скролу і переповнення
-  const updateArrows = () => {
-    const overflow = scroller.scrollWidth > scroller.clientWidth + 4;
-    if (!overflow) { left.style.display = 'none'; right.style.display = 'none'; return; }
-    left.style.display  = scroller.scrollLeft > 4 ? 'flex' : 'none';
-    right.style.display = (scroller.scrollLeft + scroller.clientWidth < scroller.scrollWidth - 4) ? 'flex' : 'none';
-  };
-  scroller.addEventListener('scroll', updateArrows);
-  window.addEventListener('resize', updateArrows);
-  // Перший прорахунок (після того як зображення підвантажаться)
-  setTimeout(updateArrows, 50);
-  setTimeout(updateArrows, 600);
 }
 
 // ── Динамічне завантаження відеоогляду з Supabase (за ?id=) ────────────
