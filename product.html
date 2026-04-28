@@ -1312,8 +1312,9 @@ document.addEventListener('keydown', e => {
     // Залишок
     const stockEl = document.querySelector('.meta-stock');
     if (stockEl) {
-      const s = Number(p.stock || 0);
-      if (s <= 0) {
+      // null/undefined stock = untracked → show as 'В наявності'
+      const s = (p.stock != null) ? Number(p.stock) : null;
+      if (s !== null && s <= 0) {
         stockEl.className = 'meta-stock stock-out';
         stockEl.innerHTML = '<svg viewBox="0 0 8 8"><circle cx="4" cy="4" r="4"/></svg> Немає в наявності';
       } else if (s === 1) {
