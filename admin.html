@@ -1050,25 +1050,21 @@ tr:hover td{background:rgba(240,242,248,.5)}
 
       <div class="f-row single">
         <div class="f-group">
-          <label>Фото товару <small style="color:var(--text-muted)">(показується в каталозі)</small></label>
-          <input type="file" id="pPhotoInput" accept="image/*" style="display:none">
-          <div id="pPhotoBox" style="display:flex;align-items:center;gap:14px;padding:12px;border:1px dashed var(--border);border-radius:var(--r-sm);background:var(--bg)">
-            <div id="pPhotoPreview" style="width:96px;height:78px;border-radius:8px;background:#fff;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0">
-              <span id="pPhotoEmpty" style="font-size:11px;color:var(--text-muted);text-align:center;line-height:1.3">Фото<br>не задано</span>
-              <img id="pPhotoImg" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover">
-            </div>
-            <div style="display:flex;flex-direction:column;gap:6px;flex:1;min-width:0">
-              <div style="display:flex;gap:6px;flex-wrap:wrap">
-                <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('pPhotoInput').click()">
-                  <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                  Завантажити фото
-                </button>
-                <button type="button" class="btn btn-outline btn-sm" id="pPhotoClearBtn" onclick="productPhotoClear()" style="display:none">
-                  <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
-                  Прибрати
-                </button>
-              </div>
-              <div style="font-size:11px;color:var(--text-muted)">JPG/PNG/WebP, до 1 МБ. Якщо фото не задано — буде показано стандартну ілюстрацію за типом.</div>
+          <label>Фото товару <small style="color:var(--text-muted)">(перше — головне для каталогу, до 15 шт.)</small></label>
+          <input type="file" id="pPhotoInput" accept="image/*" multiple style="display:none">
+          <div id="pPhotoBox" style="padding:12px;border:1px dashed var(--border);border-radius:var(--r-sm);background:var(--bg)">
+            <div id="pPhotoGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:8px;margin-bottom:10px"></div>
+            <div id="pPhotoEmpty" style="text-align:center;color:var(--text-muted);font-size:12px;padding:18px 0;border:1px dashed var(--border);border-radius:8px;margin-bottom:10px;background:#fff">Фото ще не додані</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+              <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('pPhotoInput').click()">
+                <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                Додати фото
+              </button>
+              <button type="button" class="btn btn-outline btn-sm" id="pPhotoClearBtn" onclick="productPhotoClearAll()" style="display:none">
+                <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+                Очистити всі
+              </button>
+              <span style="font-size:11px;color:var(--text-muted);flex:1;min-width:200px">JPG/PNG/WebP, до 1 МБ за файл. Натисніть ★ щоб зробити фото головним, × — щоб видалити.</span>
             </div>
           </div>
         </div>
@@ -2562,12 +2558,12 @@ function openProductModal(id = null) {
   document.getElementById('pFeatures').value = Array.isArray(p?.features) ? p.features.join(', ') : '';
   document.getElementById('pVideo').value = p?.video || '';
 
-  // Фото товару
-  const existingPhoto = (Array.isArray(p?.images) && p.images.length > 0) ? p.images[0] : '';
-  productPhotoSet(existingPhoto);
+  // Фото товару (галерея)
+  const existingPhotos = Array.isArray(p?.images) ? p.images.filter(Boolean) : [];
+  productPhotosSet(existingPhotos);
   const fileInput = document.getElementById('pPhotoInput');
   fileInput.value = '';
-  fileInput.onchange = function(){ productPhotoHandleFile(fileInput.files && fileInput.files[0]); };
+  fileInput.onchange = function(){ productPhotoHandleFiles(fileInput.files); fileInput.value = ''; };
 
   // Toggle активний
   const isActive = p ? p.active !== false : true;
@@ -2578,37 +2574,91 @@ function openProductModal(id = null) {
   document.getElementById('pName').focus();
 }
 
-// ── ФОТО ТОВАРУ ─────────────────────────────────────────────
-let _pPhotoData = '';
-function productPhotoSet(dataUrl) {
-  _pPhotoData = dataUrl || '';
-  const img = document.getElementById('pPhotoImg');
+// ── ФОТО ТОВАРУ (галерея, до 15 шт.) ─────────────────────────
+const PHOTO_MAX = 15;
+let _pPhotos = []; // масив dataURL'ів; [0] — головне фото для каталогу
+
+function productPhotosSet(arr) {
+  _pPhotos = Array.isArray(arr) ? arr.filter(Boolean).slice(0, PHOTO_MAX) : [];
+  productPhotosRender();
+}
+
+function productPhotosRender() {
+  const grid = document.getElementById('pPhotoGrid');
   const empty = document.getElementById('pPhotoEmpty');
   const clearBtn = document.getElementById('pPhotoClearBtn');
-  if (_pPhotoData) {
-    img.src = _pPhotoData;
-    img.style.display = 'block';
-    empty.style.display = 'none';
-    clearBtn.style.display = 'inline-flex';
-  } else {
-    img.src = '';
-    img.style.display = 'none';
-    empty.style.display = 'block';
-    clearBtn.style.display = 'none';
+  if (!grid) return;
+  grid.innerHTML = '';
+  if (!_pPhotos.length) {
+    if (empty) empty.style.display = 'block';
+    if (clearBtn) clearBtn.style.display = 'none';
+    return;
   }
+  if (empty) empty.style.display = 'none';
+  if (clearBtn) clearBtn.style.display = 'inline-flex';
+  _pPhotos.forEach((url, i) => {
+    const cell = document.createElement('div');
+    cell.style.cssText =
+      'position:relative;aspect-ratio:4/3;border-radius:8px;overflow:hidden;background:#fff;border:1px solid var(--border);' +
+      (i === 0 ? 'box-shadow:0 0 0 2px var(--orange) inset' : '');
+    const mainBadge = i === 0
+      ? '<span style="position:absolute;top:4px;left:4px;background:var(--orange);color:#fff;font-size:9px;font-weight:800;padding:2px 6px;border-radius:4px;font-family:Nunito,sans-serif;text-transform:uppercase;letter-spacing:.04em;pointer-events:none">Головне</span>'
+      : '<button type="button" title="Зробити головним" onclick="productPhotoMakeMain(' + i + ')" style="position:absolute;top:4px;left:4px;width:24px;height:24px;border:none;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;cursor:pointer;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;padding:0">★</button>';
+    cell.innerHTML =
+      '<img src="' + url + '" alt="" style="width:100%;height:100%;object-fit:cover;display:block">' +
+      mainBadge +
+      '<button type="button" title="Видалити" onclick="productPhotoRemove(' + i + ')" style="position:absolute;top:4px;right:4px;width:24px;height:24px;border:none;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;cursor:pointer;font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center;padding:0">×</button>' +
+      '<span style="position:absolute;bottom:4px;right:6px;background:rgba(0,0,0,.55);color:#fff;font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;pointer-events:none">' + (i + 1) + '/' + _pPhotos.length + '</span>';
+    grid.appendChild(cell);
+  });
 }
-function productPhotoClear() {
-  productPhotoSet('');
-  const fileInput = document.getElementById('pPhotoInput');
-  if (fileInput) fileInput.value = '';
+
+function productPhotoMakeMain(i) {
+  if (i <= 0 || i >= _pPhotos.length) return;
+  const item = _pPhotos.splice(i, 1)[0];
+  _pPhotos.unshift(item);
+  productPhotosRender();
 }
-function productPhotoHandleFile(file) {
-  if (!file) return;
-  if (!file.type.startsWith('image/')) { showToast('Файл має бути зображенням', 'error'); return; }
-  if (file.size > 1024 * 1024) { showToast('Розмір фото має бути до 1 МБ', 'error'); return; }
+
+function productPhotoRemove(i) {
+  if (i < 0 || i >= _pPhotos.length) return;
+  _pPhotos.splice(i, 1);
+  productPhotosRender();
+}
+
+function productPhotoClearAll() {
+  if (_pPhotos.length && !confirm('Видалити всі фото товару?')) return;
+  _pPhotos = [];
+  productPhotosRender();
+  const fi = document.getElementById('pPhotoInput');
+  if (fi) fi.value = '';
+}
+
+function productPhotoHandleFiles(files) {
+  if (!files || !files.length) return;
+  const list = Array.from(files);
+  const room = PHOTO_MAX - _pPhotos.length;
+  if (room <= 0) { showToast('Максимум ' + PHOTO_MAX + ' фото на товар', 'error'); return; }
+  const toProcess = list.slice(0, room);
+  if (list.length > room) showToast('Додано тільки ' + room + ' з ' + list.length + ' фото (ліміт ' + PHOTO_MAX + ')', 'info');
+  toProcess.forEach(file => {
+    productPhotoProcessOne(file, function(dataUrl){
+      if (dataUrl) {
+        if (_pPhotos.length >= PHOTO_MAX) return;
+        _pPhotos.push(dataUrl);
+        productPhotosRender();
+      }
+    });
+  });
+}
+
+function productPhotoProcessOne(file, cb) {
+  if (!file || !file.type || !file.type.startsWith('image/')) {
+    showToast('Файл «' + (file && file.name) + '» не зображення', 'error'); cb(null); return;
+  }
+  if (file.size > 1024 * 1024) { showToast('«' + file.name + '» більше 1 МБ — пропущено', 'error'); cb(null); return; }
   const reader = new FileReader();
   reader.onload = function(e) {
-    // Стискаємо та масштабуємо до max 1200px по більшій стороні (JPEG 0.85)
     const img = new Image();
     img.onload = function() {
       const maxDim = 1200;
@@ -2621,18 +2671,14 @@ function productPhotoHandleFile(file) {
       canvas.width = w; canvas.height = h;
       const ctx = canvas.getContext('2d');
       ctx.drawImage(img, 0, 0, w, h);
-      // Якщо PNG з прозорістю — лишаємо PNG, інакше JPEG для меншого розміру
       const isPng = file.type === 'image/png';
       const out = isPng ? canvas.toDataURL('image/png') : canvas.toDataURL('image/jpeg', 0.85);
-      productPhotoSet(out);
+      cb(out);
     };
-    img.onerror = function() {
-      // Якщо не вдалось декодувати — використовуємо оригінал
-      productPhotoSet(e.target.result);
-    };
+    img.onerror = function() { cb(e.target.result); };
     img.src = e.target.result;
   };
-  reader.onerror = function() { showToast('Помилка читання файлу', 'error'); };
+  reader.onerror = function() { showToast('Помилка читання файлу', 'error'); cb(null); };
   reader.readAsDataURL(file);
 }
 
@@ -2684,7 +2730,7 @@ function saveProduct() {
     badge: document.getElementById('pBadge').value,
     img: document.getElementById('pImg').value,
     features,
-    images: _pPhotoData ? [_pPhotoData] : [],
+    images: Array.isArray(_pPhotos) ? _pPhotos.slice(0, PHOTO_MAX) : [],
     video: document.getElementById('pVideo').value.trim(),
     active: isActive,
     addedAt: editId ? (products.find(p=>p.id===editId)?.addedAt || Date.now()) : Date.now(),

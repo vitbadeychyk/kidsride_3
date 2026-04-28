@@ -1038,9 +1038,16 @@ function shareProduct() {
   }
 }
 
-// Zoom
+// Zoom — підтримує і статичний SVG, і динамічну фото-галерею
 function openZoom() {
-  const content = document.getElementById('mainSvg').outerHTML;
+  let content = '';
+  const dynImg = document.getElementById('mainProductImg');
+  if (dynImg && dynImg.src) {
+    content = '<img src="' + dynImg.src + '" alt="" style="max-width:90vw;max-height:88vh;object-fit:contain;background:#fff;border-radius:12px;padding:16px;box-sizing:border-box">';
+  } else {
+    const svg = document.getElementById('mainSvg');
+    if (svg) content = svg.outerHTML;
+  }
   document.getElementById('zoomContent').innerHTML = content;
   document.getElementById('zoomOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -1252,6 +1259,239 @@ document.addEventListener('keydown', e => {
     closeQuick(); closeReview(); closeZoom();
   }
 });
+
+// ── Динамічне завантаження товару з Supabase (за ?id=): галерея + варіанти кольору ──
+(async function loadFullProduct(){
+  try{
+    const params = new URLSearchParams(location.search);
+    const id = params.get('id');
+    if (!id) return;
+    if (!window.KR || !KR._SUPA_URL || !KR._SUPA_KEY) return;
+
+    const r = await fetch(KR._SUPA_URL + '/rest/v1/products?id=eq.' + encodeURIComponent(id)
+      + '&select=id,sku,name,brand,price,old_price,stock,badge,images,active', {
+      headers: { 'apikey': KR._SUPA_KEY, 'Authorization': 'Bearer ' + KR._SUPA_KEY }
+    });
+    if (!r.ok) return;
+    const arr = await r.json();
+    const p = Array.isArray(arr) && arr[0];
+    if (!p) return;
+
+    // ─ Текстові поля ─
+    const fmt = n => Number(n||0).toLocaleString('uk-UA').replace(/\u00A0/g,' ');
+
+    if (p.name){
+      document.title = p.name + ' — KidsRide';
+      const h1 = document.querySelector('.product-title');
+      if (h1) h1.textContent = p.name;
+      const crumb = document.querySelector('.breadcrumb-cur');
+      if (crumb) crumb.textContent = p.name;
+    }
+    if (p.brand){
+      const b = document.querySelector('.meta-brand');
+      if (b) b.textContent = String(p.brand).toUpperCase();
+    }
+    if (p.sku){
+      const s = document.querySelector('.meta-sku');
+      if (s) s.textContent = 'Арт: ' + p.sku;
+    }
+    const stockEl = document.querySelector('.meta-stock');
+    if (stockEl){
+      const inStock = (typeof p.stock === 'number' ? p.stock > 0 : true) && p.active !== false;
+      stockEl.className = 'meta-stock ' + (inStock ? 'stock-in' : 'stock-out');
+      stockEl.innerHTML = '<svg viewBox="0 0 8 8"><circle cx="4" cy="4" r="4"/></svg> ' + (inStock ? 'В наявності' : 'Під замовлення');
+    }
+    if (p.price){
+      const priceMain = document.querySelector('.price-main');
+      if (priceMain) priceMain.textContent = fmt(p.price) + ' ₴';
+      const hint = document.querySelector('.price-hint');
+      const oldP = Number(p.old_price)||0;
+      if (hint){
+        if (oldP > Number(p.price)){
+          const save = oldP - Number(p.price);
+          hint.innerHTML = 'РРЦ: <strong>' + fmt(oldP) + ' ₴</strong> — ви економите <strong>' + fmt(save) + ' ₴</strong>';
+        } else {
+          hint.style.display = 'none';
+        }
+      }
+      const inst = document.querySelector('.installment-text span');
+      if (inst) inst.textContent = 'від ' + fmt(Math.round(Number(p.price)/12)) + ' ₴/міс';
+    }
+    if (p.badge){
+      const bd = document.querySelector('.gallery-badge');
+      if (bd) bd.textContent = p.badge;
+    } else {
+      const bd = document.querySelector('.gallery-badge');
+      if (bd) bd.style.display = 'none';
+    }
+
+    // ─ Галерея фото ─
+    const images = Array.isArray(p.images) ? p.images.filter(Boolean) : [];
+    if (images.length > 0) buildPhotoGallery(images);
+
+    // ─ Кольорові варіанти за префіксом артикула ─
+    if (p.sku) await buildColorVariants(p.sku, p.id);
+  } catch(e){ console.warn('loadFullProduct:', e); }
+})();
+
+// Побудова галереї з реальних фото
+function buildPhotoGallery(images){
+  const main = document.getElementById('mainGallery');
+  const thumbs = document.querySelector('.gallery-thumbs');
+  if (!main || !thumbs) return;
+
+  // Зберегти кнопки share + badge
+  const badge = main.querySelector('.gallery-badge');
+  const share = main.querySelector('.gallery-share');
+
+  main.style.background = '#fff';
+  main.innerHTML = '';
+  if (badge) main.appendChild(badge);
+  if (share) main.appendChild(share);
+
+  const imgWrap = document.createElement('div');
+  imgWrap.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box';
+  const mainImg = document.createElement('img');
+  mainImg.id = 'mainProductImg';
+  mainImg.src = images[0];
+  mainImg.alt = '';
+  mainImg.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain;transition:opacity .25s';
+  imgWrap.appendChild(mainImg);
+  main.appendChild(imgWrap);
+
+  if (images.length > 1){
+    const mkNav = (label, dir) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.setAttribute('aria-label', label);
+      b.textContent = dir < 0 ? '‹' : '›';
+      b.style.cssText = 'position:absolute;top:50%;transform:translateY(-50%);'
+        + (dir < 0 ? 'left:12px;' : 'right:12px;')
+        + 'width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.92);border:none;'
+        + 'box-shadow:0 2px 8px rgba(0,0,0,.12);cursor:pointer;font-size:26px;font-weight:600;color:#1B2A4A;'
+        + 'display:flex;align-items:center;justify-content:center;line-height:1;padding:0 0 4px;z-index:3';
+      b.onclick = (e) => { e.stopPropagation(); galleryStep(dir); };
+      b.onmouseenter = () => { b.style.background = '#fff'; b.style.transform = 'translateY(-50%) scale(1.08)'; };
+      b.onmouseleave = () => { b.style.background = 'rgba(255,255,255,.92)'; b.style.transform = 'translateY(-50%)'; };
+      return b;
+    };
+    main.appendChild(mkNav('Попереднє фото', -1));
+    main.appendChild(mkNav('Наступне фото', +1));
+
+    // Свайп на тач-екранах
+    let tx = 0;
+    main.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, {passive:true});
+    main.addEventListener('touchend', e => {
+      const dx = (e.changedTouches[0].clientX - tx);
+      if (Math.abs(dx) > 40) galleryStep(dx < 0 ? +1 : -1);
+    }, {passive:true});
+  }
+
+  // Thumbnails
+  thumbs.innerHTML = '';
+  images.forEach((url, i) => {
+    const t = document.createElement('div');
+    t.className = 'thumb' + (i === 0 ? ' active' : '');
+    t.style.cssText = 'background:#fff;padding:4px';
+    t.innerHTML = '<img src="' + url + '" alt="" style="width:100%;height:100%;object-fit:contain">';
+    t.onclick = () => galleryGoTo(i);
+    thumbs.appendChild(t);
+  });
+
+  window._gallery = { images, idx: 0 };
+}
+
+function galleryGoTo(i){
+  const g = window._gallery; if (!g) return;
+  if (i < 0) i = g.images.length - 1;
+  if (i >= g.images.length) i = 0;
+  g.idx = i;
+  const img = document.getElementById('mainProductImg');
+  if (img){
+    img.style.opacity = '0';
+    setTimeout(() => { img.src = g.images[i]; img.style.opacity = '1'; }, 120);
+  }
+  document.querySelectorAll('.gallery-thumbs .thumb').forEach((t, j) => t.classList.toggle('active', j === i));
+}
+function galleryStep(dir){
+  const g = window._gallery; if (!g) return;
+  galleryGoTo(g.idx + dir);
+}
+
+// Перевизначаємо стару selectThumb (статичні onclick на старих .thumb-ах вже не існують після перерендеру,
+// але про всяк випадок)
+window.selectThumb = function(el, idx){ galleryGoTo(idx); };
+
+// Кольорові варіанти за префіксом артикула: "M 4259EBLR-1" → шукає "M 4259EBLR-*"
+async function buildColorVariants(currentSku, currentId){
+  const m = String(currentSku).match(/^(.*?)-(\d+)\s*$/);
+  if (!m) return; // нема цифрового суфікса — варіантів нема
+  const prefix = m[1].trim();
+  if (!prefix) return;
+
+  // PostgREST: ilike з '*' замість '%'
+  const pattern = prefix + '-*';
+  const qs = 'products?sku=ilike.' + encodeURIComponent(pattern)
+    + '&active=eq.true'
+    + '&select=id,sku,name,images';
+  let arr;
+  try{
+    const r = await fetch(KR._SUPA_URL + '/rest/v1/' + qs, {
+      headers: { 'apikey': KR._SUPA_KEY, 'Authorization': 'Bearer ' + KR._SUPA_KEY }
+    });
+    if (!r.ok) return;
+    arr = await r.json();
+  } catch(e){ return; }
+  if (!Array.isArray(arr)) return;
+
+  // Тільки ті, що мають числовий суфікс після останнього '-'
+  arr = arr.filter(v => /-(\d+)\s*$/.test(String(v.sku||'')));
+  if (arr.length <= 1) return; // лише сам товар — нема сенсу показувати
+
+  // Сортуємо за числовим суфіксом
+  arr.sort((a, b) => {
+    const na = parseInt((String(a.sku).match(/-(\d+)\s*$/)||[])[1] || '0', 10);
+    const nb = parseInt((String(b.sku).match(/-(\d+)\s*$/)||[])[1] || '0', 10);
+    return na - nb;
+  });
+
+  const grid = document.querySelector('.color-grid');
+  const label = document.querySelector('.option-label');
+  if (!grid) return;
+
+  if (label) label.innerHTML = 'Кольорова версія: <span id="colorName">' + arr.length + ' варіант' + (arr.length === 1 ? '' : (arr.length < 5 ? 'и' : 'ів')) + '</span>';
+
+  grid.innerHTML = '';
+  grid.style.gap = '10px';
+  grid.style.flexWrap = 'wrap';
+
+  arr.forEach(v => {
+    const isCur = v.id === currentId;
+    const mainImg = (Array.isArray(v.images) && v.images[0]) ? v.images[0] : '';
+    const tag = isCur ? 'div' : 'a';
+    const el = document.createElement(tag);
+    if (!isCur) el.href = 'product.html?id=' + encodeURIComponent(v.id);
+    el.title = (v.name || v.sku || '') + (isCur ? ' (поточний)' : '');
+    el.style.cssText =
+      'display:flex;align-items:center;justify-content:center;'
+      + 'width:64px;height:64px;border-radius:10px;overflow:hidden;'
+      + 'background:#fff;border:2px solid ' + (isCur ? 'var(--orange)' : 'var(--border)') + ';'
+      + 'cursor:' + (isCur ? 'default' : 'pointer') + ';'
+      + 'transition:all .2s;text-decoration:none;flex-shrink:0;'
+      + (isCur ? 'box-shadow:0 0 0 3px rgba(255,107,53,.15);' : '');
+    if (!isCur){
+      el.onmouseenter = () => { el.style.transform = 'scale(1.08)'; el.style.borderColor = 'var(--orange)'; };
+      el.onmouseleave = () => { el.style.transform = ''; el.style.borderColor = 'var(--border)'; };
+    }
+    if (mainImg){
+      el.innerHTML = '<img src="' + mainImg + '" alt="" style="width:100%;height:100%;object-fit:contain;padding:4px;box-sizing:border-box">';
+    } else {
+      const sfx = (String(v.sku).match(/-(\d+)\s*$/)||[])[1] || '?';
+      el.innerHTML = '<span style="font-family:Nunito,sans-serif;font-weight:800;color:var(--text-muted);font-size:18px">' + sfx + '</span>';
+    }
+    grid.appendChild(el);
+  });
+}
 
 // ── Динамічне завантаження відеоогляду з Supabase (за ?id=) ────────────
 function _ytEmbedFromUrl(url){
