@@ -652,9 +652,10 @@ a{text-decoration:none;color:inherit}
 
 <script>
 // ── NP API ─────────────────────────────────────────────────────────────────
-// API ключ — замінити на реальний з np.ua
-const NP_API_KEY = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
-const NP_API_URL = 'https://api.novaposhta.ua/v2.0/json/';
+// Використовуємо власний серверний проксі /api/np (Vercel Serverless Function).
+// Ключ Нової Пошти зберігається на сервері в env-змінній NP_API_KEY,
+// у фронтенд він НЕ потрапляє.
+const NP_API_URL = '/api/np';
 
 const cityData = { selected: null, ref: null };
 const warehouseData = { selected: null };
@@ -674,17 +675,16 @@ async function searchCity(query, mode='main') {
 
   cityTimer = setTimeout(async () => {
     try {
-      // Try real NP API first
+      // Звертаємось до власного проксі /api/np — ключ підставляє сервер
       const res = await fetch(NP_API_URL, {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify({
-          apiKey: NP_API_KEY,
           modelName: 'Address',
           calledMethod: 'getCities',
           methodProperties: {
             FindByString: query,
-            Limit: 12
+            Limit: 50
           }
         })
       });
@@ -695,7 +695,7 @@ async function searchCity(query, mode='main') {
       }
     } catch(e) {}
 
-    // Fallback: mock data для демо
+    // Fallback: mock data для демо (якщо проксі недоступний)
     renderCities(getMockCities(query), drop, mode);
   }, 350);
 }
@@ -800,13 +800,12 @@ async function searchWarehouse(query) {
   warehouseTimer = setTimeout(async () => {
     try {
       const body = {
-        apiKey: NP_API_KEY,
         modelName: 'AddressGeneral',
         calledMethod: 'getWarehouses',
         methodProperties: {
           CityRef: cityData.ref,
           FindByString: query,
-          Limit: 20,
+          Limit: 500,
           Language: 'UA'
         }
       };
