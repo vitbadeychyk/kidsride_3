@@ -155,6 +155,43 @@ a{text-decoration:none;color:inherit}
 @keyframes modalIn{from{opacity:0;transform:scale(.93) translateY(16px)}to{opacity:1;transform:scale(1) translateY(0)}}
 @keyframes spin{to{transform:rotate(360deg)}}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const { createClient } = supabase;
+const _sb = createClient('https://xczrzdbikkycgpnvolib.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ');
+
+// Перевірити чи вже залогінений
+async function checkExistingSession() {
+  const { data: { session } } = await _sb.auth.getSession();
+  if (session) {
+    // Перевірити чи адмін
+    const isAdm = await checkIsAdmin(session.access_token);
+    if (isAdm) {
+      window.location.href = 'admin.html';
+      return;
+    }
+  }
+}
+
+// Перевірити роль адміна
+async function checkIsAdmin(token) {
+  try {
+    const res = await fetch('https://xczrzdbikkycgpnvolib.supabase.co/rest/v1/user_roles?select=role&limit=1', {
+      headers: {
+        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ',
+        'Authorization': 'Bearer ' + token
+      }
+    });
+    const data = await res.json();
+    return Array.isArray(data) && data.length > 0 && data[0].role === 'admin';
+  } catch(e) {
+    return false;
+  }
+}
+
+// Запустити при завантаженні
+window.addEventListener('DOMContentLoaded', checkExistingSession);
+</script>
 </head>
 <body>
 
@@ -375,9 +412,14 @@ function switchTab(tab) {
 
 // Google auth (simulate)
 function googleAuth() {
-  showLoading('googleBtn');
-  setTimeout(() => showSuccess('google'), 1500);
+  _sb.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: window.location.origin + '/admin.html'
+    }
+  }).catch(e => console.error('Google auth error:', e));
 }
+
 
 // Toggle password visibility
 function togglePassword(id, btn) {
@@ -458,17 +500,51 @@ function checkLoginReady() {}
 // Login submit
 function submitLogin() {
   const email = document.getElementById('loginEmail').value.trim();
-  const pwd = document.getElementById('loginPassword').value;
+  const pwd   = document.getElementById('loginPwd').value;
+  const btn   = document.getElementById('loginBtn');
+  const errEl = document.getElementById('loginError');
+
   if (!email || !pwd) {
-    if (!email) document.getElementById('loginEmail').classList.add('error');
-    if (!pwd) document.getElementById('loginPassword').classList.add('error');
+    if (errEl) { errEl.textContent = 'Введіть email та пароль'; errEl.style.display = 'block'; }
     return;
   }
-  const btn = document.getElementById('loginBtn');
+
+  // Показати loader
   btn.disabled = true;
-  btn.innerHTML = '<div style="width:20px;height:20px;border:2px solid rgba(255,255,255,.4);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite"></div>Перевірка...';
-  setTimeout(() => showSuccess('login'), 1600);
+  btn.innerHTML = '<div style="width:18px;height:18px;border:2px solid rgba(255,255,255,.4);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;display:inline-block;margin-right:8px"></div>Вхід...';
+
+  _sb.auth.signInWithPassword({ email, password: pwd })
+    .then(async ({ data, error }) => {
+      if (error) {
+        btn.disabled = false;
+        btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> Увійти';
+        if (errEl) {
+          errEl.textContent = error.message.includes('Invalid') ? '❌ Невірний email або пароль' : '❌ ' + error.message;
+          errEl.style.display = 'block';
+        }
+        return;
+      }
+
+      // Перевірити чи адмін
+      const isAdm = await checkIsAdmin(data.session.access_token);
+
+      if (isAdm) {
+        // Адмін → в адмін панель
+        showSuccess('login');
+        setTimeout(() => window.location.href = 'admin.html', 1000);
+      } else {
+        // Звичайний користувач → на головну
+        showSuccess('login');
+        setTimeout(() => window.location.href = 'index.html', 1000);
+      }
+    })
+    .catch(e => {
+      btn.disabled = false;
+      btn.innerHTML = 'Увійти';
+      if (errEl) { errEl.textContent = '❌ Помилка: ' + e.message; errEl.style.display = 'block'; }
+    });
 }
+
 
 // Register submit
 function submitRegister() {
