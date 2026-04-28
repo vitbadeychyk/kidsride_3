@@ -652,5 +652,34 @@ function showToast(msg) {
 recalc();
 </script>
 <script src="shared.js"></script>
+
+<script>
+// Показати кнопку адмін панелі якщо залогінений як адмін
+(function() {
+  try {
+    const s = localStorage.getItem('kr_admin_session');
+    if (!s) return;
+    const session = JSON.parse(s);
+    if (!session.access_token) return;
+    // Перевірити термін дії
+    if (session.expires_at && Date.now() / 1000 > session.expires_at) return;
+
+    // Додати кнопку адміна в header
+    const hRight = document.querySelector('.h-right, .header .h-actions, .header-right');
+    if (!hRight) return;
+
+    const adminBtn = document.createElement('a');
+    adminBtn.href = 'admin.html';
+    adminBtn.title = 'Адмін панель';
+    adminBtn.style.cssText = 'display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;background:rgba(27,42,74,.08);color:var(--navy);font-family:"Nunito",sans-serif;font-weight:700;font-size:12px;text-decoration:none;border:1.5px solid var(--border);transition:all .2s;margin-left:4px';
+    adminBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Адмін';
+    adminBtn.onmouseover = function() { this.style.background='var(--orange)'; this.style.color='white'; this.style.borderColor='var(--orange)'; };
+    adminBtn.onmouseout = function() { this.style.background='rgba(27,42,74,.08)'; this.style.color='var(--navy)'; this.style.borderColor='var(--border)'; };
+
+    hRight.insertBefore(adminBtn, hRight.firstChild);
+  } catch(e) {}
+})();
+</script>
+
 </body>
 </html>
