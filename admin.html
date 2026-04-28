@@ -1163,16 +1163,6 @@ function adminLogout() {
 // Запустити після завантаження всіх скриптів
 // [window.load moved to end]
 
-});.then(() => clearTimeout(_visTimeout)).catch(e => {
-  clearTimeout(_visTimeout);
-  document.body.style.visibility = 'visible';
-  console.error('Guard error:', e);
-  window.location.href = 'auth.html';
-});
-
-
-
-
 // Базові запити до Supabase
 async function sbFetch(path, options = {}) {
   // Використовуємо актуальний токен адміна
@@ -1798,6 +1788,7 @@ window.addEventListener('load', () => {
       console.error('Guard error:', e);
       window.location.href = 'auth.html';
     });
+});
 </script>
 </body>
 </html>
