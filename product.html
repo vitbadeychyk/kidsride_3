@@ -1326,18 +1326,19 @@ document.addEventListener('keydown', e => {
         return 'днів';
       };
       if (s !== null && s <= 0 && preDays > 0) {
-        // Під замовлення
+        // Під замовлення — синім
         stockEl.className = 'meta-stock';
-        stockEl.style.color = '#F59E0B';
-        stockEl.innerHTML = '<svg viewBox="0 0 8 8"><circle cx="4" cy="4" r="4" fill="#F59E0B"/></svg> Під замовлення ' + preDays + ' ' + plDays(preDays);
+        stockEl.style.color = '#2563eb';
+        stockEl.innerHTML = '<svg viewBox="0 0 8 8"><circle cx="4" cy="4" r="4" fill="#2563eb"/></svg> Під замовлення ' + preDays + ' ' + plDays(preDays);
       } else if (s !== null && s <= 0) {
         stockEl.className = 'meta-stock stock-out';
         stockEl.style.color = '';
         stockEl.innerHTML = '<svg viewBox="0 0 8 8"><circle cx="4" cy="4" r="4"/></svg> Немає в наявності';
       } else if (s === 1) {
-        stockEl.className = 'meta-stock stock-out';
+        // Остання штука = в наявності + значок
+        stockEl.className = 'meta-stock stock-in';
         stockEl.style.color = '';
-        stockEl.innerHTML = '<svg viewBox="0 0 8 8"><circle cx="4" cy="4" r="4"/></svg> Остання штука';
+        stockEl.innerHTML = '<svg viewBox="0 0 8 8"><circle cx="4" cy="4" r="4"/></svg> В наявності <span style="margin-left:6px;font-size:11px;color:#F59E0B;background:#FEF3C7;padding:2px 8px;border-radius:10px;font-weight:700">остання модель</span>';
       } else {
         stockEl.className = 'meta-stock stock-in';
         stockEl.style.color = '';
@@ -1353,12 +1354,16 @@ document.addEventListener('keydown', e => {
       const plDays = (n) => { const a = Math.abs(Number(n)||0)%100, b=a%10; if(a>10&&a<20)return'днів'; if(b>1&&b<5)return'дні'; if(b===1)return'день'; return'днів'; };
       if (s !== null && s <= 0 && preDays > 0) {
         mbbStock.textContent = 'Під замовлення ' + preDays + ' ' + plDays(preDays);
-        mbbStock.style.color = '#F59E0B';
+        mbbStock.style.color = '#2563eb';
       } else if (s !== null && s <= 0) {
         mbbStock.textContent = 'Немає в наявності';
         mbbStock.style.color = '#e53935';
+      } else if (s === 1) {
+        mbbStock.textContent = 'В наявності (остання модель)';
+        mbbStock.style.color = '';
       } else {
         mbbStock.textContent = 'В наявності';
+        mbbStock.style.color = '';
       }
     }
 

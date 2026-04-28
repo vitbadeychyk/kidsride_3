@@ -1502,9 +1502,9 @@ function renderCard(p) {
   if (outOfStock) {
     stockBadge = '<div style="font-size:11px;color:#e53935;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:5px"><svg viewBox="0 0 8 8" style="width:8px;height:8px"><circle cx="4" cy="4" r="4" fill="#e53935"/></svg>Немає в наявності</div>';
   } else if (isPreorder) {
-    stockBadge = `<div style="font-size:11px;color:#F59E0B;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:5px"><svg viewBox="0 0 8 8" style="width:8px;height:8px"><circle cx="4" cy="4" r="4" fill="#F59E0B"/></svg>Під замовлення ${preDays} ${plDays(preDays)}</div>`;
+    stockBadge = `<div style="font-size:11px;color:#2563eb;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:5px"><svg viewBox="0 0 8 8" style="width:8px;height:8px"><circle cx="4" cy="4" r="4" fill="#2563eb"/></svg>Під замовлення ${preDays} ${plDays(preDays)}</div>`;
   } else if (lowStock) {
-    stockBadge = '<div style="font-size:11px;color:#F59E0B;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:5px"><svg viewBox="0 0 8 8" style="width:8px;height:8px"><circle cx="4" cy="4" r="4" fill="#F59E0B"/></svg>Остання штука</div>';
+    stockBadge = '<div style="font-size:11px;color:#16a34a;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="display:inline-flex;align-items:center;gap:5px"><svg viewBox="0 0 8 8" style="width:8px;height:8px"><circle cx="4" cy="4" r="4" fill="#16a34a"/></svg>В наявності</span><span style="font-size:10px;color:#F59E0B;background:#FEF3C7;padding:2px 6px;border-radius:10px;font-weight:700">остання модель</span></div>';
   } else {
     stockBadge = '<div style="font-size:11px;color:#16a34a;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:5px"><svg viewBox="0 0 8 8" style="width:8px;height:8px"><circle cx="4" cy="4" r="4" fill="#16a34a"/></svg>В наявності</div>';
   }
