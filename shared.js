@@ -107,6 +107,17 @@ const KR = {
     });
   },
 
+  // Оновити бейдж порівняння у header
+  updateCompareBadge() {
+    let list = [];
+    try { list = JSON.parse(localStorage.getItem('kr_compare') || '[]'); } catch{}
+    const count = list.length;
+    document.querySelectorAll('#compareBadge, .compare-badge, [data-compare-badge]').forEach(el => {
+      el.textContent = count;
+      el.style.display = count > 0 ? 'flex' : 'none';
+    });
+  },
+
   // Анімація бейджа
   animateCartBadge() {
     document.querySelectorAll('#cartBadge, .cart-badge').forEach(el => {
@@ -441,7 +452,14 @@ const KR = {
     this.injectWishStyles();
     this.updateCartBadge();
     this.updateWishBadge();
+    this.updateCompareBadge();
     this.updateAuthUI();
+    // Слухаємо локальні зміни kr_compare у тому ж табі та змінення з інших табів
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'kr_compare') this.updateCompareBadge();
+      if (e.key === 'kr_cart') this.updateCartBadge();
+      if (e.key === 'kr_wishlist') this.updateWishBadge();
+    });
     this.trackVisit();
 
     // Активний пункт навігації
