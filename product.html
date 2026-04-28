@@ -137,7 +137,11 @@ nav a.active{color:var(--orange)}
 .option-label{font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;color:var(--navy);margin-bottom:10px;display:flex;align-items:center;gap:6px}
 .option-label span{font-weight:500;color:var(--text-muted)}
 .color-grid{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
-.color-btn{
+/* Старий статичний пікер кружечків більше не використовується — ховаємо назавжди,
+   щоб під час перемикання кольорів він НЕ блимав, навіть якщо браузер підсунув
+   кешовану стару версію сторінки. */
+.color-btn{display:none !important}
+.color-btn-OFF{
   width:36px;height:36px;border-radius:50%;border:2px solid transparent;
   cursor:pointer;transition:all .2s;position:relative;
   box-shadow:inset 0 0 0 2px rgba(0,0,0,.08);
@@ -525,16 +529,9 @@ nav a.active{color:var(--orange)}
         </div>
       </div>
 
-      <!-- COLOR -->
-      <div class="option-label">Колір: <span id="colorName">Білий</span></div>
-      <div class="color-grid">
-        <button class="color-btn active" style="background:#f0f2f8" data-name="Білий" onclick="selectColor(this,'Білий','#e8ecf7,#c8d0ea',0)" title="Білий"></button>
-        <button class="color-btn" style="background:#ff9870" data-name="Оранжевий" onclick="selectColor(this,'Оранжевий','#fff0ea,#ffd5c0',1)" title="Оранжевий"></button>
-        <button class="color-btn" style="background:#66bb6a" data-name="Зелений" onclick="selectColor(this,'Зелений','#e8f5e9,#c8e6c9',2)" title="Зелений"></button>
-        <button class="color-btn" style="background:#ec407a" data-name="Рожевий" onclick="selectColor(this,'Рожевий','#fce4ec,#f8bbd0',3)" title="Рожевий"></button>
-        <button class="color-btn" style="background:#ffc107" data-name="Жовтий" onclick="selectColor(this,'Жовтий','#fff8e1,#ffecb3',4)" title="Жовтий"></button>
-        <button class="color-btn" style="background:#37506b" data-name="Синій" onclick="selectColor(this,'Синій','#1B2A4A,#2d4270',5)" title="Синій"></button>
-      </div>
+      <!-- COLOR (порожні плейсхолдери: заповнюються JS-ом, ховаються до того, щоб не блимали) -->
+      <div class="option-label" style="display:none"></div>
+      <div class="color-grid" style="display:none"></div>
 
       <!-- ACTION BUTTONS -->
       <div class="action-btns">
@@ -1261,7 +1258,7 @@ document.addEventListener('keydown', e => {
 });
 
 // ── Динамічне завантаження товару (галерея + варіанти кольору) — KidsRide v3.1 ──
-console.log('[KidsRide] product.html v3.2 — галерея + кольори в один рядок (без дублів)');
+console.log('[KidsRide] product.html v3.4 — захист від блимання кружечків (CSS + no-cache)');
 (async function loadFullProduct(){
   try{
     // Літерали Supabase (не залежимо від KR — щоб працювало навіть до завантаження shared.js)
@@ -1529,6 +1526,7 @@ async function buildColorVariants(currentSku, currentId, supaUrl, supaKey){
   if (label) {
     label.innerHTML = 'В інших кольорах: <span id="colorName" style="font-weight:600;color:var(--text-muted)">' + curColor + '</span>';
     label.style.marginBottom = '12px';
+    label.style.display = 'flex'; // показуємо лейбл лише коли реально є варіанти
   }
 
   // Перетворюємо .color-grid на акуратний рядок плиток (як у конкурента)
