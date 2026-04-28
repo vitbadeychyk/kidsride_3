@@ -1118,6 +1118,132 @@ tr:hover td{background:rgba(240,242,248,.5)}
 <div id="sidebarOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99;backdrop-filter:blur(2px)" onclick="toggleSidebar()"></div>
 
 <script>
+
+// ── SUPABASE CONFIG ────────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://xczrzdbikkycgpnvolib.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
+
+// Базові запити до Supabase
+async function sbFetch(path, options = {}) {
+  const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
+    ...options,
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation',
+      ...(options.headers || {})
+    }
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error('Supabase: ' + res.status + ' ' + err.slice(0, 200));
+  }
+
+  const text = await res.text();
+  return text ? JSON.parse(text) : [];
+}
+
+// ── SUPABASE PRODUCTS ──────────────────────────────────────────────────────
+async function sbGetProducts() {
+  try {
+    // service_role не потрібен — адмін бачить всі через RLS
+    const data = await sbFetch('products?select=*&order=created_at.desc');
+    return data;
+  } catch(e) {
+    console.error('sbGetProducts:', e);
+    // Fallback на localStorage
+    return JSON.parse(localStorage.getItem('kr_products') || '[]');
+  }
+}
+
+async function sbSaveProduct(productData, editId = null) {
+  const payload = {
+    sku:        productData.sku || null,
+    name:       productData.name,
+    description: productData.desc || null,
+    brand:      productData.brand,
+    price:      productData.price,
+    old_price:  productData.oldPrice || null,
+    category:   productData.category,
+    voltage:    productData.voltage,
+    age_range:  productData.age,
+    stock:      productData.stock,
+    badge:      productData.badge || null,
+    img_type:   productData.img,
+    features:   productData.features || [],
+    video_url:  productData.video || null,
+    active:     productData.active
+  };
+
+  try {
+    if (editId) {
+      // Оновити існуючий
+      await sbFetch('products?id=eq.' + editId, {
+        method: 'PATCH',
+        body: JSON.stringify(payload)
+      });
+    } else {
+      // Додати новий
+      await sbFetch('products', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+    }
+    return { success: true };
+  } catch(e) {
+    console.error('sbSaveProduct:', e);
+    return { success: false, error: e.message };
+  }
+}
+
+async function sbDeleteProduct(id) {
+  try {
+    await sbFetch('products?id=eq.' + id, { method: 'DELETE' });
+    return { success: true };
+  } catch(e) {
+    return { success: false, error: e.message };
+  }
+}
+
+async function sbToggleProductStatus(id, active) {
+  try {
+    await sbFetch('products?id=eq.' + id, {
+      method: 'PATCH',
+      body: JSON.stringify({ active })
+    });
+    return { success: true };
+  } catch(e) {
+    return { success: false, error: e.message };
+  }
+}
+
+// ── SUPABASE ORDERS ────────────────────────────────────────────────────────
+async function sbGetOrders() {
+  try {
+    return await sbFetch('orders?select=*&order=created_at.desc&limit=100');
+  } catch(e) {
+    console.error('sbGetOrders:', e);
+    return [];
+  }
+}
+
+async function sbUpdateOrderStatus(id, status, ttn = null) {
+  const payload = { status };
+  if (ttn) payload.ttn = ttn;
+  try {
+    await sbFetch('orders?id=eq.' + id, {
+      method: 'PATCH',
+      body: JSON.stringify(payload)
+    });
+    return { success: true };
+  } catch(e) {
+    return { success: false, error: e.message };
+  }
+}
+
+
 // ── DATE ──────────────────────────────────────────────────────────────────
 const days=['Неділя','Понеділок','Вівторок','Середа','Четвер','П\'ятниця','Субота'];
 const months=['січня','лютого','березня','квітня','травня','червня','липня','серпня','вересня','жовтня','листопада','грудня'];
@@ -1484,37 +1610,82 @@ function saveProduct() {
     products.push(productData);
   }
 
-  saveProducts(products);
-  closeModal('productModal');
-  renderProductsTable();
-  showToast(editId ? 'Товар оновлено' : 'Товар додано в каталог', 'success');
+  // Зберегти в Supabase
+  const btn = document.querySelector('#productModal .btn-primary');
+  if (btn) { btn.disabled = true; btn.textContent = 'Збереження...'; }
+
+  sbSaveProduct(productData, editId || null).then(result => {
+    if (btn) { btn.disabled = false; btn.innerHTML = '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Зберегти товар'; }
+    if (result.success) {
+      // Також зберегти локально як кеш
+      saveProducts(products);
+      closeModal('productModal');
+      renderProductsTable();
+      showToast(editId ? '✅ Товар оновлено в базі' : '✅ Товар додано в каталог', 'success');
+    } else {
+      showToast('❌ Помилка збереження: ' + (result.error || 'невідома'), 'error');
+      // Fallback — зберегти локально
+      saveProducts(products);
+      closeModal('productModal');
+      renderProductsTable();
+    }
+  });
 }
 
 // Видалити товар
 function deleteProduct(id) {
   if (!confirm('Видалити товар? Цю дію неможливо скасувати.')) return;
-  const products = getProducts().filter(p => p.id !== id);
-  saveProducts(products);
-  renderProductsTable();
-  showToast('Товар видалено', 'error');
+  sbDeleteProduct(id).then(result => {
+    if (result.success) {
+      const products = getProducts().filter(p => p.id !== id);
+      saveProducts(products);
+      renderProductsTable();
+      showToast('Товар видалено', 'error');
+    } else {
+      showToast('❌ Помилка видалення', 'error');
+    }
+  });
 }
 
 // Перемкнути активність товару
 function toggleProductStatus(id) {
   const products = getProducts();
   const p = products.find(x => x.id === id);
-  if (p) { p.active = !p.active; p.updatedAt = Date.now(); }
+  const newActive = p ? !p.active : true;
+  if (p) { p.active = newActive; p.updatedAt = Date.now(); }
   saveProducts(products);
-  renderProductsTable();
-  showToast(p?.active ? 'Товар активований' : 'Товар прихований');
+  sbToggleProductStatus(id, newActive).then(() => {
+    renderProductsTable();
+    showToast(newActive ? '✅ Товар активований' : 'Товар прихований');
+  });
 }
 
-// Рендер таблиці товарів в адміні
-function renderProductsTable() {
+// Рендер таблиці товарів в адміні (async — завантажує з Supabase)
+async function renderProductsTable() {
   const tbody = document.getElementById('productsBody');
   if (!tbody) return;
 
-  const products = getProducts();
+  // Показати loader
+  tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-muted)"><div style="width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--orange);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px"></div>Завантаження...</td></tr>';
+
+  // Завантажити з Supabase
+  const supabaseProducts = await sbGetProducts();
+  const products = supabaseProducts.length > 0 ? supabaseProducts.map(p => ({
+    id: p.id,
+    sku: p.sku,
+    name: p.name,
+    brand: p.brand,
+    price: parseFloat(p.price),
+    oldPrice: p.old_price,
+    category: p.category,
+    stock: p.stock,
+    active: p.active,
+    img: p.img_type || 'jeep',
+    addedAt: new Date(p.created_at).getTime()
+  })) : getProducts();
+
+  // Оновити локальний кеш
+  if (supabaseProducts.length > 0) saveProducts(products);
   const countEl = document.getElementById('productsCount');
   if (countEl) countEl.textContent = '(' + products.length + ')';
 

@@ -1865,7 +1865,61 @@ const BADGE_MAP = {
   sale: '<span class="p-badge badge-sale">−%</span>',
 };
 
-// Отримати товари (з localStorage або дефолтні)
+// ── SUPABASE CONFIG ─────────────────────────────────────────
+const SUPABASE_URL = 'https://xczrzdbikkycgpnvolib.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
+
+// Завантажити товари з Supabase (з fallback на localStorage/дефолтні)
+async function loadProductsFromSupabase() {
+  try {
+    const res = await fetch(
+      SUPABASE_URL + '/rest/v1/products?select=*&active=eq.true&order=sort_order.asc,created_at.desc',
+      {
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': 'Bearer ' + SUPABASE_KEY,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    if (!res.ok) throw new Error('Supabase error: ' + res.status);
+
+    const data = await res.json();
+    if (data && data.length > 0) {
+      // Конвертувати формат Supabase → формат сайту
+      return data.map(p => ({
+        id: p.id,
+        sku: p.sku,
+        name: p.name,
+        brand: p.brand || 'Bambi Racer',
+        price: parseFloat(p.price),
+        oldPrice: p.old_price ? parseFloat(p.old_price) : null,
+        category: p.category,
+        voltage: p.voltage || '12V',
+        age: p.age_range || '3-8',
+        stock: p.stock || 0,
+        badge: p.badge,
+        img: p.img_type || 'jeep',
+        features: Array.isArray(p.features) ? p.features : [],
+        images: Array.isArray(p.images) ? p.images : [],
+        active: p.active,
+        addedAt: new Date(p.created_at).getTime()
+      }));
+    }
+  } catch(e) {
+    console.warn('Supabase недоступний, використовую локальні дані:', e.message);
+  }
+
+  // Fallback: localStorage або дефолтні
+  try {
+    const saved = JSON.parse(localStorage.getItem(PRODUCTS_KEY) || '[]');
+    if (saved.length > 0) return saved;
+  } catch(e) {}
+  return DEFAULT_PRODUCTS;
+}
+
+// Синхронна версія для зворотної сумісності
 function getProducts() {
   try {
     const saved = JSON.parse(localStorage.getItem(PRODUCTS_KEY) || '[]');
@@ -1949,11 +2003,31 @@ let allProducts = [];
 let filteredProducts = [];
 let activeFilters = { types: [], ages: [], brands: [], voltages: [], priceMin: 0, priceMax: 999999, search: '' };
 
-function renderCatalog() {
+async function renderCatalog() {
   const grid = document.getElementById('productsGrid');
   if (!grid) return;
 
-  allProducts = getProducts().filter(p => p.active !== false);
+  // Показати loader
+  grid.innerHTML = `
+    <div style="grid-column:1/-1;text-align:center;padding:60px 24px;color:var(--text-muted)">
+      <div style="width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--orange);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 16px"></div>
+      <div style="font-size:14px">Завантаження товарів...</div>
+    </div>`;
+
+  // Додати spin анімацію
+  if (!document.getElementById('_spinStyle')) {
+    const s = document.createElement('style');
+    s.id = '_spinStyle';
+    s.textContent = '@keyframes spin{to{transform:rotate(360deg)}}';
+    document.head.appendChild(s);
+  }
+
+  // Завантажити з Supabase (або fallback)
+  const products = await loadProductsFromSupabase();
+  allProducts = products.filter(p => p.active !== false);
+
+  // Зберегти в localStorage як кеш
+  try { localStorage.setItem(PRODUCTS_KEY, JSON.stringify(allProducts)); } catch(e) {}
 
   // Показати лічильник
   const countEl = document.getElementById('catalogCount');
@@ -2132,7 +2206,7 @@ function showToastLocal(msg) {
 
 // Ініціалізація каталогу
 document.addEventListener('DOMContentLoaded', () => {
-  renderCatalog();
+  renderCatalog(); // async — завантажує з Supabase
   // Оновити badge кошика
   try {
     const cart = JSON.parse(localStorage.getItem('kr_cart') || '[]');
