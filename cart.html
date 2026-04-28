@@ -266,6 +266,9 @@ nav a:hover{color:var(--navy);background:var(--bg-soft)}
           </button>
         </div>
 
+        <div id="cartItemsList"></div>
+        <!-- (приховані демо-товари — лишаємо як референс, динамічний рендер у скрипті) -->
+        <div style="display:none">
         <!-- Item 1 -->
         <div class="cart-item" id="item1" data-price="17224" data-qty="1">
           <div class="ci-img">
@@ -375,6 +378,7 @@ nav a:hover{color:var(--navy);background:var(--bg-soft)}
             </button>
           </div>
         </div>
+        </div><!-- /прихований шаблон демо -->
       </div>
 
       <!-- RIGHT: SIDEBAR -->
@@ -475,21 +479,11 @@ nav a:hover{color:var(--navy);background:var(--bg-soft)}
 <div class="toast" id="toast"></div>
 
 <script>
-// State — завантажуємо з localStorage
+// ── STATE ─────────────────────────────────────────────────────────────────
 let cartData = [];
 try { cartData = JSON.parse(localStorage.getItem('kr_cart') || '[]'); } catch(e) { cartData = []; }
+if (!Array.isArray(cartData)) cartData = [];
 
-// Якщо кошик порожній — показуємо демо товари (для першого тесту)
-if (!cartData.length) {
-  cartData = [
-    { id:'jeep-1', name:'Джип M 3804EBLR-1 — 4 мотори 45W', brand:'Bambi Racer', price:17224, color:'Білий', voltage:'12V', age:'3-8', qty:1 },
-    { id:'quad-1', name:'Квадроцикл M 4795EBLR — EVA колеса', brand:'Bambi Racer', price:12210, color:'Синій', voltage:'12V', age:'3-8', qty:1 },
-  ];
-}
-
-// items для сумісності з функціями
-const items = {};
-cartData.forEach((p, i) => { items['item'+(i+1)] = { price: p.price, qty: p.qty || 1, data: p }; });
 let promoDiscount = 0;
 const promoCode = 'KIDSRIDE10';
 
@@ -498,119 +492,179 @@ window.addEventListener('scroll', () => {
   document.getElementById('hdr').classList.toggle('scrolled', scrollY > 40);
 });
 
-// Recalculate totals
-function saveCartToLS() {
-  const arr = Object.values(items).map(i => i.data || {price: i.price, qty: i.qty, id: Math.random().toString(36)});
-  localStorage.setItem('kr_cart', JSON.stringify(arr));
-  // Оновити badge якщо є shared.js
-  const badge = document.getElementById('cartBadge');
-  if (badge) { const total = Object.values(items).reduce((s,i) => s + (i.qty||1), 0); badge.textContent = total; }
-}
-
-function recalc() {
-  let subtotal = 0, totalQty = 0;
-  for (const [id, item] of Object.entries(items)) {
-    const total = item.price * item.qty;
-    subtotal += total;
-    totalQty += item.qty;
-    const el = document.getElementById(id);
-    if (el) {
-      const fmt = formatPrice(total);
-      const priceEl = document.getElementById('price' + id.replace('item',''));
-      const priceMob = document.getElementById('price' + id.replace('item','') + '-mobile');
-      if (priceEl) priceEl.textContent = fmt;
-      if (priceMob) priceMob.textContent = fmt;
-      document.getElementById('qty' + id.replace('item','')).textContent = item.qty;
-    }
-  }
-  const grand = subtotal - promoDiscount;
-  document.getElementById('sumQty').textContent = totalQty;
-  document.getElementById('sumItems').textContent = formatPrice(subtotal);
-  document.getElementById('sumTotal').textContent = formatPrice(grand);
-  document.getElementById('mcTotal').textContent = formatPrice(grand);
-  document.getElementById('itemCountBadge').textContent = totalQty + ' ' + plural(totalQty, 'товар', 'товари', 'товарів');
-  document.getElementById('installmentHint').textContent = 'від ' + formatPrice(Math.round(grand / 12)) + '/міс × 12';
-  saveCartToLS();
-
-  if (promoDiscount > 0) {
-    document.getElementById('promoRow').style.display = 'flex';
-    document.getElementById('sumPromo').textContent = '−' + formatPrice(promoDiscount);
-  }
-}
-
-function formatPrice(n) {
-  return n.toLocaleString('uk-UA') + ' ₴';
-}
-
+// ── HELPERS ───────────────────────────────────────────────────────────────
+function escHtml(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function formatPrice(n) { return Number(n||0).toLocaleString('uk-UA') + ' ₴'; }
 function plural(n, one, few, many) {
   if (n % 10 === 1 && n % 100 !== 11) return one;
   if ([2,3,4].includes(n % 10) && ![12,13,14].includes(n % 100)) return few;
   return many;
 }
+function itemKey(it){ return String(it.id || '') + '|' + String(it.color || ''); }
+function findIdx(key){ return cartData.findIndex(it => itemKey(it) === key); }
+function genericSvg(){
+  return `<svg viewBox="0 0 120 90">
+    <rect x="10" y="38" width="100" height="32" rx="8" fill="#c8d0ea"/>
+    <rect x="24" y="18" width="65" height="28" rx="6" fill="#d0d8f0"/>
+    <rect x="27" y="21" width="28" height="18" rx="3" fill="#90CAF9" opacity=".6"/>
+    <rect x="58" y="21" width="24" height="18" rx="3" fill="#90CAF9" opacity=".5"/>
+    <circle cx="30" cy="76" r="13" fill="#2d3748"/>
+    <circle cx="30" cy="76" r="7" fill="#FF6B35" opacity=".7"/>
+    <circle cx="90" cy="76" r="13" fill="#2d3748"/>
+    <circle cx="90" cy="76" r="7" fill="#FF6B35" opacity=".7"/>
+  </svg>`;
+}
 
-// Change quantity
-function changeQty(id, delta) {
-  const item = items[id];
-  const newQty = item.qty + delta;
-  if (newQty < 1) { removeItem(id); return; }
+// ── PERSIST ───────────────────────────────────────────────────────────────
+function saveCart() {
+  localStorage.setItem('kr_cart', JSON.stringify(cartData));
+  const badge = document.getElementById('cartBadge');
+  if (badge) badge.textContent = cartData.reduce((s,i) => s + (Number(i.qty)||1), 0);
+  try { window.dispatchEvent(new CustomEvent('kr:cartUpdated', { detail: { cart: cartData } })); } catch(e) {}
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────
+function renderCartItems() {
+  const list = document.getElementById('cartItemsList');
+  if (!list) return;
+  if (!cartData.length) { list.innerHTML = ''; return; }
+  list.innerHTML = cartData.map(p => {
+    const key = itemKey(p);
+    const qty = Number(p.qty) || 1;
+    const total = (Number(p.price)||0) * qty;
+    const tags = [];
+    if (p.color)   tags.push(`<span class="ci-tag">Колір: ${escHtml(p.color)}</span>`);
+    if (p.voltage) tags.push(`<span class="ci-tag"><svg viewBox="0 0 24 24" style="width:10px;height:10px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>${escHtml(p.voltage)}</span>`);
+    if (p.age)     tags.push(`<span class="ci-tag">${escHtml(p.age)} р.</span>`);
+    const productHref = 'product.html' + (p.model ? ('?model=' + encodeURIComponent(p.model)) : '');
+    const safeKey = escHtml(key);
+    return `
+      <div class="cart-item" data-key="${safeKey}">
+        <div class="ci-img">${p.imgSvg || genericSvg()}</div>
+        <div class="ci-info">
+          ${p.brand ? `<div class="ci-brand">${escHtml(p.brand)}</div>` : ''}
+          <div class="ci-name"><a href="${escHtml(productHref)}">${escHtml(p.name || 'Товар')}</a></div>
+          ${tags.length ? `<div class="ci-meta">${tags.join('')}</div>` : ''}
+          <div class="ci-price-mobile" style="display:none;font-family:'Nunito',sans-serif;font-weight:900;font-size:17px;color:var(--navy);margin-bottom:10px">${formatPrice(total)}</div>
+          <div class="ci-actions">
+            <div class="qty-ctrl">
+              <button class="qty-btn" onclick="changeQty('${safeKey}',-1)"><svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+              <span class="qty-val">${qty}</span>
+              <button class="qty-btn" onclick="changeQty('${safeKey}',1)"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+            </div>
+            <button class="wish-move-btn" onclick="moveToWish('${safeKey}')">
+              <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              В список бажань
+            </button>
+          </div>
+        </div>
+        <div class="ci-right">
+          <div>
+            <div class="ci-price">${formatPrice(total)}</div>
+            <div class="ci-price-per">за ${qty} шт.</div>
+          </div>
+          <button class="ci-del" onclick="removeItem('${safeKey}')" title="Видалити">
+            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      </div>`;
+  }).join('');
+  checkMobilePrices();
+}
+
+function recalc() {
+  const subtotal = cartData.reduce((s,p) => s + (Number(p.price)||0) * (Number(p.qty)||1), 0);
+  const totalQty = cartData.reduce((s,p) => s + (Number(p.qty)||1), 0);
+  const grand = subtotal - promoDiscount;
+  const sumQty = document.getElementById('sumQty');
+  if (sumQty) sumQty.textContent = totalQty;
+  const sumItems = document.getElementById('sumItems');
+  if (sumItems) sumItems.textContent = formatPrice(subtotal);
+  const sumTotal = document.getElementById('sumTotal');
+  if (sumTotal) sumTotal.textContent = formatPrice(grand);
+  const mcTotal = document.getElementById('mcTotal');
+  if (mcTotal) mcTotal.textContent = formatPrice(grand);
+  const cnt = document.getElementById('itemCountBadge');
+  if (cnt) cnt.textContent = totalQty + ' ' + plural(totalQty, 'товар', 'товари', 'товарів');
+  const inst = document.getElementById('installmentHint');
+  if (inst) inst.textContent = 'від ' + formatPrice(Math.round(grand / 12)) + '/міс × 12';
+  if (promoDiscount > 0) {
+    const pr = document.getElementById('promoRow');
+    if (pr) pr.style.display = 'flex';
+    const sp = document.getElementById('sumPromo');
+    if (sp) sp.textContent = '−' + formatPrice(promoDiscount);
+  }
+}
+
+// ── ACTIONS ───────────────────────────────────────────────────────────────
+function changeQty(key, delta) {
+  const idx = findIdx(key);
+  if (idx < 0) return;
+  const newQty = (Number(cartData[idx].qty)||1) + delta;
+  if (newQty < 1) { removeItem(key); return; }
   if (newQty > 10) { showToast('Максимум 10 шт. одного товару'); return; }
-  item.qty = newQty;
+  cartData[idx].qty = newQty;
+  saveCart();
+  renderCartItems();
   recalc();
-  // Animate
-  const btn = document.getElementById(id).querySelector('.qty-val');
-  btn.style.transform = 'scale(1.3)';
-  setTimeout(() => btn.style.transform = '', 200);
 }
 
-// Remove item
-function removeItem(id) {
-  const el = document.getElementById(id);
-  el.classList.add('removing');
-  setTimeout(() => {
-    el.remove();
-    delete items[id];
-    if (Object.keys(items).length === 0) showEmptyCart();
-    else { recalc(); saveCartToLS(); }
-  }, 300);
-  showToast('Товар видалено з кошика');
+function removeItem(key) {
+  const idx = findIdx(key);
+  if (idx < 0) return;
+  const el = document.querySelector('.cart-item[data-key="' + key + '"]');
+  const finish = () => {
+    cartData.splice(idx, 1);
+    saveCart();
+    if (!cartData.length) showEmptyCart();
+    else { renderCartItems(); recalc(); }
+    showToast('Товар видалено з кошика');
+  };
+  if (el) {
+    el.classList.add('removing');
+    setTimeout(finish, 300);
+  } else {
+    finish();
+  }
 }
 
-// Move to wishlist
-function moveToWish(id) {
-  removeItem(id);
+function moveToWish(key) {
+  removeItem(key);
   showToast('❤️ Переміщено до списку бажань');
 }
 
-// Clear cart
 function clearCart() {
+  if (!cartData.length) return;
   if (!confirm('Очистити весь кошик?')) return;
-  document.querySelectorAll('.cart-item').forEach(el => {
-    el.classList.add('removing');
-    setTimeout(() => el.remove(), 300);
-  });
-  setTimeout(() => { Object.keys(items).forEach(k => delete items[k]); showEmptyCart(); }, 350);
+  cartData = [];
+  saveCart();
+  showEmptyCart();
+  showToast('Кошик очищено');
 }
 
-// Empty state
 function showEmptyCart() {
-  document.getElementById('cartLayout').innerHTML = `
-    <div class="empty-cart" style="grid-column:1/-1">
-      <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-      <div class="empty-title">Кошик порожній</div>
-      <p class="empty-desc">Додайте товари з каталогу, щоб оформити замовлення</p>
-      <a href="catalog.html" class="btn btn-primary" style="font-size:15px;padding:13px 28px">Перейти до каталогу</a>
-    </div>`;
-  document.getElementById('itemCountBadge').textContent = '0 товарів';
-  document.getElementById('mobileCheckout').style.display = 'none';
+  const layout = document.getElementById('cartLayout');
+  if (layout) {
+    layout.innerHTML = `
+      <div class="empty-cart" style="grid-column:1/-1">
+        <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        <div class="empty-title">Кошик порожній</div>
+        <p class="empty-desc">Додайте товари з каталогу, щоб оформити замовлення</p>
+        <a href="catalog.html" class="btn btn-primary" style="font-size:15px;padding:13px 28px">Перейти до каталогу</a>
+      </div>`;
+  }
+  const cnt = document.getElementById('itemCountBadge');
+  if (cnt) cnt.textContent = '0 товарів';
+  const mc = document.getElementById('mobileCheckout');
+  if (mc) mc.style.display = 'none';
 }
 
-// Promo code
 function applyPromo() {
   const val = document.getElementById('promoInput').value.trim();
   const msg = document.getElementById('promoMsg');
   msg.style.display = 'block';
   if (val === promoCode) {
-    const subtotal = Object.values(items).reduce((s, i) => s + i.price * i.qty, 0);
+    const subtotal = cartData.reduce((s,p) => s + (Number(p.price)||0) * (Number(p.qty)||1), 0);
     promoDiscount = Math.round(subtotal * 0.1);
     msg.innerHTML = `<div class="promo-ok"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Промокод застосовано! Знижка 10%</div>`;
     recalc();
@@ -621,12 +675,11 @@ function applyPromo() {
   }
 }
 
-// Checkout
 function goCheckout() {
+  if (!cartData.length) { showToast('Кошик порожній'); return; }
   window.location.href = 'checkout.html';
 }
 
-// Mobile price visibility
 function checkMobilePrices() {
   const isMobile = window.innerWidth <= 768;
   document.querySelectorAll('.ci-price-mobile').forEach(el => {
@@ -634,18 +687,24 @@ function checkMobilePrices() {
   });
 }
 window.addEventListener('resize', checkMobilePrices);
-checkMobilePrices();
 
-// Toast
 function showToast(msg) {
   const t = document.getElementById('toast');
+  if (!t) return;
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2200);
 }
 
-// Init
-recalc();
+// ── INIT ──────────────────────────────────────────────────────────────────
+if (!cartData.length) {
+  showEmptyCart();
+} else {
+  renderCartItems();
+  recalc();
+  saveCart(); // sync badge
+}
+checkMobilePrices();
 </script>
 <script src="shared.js"></script>
 

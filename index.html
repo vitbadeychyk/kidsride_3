@@ -555,7 +555,7 @@ footer{background:var(--navy);color:white;padding:72px 48px 0}
   <div class="swiper swiper-hero">
     <div class="swiper-wrapper">
 
-      <div class="swiper-slide">
+      <div class="swiper-slide" data-slide-id="slide-1">
         <div class="hero-slide s1">
           <div class="hero-grain"></div>
           <div class="hero-glow"></div>
@@ -609,7 +609,7 @@ footer{background:var(--navy);color:white;padding:72px 48px 0}
         </div>
       </div>
 
-      <div class="swiper-slide">
+      <div class="swiper-slide" data-slide-id="slide-2">
         <div class="hero-slide s2">
           <div class="hero-grain"></div>
           <div class="hero-glow" style="background:radial-gradient(circle,rgba(100,149,237,.2) 0%,transparent 70%)"></div>
@@ -645,7 +645,7 @@ footer{background:var(--navy);color:white;padding:72px 48px 0}
         </div>
       </div>
 
-      <div class="swiper-slide">
+      <div class="swiper-slide" data-slide-id="slide-3">
         <div class="hero-slide s3">
           <div class="hero-grain"></div>
           <div class="hero-glow" style="background:radial-gradient(circle,rgba(39,174,96,.15) 0%,transparent 70%);left:-100px;right:auto"></div>
@@ -1512,6 +1512,41 @@ if (pag) {
     pag.appendChild(d);
   });
 }
+
+// ── Apply admin slide settings (enable/disable, reorder, custom image) ──
+(function applySlideSettings(){
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem('kr_slides') || 'null'); } catch(e) {}
+  if (!Array.isArray(saved) || !saved.length) return;
+  const wrapper = document.querySelector('.swiper-hero .swiper-wrapper');
+  if (!wrapper) return;
+  const existing = {};
+  wrapper.querySelectorAll('.swiper-slide').forEach(el => {
+    const id = el.getAttribute('data-slide-id');
+    if (id) existing[id] = el;
+  });
+  // Detach all existing slides
+  Object.values(existing).forEach(el => el.remove());
+  // Re-attach in saved order, only enabled ones
+  saved.forEach(s => {
+    const el = existing[s.id];
+    if (!el) return; // unknown id (e.g. user-added in admin) — skip, no template
+    if (s.enabled === false) return;
+    if (s.image) {
+      // Replace the inner SVG card with uploaded image
+      const card = el.querySelector('.hero-img-card');
+      if (card) {
+        card.innerHTML = '<img src="' + s.image.replace(/"/g,'&quot;') + '" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block">';
+      }
+    }
+    wrapper.appendChild(el);
+  });
+  // If everything was disabled, re-add the first default to avoid empty hero
+  if (!wrapper.querySelector('.swiper-slide')) {
+    const first = Object.values(existing)[0];
+    if (first) wrapper.appendChild(first);
+  }
+})();
 
 // Hero Swiper
 let heroIdx = 0;

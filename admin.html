@@ -662,90 +662,17 @@ tr:hover td{background:rgba(240,242,248,.5)}
     <div class="panel" id="panel-carousel">
       <div class="section-header">
         <h2 class="section-title">Карусель <span>сайту</span></h2>
-        <button class="btn btn-primary btn-sm" onclick="showToast('Зміни збережено','success')"><svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13"/><polyline points="7 3 7 8 15 8"/></svg>Зберегти зміни</button>
+        <button class="btn btn-primary btn-sm" onclick="slidesSaveAll()"><svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13"/><polyline points="7 3 7 8 15 8"/></svg>Зберегти зміни</button>
       </div>
 
       <div style="background:rgba(255,107,53,.08);border:1px solid rgba(255,107,53,.2);border-radius:var(--r-sm);padding:12px 16px;margin-bottom:20px;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--navy)">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        Перетягніть слайди для зміни порядку. Вимкнені слайди не показуються на сайті.
+        Перетягніть слайди для зміни порядку. Вимкнені слайди не показуються на сайті. Зміни зберігаються автоматично.
       </div>
 
-      <div class="carousel-grid" id="carouselGrid">
-        <div class="slide-card" draggable="true">
-          <div class="slide-preview" style="background:linear-gradient(135deg,#1B2A4A,#2d4270)">
-            <svg viewBox="0 0 240 160"><rect x="20" y="75" width="200" height="55" rx="14" fill="white"/><rect x="50" y="40" width="130" height="52" rx="12" fill="white"/><circle cx="65" cy="132" r="22" fill="white" opacity=".6"/><circle cx="175" cy="132" r="22" fill="white" opacity=".6"/></svg>
-            <div class="slide-num">1</div>
-            <div class="slide-status"><button class="slide-toggle on" onclick="this.classList.toggle('on')"></button></div>
-            <div class="slide-preview-text"><div class="slide-preview-title">Подаруй дитині справжні емоції</div></div>
-          </div>
-          <div class="slide-body">
-            <input class="slide-title-inp" value="Подаруй дитині справжні емоції" placeholder="Заголовок слайду">
-            <input class="slide-title-inp" value="/catalog" placeholder="Посилання CTA (URL)">
-            <div class="slide-footer">
-              <span style="font-size:11px;color:var(--text-muted)">Слайд 1 · Активний</span>
-              <div style="display:flex;gap:6px">
-                <button class="ta-btn" title="Завантажити нове фото"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></button>
-                <button class="ta-btn danger" title="Видалити слайд"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div class="carousel-grid" id="carouselGrid"></div>
 
-        <div class="slide-card" draggable="true">
-          <div class="slide-preview" style="background:linear-gradient(135deg,#FF6B35,#ff9a6c)">
-            <svg viewBox="0 0 240 160"><rect x="50" y="70" width="140" height="45" rx="10" fill="white"/><rect x="70" y="42" width="100" height="42" rx="10" fill="white"/><circle cx="68" cy="120" r="24" fill="white" opacity=".5"/><circle cx="172" cy="120" r="24" fill="white" opacity=".5"/></svg>
-            <div class="slide-num">2</div>
-            <div class="slide-status"><button class="slide-toggle on" onclick="this.classList.toggle('on')"></button></div>
-            <div class="slide-preview-text"><div class="slide-preview-title">Джипи та квадроцикли</div></div>
-          </div>
-          <div class="slide-body">
-            <input class="slide-title-inp" value="Джипи та квадроцикли для справжніх героїв" placeholder="Заголовок слайду">
-            <input class="slide-title-inp" value="/catalog?type=jeep" placeholder="Посилання CTA (URL)">
-            <div class="slide-footer">
-              <span style="font-size:11px;color:var(--text-muted)">Слайд 2 · Активний</span>
-              <div style="display:flex;gap:6px">
-                <button class="ta-btn"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></button>
-                <button class="ta-btn danger"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="slide-card" draggable="true">
-          <div class="slide-preview" style="background:linear-gradient(135deg,#1B2A4A,#0f1e36)">
-            <svg viewBox="0 0 240 160"><path d="M52 82 Q75 52 118 54 L142 82 Q120 86 90 84 Z" fill="white" opacity=".4"/><circle cx="52" cy="106" r="24" fill="white" opacity=".5"/><circle cx="148" cy="106" r="24" fill="white" opacity=".5"/></svg>
-            <div class="slide-num">3</div>
-            <div class="slide-status"><button class="slide-toggle" onclick="this.classList.toggle('on')"></button></div>
-            <div class="slide-preview-text"><div class="slide-preview-title">Пакунок малюка та 7000 грн</div></div>
-          </div>
-          <div class="slide-body">
-            <input class="slide-title-inp" value="Пакунок малюка та держпідтримка 7000 грн" placeholder="Заголовок слайду">
-            <input class="slide-title-inp" value="/delivery#payment" placeholder="Посилання CTA (URL)">
-            <div class="slide-footer">
-              <span style="font-size:11px;color:var(--text-muted)">Слайд 3 · Вимкнений</span>
-              <div style="display:flex;gap:6px">
-                <button class="ta-btn"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></button>
-                <button class="ta-btn danger"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Upload new slide -->
-      <div class="upload-zone" id="uploadZone"
-        ondragover="event.preventDefault();this.classList.add('drag')"
-        ondragleave="this.classList.remove('drag')"
-        ondrop="handleDrop(event)">
-        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-        <p>Перетягніть зображення сюди або</p>
-        <small>PNG, JPG, WebP · рекомендовано 1440×580px</small>
-        <button class="btn btn-outline btn-sm" onclick="document.getElementById('slideUpload').click()">
-          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          Обрати файл
-        </button>
-        <input type="file" id="slideUpload" accept="image/*" style="display:none" onchange="handleFileUpload(this)">
-      </div>
+      <input type="file" id="slideUploadInput" accept="image/*" style="display:none">
     </div>
 
     <!-- ═══ IMPORT ═══ -->
@@ -842,40 +769,17 @@ tr:hover td{background:rgba(240,242,248,.5)}
     <!-- ═══ REVIEWS ═══ -->
     <div class="panel" id="panel-reviews">
       <div class="section-header">
-        <h2 class="section-title">Відгуки <span>на модерацію</span></h2>
+        <h2 class="section-title">Відгуки <span id="reviewsCountLabel">покупців</span></h2>
       </div>
       <div class="table-card">
         <div class="table-head">
-          <span class="table-head-title">Відгуки покупців</span>
-          <select class="filter-select"><option>Очікують модерації (3)</option><option>Схвалені</option><option>Відхилені</option></select>
+          <span class="table-head-title">Опубліковані відгуки</span>
+          <span style="font-size:12px;color:var(--text-muted)">Відгуки публікуються на сайті без модерації</span>
         </div>
         <table>
           <thead><tr><th>Покупець</th><th>Товар</th><th>Оцінка</th><th>Відгук</th><th>Дата</th><th>Дії</th></tr></thead>
-          <tbody>
-            <tr>
-              <td><div style="font-weight:600">Оксана Левченко</div><div style="font-size:11px;color:var(--text-muted)">Дніпро</div></td>
-              <td style="font-size:12px">Джип M 3804EBLR</td>
-              <td><div style="color:#f59e0b;font-size:14px;letter-spacing:1px">★★★★★</div></td>
-              <td style="max-width:240px"><div style="font-size:12px;color:var(--text);line-height:1.5">Чудовий електромобіль! Дитина в захваті. Якість матеріалів відмінна...</div></td>
-              <td style="font-size:12px;color:var(--text-muted);white-space:nowrap">27.04.2026</td>
-              <td><div class="td-actions"><button class="ta-btn" style="background:var(--green-soft)" title="Схвалити" onclick="approveReview(this)"><svg viewBox="0 0 24 24" style="stroke:var(--green)"><polyline points="20 6 9 17 4 12"/></svg></button><button class="ta-btn danger" title="Відхилити" onclick="rejectReview(this)"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div></td>
-            </tr>
-            <tr>
-              <td><div style="font-weight:600">Василь Гончар</div><div style="font-size:11px;color:var(--text-muted)">Запоріжжя</div></td>
-              <td style="font-size:12px">Квадроцикл M 4795EBLR</td>
-              <td><div style="color:#f59e0b;font-size:14px;letter-spacing:1px">★★★★☆</div></td>
-              <td style="max-width:240px"><div style="font-size:12px;color:var(--text);line-height:1.5">Хороший квадроцикл, але зарядка довгувата. В цілому задоволений покупкою...</div></td>
-              <td style="font-size:12px;color:var(--text-muted);white-space:nowrap">26.04.2026</td>
-              <td><div class="td-actions"><button class="ta-btn" style="background:var(--green-soft)" title="Схвалити" onclick="approveReview(this)"><svg viewBox="0 0 24 24" style="stroke:var(--green)"><polyline points="20 6 9 17 4 12"/></svg></button><button class="ta-btn danger" title="Відхилити" onclick="rejectReview(this)"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div></td>
-            </tr>
-            <tr>
-              <td><div style="font-weight:600">Тетяна Мороз</div><div style="font-size:11px;color:var(--text-muted)">Вінниця</div></td>
-              <td style="font-size:12px">Трактор M 4419EBLR</td>
-              <td><div style="color:#f59e0b;font-size:14px;letter-spacing:1px">★★★★★</div></td>
-              <td style="max-width:240px"><div style="font-size:12px;color:var(--text);line-height:1.5">Синочку 3 рочки, в захваті від трактора! Причеп дуже зручний, їздить довго...</div></td>
-              <td style="font-size:12px;color:var(--text-muted);white-space:nowrap">25.04.2026</td>
-              <td><div class="td-actions"><button class="ta-btn" style="background:var(--green-soft)" title="Схвалити" onclick="approveReview(this)"><svg viewBox="0 0 24 24" style="stroke:var(--green)"><polyline points="20 6 9 17 4 12"/></svg></button><button class="ta-btn danger" title="Відхилити" onclick="rejectReview(this)"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div></td>
-            </tr>
+          <tbody id="reviewsTbody">
+            <tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:24px">Поки що немає відгуків</td></tr>
           </tbody>
         </table>
       </div>
@@ -1296,10 +1200,198 @@ function showPanel(id, navEl) {
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('panel-'+id).classList.add('active');
   if(id==='products') renderProductsTable();
+  if(id==='reviews') renderReviewsTable();
+  if(id==='carousel') renderSlidesGrid();
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   if(navEl) navEl.classList.add('active');
   document.getElementById('pageTitle').textContent = pageTitles[id]||id;
   if(window.innerWidth<=900) closeSidebar();
+}
+
+// ── CAROUSEL SLIDES ───────────────────────────────────────────────────────
+const DEFAULT_SLIDES = [
+  { id:'slide-1', title:'Подаруй дитині справжні емоції',                link:'/catalog',          enabled:true, image:'', bg:'linear-gradient(135deg,#1B2A4A,#2d4270)' },
+  { id:'slide-2', title:'Джипи та квадроцикли для справжніх героїв',     link:'/catalog?type=jeep',enabled:true, image:'', bg:'linear-gradient(135deg,#FF6B35,#ff9a6c)' },
+  { id:'slide-3', title:'Пакунок малюка та держпідтримка 7000 грн',       link:'/delivery#payment', enabled:true, image:'', bg:'linear-gradient(135deg,#1B2A4A,#0f1e36)' },
+];
+
+function loadSlides(){
+  let arr;
+  try { arr = JSON.parse(localStorage.getItem('kr_slides') || 'null'); } catch(e) { arr = null; }
+  if (!Array.isArray(arr) || !arr.length) return JSON.parse(JSON.stringify(DEFAULT_SLIDES));
+  // strip any unknown fields, ensure shape
+  return arr.map(s => ({
+    id:      String(s.id || ('slide-' + Math.random().toString(36).slice(2,7))),
+    title:   String(s.title || ''),
+    link:    String(s.link || ''),
+    enabled: s.enabled !== false,
+    image:   typeof s.image === 'string' ? s.image : '',
+    bg:      String(s.bg || 'linear-gradient(135deg,#1B2A4A,#2d4270)'),
+  }));
+}
+function persistSlides(arr){
+  try {
+    localStorage.setItem('kr_slides', JSON.stringify(arr));
+    return true;
+  } catch(e) {
+    showToast('Помилка збереження: фото занадто велике. Спробуйте менше зображення.', 'error');
+    return false;
+  }
+}
+
+let _slides = [];
+let _dragSrcIdx = null;
+
+function renderSlidesGrid(){
+  _slides = loadSlides();
+  const grid = document.getElementById('carouselGrid');
+  if (!grid) return;
+  grid.innerHTML = _slides.map((s, idx) => {
+    const previewBg = s.image
+      ? `background:#000 center/cover no-repeat url('${s.image.replace(/'/g,"\\'")}')`
+      : `background:${s.bg}`;
+    const statusLabel = s.enabled ? 'Активний' : 'Вимкнений';
+    return `
+      <div class="slide-card" draggable="true" data-idx="${idx}"
+           ondragstart="slideDragStart(event,${idx})"
+           ondragover="slideDragOver(event,${idx})"
+           ondragleave="slideDragLeave(event)"
+           ondrop="slideDrop(event,${idx})"
+           ondragend="slideDragEnd(event)">
+        <div class="slide-preview" style="${previewBg}">
+          ${s.image ? '' : `<svg viewBox="0 0 240 160"><rect x="20" y="75" width="200" height="55" rx="14" fill="white" opacity=".2"/><rect x="50" y="40" width="130" height="52" rx="12" fill="white" opacity=".2"/><circle cx="65" cy="132" r="22" fill="white" opacity=".25"/><circle cx="175" cy="132" r="22" fill="white" opacity=".25"/></svg>`}
+          <div class="slide-num">${idx+1}</div>
+          <div class="slide-status"><button class="slide-toggle ${s.enabled?'on':''}" onclick="slideToggle(${idx})" title="Увімк/Вимк"></button></div>
+          <div class="slide-preview-text"><div class="slide-preview-title">${escAdmHtml(s.title || 'Слайд ' + (idx+1))}</div></div>
+        </div>
+        <div class="slide-body">
+          <input class="slide-title-inp" value="${escAdmAttr(s.title)}" placeholder="Заголовок слайду" oninput="slideUpdate(${idx},'title',this.value)">
+          <input class="slide-title-inp" value="${escAdmAttr(s.link)}"  placeholder="Посилання CTA (URL)" oninput="slideUpdate(${idx},'link',this.value)">
+          <div class="slide-footer">
+            <span style="font-size:11px;color:var(--text-muted)">Слайд ${idx+1} · ${statusLabel}</span>
+            <div style="display:flex;gap:6px">
+              <button class="ta-btn" title="Завантажити нове фото" onclick="slideUploadAsk(${idx})"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></button>
+              ${s.image ? `<button class="ta-btn" title="Прибрати фото" onclick="slideClearImage(${idx})"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg></button>` : ''}
+              <button class="ta-btn danger" title="Видалити слайд" onclick="slideDelete(${idx})"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button>
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }).join('') + `
+    <div class="slide-card" style="display:flex;align-items:center;justify-content:center;border:2px dashed var(--border);background:rgba(248,249,252,.6);min-height:200px;cursor:pointer" onclick="slideAddNew()">
+      <div style="text-align:center;color:var(--text-muted)">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:8px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <div style="font-family:'Nunito',sans-serif;font-weight:700;font-size:13px">Додати слайд</div>
+      </div>
+    </div>`;
+}
+
+function escAdmHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function escAdmAttr(s){ return String(s==null?'':s).replace(/"/g,'&quot;').replace(/&/g,'&amp;'); }
+
+function slideToggle(idx){
+  if (!_slides[idx]) return;
+  _slides[idx].enabled = !_slides[idx].enabled;
+  if (persistSlides(_slides)) {
+    renderSlidesGrid();
+    showToast(_slides[idx].enabled ? 'Слайд увімкнено' : 'Слайд вимкнено', 'success');
+  }
+}
+
+function slideUpdate(idx, field, value){
+  if (!_slides[idx]) return;
+  _slides[idx][field] = value;
+  persistSlides(_slides);
+}
+
+function slideDelete(idx){
+  if (!_slides[idx]) return;
+  if (!confirm('Видалити цей слайд?')) return;
+  _slides.splice(idx, 1);
+  if (persistSlides(_slides)) {
+    renderSlidesGrid();
+    showToast('Слайд видалено', 'success');
+  }
+}
+
+function slideClearImage(idx){
+  if (!_slides[idx]) return;
+  _slides[idx].image = '';
+  if (persistSlides(_slides)) { renderSlidesGrid(); showToast('Фото прибрано', 'success'); }
+}
+
+function slideAddNew(){
+  const palettes = [
+    'linear-gradient(135deg,#1B2A4A,#2d4270)',
+    'linear-gradient(135deg,#FF6B35,#ff9a6c)',
+    'linear-gradient(135deg,#1B2A4A,#0f1e36)',
+    'linear-gradient(135deg,#27AE60,#1e8449)',
+    'linear-gradient(135deg,#3B4A8A,#5b6ec1)',
+  ];
+  const newId = 'slide-' + Date.now().toString(36);
+  _slides.push({
+    id: newId, title: 'Новий слайд', link: '/catalog',
+    enabled: true, image: '', bg: palettes[_slides.length % palettes.length],
+  });
+  if (persistSlides(_slides)) { renderSlidesGrid(); showToast('Слайд додано', 'success'); }
+}
+
+function slideUploadAsk(idx){
+  const inp = document.getElementById('slideUploadInput');
+  inp.value = '';
+  inp.onchange = function(){ slideHandleFile(idx, inp.files && inp.files[0]); };
+  inp.click();
+}
+
+function slideHandleFile(idx, file){
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { showToast('Файл має бути зображенням', 'error'); return; }
+  if (file.size > 2 * 1024 * 1024) { showToast('Розмір фото має бути до 2 МБ', 'error'); return; }
+  const reader = new FileReader();
+  reader.onload = function(e){
+    if (!_slides[idx]) return;
+    _slides[idx].image = e.target.result; // base64 dataURL
+    if (persistSlides(_slides)) {
+      renderSlidesGrid();
+      showToast('Фото збережено', 'success');
+    }
+  };
+  reader.onerror = function(){ showToast('Помилка читання файлу', 'error'); };
+  reader.readAsDataURL(file);
+}
+
+// ── DRAG & DROP REORDER ───────────────────────────────────────────────────
+function slideDragStart(e, idx){
+  _dragSrcIdx = idx;
+  e.dataTransfer.effectAllowed = 'move';
+  try { e.dataTransfer.setData('text/plain', String(idx)); } catch(err) {}
+  e.currentTarget.style.opacity = '0.4';
+}
+function slideDragOver(e, idx){
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  e.currentTarget.style.outline = '2px dashed var(--orange)';
+}
+function slideDragLeave(e){
+  e.currentTarget.style.outline = '';
+}
+function slideDrop(e, idx){
+  e.preventDefault();
+  e.currentTarget.style.outline = '';
+  if (_dragSrcIdx === null || _dragSrcIdx === idx) return;
+  const moved = _slides.splice(_dragSrcIdx, 1)[0];
+  _slides.splice(idx, 0, moved);
+  if (persistSlides(_slides)) { renderSlidesGrid(); showToast('Порядок змінено', 'success'); }
+  _dragSrcIdx = null;
+}
+function slideDragEnd(e){
+  e.currentTarget.style.opacity = '';
+  document.querySelectorAll('.slide-card').forEach(c => c.style.outline = '');
+  _dragSrcIdx = null;
+}
+
+function slidesSaveAll(){
+  if (persistSlides(_slides)) showToast('Зміни збережено', 'success');
 }
 
 // ── SIDEBAR MOBILE ────────────────────────────────────────────────────────
@@ -1459,16 +1551,47 @@ function toggleAutoSync(btn){
 }
 
 // ── REVIEWS ───────────────────────────────────────────────────────────────
-function approveReview(btn){
-  btn.closest('tr').style.opacity='.4';
-  btn.closest('tr').style.transition='opacity .3s';
-  setTimeout(()=>btn.closest('tr').remove(),350);
-  showToast('Відгук схвалено і опубліковано','success');
+function _krLoadReviews(){
+  try{ return JSON.parse(localStorage.getItem('kr_reviews')||'[]'); }
+  catch(e){ return []; }
 }
-function rejectReview(btn){
-  btn.closest('tr').style.opacity='.4';
-  setTimeout(()=>btn.closest('tr').remove(),350);
-  showToast('Відгук відхилено','error');
+function _krSaveReviews(arr){ localStorage.setItem('kr_reviews', JSON.stringify(arr)); }
+function _krEsc(s){ return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function _krFmtDate(iso){
+  const d = new Date(iso);
+  const pad = n => String(n).padStart(2,'0');
+  return pad(d.getDate()) + '.' + pad(d.getMonth()+1) + '.' + d.getFullYear();
+}
+function _krStarsTxt(n){
+  return '★★★★★☆☆☆☆☆'.slice(5-n, 10-n);
+}
+function renderReviewsTable(){
+  const tbody = document.getElementById('reviewsTbody');
+  const label = document.getElementById('reviewsCountLabel');
+  if(!tbody) return;
+  const all = _krLoadReviews().slice().sort((a,b)=> new Date(b.date) - new Date(a.date));
+  if(label) label.textContent = all.length ? ('(' + all.length + ')') : 'покупців';
+  if(!all.length){
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:24px">Поки що немає відгуків</td></tr>';
+    return;
+  }
+  tbody.innerHTML = all.map(r => `
+    <tr data-id="${_krEsc(r.id)}">
+      <td><div style="font-weight:600">${_krEsc(r.name)}</div>${r.city?'<div style="font-size:11px;color:var(--text-muted)">'+_krEsc(r.city)+'</div>':''}</td>
+      <td style="font-size:12px">${_krEsc(r.product || '—')}</td>
+      <td><div style="color:#f59e0b;font-size:14px;letter-spacing:1px">${_krStarsTxt(r.rating||0)}</div></td>
+      <td style="max-width:280px"><div style="font-size:12px;color:var(--text);line-height:1.5">${_krEsc(r.text)}</div></td>
+      <td style="font-size:12px;color:var(--text-muted);white-space:nowrap">${_krFmtDate(r.date)}</td>
+      <td><div class="td-actions"><button class="ta-btn danger" title="Видалити" onclick="deleteReview('${_krEsc(r.id)}')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button></div></td>
+    </tr>
+  `).join('');
+}
+function deleteReview(id){
+  if(!confirm('Видалити цей відгук? Дію не можна скасувати.')) return;
+  const arr = _krLoadReviews().filter(r => r.id !== id);
+  _krSaveReviews(arr);
+  renderReviewsTable();
+  showToast('Відгук видалено','error');
 }
 
 // ── TOAST ─────────────────────────────────────────────────────────────────

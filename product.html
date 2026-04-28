@@ -727,6 +727,8 @@ nav a.active{color:var(--orange)}
         </div>
       </div>
 
+      <div id="userReviewsList"></div>
+
       <div class="review-item">
         <div class="rev-head">
           <div class="rev-avatar">О</div>
@@ -902,10 +904,11 @@ nav a.active{color:var(--orange)}
         <svg class="pick-star" viewBox="0 0 24 24" style="width:28px;height:28px;stroke:#d1d5db;fill:#d1d5db" onclick="pickStar(5)"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
       </div>
     </div>
-    <input type="text" placeholder="Ваше ім'я *" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:9px;font-family:'Manrope',sans-serif;font-size:14px;margin-bottom:10px;outline:none" onfocus="this.style.borderColor='var(--orange)'" onblur="this.style.borderColor='var(--border)'">
-    <textarea placeholder="Ваш відгук *" rows="4" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:9px;font-family:'Manrope',sans-serif;font-size:14px;margin-bottom:14px;outline:none;resize:vertical" onfocus="this.style.borderColor='var(--orange)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+    <input id="revName" type="text" placeholder="Ваше ім'я *" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:9px;font-family:'Manrope',sans-serif;font-size:14px;margin-bottom:10px;outline:none" onfocus="this.style.borderColor='var(--orange)'" onblur="this.style.borderColor='var(--border)'">
+    <input id="revCity" type="text" placeholder="Ваше місто" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:9px;font-family:'Manrope',sans-serif;font-size:14px;margin-bottom:10px;outline:none" onfocus="this.style.borderColor='var(--orange)'" onblur="this.style.borderColor='var(--border)'">
+    <textarea id="revText" placeholder="Ваш відгук *" rows="4" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:9px;font-family:'Manrope',sans-serif;font-size:14px;margin-bottom:14px;outline:none;resize:vertical" onfocus="this.style.borderColor='var(--orange)'" onblur="this.style.borderColor='var(--border)'"></textarea>
     <button onclick="submitReview()" class="btn btn-primary btn-full">Надіслати відгук</button>
-    <p style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:8px">Відгук з'явиться після модерації</p>
+    <p style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:8px">Ваш відгук з'явиться на сторінці одразу</p>
   </div>
 </div>
 
@@ -1042,9 +1045,81 @@ function closeReview() {
   document.getElementById('reviewModal').style.display = 'none';
   document.body.style.overflow = '';
 }
+function getProductKey(){
+  try{
+    const m = new URLSearchParams(window.location.search).get('model');
+    return (m && m.trim()) ? m.trim() : 'default';
+  }catch(e){ return 'default'; }
+}
+function escHtml(s){ return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function loadAllReviews(){
+  try{ return JSON.parse(localStorage.getItem('kr_reviews')||'[]'); }catch(e){ return []; }
+}
+function saveAllReviews(arr){
+  localStorage.setItem('kr_reviews', JSON.stringify(arr));
+}
+function formatRevDate(iso){
+  const d = new Date(iso);
+  const months = ['січня','лютого','березня','квітня','травня','червня','липня','серпня','вересня','жовтня','листопада','грудня'];
+  return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+}
+function starsSvg(n){
+  let html='';
+  for(let i=0;i<n;i++) html+='<svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+  return html;
+}
+function renderUserReviews(){
+  const list = document.getElementById('userReviewsList');
+  if(!list) return;
+  const product = getProductKey();
+  const all = loadAllReviews().filter(r => r.product === product);
+  // newest first
+  all.sort((a,b) => new Date(b.date) - new Date(a.date));
+  list.innerHTML = all.map(r => {
+    const initial = (r.name || '?').trim().charAt(0).toUpperCase();
+    const cityLine = (r.city ? escHtml(r.city) + ' · ' : '') + formatRevDate(r.date);
+    return `
+      <div class="review-item">
+        <div class="rev-head">
+          <div class="rev-avatar" style="background:linear-gradient(135deg,#FF6B35,#ff9a6c)">${escHtml(initial)}</div>
+          <div>
+            <div class="rev-name">${escHtml(r.name)}</div>
+            <div class="rev-date">${cityLine}</div>
+          </div>
+          <div class="rev-stars">${starsSvg(r.rating)}</div>
+        </div>
+        <p class="rev-text">${escHtml(r.text)}</p>
+      </div>
+    `;
+  }).join('');
+}
 function submitReview() {
+  const name = (document.getElementById('revName').value || '').trim();
+  const city = (document.getElementById('revCity').value || '').trim();
+  const text = (document.getElementById('revText').value || '').trim();
+  if (!pickedStars) { showToast('Будь ласка, поставте оцінку'); return; }
+  if (!name)         { showToast("Будь ласка, вкажіть ім'я"); return; }
+  if (!text)         { showToast('Будь ласка, напишіть відгук'); return; }
+
+  const all = loadAllReviews();
+  all.push({
+    id: 'r_' + Date.now() + '_' + Math.random().toString(36).slice(2,8),
+    product: getProductKey(),
+    name, city, text,
+    rating: pickedStars,
+    date: new Date().toISOString()
+  });
+  saveAllReviews(all);
+
+  // reset form
+  document.getElementById('revName').value = '';
+  document.getElementById('revCity').value = '';
+  document.getElementById('revText').value = '';
+  pickStar(0);
+
   closeReview();
-  showToast('✓ Відгук надіслано на модерацію');
+  renderUserReviews();
+  showToast('✓ Дякуємо! Ваш відгук опубліковано');
 }
 
 // Star picker
@@ -1056,6 +1131,9 @@ function pickStar(n) {
     s.style.stroke = i < n ? '#f59e0b' : '#d1d5db';
   });
 }
+
+// Initial render of any saved user reviews for this product
+document.addEventListener('DOMContentLoaded', renderUserReviews);
 
 // Close modals on overlay click
 document.getElementById('quickModal').addEventListener('click', function(e) { if(e.target===this) closeQuick(); });
