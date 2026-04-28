@@ -155,43 +155,7 @@ a{text-decoration:none;color:inherit}
 @keyframes modalIn{from{opacity:0;transform:scale(.93) translateY(16px)}to{opacity:1;transform:scale(1) translateY(0)}}
 @keyframes spin{to{transform:rotate(360deg)}}
 </style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-const { createClient } = supabase;
-const _sb = createClient('https://xczrzdbikkycgpnvolib.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ');
 
-// Перевірити чи вже залогінений
-async function checkExistingSession() {
-  const { data: { session } } = await _sb.auth.getSession();
-  if (session) {
-    // Перевірити чи адмін
-    const isAdm = await checkIsAdmin(session.access_token);
-    if (isAdm) {
-      window.location.href = 'admin.html';
-      return;
-    }
-  }
-}
-
-// Перевірити роль адміна
-async function checkIsAdmin(token) {
-  try {
-    const res = await fetch('https://xczrzdbikkycgpnvolib.supabase.co/rest/v1/user_roles?select=role&limit=1', {
-      headers: {
-        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ',
-        'Authorization': 'Bearer ' + token
-      }
-    });
-    const data = await res.json();
-    return Array.isArray(data) && data.length > 0 && data[0].role === 'admin';
-  } catch(e) {
-    return false;
-  }
-}
-
-// Запустити при завантаженні
-window.addEventListener('DOMContentLoaded', checkExistingSession);
-</script>
 </head>
 <body>
 
@@ -617,5 +581,150 @@ document.getElementById('forgotModal').addEventListener('click', e => {
 const urlParams = new URLSearchParams(window.location.search);
 if (urlParams.get('tab') === 'register') switchTab('register');
 </script>
+
+<script>
+// ── SUPABASE AUTH ──────────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://xczrzdbikkycgpnvolib.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
+
+// Ініціалізація Supabase через REST API (без SDK — щоб працювало скрізь)
+const _sb = {
+
+  // Вхід через email/пароль
+  async signIn(email, password) {
+    const res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error_description || data.msg || 'Помилка входу');
+    return data; // { access_token, user, ... }
+  },
+
+  // Перевірити сесію з localStorage
+  getSession() {
+    try {
+      const s = localStorage.getItem('kr_admin_session');
+      if (!s) return null;
+      const session = JSON.parse(s);
+      // Перевірити чи не протермінована
+      if (session.expires_at && Date.now() / 1000 > session.expires_at) {
+        localStorage.removeItem('kr_admin_session');
+        return null;
+      }
+      return session;
+    } catch(e) { return null; }
+  },
+
+  // Зберегти сесію
+  saveSession(data) {
+    const session = {
+      access_token: data.access_token,
+      user: data.user,
+      expires_at: Math.floor(Date.now() / 1000) + (data.expires_in || 3600)
+    };
+    localStorage.setItem('kr_admin_session', JSON.stringify(session));
+    return session;
+  },
+
+  // Вихід
+  signOut() {
+    localStorage.removeItem('kr_admin_session');
+  }
+};
+
+// Перевірити чи є роль адміна в Supabase
+async function checkIsAdmin(token) {
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/user_roles?select=role&limit=1', {
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + token
+      }
+    });
+    if (!res.ok) return false;
+    const data = await res.json();
+    return Array.isArray(data) && data.length > 0 && data[0].role === 'admin';
+  } catch(e) {
+    console.warn('checkIsAdmin error:', e);
+    return false;
+  }
+}
+
+// Перевірити існуючу сесію при завантаженні
+async function checkExistingSession() {
+  const session = _sb.getSession();
+  if (!session) return; // Не залогінений — залишитись на auth.html
+
+  // Є сесія — перевірити чи адмін
+  const isAdm = await checkIsAdmin(session.access_token);
+  if (isAdm) {
+    window.location.href = 'admin.html';
+  }
+  // Якщо не адмін — залишитись на auth.html (для звичайних покупців)
+}
+
+// Логін
+async function submitLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pwd   = document.getElementById('loginPwd').value;
+  const btn   = document.getElementById('loginBtn');
+  const errEl = document.getElementById('loginError');
+
+  if (errEl) errEl.style.display = 'none';
+
+  if (!email || !pwd) {
+    if (errEl) { errEl.textContent = 'Введіть email та пароль'; errEl.style.display = 'block'; }
+    return;
+  }
+
+  // Показати loader
+  const origHTML = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<div style="width:18px;height:18px;border:2px solid rgba(255,255,255,.4);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;display:inline-block;vertical-align:middle;margin-right:8px"></div>Вхід...';
+
+  try {
+    // 1. Увійти через Supabase Auth
+    const data = await _sb.signIn(email, pwd);
+
+    // 2. Зберегти сесію
+    const session = _sb.saveSession(data);
+
+    // 3. Перевірити чи адмін
+    const isAdm = await checkIsAdmin(session.access_token);
+
+    if (isAdm) {
+      // Адмін → в адмін панель
+      btn.innerHTML = '✅ Вхід успішний! Переходимо...';
+      btn.style.background = 'var(--green)';
+      setTimeout(() => window.location.href = 'admin.html', 800);
+    } else {
+      // Звичайний користувач → на головну
+      btn.innerHTML = '✅ Ласкаво просимо!';
+      btn.style.background = 'var(--green)';
+      setTimeout(() => window.location.href = 'index.html', 800);
+    }
+
+  } catch(e) {
+    btn.disabled = false;
+    btn.innerHTML = origHTML;
+    if (errEl) {
+      const msg = e.message.includes('Invalid') || e.message.includes('invalid')
+        ? '❌ Невірний email або пароль'
+        : '❌ ' + e.message;
+      errEl.textContent = msg;
+      errEl.style.display = 'block';
+    }
+  }
+}
+
+// Перевірити сесію при завантаженні
+window.addEventListener('DOMContentLoaded', checkExistingSession);
+</script>
+
 </body>
 </html>
