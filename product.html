@@ -1258,7 +1258,7 @@ document.addEventListener('keydown', e => {
 });
 
 // ── Динамічне завантаження товару (галерея + варіанти кольору) — KidsRide v3.1 ──
-console.log('[KidsRide] product.html v3.4 — захист від блимання кружечків (CSS + no-cache)');
+console.log('[KidsRide] product.html v3.5 — групування кольорів за полем model_code');
 (async function loadFullProduct(){
   try{
     // Літерали Supabase (не залежимо від KR — щоб працювало навіть до завантаження shared.js)
@@ -1280,6 +1280,7 @@ console.log('[KidsRide] product.html v3.4 — захист від блиманн
       const cnorm = {
         id: cached.id,
         sku: cached.sku,
+        model_code: cached.model_code ?? cached.modelCode ?? null,
         name: cached.name,
         brand: cached.brand,
         price: cached.price,
@@ -1290,24 +1291,40 @@ console.log('[KidsRide] product.html v3.4 — захист від блиманн
         active: cached.active
       };
       applyProductData(cnorm);
-      if (cnorm.sku) buildColorVariants(cnorm.sku, cnorm.id, SUPA_URL, SUPA_KEY);
+      if (cnorm.sku || cnorm.model_code) buildColorVariants(cnorm.sku, cnorm.id, SUPA_URL, SUPA_KEY, cnorm.model_code);
     }
 
     if (!id) return;
 
     // ─ Точний рендер з БД (перекриває кеш найсвіжішими даними) ─
     const r = await fetch(SUPA_URL + '/rest/v1/products?id=eq.' + encodeURIComponent(id)
-      + '&select=id,sku,name,brand,price,old_price,stock,badge,images,active', {
+      + '&select=id,sku,model_code,name,brand,price,old_price,stock,badge,images,active', {
       headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
     });
-    if (!r.ok) { console.warn('[KidsRide] fetch product failed:', r.status); return; }
+    if (!r.ok) {
+      console.warn('[KidsRide] fetch product failed:', r.status);
+      // Якщо PostgREST скаржиться, що нема колонки model_code — спробуємо без неї
+      if (r.status === 400) {
+        const r2 = await fetch(SUPA_URL + '/rest/v1/products?id=eq.' + encodeURIComponent(id)
+          + '&select=id,sku,name,brand,price,old_price,stock,badge,images,active', {
+          headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
+        });
+        if (!r2.ok) return;
+        const arr2 = await r2.json();
+        const p2 = Array.isArray(arr2) && arr2[0];
+        if (!p2) return;
+        applyProductData(p2);
+        if (p2.sku) await buildColorVariants(p2.sku, p2.id, SUPA_URL, SUPA_KEY, null);
+      }
+      return;
+    }
     const arr = await r.json();
     const p = Array.isArray(arr) && arr[0];
     if (!p) { console.warn('[KidsRide] product not found in DB:', id); return; }
-    console.log('[KidsRide] product loaded:', { sku: p.sku, name: p.name, images: Array.isArray(p.images) ? p.images.length : 0 });
+    console.log('[KidsRide] product loaded:', { sku: p.sku, model_code: p.model_code, name: p.name, images: Array.isArray(p.images) ? p.images.length : 0 });
 
     applyProductData(p);
-    if (p.sku) await buildColorVariants(p.sku, p.id, SUPA_URL, SUPA_KEY);
+    if (p.sku || p.model_code) await buildColorVariants(p.sku, p.id, SUPA_URL, SUPA_KEY, p.model_code);
   } catch(e){ console.warn('[KidsRide] loadFullProduct error:', e); }
 })();
 
@@ -1474,41 +1491,73 @@ function extractColorName(name){
   return '';
 }
 
-// Кольорові варіанти за префіксом артикула: "M 4259EBLR-1" → шукає "M 4259EBLR-*"
-async function buildColorVariants(currentSku, currentId, supaUrl, supaKey){
+// Кольорові варіанти:
+//   1) Якщо у товару заповнено model_code — шукає всі товари з тим самим model_code
+//      (це дозволяє об'єднати, наприклад, M 4259EBLR-1/-2/-3 і M 4259EBLRS-3 через код "4259").
+//   2) Якщо model_code порожній — fallback на старий пошук за префіксом артикула:
+//      "M 4259EBLR-1" → "M 4259EBLR-*".
+async function buildColorVariants(currentSku, currentId, supaUrl, supaKey, modelCode){
   // Дозволяємо викликати без явних креденшіалів — беремо з KR або літералів
   supaUrl = supaUrl || (window.KR && KR._SUPA_URL) || 'https://xczrzdbikkycgpnvolib.supabase.co';
   supaKey = supaKey || (window.KR && KR._SUPA_KEY) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
 
-  const m = String(currentSku).match(/^(.*?)-(\d+)\s*$/);
-  if (!m) return; // нема цифрового суфікса — варіантів нема
-  const prefix = m[1].trim();
-  if (!prefix) return;
+  const code = (modelCode == null ? '' : String(modelCode)).trim();
+  let arr = null;
+  let usedStrategy = '';
 
-  // PostgREST: ilike з '*' замість '%'
-  const pattern = prefix + '-*';
-  const qs = 'products?sku=ilike.' + encodeURIComponent(pattern)
-    + '&active=eq.true'
-    + '&select=id,sku,name,images,stock';
-  let arr;
-  try{
-    const r = await fetch(supaUrl + '/rest/v1/' + qs, {
-      headers: { 'apikey': supaKey, 'Authorization': 'Bearer ' + supaKey }
-    });
-    if (!r.ok) return;
-    arr = await r.json();
-  } catch(e){ return; }
+  // ── Стратегія 1: за model_code (якщо є) ────────────────────────────────
+  if (code){
+    const qs = 'products?model_code=eq.' + encodeURIComponent(code)
+      + '&active=eq.true'
+      + '&select=id,sku,model_code,name,images,stock';
+    try{
+      const r = await fetch(supaUrl + '/rest/v1/' + qs, {
+        headers: { 'apikey': supaKey, 'Authorization': 'Bearer ' + supaKey }
+      });
+      if (r.ok){
+        arr = await r.json();
+        usedStrategy = 'model_code=' + code;
+      } else if (r.status === 400){
+        // Колонки ще нема — мовчки переходимо на fallback
+        console.warn('[KidsRide] model_code column not found in DB — fallback на префікс артикула');
+      }
+    } catch(e){ /* мережа — підемо у fallback */ }
+  }
+
+  // ── Стратегія 2: fallback за префіксом артикула ────────────────────────
+  if (!Array.isArray(arr) || arr.length === 0){
+    const m = String(currentSku || '').match(/^(.*?)-(\d+)\s*$/);
+    if (!m) return;
+    const prefix = m[1].trim();
+    if (!prefix) return;
+    const pattern = prefix + '-*';
+    const qs = 'products?sku=ilike.' + encodeURIComponent(pattern)
+      + '&active=eq.true'
+      + '&select=id,sku,model_code,name,images,stock';
+    try{
+      const r = await fetch(supaUrl + '/rest/v1/' + qs, {
+        headers: { 'apikey': supaKey, 'Authorization': 'Bearer ' + supaKey }
+      });
+      if (!r.ok) return;
+      arr = await r.json();
+      usedStrategy = 'sku ilike ' + pattern;
+    } catch(e){ return; }
+    // Для fallback залишаємо стару фільтрацію за числовим суфіксом
+    if (Array.isArray(arr)) arr = arr.filter(v => /-(\d+)\s*$/.test(String(v.sku||'')));
+  }
+
   if (!Array.isArray(arr)) return;
-  console.log('[KidsRide] color variants found:', arr.length, 'for prefix', prefix);
+  console.log('[KidsRide] color variants found:', arr.length, 'via', usedStrategy);
+  if (arr.length <= 1) return;
 
-  // Тільки ті, що мають числовий суфікс після останнього '-'
-  arr = arr.filter(v => /-(\d+)\s*$/.test(String(v.sku||'')));
-  if (arr.length <= 1) return; // лише сам товар — нема сенсу показувати
-
-  // Сортуємо за числовим суфіксом
+  // Сортуємо: спершу за SKU цілком (літери), потім за числовим суфіксом, щоб
+  // M 4259EBLR-1, -2, -3, потім M 4259EBLRS-3 ішли в логічному порядку.
   arr.sort((a, b) => {
-    const na = parseInt((String(a.sku).match(/-(\d+)\s*$/)||[])[1] || '0', 10);
-    const nb = parseInt((String(b.sku).match(/-(\d+)\s*$/)||[])[1] || '0', 10);
+    const sa = String(a.sku || ''), sb = String(b.sku || '');
+    const ba = sa.replace(/-(\d+)\s*$/, ''), bb = sb.replace(/-(\d+)\s*$/, '');
+    if (ba !== bb) return ba.localeCompare(bb);
+    const na = parseInt((sa.match(/-(\d+)\s*$/)||[])[1] || '0', 10);
+    const nb = parseInt((sb.match(/-(\d+)\s*$/)||[])[1] || '0', 10);
     return na - nb;
   });
 
