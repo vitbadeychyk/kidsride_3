@@ -306,19 +306,86 @@ const KR = {
     this.go('checkout');
   },
 
-  // ── ANALYTICS (local tracking) ────────────────────────────────────────────
+  // ── ANALYTICS (local + Supabase tracking) ────────────────────────────────
+  _SUPA_URL: 'https://xczrzdbikkycgpnvolib.supabase.co',
+  _SUPA_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ',
+
+  _visitorId() {
+    let v = localStorage.getItem('kr_visitor_id');
+    if (!v) { v = 'v_' + Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem('kr_visitor_id', v); }
+    return v;
+  },
+  _sessionId() {
+    let s = sessionStorage.getItem('kr_session_id');
+    if (!s) { s = 's_' + Math.random().toString(36).slice(2) + Date.now().toString(36); sessionStorage.setItem('kr_session_id', s); }
+    return s;
+  },
+  _detectDevice() {
+    const ua = navigator.userAgent.toLowerCase();
+    if (/ipad|tablet|playbook|silk|kindle/.test(ua)) return 'tablet';
+    if (/mobi|iphone|ipod|android.*mobile|blackberry|phone/.test(ua)) return 'mobile';
+    return 'desktop';
+  },
+  _detectSource() {
+    const ref = document.referrer || '';
+    if (!ref) return 'direct';
+    try {
+      const h = new URL(ref).hostname.replace(/^www\./,'');
+      const here = window.location.hostname.replace(/^www\./,'');
+      if (h === here) return 'direct';
+      if (/google\./.test(h)) return 'google';
+      if (/instagram\.com/.test(h)) return 'instagram';
+      if (/facebook\.com|fb\./.test(h)) return 'facebook';
+      if (/youtube\.com|youtu\.be/.test(h)) return 'youtube';
+      if (/tiktok\.com/.test(h)) return 'tiktok';
+      if (/bing\./.test(h)) return 'bing';
+      return h;
+    } catch { return 'direct'; }
+  },
+
   trackVisit() {
+    // Локальна копія (як було)
     try {
       const visits = JSON.parse(localStorage.getItem('kr_visits') || '[]');
-      visits.push({
-        page: window.location.pathname,
-        ts: Date.now(),
-        ref: document.referrer,
-        ua: navigator.userAgent.substring(0, 80),
-      });
-      // Зберігати тільки останні 500 візитів
+      visits.push({ page: window.location.pathname, ts: Date.now(), ref: document.referrer });
       if (visits.length > 500) visits.splice(0, visits.length - 500);
       localStorage.setItem('kr_visits', JSON.stringify(visits));
+    } catch {}
+
+    // Не логуємо адмін-сторінки
+    const path = window.location.pathname || '/';
+    if (/^\/?(admin|auth)/i.test(path) || /admin\.html|auth\.html/i.test(path)) return;
+
+    // Анти-дубль за 10 секунд для тієї ж сторінки в межах сесії
+    try {
+      const key = 'kr_pv_last_' + path;
+      const last = Number(sessionStorage.getItem(key) || 0);
+      if (Date.now() - last < 10000) return;
+      sessionStorage.setItem(key, String(Date.now()));
+    } catch {}
+
+    const payload = {
+      path,
+      referrer: document.referrer || null,
+      source: this._detectSource(),
+      device: this._detectDevice(),
+      visitor_id: this._visitorId(),
+      session_id: this._sessionId(),
+      ua: (navigator.userAgent || '').slice(0, 200)
+    };
+
+    try {
+      fetch(this._SUPA_URL + '/rest/v1/page_views', {
+        method: 'POST',
+        keepalive: true,
+        headers: {
+          'apikey': this._SUPA_KEY,
+          'Authorization': 'Bearer ' + this._SUPA_KEY,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify(payload)
+      }).catch(()=>{});
     } catch {}
   },
 

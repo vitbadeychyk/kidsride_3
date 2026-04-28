@@ -1627,7 +1627,9 @@ function _krApplySlides(saved){
 
 // Hero Swiper
 let heroIdx = 0;
-const heroSwiper = new Swiper('.swiper-hero', {
+// Зберігаємо посилання на window, щоб пересоздання у applySlideSettings()
+// не лишало стрілки "в сторони" прив'язаними до знищеного екземпляра.
+window.heroSwiper = new Swiper('.swiper-hero', {
   loop: true,
   autoplay: { delay: 5500, disableOnInteraction: false },
   speed: 900,
@@ -1641,12 +1643,12 @@ const heroSwiper = new Swiper('.swiper-hero', {
 // Wire pagination clicks after Swiper exists
 if (pag) {
   pag.querySelectorAll('.hp-dot').forEach((d) => {
-    d.addEventListener('click', () => heroSwiper.slideToLoop(Number(d.dataset.index)));
+    d.addEventListener('click', () => window.heroSwiper && window.heroSwiper.slideToLoop(Number(d.dataset.index)));
   });
 }
 
-document.getElementById('heroPrev').onclick = () => heroSwiper.slidePrev();
-document.getElementById('heroNext').onclick = () => heroSwiper.slideNext();
+document.getElementById('heroPrev').onclick = () => window.heroSwiper && window.heroSwiper.slidePrev();
+document.getElementById('heroNext').onclick = () => window.heroSwiper && window.heroSwiper.slideNext();
 document.getElementById('heroPrev').onmouseenter = function(){ this.style.background = 'rgba(255,255,255,.22)'; }
 document.getElementById('heroPrev').onmouseleave = function(){ this.style.background = 'rgba(255,255,255,.12)'; }
 document.getElementById('heroNext').onmouseenter = function(){ this.style.background = 'rgba(255,255,255,.22)'; }

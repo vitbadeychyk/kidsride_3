@@ -1089,8 +1089,125 @@ function updateProgress(completedStep) {
   });
 }
 
+// ── SUPABASE CONFIG ────────────────────────────────────────────────────────
+const SUPA_URL = 'https://xczrzdbikkycgpnvolib.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
+
+// Який варіант доставки активний (warehouse / postomat / address)
+function getActiveDeliveryType() {
+  const active = document.querySelector('.delivery-tabs .dt-btn.active');
+  if (!active) return 'warehouse';
+  const onclick = active.getAttribute('onclick') || '';
+  const m = onclick.match(/setDeliveryType\('([^']+)'/);
+  return m ? m[1] : 'warehouse';
+}
+
+function buildOrderPayload(){
+  const firstName = document.getElementById('firstName').value.trim();
+  const lastName  = document.getElementById('lastName').value.trim();
+  const phone     = document.getElementById('phone').value.trim();
+  const email     = (document.getElementById('email')?.value || '').trim();
+  const comment   = (document.getElementById('comment')?.value || '').trim();
+
+  const deliveryType = getActiveDeliveryType();
+  let delivery_city = '', delivery_city_ref = '', delivery_warehouse = '',
+      delivery_warehouse_number = '', delivery_address = '';
+
+  if (deliveryType === 'address') {
+    delivery_city = (document.getElementById('addrCityInput')?.value || '').trim();
+    const street    = (document.getElementById('street')?.value || '').trim();
+    const house     = (document.getElementById('house')?.value || '').trim();
+    const flat      = (document.getElementById('flat')?.value || '').trim();
+    const floor     = (document.getElementById('floor')?.value || '').trim();
+    const intercom  = (document.getElementById('intercom')?.value || '').trim();
+    const addrCmt   = (document.getElementById('addrComment')?.value || '').trim();
+    delivery_address = [
+      street && ('вул. ' + street),
+      house  && ('буд. ' + house),
+      flat   && ('кв. '  + flat),
+      floor  && ('пов. ' + floor),
+      intercom && ('код ' + intercom),
+      addrCmt
+    ].filter(Boolean).join(', ');
+  } else {
+    if (typeof cityData !== 'undefined' && cityData?.selected) {
+      delivery_city     = cityData.selected.Description || '';
+      delivery_city_ref = cityData.ref || cityData.selected.Ref || '';
+    }
+    if (typeof warehouseData !== 'undefined' && warehouseData?.selected) {
+      delivery_warehouse        = warehouseData.selected.Description || '';
+      delivery_warehouse_number = warehouseData.selected.Number || '';
+    }
+  }
+
+  const cart = (window.KR && KR.getCart) ? KR.getCart() : [];
+  const subtotal = cart.reduce((s,i) => s + Number(i.price||0) * Number(i.qty||1), 0);
+  const total    = subtotal; // доставка/знижки можна додати тут
+
+  // Локальний номер замовлення для відображення (БД може мати власний)
+  const d = new Date();
+  const ymd = d.getFullYear().toString().slice(-2)
+            + String(d.getMonth()+1).padStart(2,'0')
+            + String(d.getDate()).padStart(2,'0');
+  const order_number = 'KR-' + ymd + '-' + String(Math.floor(Math.random()*9000)+1000);
+
+  const order = {
+    order_number,
+    customer_first_name: firstName,
+    customer_last_name : lastName,
+    customer_phone     : phone,
+    customer_email     : email || null,
+    delivery_type: deliveryType,
+    delivery_city,
+    delivery_city_ref,
+    delivery_warehouse,
+    delivery_warehouse_number,
+    delivery_address,
+    payment_method: selectedPay,
+    payment_method_label: getPayName(),
+    comment,
+    subtotal,
+    total,
+    items_count: cart.reduce((s,i) => s + Number(i.qty||1), 0),
+    status: 'Новий'
+  };
+
+  const items = cart.map(i => ({
+    product_id    : String(i.id || ''),
+    product_name  : String(i.name || ''),
+    product_brand : String(i.brand || ''),
+    product_image : String(i.img || ''),
+    color         : String(i.color || ''),
+    price         : Number(i.price || 0),
+    quantity      : Number(i.qty || 1),
+    subtotal      : Number(i.price || 0) * Number(i.qty || 1)
+  }));
+
+  return { order, items, cart };
+}
+
+async function _supaInsert(table, body, returnRepresentation=false){
+  const headers = {
+    'apikey': SUPA_KEY,
+    'Authorization': 'Bearer ' + SUPA_KEY,
+    'Content-Type': 'application/json'
+  };
+  if (returnRepresentation) headers['Prefer'] = 'return=representation';
+  const res = await fetch(SUPA_URL + '/rest/v1/' + table, {
+    method: 'POST', headers, body: JSON.stringify(body)
+  });
+  if (!res.ok) {
+    const txt = await res.text().catch(()=> '');
+    throw new Error('Supabase ' + table + ': ' + res.status + ' ' + txt.slice(0, 220));
+  }
+  if (returnRepresentation) {
+    try { return await res.json(); } catch { return null; }
+  }
+  return null;
+}
+
 // ── SUBMIT ─────────────────────────────────────────────────────────────────
-function submitOrder() {
+async function submitOrder() {
   const firstName = document.getElementById('firstName').value.trim();
   const lastName = document.getElementById('lastName').value.trim();
   const phone = document.getElementById('phone').value.trim();
@@ -1099,16 +1216,45 @@ function submitOrder() {
   if (phone.replace(/\D/g,'').length !== 12) { document.getElementById('phone').focus(); showShake('phone'); return; }
   if (!termsAccepted) { showToast('Будь ласка, погодьтесь з умовами'); return; }
 
+  const cartCheck = (window.KR && KR.getCart) ? KR.getCart() : [];
+  if (!cartCheck.length) { showToast('Кошик порожній'); return; }
+
   const btn = document.getElementById('submitBtn');
+  const originalHTML = btn.innerHTML;
   btn.disabled = true;
   btn.innerHTML = '<div style="width:20px;height:20px;border:2px solid rgba(255,255,255,.4);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite"></div>Оформляємо...';
 
-  setTimeout(() => {
+  try {
+    const { order, items } = buildOrderPayload();
+
+    // 1) INSERT в orders → отримуємо повний рядок (включно з id)
+    const inserted = await _supaInsert('orders', order, true);
+    const created  = Array.isArray(inserted) ? inserted[0] : inserted;
+    if (!created || !created.id) {
+      throw new Error('orders: не отримано id з відповіді Supabase');
+    }
+
+    // 2) INSERT у order_items одним запитом масивом
+    if (items.length) {
+      const withOrderId = items.map(it => ({ ...it, order_id: created.id }));
+      await _supaInsert('order_items', withOrderId, false);
+    }
+
+    // 3) Очистити кошик і показати успіх
+    try { localStorage.setItem('kr_cart', '[]'); window.KR && KR.updateCartBadge && KR.updateCartBadge(); } catch(e) {}
+
     document.getElementById('checkoutPage').style.display = 'none';
     document.getElementById('successPage').style.display = 'block';
     document.getElementById('successPayment').textContent = getPayName();
+    const numEl = document.querySelector('.success-order-row .success-order-val');
+    if (numEl) numEl.textContent = '#' + (created.order_number || order.order_number);
     window.scrollTo({top:0,behavior:'smooth'});
-  }, 1800);
+  } catch (e) {
+    console.error('submitOrder Supabase error:', e);
+    showToast('Не вдалось зберегти замовлення: ' + (e.message || 'помилка'));
+    btn.disabled = false;
+    btn.innerHTML = originalHTML;
+  }
 }
 
 function getPayName() {

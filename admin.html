@@ -461,27 +461,27 @@ tr:hover td{background:rgba(240,242,248,.5)}
       <div class="stats-grid">
         <div class="stat-card orange">
           <div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg></div>
-          <div class="stat-val">18</div>
+          <div class="stat-val" id="dashOrdersToday">—</div>
           <div class="stat-label">Нових замовлень</div>
-          <div class="stat-delta delta-up">+12% до вчора</div>
+          <div class="stat-delta" id="dashOrdersDelta">за сьогодні</div>
         </div>
         <div class="stat-card green">
           <div class="stat-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
-          <div class="stat-val">47 320 ₴</div>
+          <div class="stat-val" id="dashRevenueToday">—</div>
           <div class="stat-label">Виручка сьогодні</div>
-          <div class="stat-delta delta-up">+8% до вчора</div>
+          <div class="stat-delta" id="dashRevenueDelta">за сьогодні</div>
         </div>
         <div class="stat-card blue">
           <div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-          <div class="stat-val">342</div>
+          <div class="stat-val" id="dashVisitorsToday">—</div>
           <div class="stat-label">Відвідувачів</div>
-          <div class="stat-delta delta-up">+23% до вчора</div>
+          <div class="stat-delta" id="dashVisitorsDelta">за сьогодні</div>
         </div>
         <div class="stat-card yellow">
           <div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 2 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div>
-          <div class="stat-val">809</div>
+          <div class="stat-val" id="dashProductsCount">—</div>
           <div class="stat-label">Товарів в каталозі</div>
-          <div class="stat-delta delta-up">+14 нових</div>
+          <div class="stat-delta" id="dashProductsDelta">в каталозі</div>
         </div>
       </div>
 
@@ -506,24 +506,15 @@ tr:hover td{background:rgba(240,242,248,.5)}
           </div>
           <div style="display:flex;align-items:center;gap:20px">
             <div class="donut-chart">
-              <svg viewBox="0 0 36 36">
+              <svg viewBox="0 0 36 36" id="dashPayDonut">
                 <circle cx="18" cy="18" r="15.9" fill="none" stroke="#e5e7f0" stroke-width="3"/>
-                <circle cx="18" cy="18" r="15.9" fill="none" stroke="#FF6B35" stroke-width="3" stroke-dasharray="48 52" stroke-dashoffset="0"/>
-                <circle cx="18" cy="18" r="15.9" fill="none" stroke="#27AE60" stroke-width="3" stroke-dasharray="27 73" stroke-dashoffset="-48"/>
-                <circle cx="18" cy="18" r="15.9" fill="none" stroke="#2196F3" stroke-width="3" stroke-dasharray="15 85" stroke-dashoffset="-75"/>
-                <circle cx="18" cy="18" r="15.9" fill="none" stroke="#F59E0B" stroke-width="3" stroke-dasharray="10 90" stroke-dashoffset="-90"/>
               </svg>
               <div class="donut-center">
-                <div class="donut-val">100</div>
+                <div class="donut-val" id="dashPayTotal">0</div>
                 <div class="donut-lbl">зам.</div>
               </div>
             </div>
-            <div class="donut-legend" style="flex:1">
-              <div class="dl-item"><div class="dl-dot" style="background:#FF6B35"></div><span class="dl-name">ФОП рахунок</span><span class="dl-val">48%</span></div>
-              <div class="dl-item"><div class="dl-dot" style="background:#27AE60"></div><span class="dl-name">ПриватБанк</span><span class="dl-val">27%</span></div>
-              <div class="dl-item"><div class="dl-dot" style="background:#2196F3"></div><span class="dl-name">Передоплата</span><span class="dl-val">15%</span></div>
-              <div class="dl-item"><div class="dl-dot" style="background:#F59E0B"></div><span class="dl-name">Пакунок малюка</span><span class="dl-val">10%</span></div>
-            </div>
+            <div class="donut-legend" id="dashPayLegend" style="flex:1"></div>
           </div>
         </div>
       </div>
@@ -538,12 +529,8 @@ tr:hover td{background:rgba(240,242,248,.5)}
           <thead><tr>
             <th>№ замовлення</th><th>Покупець</th><th>Товари</th><th>Сума</th><th>Оплата</th><th>Статус</th><th>Дата</th>
           </tr></thead>
-          <tbody>
-            <tr><td><strong>#KR-1847</strong></td><td><div>Олена С.</div><div style="font-size:11px;color:var(--text-muted)">+380 67 123 45 67</div></td><td>Джип M 3804EBLR × 1</td><td class="td-price">17 224 ₴</td><td>ФОП</td><td><span class="status s-new">Новий</span></td><td style="color:var(--text-muted);font-size:12px">27.04 10:32</td></tr>
-            <tr><td><strong>#KR-1846</strong></td><td><div>Андрій К.</div><div style="font-size:11px;color:var(--text-muted)">+380 98 234 56 78</div></td><td>Квадроцикл M 4795EBLR × 1</td><td class="td-price">12 210 ₴</td><td>ПриватБанк</td><td><span class="status s-confirmed">Підтверджено</span></td><td style="color:var(--text-muted);font-size:12px">27.04 09:14</td></tr>
-            <tr><td><strong>#KR-1845</strong></td><td><div>Марія Т.</div><div style="font-size:11px;color:var(--text-muted)">+380 50 345 67 89</div></td><td>Трактор M 4419EBLR × 2</td><td class="td-price">20 462 ₴</td><td>Пакунок малюка</td><td><span class="status s-sent">Відправлено</span></td><td style="color:var(--text-muted);font-size:12px">26.04 18:45</td></tr>
-            <tr><td><strong>#KR-1844</strong></td><td><div>Дмитро М.</div><div style="font-size:11px;color:var(--text-muted)">+380 63 456 78 90</div></td><td>Мотоцикл M 4274EL × 1</td><td class="td-price">8 114 ₴</td><td>ФОП</td><td><span class="status s-delivered">Доставлено</span></td><td style="color:var(--text-muted);font-size:12px">26.04 14:20</td></tr>
-            <tr><td><strong>#KR-1843</strong></td><td><div>Ірина П.</div><div style="font-size:11px;color:var(--text-muted)">+380 97 567 89 01</div></td><td>Джип M 3804EBLR-4 × 1</td><td class="td-price">17 224 ₴</td><td>Передоплата</td><td><span class="status s-cancelled">Скасовано</span></td><td style="color:var(--text-muted);font-size:12px">25.04 11:05</td></tr>
+          <tbody id="dashRecentBody">
+            <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-muted)">Завантаження…</td></tr>
           </tbody>
         </table>
       </div>
@@ -554,18 +541,20 @@ tr:hover td{background:rgba(240,242,248,.5)}
       <div class="section-header">
         <h2 class="section-title">Аналітика <span>відвідувань</span></h2>
         <div style="display:flex;gap:8px">
-          <select class="filter-select">
-            <option>Сьогодні</option><option>7 днів</option><option selected>30 днів</option><option>Рік</option>
+          <select class="filter-select" id="anPeriod" onchange="renderAnalytics()">
+            <option value="1">Сьогодні</option>
+            <option value="7">7 днів</option>
+            <option value="30" selected>30 днів</option>
+            <option value="365">Рік</option>
           </select>
-          <button class="btn btn-outline btn-sm"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Експорт</button>
         </div>
       </div>
 
       <div class="stats-grid">
-        <div class="stat-card blue"><div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><div class="stat-val">4 823</div><div class="stat-label">Унікальних відвідувачів</div><div class="stat-delta delta-up">+18%</div></div>
-        <div class="stat-card orange"><div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div><div class="stat-val">12 491</div><div class="stat-label">Переглядів сторінок</div><div class="stat-delta delta-up">+24%</div></div>
-        <div class="stat-card green"><div class="stat-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="stat-val">3.2%</div><div class="stat-label">Конверсія в замовлення</div><div class="stat-delta delta-up">+0.4%</div></div>
-        <div class="stat-card yellow"><div class="stat-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="stat-val">2хв 34с</div><div class="stat-label">Середній час на сайті</div><div class="stat-delta delta-up">+12с</div></div>
+        <div class="stat-card blue"><div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><div class="stat-val" id="anUniqueVisitors">—</div><div class="stat-label">Унікальних відвідувачів</div><div class="stat-delta" id="anUniqueDelta">за період</div></div>
+        <div class="stat-card orange"><div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div><div class="stat-val" id="anPageviews">—</div><div class="stat-label">Переглядів сторінок</div><div class="stat-delta" id="anPageviewsDelta">за період</div></div>
+        <div class="stat-card green"><div class="stat-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="stat-val" id="anConversion">—</div><div class="stat-label">Конверсія в замовлення</div><div class="stat-delta" id="anConversionDelta">orders / visitors</div></div>
+        <div class="stat-card yellow"><div class="stat-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="stat-val" id="anAvgTime">—</div><div class="stat-label">Середній час на сайті</div><div class="stat-delta" id="anAvgTimeDelta">з даних сесій</div></div>
       </div>
 
       <div class="charts-row">
@@ -575,26 +564,17 @@ tr:hover td{background:rgba(240,242,248,.5)}
         </div>
         <div class="chart-card">
           <div class="chart-head"><h3 class="chart-title">Пристрої</h3></div>
-          <div class="device-item"><div class="device-name"><svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>Мобільні</div><div style="flex:1;margin:0 12px;height:6px;background:var(--border);border-radius:3px;overflow:hidden"><div style="height:100%;background:var(--orange);border-radius:3px;width:64%"></div></div><div class="device-pct">64%</div></div>
-          <div class="device-item"><div class="device-name"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>Десктоп</div><div style="flex:1;margin:0 12px;height:6px;background:var(--border);border-radius:3px;overflow:hidden"><div style="height:100%;background:var(--blue);border-radius:3px;width:28%"></div></div><div class="device-pct" style="color:var(--blue)">28%</div></div>
-          <div class="device-item"><div class="device-name"><svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="9" y1="7" x2="15" y2="7"/></svg>Планшет</div><div style="flex:1;margin:0 12px;height:6px;background:var(--border);border-radius:3px;overflow:hidden"><div style="height:100%;background:var(--green);border-radius:3px;width:8%"></div></div><div class="device-pct" style="color:var(--green)">8%</div></div>
+          <div id="anDevices"></div>
           <div class="chart-head" style="margin-top:16px;margin-bottom:10px"><h3 class="chart-title" style="font-size:14px">Топ джерел трафіку</h3></div>
-          <div class="visit-row"><span class="visit-page">Instagram</span><div class="visit-bar"><div class="visit-bar-fill" style="width:72%"></div></div><span class="visit-count">1 847</span></div>
-          <div class="visit-row"><span class="visit-page">Прямий перехід</span><div class="visit-bar"><div class="visit-bar-fill" style="width:48%"></div></div><span class="visit-count">1 231</span></div>
-          <div class="visit-row"><span class="visit-page">Google Пошук</span><div class="visit-bar"><div class="visit-bar-fill" style="width:35%"></div></div><span class="visit-count">896</span></div>
-          <div class="visit-row"><span class="visit-page">Facebook</span><div class="visit-bar"><div class="visit-bar-fill" style="width:22%"></div></div><span class="visit-count">563</span></div>
+          <div id="anSources"></div>
         </div>
       </div>
 
       <div class="table-card">
         <div class="table-head"><span class="table-head-title">Топ сторінок</span></div>
-        <table><thead><tr><th>Сторінка</th><th>Перегляди</th><th>Унікальні</th><th>Відмов</th><th>Час</th></tr></thead>
-        <tbody>
-          <tr><td>/</td><td>3 241</td><td>2 108</td><td>32%</td><td>1хв 48с</td></tr>
-          <tr><td>/catalog</td><td>2 847</td><td>1 923</td><td>28%</td><td>3хв 12с</td></tr>
-          <tr><td>/product/джип-m-3804eblr</td><td>1 203</td><td>987</td><td>21%</td><td>4хв 05с</td></tr>
-          <tr><td>/cart</td><td>842</td><td>721</td><td>45%</td><td>2хв 34с</td></tr>
-          <tr><td>/checkout</td><td>312</td><td>298</td><td>18%</td><td>5хв 21с</td></tr>
+        <table><thead><tr><th>Сторінка</th><th>Перегляди</th><th>Унікальні</th><th>Сесії</th><th>Час/сесія</th></tr></thead>
+        <tbody id="anTopPages">
+          <tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-muted)">Завантаження…</td></tr>
         </tbody></table>
       </div>
     </div>
@@ -617,9 +597,7 @@ tr:hover td{background:rgba(240,242,248,.5)}
         <table>
           <thead><tr><th class="sortable">№</th><th>Покупець</th><th>Товари</th><th class="sortable">Сума</th><th>Оплата</th><th>Доставка</th><th>Статус</th><th class="sortable">Дата</th><th>Дії</th></tr></thead>
           <tbody id="ordersBody">
-            <tr><td><strong>#KR-1847</strong></td><td><div style="font-weight:600">Олена Савченко</div><div style="font-size:11px;color:var(--text-muted)">+380 67 123 45 67</div></td><td style="max-width:160px"><div class="td-name">Джип M 3804EBLR × 1</div></td><td class="td-price">17 224 ₴</td><td style="font-size:12px">ФОП</td><td style="font-size:12px">Відділення НП<br><span style="color:var(--text-muted)">Київ, №14</span></td><td><select class="filter-select" style="font-size:11px;padding:4px 24px 4px 8px" onchange="updateStatus(this)"><option>Новий</option><option>Підтверджено</option><option>Відправлено</option><option>Доставлено</option><option>Скасовано</option></select></td><td style="font-size:12px;color:var(--text-muted)">27.04.2026<br>10:32</td><td><div class="td-actions"><button class="ta-btn" title="Переглянути" onclick="openOrderModal()"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="ta-btn" title="ТТН НП" onclick="addTTN()"><svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></button></div></td></tr>
-            <tr><td><strong>#KR-1846</strong></td><td><div style="font-weight:600">Андрій Коваленко</div><div style="font-size:11px;color:var(--text-muted)">+380 98 234 56 78</div></td><td><div class="td-name">Квадроцикл M 4795EBLR × 1</div></td><td class="td-price">12 210 ₴</td><td style="font-size:12px">ПриватБанк</td><td style="font-size:12px">Відділення НП<br><span style="color:var(--text-muted)">Харків, №5</span></td><td><select class="filter-select" style="font-size:11px;padding:4px 24px 4px 8px" onchange="updateStatus(this)"><option>Новий</option><option selected>Підтверджено</option><option>Відправлено</option><option>Доставлено</option><option>Скасовано</option></select></td><td style="font-size:12px;color:var(--text-muted)">27.04.2026<br>09:14</td><td><div class="td-actions"><button class="ta-btn" onclick="openOrderModal()"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="ta-btn" onclick="addTTN()"><svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></button></div></td></tr>
-            <tr><td><strong>#KR-1845</strong></td><td><div style="font-weight:600">Марія Ткаченко</div><div style="font-size:11px;color:var(--text-muted)">+380 50 345 67 89</div></td><td><div class="td-name">Трактор M 4419EBLR × 2</div></td><td class="td-price">20 462 ₴</td><td style="font-size:12px">Пакунок малюка</td><td style="font-size:12px">Адресна НП<br><span style="color:var(--text-muted)">Одеса</span></td><td><select class="filter-select" style="font-size:11px;padding:4px 24px 4px 8px" onchange="updateStatus(this)"><option>Новий</option><option>Підтверджено</option><option selected>Відправлено</option><option>Доставлено</option><option>Скасовано</option></select></td><td style="font-size:12px;color:var(--text-muted)">26.04.2026<br>18:45</td><td><div class="td-actions"><button class="ta-btn" onclick="openOrderModal()"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="ta-btn" onclick="addTTN()"><svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></button></div></td></tr>
+            <tr><td colspan="9" style="text-align:center;padding:24px;color:var(--text-muted)">Завантаження…</td></tr>
           </tbody>
         </table>
         <div class="pagination"><span>Показано 1–10 з 1 847</span><div class="pag-btns"><button class="pag-btn"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button><button class="pag-btn active">1</button><button class="pag-btn">2</button><button class="pag-btn">3</button><span style="padding:0 4px;color:var(--text-muted)">…</span><button class="pag-btn">185</button><button class="pag-btn"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button></div></div>
@@ -1199,13 +1177,485 @@ const pageTitles={dashboard:'Dashboard',analytics:'Аналітика відві
 function showPanel(id, navEl) {
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('panel-'+id).classList.add('active');
-  if(id==='products') renderProductsTable();
-  if(id==='reviews') renderReviewsTable();
-  if(id==='carousel') renderSlidesGrid();
+  if(id==='products')  renderProductsTable();
+  if(id==='reviews')   renderReviewsTable();
+  if(id==='carousel')  renderSlidesGrid();
+  if(id==='orders')    renderOrdersTable();
+  if(id==='dashboard') renderDashboard();
+  if(id==='analytics') renderAnalytics();
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   if(navEl) navEl.classList.add('active');
   document.getElementById('pageTitle').textContent = pageTitles[id]||id;
   if(window.innerWidth<=900) closeSidebar();
+}
+
+// ── ORDERS RENDER ─────────────────────────────────────────────────────────
+let _ordersCache = [];
+
+function _escHtml(s){
+  return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function _fmtPrice(v){
+  const n = Number(v||0);
+  return n.toLocaleString('uk-UA').replace(/,/g,' ') + ' ₴';
+}
+function _fmtDate(iso){
+  if(!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d)) return _escHtml(iso);
+  const dd = String(d.getDate()).padStart(2,'0');
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const yy = d.getFullYear();
+  const hh = String(d.getHours()).padStart(2,'0');
+  const mi = String(d.getMinutes()).padStart(2,'0');
+  return `${dd}.${mm}.${yy}<br>${hh}:${mi}`;
+}
+function _payLabel(o){
+  if (o.payment_method_label) return o.payment_method_label;
+  const map = { fop:'ФОП', partial:'Передоплата', privat:'ПриватБанк', packet:'Пакунок малюка', state7k:'Держпідтримка 7000' };
+  return map[o.payment_method] || (o.payment_method || '—');
+}
+function _deliveryLabel(o){
+  const t = o.delivery_type;
+  if (t === 'address') {
+    const c = o.delivery_city || '';
+    return `Адресна НП${c ? '<br><span style="color:var(--text-muted)">'+_escHtml(c)+'</span>' : ''}`;
+  }
+  const head = t === 'postomat' ? 'Поштомат НП' : 'Відділення НП';
+  const sub = [o.delivery_city, o.delivery_warehouse_number ? '№'+o.delivery_warehouse_number : '']
+              .filter(Boolean).join(', ');
+  return `${head}${sub ? '<br><span style="color:var(--text-muted)">'+_escHtml(sub)+'</span>' : ''}`;
+}
+function _itemsLabel(items, fallbackCount){
+  if (!Array.isArray(items) || !items.length) {
+    return fallbackCount ? `${fallbackCount} тов.` : '—';
+  }
+  const first = items[0];
+  const more  = items.length > 1 ? ` <span style="color:var(--text-muted)">+ ще ${items.length - 1}</span>` : '';
+  return `<div class="td-name">${_escHtml(first.product_name || '')} × ${first.quantity || 1}</div>${more}`;
+}
+
+async function renderOrdersTable(){
+  const tb = document.getElementById('ordersBody');
+  if (!tb) return;
+  tb.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--text-muted)">Завантаження…</td></tr>';
+
+  let orders = [];
+  try {
+    orders = await sbFetch('orders?select=*,order_items(*)&order=created_at.desc&limit=200');
+  } catch(e) {
+    console.error('renderOrdersTable:', e);
+    tb.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:24px;color:#c33">Помилка завантаження: ${_escHtml(e.message||e)}</td></tr>`;
+    return;
+  }
+
+  _ordersCache = orders || [];
+  if (!_ordersCache.length) {
+    tb.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--text-muted)">Замовлень ще немає</td></tr>';
+    return;
+  }
+
+  const statuses = ['Новий','Підтверджено','Відправлено','Доставлено','Скасовано'];
+  tb.innerHTML = _ordersCache.map(o => {
+    const num     = o.order_number ? '#'+o.order_number : '#'+String(o.id).slice(0,8);
+    const fio     = [o.customer_first_name, o.customer_last_name].filter(Boolean).join(' ') || '—';
+    const phone   = o.customer_phone || '';
+    const items   = _itemsLabel(o.order_items, o.items_count);
+    const total   = _fmtPrice(o.total);
+    const pay     = _payLabel(o);
+    const deliv   = _deliveryLabel(o);
+    const date    = _fmtDate(o.created_at);
+    const cur     = o.status || 'Новий';
+    const opts    = statuses.map(s => `<option ${s===cur?'selected':''}>${s}</option>`).join('');
+    return `<tr data-order-id="${_escHtml(o.id)}">
+      <td><strong>${_escHtml(num)}</strong></td>
+      <td><div style="font-weight:600">${_escHtml(fio)}</div><div style="font-size:11px;color:var(--text-muted)">${_escHtml(phone)}</div></td>
+      <td style="max-width:200px">${items}</td>
+      <td class="td-price">${total}</td>
+      <td style="font-size:12px">${_escHtml(pay)}</td>
+      <td style="font-size:12px">${deliv}</td>
+      <td><select class="filter-select" style="font-size:11px;padding:4px 24px 4px 8px" onchange="updateStatus(this)">${opts}</select></td>
+      <td style="font-size:12px;color:var(--text-muted)">${date}</td>
+      <td><div class="td-actions">
+        <button class="ta-btn" title="Переглянути" onclick="openOrderModal(this)"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        <button class="ta-btn" title="ТТН НП" onclick="addTTN(this)"><svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── DASHBOARD + ANALYTICS ─────────────────────────────────────────────────
+const PAY_COLORS = { fop:'#FF6B35', privat:'#27AE60', partial:'#2196F3', packet:'#F59E0B', state7k:'#9B59B6', other:'#888' };
+const PAY_NAMES  = { fop:'ФОП рахунок', privat:'ПриватБанк', partial:'Передоплата', packet:'Пакунок малюка', state7k:'Держпідтримка 7000', other:'Інше' };
+
+function _todayStart(){ const d=new Date(); d.setHours(0,0,0,0); return d; }
+function _yesterdayStart(){ const d=_todayStart(); d.setDate(d.getDate()-1); return d; }
+function _daysAgo(n){ const d=_todayStart(); d.setDate(d.getDate()-n); return d; }
+function _fmtDuration(sec){
+  sec = Math.max(0, Math.round(sec||0));
+  const m = Math.floor(sec/60), s = sec % 60;
+  if (m === 0) return s + 'с';
+  return m + 'хв ' + String(s).padStart(2,'0') + 'с';
+}
+function _pct(part, total){ return total > 0 ? Math.round(part/total*100) : 0; }
+
+// Кеш реальних даних
+let _allOrdersCache = null;
+let _allOrdersCacheTs = 0;
+async function _getAllOrders(){
+  // Кешуємо на 30с
+  if (_allOrdersCache && Date.now() - _allOrdersCacheTs < 30000) return _allOrdersCache;
+  try {
+    _allOrdersCache = await sbFetch('orders?select=id,total,subtotal,payment_method,created_at,status&order=created_at.desc&limit=2000');
+  } catch(e) { console.error('orders fetch:', e); _allOrdersCache = []; }
+  _allOrdersCacheTs = Date.now();
+  return _allOrdersCache;
+}
+async function _getProductsCount(){
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/products?select=id', {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + (_adminToken||SUPABASE_KEY), 'Prefer':'count=exact', 'Range':'0-0' }
+    });
+    const cr = res.headers.get('content-range') || '';
+    const m  = cr.match(/\/(\d+)$/);
+    return m ? Number(m[1]) : 0;
+  } catch { return 0; }
+}
+
+async function renderDashboard(){
+  const orders = await _getAllOrders();
+  const productsCount = await _getProductsCount();
+
+  // Сьогодні vs Вчора (orders, revenue)
+  const todayMs = _todayStart().getTime();
+  const yMs     = _yesterdayStart().getTime();
+  let oToday=0, oYest=0, rToday=0, rYest=0;
+  for (const o of orders) {
+    const t = new Date(o.created_at).getTime();
+    if (t >= todayMs) { oToday++; rToday += Number(o.total||0); }
+    else if (t >= yMs) { oYest++; rYest += Number(o.total||0); }
+  }
+  const setDelta = (id, today, yest, suffix) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (yest === 0 && today === 0) { el.textContent = 'без даних вчора'; el.className='stat-delta'; return; }
+    if (yest === 0) { el.textContent = '+' + today + suffix + ' (вчора 0)'; el.className='stat-delta delta-up'; return; }
+    const pct = Math.round((today - yest) / yest * 100);
+    el.textContent = (pct >= 0 ? '+' : '') + pct + '% до вчора';
+    el.className = 'stat-delta ' + (pct >= 0 ? 'delta-up' : 'delta-down');
+  };
+  document.getElementById('dashOrdersToday').textContent  = oToday;
+  document.getElementById('dashRevenueToday').textContent = _fmtPrice(rToday);
+  setDelta('dashOrdersDelta',  oToday, oYest, '');
+  setDelta('dashRevenueDelta', rToday, rYest, '');
+
+  // Відвідувачі (за сьогодні vs учора, з page_views)
+  try {
+    const since = new Date(yMs).toISOString();
+    const pv = await sbFetch('page_views?select=visitor_id,created_at&created_at=gte.' + encodeURIComponent(since) + '&limit=10000');
+    const setT = new Set(), setY = new Set();
+    for (const r of pv) {
+      const t = new Date(r.created_at).getTime();
+      if (t >= todayMs) setT.add(r.visitor_id);
+      else if (t >= yMs) setY.add(r.visitor_id);
+    }
+    document.getElementById('dashVisitorsToday').textContent = setT.size;
+    setDelta('dashVisitorsDelta', setT.size, setY.size, '');
+  } catch(e) {
+    document.getElementById('dashVisitorsToday').textContent = '0';
+    document.getElementById('dashVisitorsDelta').textContent = 'таблиця page_views не створена';
+  }
+
+  // Товари
+  document.getElementById('dashProductsCount').textContent = productsCount.toLocaleString('uk-UA').replace(/,/g,' ');
+  document.getElementById('dashProductsDelta').textContent = 'усього в каталозі';
+
+  // Donut оплат за останні 30 днів
+  const cutoff30 = _daysAgo(30).getTime();
+  const payCounts = {};
+  let payTotal = 0;
+  for (const o of orders) {
+    if (new Date(o.created_at).getTime() < cutoff30) continue;
+    const k = PAY_NAMES[o.payment_method] ? o.payment_method : 'other';
+    payCounts[k] = (payCounts[k] || 0) + 1;
+    payTotal++;
+  }
+  const donut = document.getElementById('dashPayDonut');
+  const legend = document.getElementById('dashPayLegend');
+  document.getElementById('dashPayTotal').textContent = payTotal;
+  if (payTotal === 0) {
+    donut.innerHTML = '<circle cx="18" cy="18" r="15.9" fill="none" stroke="#e5e7f0" stroke-width="3"/>';
+    legend.innerHTML = '<div style="color:var(--text-muted);font-size:13px">Немає замовлень за 30 днів</div>';
+  } else {
+    let circles = '<circle cx="18" cy="18" r="15.9" fill="none" stroke="#e5e7f0" stroke-width="3"/>';
+    let leg = '';
+    let offset = 0;
+    Object.entries(payCounts).sort((a,b)=>b[1]-a[1]).forEach(([k,n]) => {
+      const pct = n / payTotal * 100;
+      const c   = PAY_COLORS[k] || '#888';
+      circles += `<circle cx="18" cy="18" r="15.9" fill="none" stroke="${c}" stroke-width="3" stroke-dasharray="${pct.toFixed(1)} ${(100-pct).toFixed(1)}" stroke-dashoffset="${(-offset).toFixed(1)}"/>`;
+      leg += `<div class="dl-item"><div class="dl-dot" style="background:${c}"></div><span class="dl-name">${PAY_NAMES[k]||k}</span><span class="dl-val">${Math.round(pct)}%</span></div>`;
+      offset += pct;
+    });
+    donut.innerHTML = legend.innerHTML; // clear
+    donut.innerHTML = circles;
+    legend.innerHTML = leg;
+  }
+
+  // Bar chart замовлень за тиждень
+  renderDashboardOrdersChart(orders);
+
+  // Останні замовлення (5)
+  const tb = document.getElementById('dashRecentBody');
+  if (tb) {
+    const recent = orders.slice(0, 5);
+    if (!recent.length) {
+      tb.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-muted)">Замовлень ще немає</td></tr>';
+    } else {
+      // Підвантажимо ще з імʼям клієнта одним запитом
+      try {
+        const ids = recent.map(o => o.id);
+        const detail = await sbFetch('orders?select=*&id=in.(' + ids.map(encodeURIComponent).join(',') + ')');
+        const map = Object.fromEntries(detail.map(o => [o.id, o]));
+        const statusClass = {Новий:'s-new','Підтверджено':'s-confirmed','Відправлено':'s-sent','Доставлено':'s-delivered','Скасовано':'s-cancelled'};
+        tb.innerHTML = recent.map(o => {
+          const d = map[o.id] || o;
+          const num = d.order_number ? '#'+d.order_number : '#'+String(d.id).slice(0,8);
+          const fio = ((d.customer_first_name||'') + ' ' + (d.customer_last_name||'')).trim() || '—';
+          const stCls = statusClass[d.status] || 's-new';
+          const date = new Date(d.created_at);
+          const dt = String(date.getDate()).padStart(2,'0')+'.'+String(date.getMonth()+1).padStart(2,'0')+' '
+                   + String(date.getHours()).padStart(2,'0')+':'+String(date.getMinutes()).padStart(2,'0');
+          return `<tr>
+            <td><strong>${_escHtml(num)}</strong></td>
+            <td><div>${_escHtml(fio)}</div><div style="font-size:11px;color:var(--text-muted)">${_escHtml(d.customer_phone||'')}</div></td>
+            <td>${d.items_count||0} тов.</td>
+            <td class="td-price">${_fmtPrice(d.total)}</td>
+            <td>${_escHtml(_payLabel(d))}</td>
+            <td><span class="status ${stCls}">${_escHtml(d.status||'Новий')}</span></td>
+            <td style="color:var(--text-muted);font-size:12px">${dt}</td>
+          </tr>`;
+        }).join('');
+      } catch(e) {
+        tb.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:#c33">Помилка: '+_escHtml(e.message)+'</td></tr>';
+      }
+    }
+  }
+
+  // Поновити дату в кнопці-плашці
+  const dh = document.querySelector('#panel-dashboard .section-header .btn');
+  if (dh) {
+    const months=['січня','лютого','березня','квітня','травня','червня','липня','серпня','вересня','жовтня','листопада','грудня'];
+    const now = new Date();
+    dh.innerHTML = `<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+  }
+}
+
+function renderDashboardOrdersChart(ordersInput){
+  const orders = ordersInput || _allOrdersCache || [];
+  let bins, labels;
+  if (_dashOrdersPeriod === 'week') {
+    const dn = ['Нд','Пн','Вт','Ср','Чт','Пт','Сб'];
+    bins = new Array(7).fill(0);
+    labels = new Array(7);
+    for (let i = 6; i >= 0; i--) {
+      const d = _daysAgo(i);
+      labels[6-i] = dn[d.getDay()];
+    }
+    const start = _daysAgo(6).getTime();
+    for (const o of orders) {
+      const t = new Date(o.created_at).getTime();
+      if (t < start) continue;
+      const dayIdx = Math.floor((t - start) / 86400000);
+      if (dayIdx >= 0 && dayIdx < 7) bins[dayIdx]++;
+    }
+  } else if (_dashOrdersPeriod === 'month') {
+    bins = new Array(30).fill(0);
+    labels = new Array(30);
+    const start = _daysAgo(29).getTime();
+    for (let i = 0; i < 30; i++) labels[i] = String(new Date(start + i*86400000).getDate());
+    for (const o of orders) {
+      const t = new Date(o.created_at).getTime();
+      if (t < start) continue;
+      const idx = Math.floor((t - start) / 86400000);
+      if (idx >= 0 && idx < 30) bins[idx]++;
+    }
+  } else {
+    const mn = ['Січ','Лют','Бер','Кві','Тра','Чер','Лип','Сер','Вер','Жов','Лис','Гру'];
+    bins = new Array(12).fill(0);
+    labels = new Array(12);
+    const now = new Date();
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+      labels[11-i] = mn[d.getMonth()];
+    }
+    const startYr = new Date(now.getFullYear(), now.getMonth()-11, 1).getTime();
+    for (const o of orders) {
+      const t = new Date(o.created_at);
+      if (t.getTime() < startYr) continue;
+      const idx = (t.getFullYear() - now.getFullYear()) * 12 + (t.getMonth() - now.getMonth()) + 11;
+      if (idx >= 0 && idx < 12) bins[idx]++;
+    }
+  }
+  renderBarChart('barChart', bins.map((v,i)=>({label:labels[i], v})));
+}
+
+async function renderAnalytics(){
+  const periodSel = document.getElementById('anPeriod');
+  const days = Number(periodSel?.value || 30);
+  const since = _daysAgo(days - 1).toISOString();
+
+  // Pull page_views
+  let rows = [];
+  try {
+    rows = await sbFetch('page_views?select=path,source,device,visitor_id,session_id,created_at&created_at=gte.'+encodeURIComponent(since)+'&limit=50000&order=created_at.asc');
+  } catch(e) {
+    document.getElementById('anUniqueVisitors').textContent = '—';
+    document.getElementById('anPageviews').textContent = '—';
+    document.getElementById('anConversion').textContent = '—';
+    document.getElementById('anAvgTime').textContent = '—';
+    document.getElementById('anUniqueDelta').textContent = 'page_views: '+(e.message||'помилка');
+    document.getElementById('visitChart').innerHTML = '';
+    document.getElementById('anDevices').innerHTML = '<div style="color:var(--text-muted);font-size:13px">Створіть таблицю page_views у Supabase (див. SUPABASE_ANALYTICS.sql)</div>';
+    document.getElementById('anSources').innerHTML = '';
+    document.getElementById('anTopPages').innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:#c33">'+_escHtml(e.message)+'</td></tr>';
+    return;
+  }
+
+  if (!rows.length) {
+    document.getElementById('anUniqueVisitors').textContent = '0';
+    document.getElementById('anPageviews').textContent = '0';
+    document.getElementById('anConversion').textContent = '0%';
+    document.getElementById('anAvgTime').textContent = '0с';
+    ['anUniqueDelta','anPageviewsDelta','anConversionDelta','anAvgTimeDelta'].forEach(id=>{
+      document.getElementById(id).textContent = 'немає даних за період';
+    });
+    document.getElementById('visitChart').innerHTML = '';
+    document.getElementById('anDevices').innerHTML  = '<div style="color:var(--text-muted);font-size:13px">Немає даних за період</div>';
+    document.getElementById('anSources').innerHTML  = '';
+    document.getElementById('anTopPages').innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-muted)">Немає даних</td></tr>';
+    return;
+  }
+
+  // KPI
+  const visitors = new Set(rows.map(r => r.visitor_id));
+  const pageviews = rows.length;
+  document.getElementById('anUniqueVisitors').textContent = visitors.size.toLocaleString('uk-UA').replace(/,/g,' ');
+  document.getElementById('anPageviews').textContent      = pageviews.toLocaleString('uk-UA').replace(/,/g,' ');
+  document.getElementById('anUniqueDelta').textContent     = 'за останні ' + days + ' дн.';
+  document.getElementById('anPageviewsDelta').textContent  = 'за останні ' + days + ' дн.';
+
+  // Конверсія: orders за період / unique visitors
+  const orders = await _getAllOrders();
+  const cutoff = _daysAgo(days - 1).getTime();
+  const ordersInPeriod = orders.filter(o => new Date(o.created_at).getTime() >= cutoff).length;
+  const conv = visitors.size > 0 ? (ordersInPeriod / visitors.size * 100) : 0;
+  document.getElementById('anConversion').textContent = conv.toFixed(1).replace('.', ',') + '%';
+  document.getElementById('anConversionDelta').textContent = ordersInPeriod + ' зам. / ' + visitors.size + ' відвід.';
+
+  // Середній час сесії = average (max - min) timestamps per session_id, для сесій з 2+ переглядами
+  const sessTimes = {};
+  for (const r of rows) {
+    const t = new Date(r.created_at).getTime();
+    const s = sessTimes[r.session_id] || (sessTimes[r.session_id] = { min:t, max:t, n:0 });
+    if (t < s.min) s.min = t;
+    if (t > s.max) s.max = t;
+    s.n++;
+  }
+  let totalDur = 0, sessN = 0;
+  for (const k in sessTimes) {
+    const s = sessTimes[k];
+    if (s.n >= 2) { totalDur += (s.max - s.min) / 1000; sessN++; }
+  }
+  const avgSec = sessN > 0 ? totalDur / sessN : 0;
+  document.getElementById('anAvgTime').textContent = _fmtDuration(avgSec);
+  document.getElementById('anAvgTimeDelta').textContent = sessN + ' сесій з 2+ переглядами';
+
+  // Bar chart по днях
+  const dayBins = new Array(days).fill(0);
+  const dayLabels = new Array(days);
+  const start = _daysAgo(days - 1).getTime();
+  for (let i = 0; i < days; i++) {
+    const d = new Date(start + i*86400000);
+    dayLabels[i] = String(d.getDate());
+  }
+  for (const r of rows) {
+    const idx = Math.floor((new Date(r.created_at).getTime() - start) / 86400000);
+    if (idx >= 0 && idx < days) dayBins[idx]++;
+  }
+  // Якщо діапазон великий — показати останні 30
+  const showN = Math.min(days, 30);
+  const sliceStart = days - showN;
+  renderBarChart('visitChart',
+    dayBins.slice(sliceStart).map((v,i)=>({label:dayLabels[sliceStart+i], v})),
+    'var(--blue)'
+  );
+
+  // Пристрої
+  const devCount = { mobile:0, desktop:0, tablet:0 };
+  for (const r of rows) devCount[r.device] = (devCount[r.device] || 0) + 1;
+  const devTotal = pageviews;
+  const devCfg = [
+    { key:'mobile',  name:'Мобільні',  color:'var(--orange)', svg:'<rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>' },
+    { key:'desktop', name:'Десктоп',   color:'var(--blue)',   svg:'<rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>' },
+    { key:'tablet',  name:'Планшет',   color:'var(--green)',  svg:'<rect x="4" y="2" width="16" height="20" rx="2"/><line x1="9" y1="7" x2="15" y2="7"/>' },
+  ];
+  document.getElementById('anDevices').innerHTML = devCfg.map(d => {
+    const pct = _pct(devCount[d.key]||0, devTotal);
+    return `<div class="device-item">
+      <div class="device-name"><svg viewBox="0 0 24 24">${d.svg}</svg>${d.name}</div>
+      <div style="flex:1;margin:0 12px;height:6px;background:var(--border);border-radius:3px;overflow:hidden">
+        <div style="height:100%;background:${d.color};border-radius:3px;width:${pct}%"></div>
+      </div>
+      <div class="device-pct" style="color:${d.color}">${pct}%</div>
+    </div>`;
+  }).join('');
+
+  // Джерела
+  const srcCount = {};
+  for (const r of rows) srcCount[r.source||'direct'] = (srcCount[r.source||'direct'] || 0) + 1;
+  const srcSorted = Object.entries(srcCount).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const srcMax = srcSorted[0]?.[1] || 1;
+  const srcLabel = { direct:'Прямий перехід', google:'Google Пошук', instagram:'Instagram', facebook:'Facebook', youtube:'YouTube', tiktok:'TikTok', bing:'Bing' };
+  document.getElementById('anSources').innerHTML = srcSorted.map(([k,n]) => `
+    <div class="visit-row">
+      <span class="visit-page">${_escHtml(srcLabel[k] || k)}</span>
+      <div class="visit-bar"><div class="visit-bar-fill" style="width:${Math.round(n/srcMax*100)}%"></div></div>
+      <span class="visit-count">${n.toLocaleString('uk-UA').replace(/,/g,' ')}</span>
+    </div>`).join('') || '<div style="color:var(--text-muted);font-size:13px">Немає джерел</div>';
+
+  // Топ сторінок
+  const pagePV = {}, pageVis = {}, pageSess = {};
+  for (const r of rows) {
+    pagePV[r.path] = (pagePV[r.path]||0) + 1;
+    (pageVis[r.path] = pageVis[r.path] || new Set()).add(r.visitor_id);
+    (pageSess[r.path] = pageSess[r.path] || new Set()).add(r.session_id);
+  }
+  const top = Object.entries(pagePV).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const tpb = document.getElementById('anTopPages');
+  if (!top.length) {
+    tpb.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-muted)">Немає сторінок</td></tr>';
+  } else {
+    // Час/сесія для конкретної сторінки = середня тривалість сесій, де ця сторінка зустрічалась
+    const sessForPath = {};
+    for (const r of rows) {
+      const arr = sessForPath[r.path] = sessForPath[r.path] || new Set();
+      arr.add(r.session_id);
+    }
+    tpb.innerHTML = top.map(([path, pv]) => {
+      const sids = sessForPath[path] || new Set();
+      let dur=0, dn=0;
+      sids.forEach(sid => { const s = sessTimes[sid]; if (s && s.n >= 2) { dur += (s.max - s.min)/1000; dn++; } });
+      const avg = dn > 0 ? dur/dn : 0;
+      return `<tr>
+        <td>${_escHtml(path)}</td>
+        <td>${pv}</td>
+        <td>${(pageVis[path]||new Set()).size}</td>
+        <td>${(pageSess[path]||new Set()).size}</td>
+        <td>${avg > 0 ? _fmtDuration(avg) : '—'}</td>
+      </tr>`;
+    }).join('');
+  }
 }
 
 // ── CAROUSEL SLIDES ───────────────────────────────────────────────────────
@@ -1514,41 +1964,20 @@ function renderBarChart(id, data, color){
     </div>`).join('');
 }
 
-renderBarChart('barChart',[
-  {label:'Пн',v:12},{label:'Вт',v:18},{label:'Ср',v:9},{label:'Чт',v:22},
-  {label:'Пт',v:31},{label:'Сб',v:28},{label:'Нд',v:16}
-]);
-
-renderBarChart('visitChart',[
-  {label:'21',v:280},{label:'22',v:342},{label:'23',v:198},{label:'24',v:421},
-  {label:'25',v:387},{label:'26',v:312},{label:'27',v:342}
-],'var(--blue)');
-
-// ── CHART PERIOD BTNS ─────────────────────────────────────────────────────
-document.querySelectorAll('.cp-btn').forEach(btn=>{
-  btn.addEventListener('click',function(){
+// ── CHART PERIOD BTNS (Dashboard bar chart) ───────────────────────────────
+let _dashOrdersPeriod = 'week';  // week | month | year
+document.querySelectorAll('.chart-period .cp-btn').forEach(btn=>{
+  btn.addEventListener('click', function(){
     this.closest('.chart-period').querySelectorAll('.cp-btn').forEach(b=>b.classList.remove('active'));
     this.classList.add('active');
-    // Simulate data change
-    const sets={
-      'Тиж':[12,18,9,22,31,28,16],
-      'Міс':[180,220,195,310,280,240,190,310,285,260,320,290,210,195,310,285,260,320,290,210,310,280,240,190,310,285,260,320,290,210],
-      'Рік':[420,380,510,490,620,580,710,680,590,640,520,480]
-    };
-    const labels={
-      'Тиж':['Пн','Вт','Ср','Чт','Пт','Сб','Нд'],
-      'Міс':Array.from({length:30},(_,i)=>String(i+1)),
-      'Рік':['Січ','Лют','Бер','Квіт','Трав','Черв','Лип','Серп','Вер','Жовт','Лис','Груд']
-    };
-    const key=this.textContent;
-    if(sets[key]){
-      renderBarChart('barChart',sets[key].slice(0,7).map((v,i)=>({label:(labels[key]||[])[i]||String(i+1),v})));
-    }
+    const t = this.textContent.trim();
+    _dashOrdersPeriod = t === 'Міс' ? 'month' : t === 'Рік' ? 'year' : 'week';
+    renderDashboardOrdersChart();
   });
 });
 
 // ── STATUS UPDATE ─────────────────────────────────────────────────────────
-function updateStatus(sel){
+async function updateStatus(sel){
   const statuses={Новий:'s-new',Підтверджено:'s-confirmed',Відправлено:'s-sent',Доставлено:'s-delivered',Скасовано:'s-cancelled'};
   const row=sel.closest('tr');
   const badge=row.querySelector('.status');
@@ -1556,15 +1985,34 @@ function updateStatus(sel){
     badge.className='status '+(statuses[sel.value]||'s-new');
     badge.textContent=sel.value;
   }
-  showToast('Статус оновлено','success');
+  const id = row?.dataset?.orderId;
+  if (!id) { showToast('Статус оновлено','success'); return; }
+  const r = await sbUpdateOrderStatus(id, sel.value);
+  if (r.success) showToast('Статус оновлено','success');
+  else showToast('Помилка: ' + (r.error||''),'error');
 }
 
 // ── MODALS ────────────────────────────────────────────────────────────────
-function openOrderModal(){document.getElementById('orderModal').classList.add('open');document.body.style.overflow='hidden'}
+let _editingOrderId = null;
+function openOrderModal(btn){
+  const row = btn?.closest && btn.closest('tr');
+  _editingOrderId = row?.dataset?.orderId || null;
+  document.getElementById('orderModal').classList.add('open');
+  document.body.style.overflow='hidden';
+}
 
 function closeModal(id){document.getElementById(id).classList.remove('open');document.body.style.overflow=''}
-function addTTN(){openOrderModal();setTimeout(()=>document.getElementById('ttnInput')?.focus(),300)}
-function saveOrder(){closeModal('orderModal');showToast('Замовлення збережено','success')}
+function addTTN(btn){openOrderModal(btn);setTimeout(()=>document.getElementById('ttnInput')?.focus(),300)}
+async function saveOrder(){
+  const ttn = (document.getElementById('ttnInput')?.value || '').trim();
+  if (_editingOrderId && ttn) {
+    const r = await sbUpdateOrderStatus(_editingOrderId, undefined, ttn);
+    if (!r.success) { showToast('Помилка збереження ТТН: '+(r.error||''),'error'); return; }
+  }
+  closeModal('orderModal');
+  showToast('Замовлення збережено','success');
+  if (document.getElementById('panel-orders')?.classList.contains('active')) renderOrdersTable();
+}
 
 
 // Close modal on overlay click
