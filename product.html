@@ -1258,7 +1258,7 @@ document.addEventListener('keydown', e => {
 });
 
 // ── Динамічне завантаження товару (галерея + варіанти кольору) — KidsRide v3.1 ──
-console.log('[KidsRide] product.html v3.5 — групування кольорів за полем model_code');
+console.log('[KidsRide] product.html v3.6 — миттєве перемикання кольору без перезавантаження');
 (async function loadFullProduct(){
   try{
     // Літерали Supabase (не залежимо від KR — щоб працювало навіть до завантаження shared.js)
@@ -1491,6 +1491,62 @@ function extractColorName(name){
   return '';
 }
 
+// In-place перемикання на інший кольоровий варіант — БЕЗ перезавантаження сторінки.
+// Тягнемо новий товар з Supabase і просто перемальовуємо ті ж DOM-вузли.
+async function switchToVariant(id, supaUrl, supaKey){
+  if (!id) return false;
+  supaUrl = supaUrl || (window.KR && KR._SUPA_URL) || 'https://xczrzdbikkycgpnvolib.supabase.co';
+  supaKey = supaKey || (window.KR && KR._SUPA_KEY) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
+
+  // Універсальний запит з model_code; якщо колонки нема — повторимо без неї
+  const baseSelect = 'id,sku,name,brand,price,old_price,stock,badge,images,active';
+  const tryFetch = async (withModel) => {
+    const sel = withModel ? ('id,sku,model_code,' + baseSelect.replace(/^id,sku,/, '')) : baseSelect;
+    const r = await fetch(supaUrl + '/rest/v1/products?id=eq.' + encodeURIComponent(id) + '&select=' + sel, {
+      headers: { 'apikey': supaKey, 'Authorization': 'Bearer ' + supaKey }
+    });
+    if (!r.ok) return null;
+    const arr = await r.json();
+    return Array.isArray(arr) && arr[0] ? arr[0] : null;
+  };
+
+  let p = null;
+  try { p = await tryFetch(true); } catch {}
+  if (!p) { try { p = await tryFetch(false); } catch {} }
+  if (!p) return false;
+
+  // Оновлюємо вміст сторінки на місці
+  applyProductData(p);
+
+  // Перебудовуємо рядок кольорів — тепер вже з новим активним товаром
+  if (p.sku || p.model_code){
+    await buildColorVariants(p.sku, p.id, supaUrl, supaKey, p.model_code);
+  }
+
+  // Оновлюємо адресу в браузері (без перезавантаження)
+  try {
+    history.pushState({ kr_variant_id: p.id }, '', 'product.html?id=' + encodeURIComponent(p.id));
+  } catch {}
+
+  // Оновлюємо кеш sessionStorage, щоб при наступному заході сторінка одразу
+  // показувала актуальний варіант
+  try {
+    sessionStorage.setItem('kr_active_product', JSON.stringify({
+      id: p.id, sku: p.sku, model_code: p.model_code, name: p.name,
+      brand: p.brand, price: p.price, old_price: p.old_price,
+      stock: p.stock, badge: p.badge, images: p.images, active: p.active
+    }));
+  } catch {}
+
+  return true;
+}
+
+// Кнопки «назад/вперед» у браузері: повертаємось до попереднього варіанта так само in-place
+window.addEventListener('popstate', () => {
+  const id = new URLSearchParams(location.search).get('id');
+  if (id) switchToVariant(id);
+});
+
 // Кольорові варіанти:
 //   1) Якщо у товару заповнено model_code — шукає всі товари з тим самим model_code
 //      (це дозволяє об'єднати, наприклад, M 4259EBLR-1/-2/-3 і M 4259EBLRS-3 через код "4259").
@@ -1638,6 +1694,13 @@ async function buildColorVariants(currentSku, currentId, supaUrl, supaKey, model
     if (!isCur){
       el.addEventListener('mouseenter', () => { tile.style.transform = 'scale(1.06)'; tile.style.borderColor = 'var(--orange)'; });
       el.addEventListener('mouseleave', () => { tile.style.transform = ''; tile.style.borderColor = 'var(--border)'; });
+      // ── In-place перемикання без перезавантаження сторінки ──
+      el.addEventListener('click', (ev) => {
+        // Дозволяємо ctrl/cmd/shift-click та клік середньою — відкриватимуться у новій вкладці як завжди
+        if (ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.button === 1) return;
+        ev.preventDefault();
+        switchToVariant(v.id, supaUrl, supaKey);
+      });
     }
     scroller.appendChild(el);
   });
