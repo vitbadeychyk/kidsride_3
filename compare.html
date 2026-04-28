@@ -360,7 +360,7 @@ function render() {
   for (const [section, keys] of Object.entries(specSections)) {
     rows += `<tr class="section-row"><td colspan="${count + emptySlots + 1}">${section}</td></tr>`;
     keys.forEach(key => {
-      const values = comparing.map(p => p.specs[key]);
+      const values = comparing.map(p => (p.specs && p.specs[key] !== undefined) ? p.specs[key] : '—');
       // Highlight best: for booleans highlight true, for numbers highlight highest
       let cols = `<td>${key}</td>`;
       values.forEach((val, i) => {
