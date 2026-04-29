@@ -2399,48 +2399,130 @@ async function _xmlImportFromText(text) {
   if (typeof loadProductsFromSupabase === 'function') { try { await loadProductsFromSupabase(); renderProductsTable(); } catch(e){} }
 }
 
-// ── REVIEWS ───────────────────────────────────────────────────────────────
-function _krLoadReviews(){
-  try{ return JSON.parse(localStorage.getItem('kr_reviews')||'[]'); }
-  catch(e){ return []; }
-}
-function _krSaveReviews(arr){ localStorage.setItem('kr_reviews', JSON.stringify(arr)); }
+// ── REVIEWS (з Supabase, таблиця reviews) ────────────────────────────────
 function _krEsc(s){ return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function _krFmtDate(iso){
+  if (!iso) return '—';
   const d = new Date(iso);
+  if (isNaN(d.getTime())) return '—';
   const pad = n => String(n).padStart(2,'0');
   return pad(d.getDate()) + '.' + pad(d.getMonth()+1) + '.' + d.getFullYear();
 }
 function _krStarsTxt(n){
+  n = Math.max(0, Math.min(5, Number(n)||0));
   return '★★★★★☆☆☆☆☆'.slice(5-n, 10-n);
 }
-function renderReviewsTable(){
+
+// Кеш мапи product_id → name (щоб не робити окремий запит на кожен відгук)
+let _krReviewProductsCache = null;
+async function _krLoadProductNames(){
+  if (_krReviewProductsCache) return _krReviewProductsCache;
+  try{
+    const r = await fetch(SUPABASE_URL + '/rest/v1/products?select=id,name,sku', {
+      headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY }
+    });
+    if (r.ok){
+      const arr = await r.json();
+      const m = {};
+      (arr||[]).forEach(p => { m[p.id] = p.name || p.sku || p.id; });
+      _krReviewProductsCache = m;
+      return m;
+    }
+  } catch(e){ console.warn('[admin reviews] product names fetch failed', e); }
+  _krReviewProductsCache = {};
+  return _krReviewProductsCache;
+}
+
+async function renderReviewsTable(){
   const tbody = document.getElementById('reviewsTbody');
   const label = document.getElementById('reviewsCountLabel');
   if(!tbody) return;
-  const all = _krLoadReviews().slice().sort((a,b)=> new Date(b.date) - new Date(a.date));
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:24px">Завантаження…</td></tr>';
+
+  let all = [];
+  try{
+    const r = await fetch(SUPABASE_URL + '/rest/v1/reviews?select=id,product_id,author_name,city,rating,text,approved,created_at&order=created_at.desc', {
+      headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY }
+    });
+    if (r.ok) all = await r.json();
+    else if (r.status === 404 || r.status === 400){
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#e53935;padding:24px">Таблиця <code>reviews</code> ще не створена. Виконайте <code>SUPABASE_REVIEWS.sql</code> у Supabase → SQL Editor.</td></tr>';
+      if (label) label.textContent = 'покупців';
+      return;
+    } else {
+      throw new Error('HTTP ' + r.status);
+    }
+  } catch(e){
+    console.error('[admin reviews] load failed', e);
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#e53935;padding:24px">Не вдалось завантажити відгуки: ' + _krEsc(e.message||'') + '</td></tr>';
+    return;
+  }
+
   if(label) label.textContent = all.length ? ('(' + all.length + ')') : 'покупців';
   if(!all.length){
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:24px">Поки що немає відгуків</td></tr>';
     return;
   }
-  tbody.innerHTML = all.map(r => `
-    <tr data-id="${_krEsc(r.id)}">
-      <td><div style="font-weight:600">${_krEsc(r.name)}</div>${r.city?'<div style="font-size:11px;color:var(--text-muted)">'+_krEsc(r.city)+'</div>':''}</td>
-      <td style="font-size:12px">${_krEsc(r.product || '—')}</td>
-      <td><div style="color:#f59e0b;font-size:14px;letter-spacing:1px">${_krStarsTxt(r.rating||0)}</div></td>
+
+  const names = await _krLoadProductNames();
+  const ICON_EYE = '<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+  const ICON_EYE_OFF = '<svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+  const ICON_TRASH = '<svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>';
+  tbody.innerHTML = all.map(r => {
+    const productName = names[r.product_id] || r.product_id || '—';
+    const dim = r.approved ? '' : 'opacity:.55';
+    const approvedTag = r.approved
+      ? '<span style="font-size:10px;background:rgba(46,160,67,.12);color:#2ea043;padding:2px 6px;border-radius:4px;margin-left:6px">опубл.</span>'
+      : '<span style="font-size:10px;background:rgba(229,57,53,.12);color:#e53935;padding:2px 6px;border-radius:4px;margin-left:6px">прихов.</span>';
+    const toggleIcon = r.approved ? ICON_EYE_OFF : ICON_EYE;
+    const toggleTitle = r.approved ? 'Сховати' : 'Опублікувати';
+    const toggleVal = r.approved ? 'false' : 'true';
+    return `
+    <tr data-id="${_krEsc(r.id)}" style="${dim}">
+      <td><div style="font-weight:600">${_krEsc(r.author_name)}</div>${r.city?'<div style="font-size:11px;color:var(--text-muted)">'+_krEsc(r.city)+'</div>':''}</td>
+      <td style="font-size:12px">${_krEsc(productName)}${approvedTag}</td>
+      <td><div style="color:#f59e0b;font-size:14px;letter-spacing:1px">${_krStarsTxt(r.rating)}</div></td>
       <td style="max-width:280px"><div style="font-size:12px;color:var(--text);line-height:1.5">${_krEsc(r.text)}</div></td>
-      <td style="font-size:12px;color:var(--text-muted);white-space:nowrap">${_krFmtDate(r.date)}</td>
-      <td><div class="td-actions"><button class="ta-btn danger" title="Видалити" onclick="deleteReview('${_krEsc(r.id)}')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button></div></td>
-    </tr>
-  `).join('');
+      <td style="font-size:12px;color:var(--text-muted);white-space:nowrap">${_krFmtDate(r.created_at)}</td>
+      <td><div class="td-actions">
+        <button class="ta-btn" title="${toggleTitle}" onclick="toggleReviewApproved('${_krEsc(r.id)}', ${toggleVal})">${toggleIcon}</button>
+        <button class="ta-btn danger" title="Видалити" onclick="deleteReview('${_krEsc(r.id)}')">${ICON_TRASH}</button>
+      </div></td>
+    </tr>`;
+  }).join('');
 }
-function deleteReview(id){
+
+async function toggleReviewApproved(id, approved){
+  try{
+    const r = await fetch(SUPABASE_URL + '/rest/v1/reviews?id=eq.' + encodeURIComponent(id), {
+      method: 'PATCH',
+      headers: {
+        apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY,
+        'Content-Type': 'application/json', Prefer: 'return=minimal'
+      },
+      body: JSON.stringify({ approved: !!approved })
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    showToast(approved ? 'Відгук опубліковано' : 'Відгук приховано');
+    renderReviewsTable();
+  } catch(e){
+    showToast('Не вдалось оновити: ' + (e.message||''), 'error');
+  }
+}
+
+async function deleteReview(id){
   if(!confirm('Видалити цей відгук? Дію не можна скасувати.')) return;
-  const arr = _krLoadReviews().filter(r => r.id !== id);
-  _krSaveReviews(arr);
-  renderReviewsTable();
-  showToast('Відгук видалено','error');
+  try{
+    const r = await fetch(SUPABASE_URL + '/rest/v1/reviews?id=eq.' + encodeURIComponent(id), {
+      method: 'DELETE',
+      headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY, Prefer: 'return=minimal' }
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    showToast('Відгук видалено','error');
+    renderReviewsTable();
+  } catch(e){
+    showToast('Не вдалось видалити: ' + (e.message||''), 'error');
+  }
 }
 
 // ── TOAST ─────────────────────────────────────────────────────────────────

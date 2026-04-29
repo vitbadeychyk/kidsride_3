@@ -505,16 +505,10 @@ nav a.active{color:var(--orange)}
 
       <h1 class="product-title">Дитячий електромобіль Джип M 3804EBLR — 4 мотори, пульт 2.4G, EVA</h1>
 
-      <div class="rating-row">
-        <div class="stars">
-          <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-          <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-          <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-          <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-          <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-        </div>
-        <span class="rating-num">4.9</span>
-        <a href="#reviews" class="rating-count" onclick="openTab('reviews')">24 відгуки</a>
+      <div class="rating-row" id="ratingRow" style="display:none">
+        <div class="stars" id="ratingStars"></div>
+        <span class="rating-num">0.0</span>
+        <a href="#reviews" class="rating-count" onclick="openTab('reviews')">0 відгуків</a>
       </div>
 
       <!-- PRICE -->
@@ -525,7 +519,7 @@ nav a.active{color:var(--orange)}
         <div class="price-hint">РРЦ: <strong>18 500 ₴</strong> — ви економите <strong>1 276 ₴</strong></div>
         <div class="installment">
           <svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-          <div class="installment-text">Оплата частинами від ПриватБанк: <span>від 1 436 ₴/міс</span> × 12 місяців</div>
+          <div class="installment-text">Оплата частинами від ПриватБанк: <span>від 4 306 ₴</span> × 4 платежі</div>
         </div>
       </div>
 
@@ -593,84 +587,23 @@ nav a.active{color:var(--orange)}
       <button class="tab-btn active" onclick="openTab('desc',this)">Опис</button>
       <button class="tab-btn" onclick="openTab('specs',this)">Характеристики</button>
       <button class="tab-btn" onclick="openTab('delivery',this)">Доставка та оплата</button>
-      <button class="tab-btn" onclick="openTab('reviews',this)">Відгуки <span class="tab-cnt">24</span></button>
+      <button class="tab-btn" onclick="openTab('reviews',this)">Відгуки <span class="tab-cnt">0</span></button>
     </div>
 
-    <!-- DESC -->
+    <!-- DESC (заповнюється з Supabase: description + features) -->
     <div class="tab-panel active" id="tab-desc">
       <!-- Динамічний відеоогляд (заповнюється з Supabase, якщо у товара заповнено video_url) -->
       <div id="productVideo" style="display:none;margin-bottom:20px"></div>
-      <p class="desc-text">Дитячий електромобіль Джип M 3804EBLR — це преміальна іграшка для дітей віком від 3 до 8 років. Оснащений чотирма потужними моторами по 45W, пультом дистанційного керування 2.4G, шкіряним сидінням з ременем безпеки та колесами EVA для комфортної їзди по будь-якому покриттю.</p>
-      <p class="desc-text">Вбудований MP3-плеєр з підтримкою USB та SD-карт, підключення до смартфону через Bluetooth, реалістичні звукові ефекти двигуна та музика зроблять кожну поїздку незабутньою.</p>
-      <div class="desc-features">
-        <div class="desc-feat">
-          <div class="df-icon"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
-          <div>
-            <div class="df-title">4 мотори по 45W</div>
-            <p class="df-desc">Плавний старт, стабільна їзда, підйом до 20° ухилу</p>
-          </div>
-        </div>
-        <div class="desc-feat">
-          <div class="df-icon"><svg viewBox="0 0 24 24"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg></div>
-          <div>
-            <div class="df-title">Пульт 2.4G</div>
-            <p class="df-desc">Батьківське управління до 30 метрів, аварійне гальмо</p>
-          </div>
-        </div>
-        <div class="desc-feat">
-          <div class="df-icon"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
-          <div>
-            <div class="df-title">Шкіряне сидіння</div>
-            <p class="df-desc">М'яке PU-шкіра, ремінь безпеки, регулювання педалей</p>
-          </div>
-        </div>
-        <div class="desc-feat">
-          <div class="df-icon"><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
-          <div>
-            <div class="df-title">MP3 + USB + SD</div>
-            <p class="df-desc">Bluetooth, роз'єм USB, слот SD, підключення смартфону</p>
-          </div>
-        </div>
-        <div class="desc-feat">
-          <div class="df-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><path d="M12 16h.01"/></svg></div>
-          <div>
-            <div class="df-title">Колеса EVA</div>
-            <p class="df-desc">М'які резинові колеса, не залишають слідів, без проколів</p>
-          </div>
-        </div>
-        <div class="desc-feat">
-          <div class="df-icon"><svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></div>
-          <div>
-            <div class="df-title">Акумулятор 12V 10A</div>
-            <p class="df-desc">До 1.5 год безперервної їзди, зарядка 8-12 год</p>
-          </div>
-        </div>
+      <div id="productDescription">
+        <p class="desc-text" style="color:var(--text-muted)">Опис товару поки не заповнений. Додайте його в адмінці у полі «Опис».</p>
       </div>
+      <div class="desc-features" id="productFeatures" style="display:none"></div>
     </div>
 
-    <!-- SPECS -->
+    <!-- SPECS (заповнюється з Supabase) -->
     <div class="tab-panel" id="tab-specs">
-      <table class="specs-table">
-        <tr><td>Артикул</td><td>M 3804EBLR-1</td></tr>
-        <tr><td>Бренд</td><td>Bambi Racer</td></tr>
-        <tr><td>Вік</td><td>3 – 8 років</td></tr>
-        <tr><td>Максимальна вага дитини</td><td>35 кг</td></tr>
-        <tr><td>Кількість моторів</td><td>4 × 45W</td></tr>
-        <tr><td>Акумулятор</td><td>12V 10A (Li-ion)</td></tr>
-        <tr><td>Час заряджання</td><td>8 – 12 годин</td></tr>
-        <tr><td>Час їзди</td><td>до 1.5 годин</td></tr>
-        <tr><td>Швидкість</td><td>до 5 км/год (2 режими)</td></tr>
-        <tr><td>Привод</td><td>Повний (4×4)</td></tr>
-        <tr><td>Тип коліс</td><td>EVA (пінополіуретан)</td></tr>
-        <tr><td>Пульт керування</td><td>2.4G, радіус 30 м</td></tr>
-        <tr><td>Музика / звук</td><td>MP3, USB, SD, Bluetooth</td></tr>
-        <tr><td>Сидіння</td><td>PU-шкіра, ремінь безпеки</td></tr>
-        <tr><td>Фари</td><td>Світлодіодні (LED)</td></tr>
-        <tr><td>Матеріал корпусу</td><td>Метал + ABS-пластик</td></tr>
-        <tr><td>Розміри (Д×Ш×В)</td><td>103 × 64 × 58 см</td></tr>
-        <tr><td>Вага</td><td>17.5 кг</td></tr>
-        <tr><td>Тип пакування</td><td>Коробка</td></tr>
-        <tr><td>Гарантія</td><td>12 місяців</td></tr>
+      <table class="specs-table" id="productSpecsTable">
+        <tr><td colspan="2" style="text-align:center;color:var(--text-muted);padding:24px">Завантаження характеристик…</td></tr>
       </table>
     </div>
 
@@ -695,7 +628,7 @@ nav a.active{color:var(--orange)}
           <div style="display:flex;flex-direction:column;gap:8px">
             <div style="display:flex;align-items:center;gap:8px;font-size:13px"><span style="color:var(--green);font-size:16px">✓</span> Рахунок ФОП</div>
             <div style="display:flex;align-items:center;gap:8px;font-size:13px"><span style="color:var(--green);font-size:16px">✓</span> Часткова передоплата</div>
-            <div style="display:flex;align-items:center;gap:8px;font-size:13px"><span style="color:var(--green);font-size:16px">✓</span> Частинами ПриватБанк (до 12 міс)</div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:13px"><span style="color:var(--green);font-size:16px">✓</span> Частинами ПриватБанк (до 4 платежів)</div>
             <div style="display:flex;align-items:center;gap:8px;font-size:13px"><span style="color:var(--green);font-size:16px">✓</span> Пакунок малюка</div>
             <div style="display:flex;align-items:center;gap:8px;font-size:13px"><span style="color:var(--green);font-size:16px">✓</span> Держпідтримка 7000 грн</div>
           </div>
@@ -703,70 +636,23 @@ nav a.active{color:var(--orange)}
       </div>
     </div>
 
-    <!-- REVIEWS -->
+    <!-- REVIEWS (всі реальні відгуки тягнуться з Supabase / таблиця reviews) -->
     <div class="tab-panel" id="tab-reviews">
-      <div class="reviews-summary">
+      <div class="reviews-summary" id="reviewsSummary" style="display:none">
         <div class="rev-score">
-          <div class="rev-score-big">4.9</div>
-          <div class="rev-score-stars">
-            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-          </div>
-          <div class="rev-score-cnt">24 відгуки</div>
+          <div class="rev-score-big" id="revScoreBig">0.0</div>
+          <div class="rev-score-stars" id="revScoreStars"></div>
+          <div class="rev-score-cnt">0 відгуків</div>
         </div>
-        <div class="rev-bars">
-          <div class="rev-bar-row"><span class="rev-bar-label">5</span><div class="rev-bar-track"><div class="rev-bar-fill" style="width:87%"></div></div><span class="rev-bar-cnt">21</span></div>
-          <div class="rev-bar-row"><span class="rev-bar-label">4</span><div class="rev-bar-track"><div class="rev-bar-fill" style="width:9%;background:#f59e0b"></div></div><span class="rev-bar-cnt">2</span></div>
-          <div class="rev-bar-row"><span class="rev-bar-label">3</span><div class="rev-bar-track"><div class="rev-bar-fill" style="width:4%;background:#9ca3af"></div></div><span class="rev-bar-cnt">1</span></div>
-          <div class="rev-bar-row"><span class="rev-bar-label">2</span><div class="rev-bar-track"><div class="rev-bar-fill" style="width:0%"></div></div><span class="rev-bar-cnt">0</span></div>
-          <div class="rev-bar-row"><span class="rev-bar-label">1</span><div class="rev-bar-track"><div class="rev-bar-fill" style="width:0%"></div></div><span class="rev-bar-cnt">0</span></div>
-        </div>
+        <div class="rev-bars" id="revBars"></div>
       </div>
 
       <div id="userReviewsList"></div>
 
-      <div class="review-item">
-        <div class="rev-head">
-          <div class="rev-avatar">О</div>
-          <div>
-            <div class="rev-name">Олена Савченко</div>
-            <div class="rev-date">Київ · 14 листопада 2024</div>
-          </div>
-          <div class="rev-stars">
-            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-          </div>
-        </div>
-        <p class="rev-text">Замовили синові на 4 роки. Якість відмінна — шкіряне сидіння дуже м'яке, колеса EVA їдуть по плитці без звуку. Пульт дуже зручний, дальність велика. Доставили за 2 дні, запаковано добре. Дитина не вилазить!</p>
-        <div style="display:flex;align-items:center;gap:12px;margin-top:10px;flex-wrap:wrap">
-          <span class="rev-verified"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Підтверджена покупка</span>
-          <span style="font-size:11px;color:var(--text-muted)">Колір: Білий</span>
-        </div>
-      </div>
-
-      <div class="review-item">
-        <div class="rev-head">
-          <div class="rev-avatar" style="background:linear-gradient(135deg,#1B2A4A,#2d4270)">А</div>
-          <div>
-            <div class="rev-name">Андрій Коваленко</div>
-            <div class="rev-date">Харків · 3 жовтня 2024</div>
-          </div>
-          <div class="rev-stars">
-            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-          </div>
-        </div>
-        <p class="rev-text">Оплатив частинами через ПриватБанк — менеджер все оформив дуже швидко. Джип прийшов цілий, все зібрали за 15 хвилин. Дочці дуже сподобався. Окремий плюс — пульт реально допомагає контролювати дитину на вулиці.</p>
-        <span class="rev-verified"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Підтверджена покупка</span>
+      <div id="reviewsEmpty" style="text-align:center;padding:32px 16px;color:var(--text-muted)">
+        <div style="font-size:32px;margin-bottom:8px">✍️</div>
+        <div style="font-weight:600;margin-bottom:4px;color:var(--navy)">Поки що немає відгуків про цей товар</div>
+        <div style="font-size:13px">Будьте першим, хто поділиться враженнями!</div>
       </div>
 
       <button class="btn btn-outline write-review-btn" onclick="openReviewForm()">
@@ -1226,12 +1112,14 @@ function getProductKey(){
   }catch(e){ return 'default'; }
 }
 function escHtml(s){ return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function loadAllReviews(){
-  try{ return JSON.parse(localStorage.getItem('kr_reviews')||'[]'); }catch(e){ return []; }
-}
-function saveAllReviews(arr){
-  localStorage.setItem('kr_reviews', JSON.stringify(arr));
-}
+
+// ── ВІДГУКИ З SUPABASE ───────────────────────────────────────────────────
+// Кеш product_id, який потрібен submitReview() для запису відгуку у БД.
+window.__krCurrentProductId = null;
+
+function _krSupaUrl(){ return (window.KR && KR._SUPA_URL) || 'https://xczrzdbikkycgpnvolib.supabase.co'; }
+function _krSupaKey(){ return (window.KR && KR._SUPA_KEY) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ'; }
+
 function formatRevDate(iso){
   const d = new Date(iso);
   const months = ['січня','лютого','березня','квітня','травня','червня','липня','серпня','вересня','жовтня','листопада','грудня'];
@@ -1242,46 +1130,98 @@ function starsSvg(n){
   for(let i=0;i<n;i++) html+='<svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
   return html;
 }
-function renderUserReviews(){
-  const list = document.getElementById('userReviewsList');
-  if(!list) return;
-  const product = getProductKey();
-  const all = loadAllReviews().filter(r => r.product === product);
-  // newest first
-  all.sort((a,b) => new Date(b.date) - new Date(a.date));
-  list.innerHTML = all.map(r => {
-    const initial = (r.name || '?').trim().charAt(0).toUpperCase();
-    const cityLine = (r.city ? escHtml(r.city) + ' · ' : '') + formatRevDate(r.date);
-    return `
-      <div class="review-item">
-        <div class="rev-head">
-          <div class="rev-avatar" style="background:linear-gradient(135deg,#FF6B35,#ff9a6c)">${escHtml(initial)}</div>
-          <div>
-            <div class="rev-name">${escHtml(r.name)}</div>
-            <div class="rev-date">${cityLine}</div>
-          </div>
-          <div class="rev-stars">${starsSvg(r.rating)}</div>
-        </div>
-        <p class="rev-text">${escHtml(r.text)}</p>
-      </div>
-    `;
-  }).join('');
 
-  // Оновлюємо лічильники відгуків скрізь на сторінці
-  updateReviewCounts(all.length);
+async function loadReviewsFromSupabase(productId){
+  if (!productId) return;
+  window.__krCurrentProductId = productId;
+  let arr = [];
+  try{
+    const r = await fetch(_krSupaUrl() + '/rest/v1/reviews?product_id=eq.' + encodeURIComponent(productId)
+      + '&approved=eq.true&order=created_at.desc&select=id,author_name,city,rating,text,color_label,created_at', {
+      headers: { 'apikey': _krSupaKey(), 'Authorization': 'Bearer ' + _krSupaKey() }
+    });
+    if (r.ok) arr = await r.json();
+    else if (r.status !== 404) console.warn('[KidsRide reviews] fetch failed:', r.status);
+  } catch(e){ console.warn('[KidsRide reviews] fetch error:', e); }
+  renderReviews(Array.isArray(arr) ? arr : []);
+}
+
+function renderReviews(arr){
+  const list = document.getElementById('userReviewsList');
+  const empty = document.getElementById('reviewsEmpty');
+  const summary = document.getElementById('reviewsSummary');
+  const cnt = arr.length;
+  if (list){
+    list.innerHTML = arr.map(r => {
+      const initial = (r.author_name || '?').trim().charAt(0).toUpperCase();
+      const cityLine = (r.city ? escHtml(r.city) + ' · ' : '') + formatRevDate(r.created_at);
+      const colorLine = r.color_label ? '<span style="font-size:11px;color:var(--text-muted)">Колір: ' + escHtml(r.color_label) + '</span>' : '';
+      return ''
+        + '<div class="review-item">'
+        +   '<div class="rev-head">'
+        +     '<div class="rev-avatar" style="background:linear-gradient(135deg,#FF6B35,#ff9a6c)">' + escHtml(initial) + '</div>'
+        +     '<div>'
+        +       '<div class="rev-name">' + escHtml(r.author_name) + '</div>'
+        +       '<div class="rev-date">' + cityLine + '</div>'
+        +     '</div>'
+        +     '<div class="rev-stars">' + starsSvg(r.rating || 0) + '</div>'
+        +   '</div>'
+        +   '<p class="rev-text">' + escHtml(r.text) + '</p>'
+        +   (colorLine ? ('<div style="display:flex;align-items:center;gap:12px;margin-top:10px;flex-wrap:wrap">' + colorLine + '</div>') : '')
+        + '</div>';
+    }).join('');
+  }
+  if (empty) empty.style.display = cnt ? 'none' : '';
+  if (summary) summary.style.display = cnt ? '' : 'none';
+
+  // Підсумок: середня оцінка + бари
+  if (cnt){
+    const sum = arr.reduce((s,x) => s + (Number(x.rating)||0), 0);
+    const avg = sum / cnt;
+    const bins = [0,0,0,0,0]; // індекси 0..4 = оцінки 1..5
+    arr.forEach(x => { const k = Math.max(1, Math.min(5, Number(x.rating)||0)); bins[k-1]++; });
+    const big = document.getElementById('revScoreBig');
+    if (big) big.textContent = avg.toFixed(1).replace('.', ',');
+    const star = document.getElementById('revScoreStars');
+    if (star) star.innerHTML = starsSvg(Math.round(avg));
+    const scoreCnt = document.querySelector('.rev-score-cnt');
+    if (scoreCnt) scoreCnt.textContent = cnt + ' ' + plural(cnt, 'відгук', 'відгуки', 'відгуків');
+    const bars = document.getElementById('revBars');
+    if (bars){
+      const max = Math.max.apply(null, bins) || 1;
+      const colors = { 5:'', 4:'#f59e0b', 3:'#9ca3af', 2:'#9ca3af', 1:'#9ca3af' };
+      bars.innerHTML = [5,4,3,2,1].map(k => {
+        const c = bins[k-1];
+        const w = Math.round(c / max * 100);
+        const bg = colors[k] ? ('background:' + colors[k]) : '';
+        return '<div class="rev-bar-row"><span class="rev-bar-label">' + k + '</span>'
+          + '<div class="rev-bar-track"><div class="rev-bar-fill" style="width:' + w + '%;' + bg + '"></div></div>'
+          + '<span class="rev-bar-cnt">' + c + '</span></div>';
+      }).join('');
+    }
+    // Топ-блок з зірочками поруч з назвою товару
+    const ratingRow = document.getElementById('ratingRow');
+    if (ratingRow){
+      ratingRow.style.display = '';
+      const num = ratingRow.querySelector('.rating-num');
+      if (num) num.textContent = avg.toFixed(1).replace('.', ',');
+      const stars = document.getElementById('ratingStars');
+      if (stars) stars.innerHTML = starsSvg(Math.round(avg));
+    }
+  } else {
+    // Сховаємо рядок з оцінкою біля назви, бо рейтингу немає
+    const ratingRow = document.getElementById('ratingRow');
+    if (ratingRow) ratingRow.style.display = 'none';
+  }
+  updateReviewCounts(cnt);
 }
 
 function updateReviewCounts(count) {
-  // Вкладка "Відгуки N"
   document.querySelectorAll('.tab-cnt').forEach(el => {
     if (el.closest('.tab-btn') && /відгуки/i.test(el.closest('.tab-btn').textContent)) {
       el.textContent = count;
     }
   });
-  // Підсумок ".rev-score-cnt"
-  const scoreCnt = document.querySelector('.rev-score-cnt');
-  if (scoreCnt) scoreCnt.textContent = count + ' ' + plural(count, 'відгук', 'відгуки', 'відгуків');
-  // Посилання ".rating-count" біля зірок
   const ratingCount = document.querySelector('.rating-count');
   if (ratingCount) ratingCount.textContent = count + ' ' + plural(count, 'відгук', 'відгуки', 'відгуків');
 }
@@ -1292,33 +1232,60 @@ function plural(n, one, few, many) {
   if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return few;
   return many;
 }
-function submitReview() {
+
+async function submitReview() {
   const name = (document.getElementById('revName').value || '').trim();
   const city = (document.getElementById('revCity').value || '').trim();
   const text = (document.getElementById('revText').value || '').trim();
   if (!pickedStars) { showToast('Будь ласка, поставте оцінку'); return; }
   if (!name)         { showToast("Будь ласка, вкажіть ім'я"); return; }
   if (!text)         { showToast('Будь ласка, напишіть відгук'); return; }
+  const productId = window.__krCurrentProductId;
+  if (!productId) { showToast('Не вдалось визначити товар. Перезавантажте сторінку'); return; }
 
-  const all = loadAllReviews();
-  all.push({
-    id: 'r_' + Date.now() + '_' + Math.random().toString(36).slice(2,8),
-    product: getProductKey(),
-    name, city, text,
-    rating: pickedStars,
-    date: new Date().toISOString()
-  });
-  saveAllReviews(all);
+  // Знайти кнопку відправки і заблокувати, щоб не дублювати запит
+  const btn = document.querySelector('#reviewModal .btn-primary');
+  const oldTxt = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = 'Відправляємо…'; btn.style.opacity = '.7'; }
 
-  // reset form
+  try{
+    const r = await fetch(_krSupaUrl() + '/rest/v1/reviews', {
+      method: 'POST',
+      headers: {
+        'apikey': _krSupaKey(),
+        'Authorization': 'Bearer ' + _krSupaKey(),
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        product_id: productId,
+        author_name: name,
+        city: city,
+        rating: pickedStars,
+        text: text
+      })
+    });
+    if (!r.ok) {
+      const err = await r.text().catch(() => '');
+      throw new Error('Сервер відмовив: ' + r.status + ' ' + err);
+    }
+  } catch(e){
+    if (btn) { btn.disabled = false; btn.textContent = oldTxt || 'Опублікувати відгук'; btn.style.opacity = ''; }
+    showToast('⚠ ' + (e.message || 'Не вдалось зберегти відгук'), 'error');
+    return;
+  }
+
+  // Скидаємо форму
   document.getElementById('revName').value = '';
   document.getElementById('revCity').value = '';
   document.getElementById('revText').value = '';
   pickStar(0);
+  if (btn) { btn.disabled = false; btn.textContent = oldTxt || 'Опублікувати відгук'; btn.style.opacity = ''; }
 
   closeReview();
-  renderUserReviews();
   showToast('✓ Дякуємо! Ваш відгук опубліковано');
+  // Перезавантажуємо список з БД, щоб показати новий
+  loadReviewsFromSupabase(productId);
 }
 
 // Star picker
@@ -1330,9 +1297,6 @@ function pickStar(n) {
     s.style.stroke = i < n ? '#f59e0b' : '#d1d5db';
   });
 }
-
-// Initial render of any saved user reviews for this product
-document.addEventListener('DOMContentLoaded', renderUserReviews);
 
 // Close modals on overlay click
 document.getElementById('quickModal').addEventListener('click', function(e) { if(e.target===this) closeQuick(); });
@@ -1385,36 +1349,123 @@ console.log('[KidsRide] product.html v3.9 — працюють: копіюван
     if (!id) return;
 
     // ─ Точний рендер з БД (перекриває кеш найсвіжішими даними) ─
-    const r = await fetch(SUPA_URL + '/rest/v1/products?id=eq.' + encodeURIComponent(id)
-      + '&select=id,sku,model_code,color,name,brand,price,old_price,stock,badge,images,active', {
-      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
-    });
-    if (!r.ok) {
-      console.warn('[KidsRide] fetch product failed:', r.status);
-      // Якщо PostgREST скаржиться, що нема колонки model_code — спробуємо без неї
-      if (r.status === 400) {
-        const r2 = await fetch(SUPA_URL + '/rest/v1/products?id=eq.' + encodeURIComponent(id)
-          + '&select=id,sku,name,brand,price,old_price,stock,badge,images,active', {
+    // Пробуємо МАКСИМАЛЬНИЙ select (description/features/age_range/voltage/...);
+    // якщо PostgREST повертає 400 (колонок ще нема), скорочуємо до меншого набору.
+    const SELECTS = [
+      'id,sku,model_code,color,name,brand,description,features,category,voltage,age_range,age,motor,battery,speed,max_load,weight,warranty,assembly_time,short_desc,price,old_price,stock,badge,images,active',
+      'id,sku,model_code,color,name,brand,description,features,category,voltage,age_range,price,old_price,stock,badge,images,active',
+      'id,sku,model_code,color,name,brand,description,features,price,old_price,stock,badge,images,active',
+      'id,sku,model_code,color,name,brand,price,old_price,stock,badge,images,active',
+      'id,sku,name,brand,price,old_price,stock,badge,images,active'
+    ];
+    let p = null;
+    for (const sel of SELECTS){
+      try{
+        const r = await fetch(SUPA_URL + '/rest/v1/products?id=eq.' + encodeURIComponent(id) + '&select=' + sel, {
           headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
         });
-        if (!r2.ok) return;
-        const arr2 = await r2.json();
-        const p2 = Array.isArray(arr2) && arr2[0];
-        if (!p2) return;
-        applyProductData(p2);
-        if (p2.sku) await buildColorVariants(p2.sku, p2.id, SUPA_URL, SUPA_KEY, null);
-      }
-      return;
+        if (r.ok) {
+          const arr = await r.json();
+          if (Array.isArray(arr) && arr[0]) { p = arr[0]; break; }
+          break; // запит ОК, але товару нема — далі не шукаємо
+        }
+        if (r.status !== 400) { console.warn('[KidsRide] fetch product failed:', r.status); break; }
+      } catch(e){ console.warn('[KidsRide] fetch error:', e); break; }
     }
-    const arr = await r.json();
-    const p = Array.isArray(arr) && arr[0];
     if (!p) { console.warn('[KidsRide] product not found in DB:', id); return; }
     console.log('[KidsRide] product loaded:', { sku: p.sku, model_code: p.model_code, name: p.name, images: Array.isArray(p.images) ? p.images.length : 0 });
 
     applyProductData(p);
+    renderProductDescription(p);
+    renderProductSpecs(p);
     if (p.sku || p.model_code) await buildColorVariants(p.sku, p.id, SUPA_URL, SUPA_KEY, p.model_code);
+    // ─ Відгуки з Supabase (по реальному product_id) ─
+    loadReviewsFromSupabase(p.id);
   } catch(e){ console.warn('[KidsRide] loadFullProduct error:', e); }
 })();
+
+// ── Рендер блоку «Опис» ──────────────────────────────────────────────────
+function renderProductDescription(p){
+  const wrap = document.getElementById('productDescription');
+  const featBox = document.getElementById('productFeatures');
+  const desc = (p && typeof p.description === 'string') ? p.description.trim() : '';
+  const short = (p && typeof p.short_desc === 'string') ? p.short_desc.trim() : '';
+  if (wrap){
+    wrap.innerHTML = '';
+    if (desc || short){
+      // Об'єднуємо short_desc + description, розбиваємо на абзаци по \n\n або \n
+      const full = (short ? (short + '\n\n') : '') + desc;
+      const paragraphs = full.split(/\n{2,}|\r\n{2,}/).map(s => s.trim()).filter(Boolean);
+      paragraphs.forEach(par => {
+        // У межах абзацу одиничні \n залишаємо як <br>
+        const html = escHtml(par).replace(/\n/g, '<br>');
+        const pEl = document.createElement('p');
+        pEl.className = 'desc-text';
+        pEl.innerHTML = html;
+        wrap.appendChild(pEl);
+      });
+    } else {
+      wrap.innerHTML = '<p class="desc-text" style="color:var(--text-muted)">Опис товару поки не заповнений. Додайте його в адмінці у полі «Опис».</p>';
+    }
+  }
+  // ─ Features (масив рядків) рендеримо як акуратні картки ─
+  const feats = Array.isArray(p && p.features) ? p.features.filter(f => String(f||'').trim()) : [];
+  if (featBox){
+    featBox.innerHTML = '';
+    if (feats.length){
+      const ICON = '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>';
+      feats.forEach(f => {
+        const txt = String(f).trim();
+        // Якщо у рядку є ":" — перша частина = заголовок, друга = опис
+        const i = txt.indexOf(':');
+        const title = i > 0 ? txt.slice(0, i).trim() : txt;
+        const sub   = i > 0 ? txt.slice(i+1).trim() : '';
+        const card = document.createElement('div');
+        card.className = 'desc-feat';
+        card.innerHTML = '<div class="df-icon">' + ICON + '</div><div>'
+          + '<div class="df-title">' + escHtml(title) + '</div>'
+          + (sub ? ('<p class="df-desc">' + escHtml(sub) + '</p>') : '')
+          + '</div>';
+        featBox.appendChild(card);
+      });
+      featBox.style.display = '';
+    } else {
+      featBox.style.display = 'none';
+    }
+  }
+}
+
+// ── Рендер блоку «Характеристики» ────────────────────────────────────────
+function renderProductSpecs(p){
+  const tbl = document.getElementById('productSpecsTable');
+  if (!tbl || !p) return;
+  const CAT_LABELS = { jeep:'Джип', quad:'Квадроцикл', moto:'Мотоцикл', car:'Машина', tractor:'Трактор', walker:'Каталка-толокар', truck:'Вантажівка', buggy:'Баггі' };
+  // Перелік "людська назва → значення з товару". null/порожні автоматично відкидаються.
+  const rows = [
+    ['Артикул',                p.sku],
+    ['Бренд',                  p.brand],
+    ['Категорія',              p.category ? (CAT_LABELS[p.category] || p.category) : ''],
+    ['Колір',                  p.color],
+    ['Вік',                    p.age_range || p.age],
+    ['Кількість моторів / потужність', p.motor],
+    ['Акумулятор',             p.battery],
+    ['Напруга',                p.voltage],
+    ['Швидкість',              p.speed],
+    ['Максимальне навантаження', p.max_load],
+    ['Вага',                   p.weight],
+    ['Час збирання',           p.assembly_time],
+    ['Гарантія',               p.warranty || '12 місяців']
+  ].filter(r => {
+    const v = r[1];
+    return v !== null && v !== undefined && String(v).trim() !== '';
+  });
+
+  if (!rows.length){
+    tbl.innerHTML = '<tr><td colspan="2" style="text-align:center;color:var(--text-muted);padding:24px">Характеристики поки не заповнені. Додайте їх в адмінці.</td></tr>';
+    return;
+  }
+  tbl.innerHTML = rows.map(r => '<tr><td>' + escHtml(r[0]) + '</td><td>' + escHtml(String(r[1])) + '</td></tr>').join('');
+}
 
 // Застосувати дані товару до DOM (текст, ціна, стан, галерея)
 function applyProductData(p){
@@ -1466,7 +1517,7 @@ function applyProductData(p){
       }
     }
     const inst = document.querySelector('.installment-text span');
-    if (inst) inst.textContent = 'від ' + fmt(Math.round(Number(p.price)/12)) + ' ₴/міс';
+    if (inst) inst.textContent = 'від ' + fmt(Math.ceil(Number(p.price)/4)) + ' ₴';
     const mbb = document.querySelector('.mbb-price');
     if (mbb) mbb.textContent = fmt(p.price) + ' ₴';
   }
@@ -2091,7 +2142,7 @@ function _ytEmbedFromUrl(url){
 
     // Розстрочка
     const inst = document.querySelector('.installment-text span');
-    if (inst && p.price) inst.textContent = 'від ' + fmt(Math.ceil(Number(p.price) / 12)) + ' ₴/міс';
+    if (inst && p.price) inst.textContent = 'від ' + fmt(Math.ceil(Number(p.price) / 4)) + ' ₴';
 
     // Мобільна панель знизу
     const mbb = document.querySelector('.mbb-price');
