@@ -307,10 +307,80 @@ const SVG_MAP = {
 // State: currently comparing
 let comparing = []; // Буде завантажено з localStorage
 
+// ── Завантаження актуальної інформації по товарах з Supabase ──
+function _cmpSupaUrl(){ return (window.KR && KR._SUPA_URL) || 'https://xczrzdbikkycgpnvolib.supabase.co'; }
+function _cmpSupaKey(){ return (window.KR && KR._SUPA_KEY) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ'; }
+
+function _cmpBuildSpecs(p){
+  const features = Array.isArray(p && p.features) ? p.features.map(f => String(f||'')) : [];
+  const featStr = features.join('\n');
+  const has = re => re.test(featStr);
+  const find = re => { for (const f of features) { const m = f.match(re); if (m) return m[0]; } return null; };
+  const wheels = find(/EVA|поліурета[нм]|каучук|пневмо|гумов\w*|пластикові колеса/i);
+  const remoteRaw = find(/2\.?4\s*G\w*|пульт[^,;.\n]*/i);
+  const remote = has(/пульт|2\.?4\s*G|радіо/i) ? (remoteRaw || 'Є') : false;
+  return {
+    'Вік': p.age_range || p.age || '',
+    'Акумулятор': p.battery || '',
+    'Кількість моторів': p.motor || '',
+    'Швидкість': p.speed || '',
+    'Тип коліс': wheels || '',
+    'Пульт ДК': remote,
+    'Шкіряне сидіння': has(/шкір|еко.?шкір/i),
+    'MP3 / USB': has(/MP3|USB|флешк|TF|SD карт/i),
+    'Bluetooth': has(/bluetooth|блютуз/i),
+    'LED фари': has(/\bLED\b|світлодіод/i),
+    'Ремінь безпеки': has(/ремін|безпек|пасок/i),
+    'Вага': p.weight || '',
+    'Час їзди': find(/до\s*[\d.,]+\s*год|[\d.,]+\s*год(?:ин)?\s*ї?зди?/i) || '',
+    'Гарантія': p.warranty || '',
+  };
+}
+
+async function _cmpFetchLive(items){
+  if (!items.length) return items;
+  const ids = items.map(p => '"' + String(p.id).replace(/"/g,'\\"') + '"').join(',');
+  // Спробуємо з повним select; якщо БД старіша і колонки немає — впадемо назад на менший select
+  const selects = [
+    'id,sku,name,brand,price,old_price,images,age_range,age,motor,battery,voltage,speed,max_load,weight,warranty,features,color,category,active,stock',
+    'id,sku,name,brand,price,old_price,images,age_range,age,features,color,category,active,stock',
+    'id,sku,name,brand,price,old_price,images,features,active,stock',
+    'id,name,brand,price,images,features',
+  ];
+  let rows = null;
+  for (const sel of selects) {
+    try {
+      const r = await fetch(_cmpSupaUrl() + '/rest/v1/products?id=in.(' + ids + ')&select=' + encodeURIComponent(sel), {
+        headers: { 'apikey': _cmpSupaKey(), 'Authorization': 'Bearer ' + _cmpSupaKey() }
+      });
+      if (r.ok) { rows = await r.json(); break; }
+      if (r.status !== 400) break;
+    } catch(e) { console.warn('compare: live fetch failed', e); break; }
+  }
+  if (!Array.isArray(rows) || !rows.length) return items;
+  const byId = {};
+  for (const r of rows) byId[String(r.id)] = r;
+  return items.map(p => {
+    const fresh = byId[String(p.id)];
+    if (!fresh) return p; // нема в БД — лишаємо кешоване (наприклад товар видалений)
+    const photo = (Array.isArray(fresh.images) && fresh.images[0]) || p.photo || p.img || '';
+    return {
+      id: String(fresh.id),
+      name: fresh.name || p.name,
+      brand: fresh.brand || p.brand,
+      price: Number(fresh.price != null ? fresh.price : p.price) || p.price || 0,
+      img: p.img,
+      photo,
+      specs: _cmpBuildSpecs(fresh),
+      _stale: !fresh.active, // якщо товар деактивовано — позначимо
+    };
+  });
+}
+
 function render() {
   const content = document.getElementById('compareContent');
   const count = comparing.length;
-  document.getElementById('cmpCount').textContent = count ? `(${count} товари)` : '';
+  document.getElementById('cmpCount').textContent = count ? `(${count} ${count === 1 ? 'товар' : count < 5 ? 'товари' : 'товарів'})` : '';
 
   if (!count) {
     content.innerHTML = `
@@ -326,13 +396,23 @@ function render() {
   // Find min price
   const minPrice = Math.min(...comparing.map(p => p.price));
 
-  // All spec keys
+  // All spec keys (фільтруємо порожні рядки нижче)
   const specSections = {
     'Основне': ['Вік', 'Акумулятор', 'Кількість моторів', 'Швидкість', 'Тип коліс'],
     'Управління': ['Пульт ДК'],
     'Комфорт': ['Шкіряне сидіння', 'MP3 / USB', 'Bluetooth', 'LED фари', 'Ремінь безпеки'],
     'Технічні': ['Вага', 'Час їзди', 'Гарантія'],
   };
+
+  // Прибираємо рядки, де у ВСІХ товарів значення пусте/невідоме (false теж вважаємо порожнім,
+  // якщо ніде немає true — щоб не показувати рядок "Bluetooth: — — —" коли ні в кого немає).
+  const isEmpty = v => v === undefined || v === null || v === '' || v === '—' || v === false;
+  for (const sec of Object.keys(specSections)) {
+    specSections[sec] = specSections[sec].filter(key => {
+      return comparing.some(p => p && p.specs && !isEmpty(p.specs[key]));
+    });
+    if (!specSections[sec].length) delete specSections[sec];
+  }
 
   // Empty slots to add
   const emptySlots = 3 - count;
@@ -433,18 +513,30 @@ function addToCartFromCompare(id, price, name, brand, btn) {
   setTimeout(() => { btn.style.background = 'var(--orange)'; btn.innerHTML = orig; }, 1500);
 }
 
-// Load compare list from localStorage if available
-window.addEventListener('DOMContentLoaded', () => {
+// Load compare list from localStorage, then підтягуємо актуальні дані з Supabase
+window.addEventListener('DOMContentLoaded', async () => {
+  let cached = [];
   try {
     const saved = JSON.parse(localStorage.getItem('kr_compare') || '[]');
-    if (saved.length) {
-      comparing = saved;
-    } else {
-      // Якщо localStorage порожній — показуємо порожній стан (не демо)
-      comparing = [];
-    }
-  } catch { comparing = []; }
+    if (Array.isArray(saved)) cached = saved;
+  } catch { cached = []; }
+  comparing = cached;
+  // Перший рендер — щоб користувач одразу побачив товари (з кешем без характеристик)
   render();
+  if (!cached.length) return;
+  // Друга стадія — тягнемо актуальні характеристики/ціну/фото з БД і перерендерюємо
+  try {
+    const fresh = await _cmpFetchLive(cached);
+    comparing = fresh;
+    // Оновимо також локальний кеш — але без важких полів (фото зберігаємо як URL)
+    try {
+      const lite = fresh.map(p => ({ id: p.id, name: p.name, brand: p.brand, price: p.price, img: p.img, photo: p.photo }));
+      localStorage.setItem('kr_compare', JSON.stringify(lite));
+    } catch {}
+    render();
+  } catch (e) {
+    console.warn('[compare] live fetch failed', e);
+  }
 });
 
 window.addEventListener('scroll', () => {
