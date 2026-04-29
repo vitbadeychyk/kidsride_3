@@ -600,7 +600,7 @@ tr:hover td{background:rgba(240,242,248,.5)}
             <tr><td colspan="9" style="text-align:center;padding:24px;color:var(--text-muted)">Завантаження…</td></tr>
           </tbody>
         </table>
-        <div class="pagination"><span>Показано 1–10 з 1 847</span><div class="pag-btns"><button class="pag-btn"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button><button class="pag-btn active">1</button><button class="pag-btn">2</button><button class="pag-btn">3</button><span style="padding:0 4px;color:var(--text-muted)">…</span><button class="pag-btn">185</button><button class="pag-btn"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button></div></div>
+        <div id="ordersPagination"></div>
       </div>
     </div>
 
@@ -1383,28 +1383,80 @@ function _itemsLabel(items, fallbackCount){
   return `<div class="td-name">${_escHtml(first.product_name || '')} × ${first.quantity || 1}</div>${more}`;
 }
 
-async function renderOrdersTable(){
+// Пагінація замовлень
+const ORDERS_PAGE_SIZE = 10;
+let _ordersCurrentPage = 1;
+
+function setOrdersPage(n){
+  _ordersCurrentPage = Math.max(1, parseInt(n) || 1);
+  renderOrdersTable({ refetch: false });
+  const panel = document.getElementById('panel-orders');
+  if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function _renderOrdersPagination(total, page, pageSize){
+  const el = document.getElementById('ordersPagination');
+  if (!el) return;
+  if (total <= 0) { el.innerHTML = ''; return; }
+  const pages = Math.max(1, Math.ceil(total / pageSize));
+  page = Math.min(Math.max(1, page), pages);
+  const from = (page - 1) * pageSize + 1;
+  const to   = Math.min(page * pageSize, total);
+
+  // Набір номерів сторінок: перша, останні з вікном біля поточної, остання
+  const set = new Set([1, pages, page, page - 1, page + 1]);
+  const nums = [...set].filter(n => n >= 1 && n <= pages).sort((a,b)=>a-b);
+  let btns = '';
+  btns += `<button class="pag-btn" ${page<=1?'disabled style="opacity:.4;cursor:not-allowed"':''} onclick="setOrdersPage(${page-1})"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>`;
+  let prev = 0;
+  for (const n of nums) {
+    if (prev && n - prev > 1) btns += '<span style="padding:0 4px;color:var(--text-muted)">…</span>';
+    btns += `<button class="pag-btn ${n===page?'active':''}" onclick="setOrdersPage(${n})">${n}</button>`;
+    prev = n;
+  }
+  btns += `<button class="pag-btn" ${page>=pages?'disabled style="opacity:.4;cursor:not-allowed"':''} onclick="setOrdersPage(${page+1})"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>`;
+
+  el.className = 'pagination';
+  el.innerHTML = `<span>Показано ${from}–${to} з ${total.toLocaleString('uk-UA')}</span><div class="pag-btns">${btns}</div>`;
+}
+
+async function renderOrdersTable(opts){
   const tb = document.getElementById('ordersBody');
   if (!tb) return;
-  tb.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--text-muted)">Завантаження…</td></tr>';
+  const refetch = !opts || opts.refetch !== false;
 
-  let orders = [];
-  try {
-    orders = await sbFetch('orders?select=*,order_items(*)&order=created_at.desc&limit=200');
-  } catch(e) {
-    console.error('renderOrdersTable:', e);
-    tb.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:24px;color:#c33">Помилка завантаження: ${_escHtml(e.message||e)}</td></tr>`;
-    return;
+  if (refetch || !Array.isArray(_ordersCache) || _ordersCache.length === 0) {
+    tb.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--text-muted)">Завантаження…</td></tr>';
+    let orders = [];
+    try {
+      // Тягнемо до 2000 — для коректної пагінації, ще й сортуємо за датою
+      orders = await sbFetch('orders?select=*,order_items(*)&order=created_at.desc&limit=2000');
+    } catch(e) {
+      console.error('renderOrdersTable:', e);
+      tb.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:24px;color:#c33">Помилка завантаження: ${_escHtml(e.message||e)}</td></tr>`;
+      const elPg = document.getElementById('ordersPagination');
+      if (elPg) elPg.innerHTML = '';
+      return;
+    }
+    _ordersCache = orders || [];
   }
 
-  _ordersCache = orders || [];
-  if (!_ordersCache.length) {
+  const ordersTotal = _ordersCache.length;
+  if (ordersTotal === 0) {
     tb.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--text-muted)">Замовлень ще немає</td></tr>';
+    const elPg = document.getElementById('ordersPagination');
+    if (elPg) { elPg.className = 'pagination'; elPg.innerHTML = '<span>Показано 0 з 0</span><div class="pag-btns"></div>'; }
     return;
   }
+
+  // Сторінкування
+  const ordersPages = Math.max(1, Math.ceil(ordersTotal / ORDERS_PAGE_SIZE));
+  if (_ordersCurrentPage > ordersPages) _ordersCurrentPage = ordersPages;
+  const start = (_ordersCurrentPage - 1) * ORDERS_PAGE_SIZE;
+  const pageRows = _ordersCache.slice(start, start + ORDERS_PAGE_SIZE);
 
   const statuses = ['Новий','Підтверджено','Відправлено','Доставлено','Скасовано'];
-  tb.innerHTML = _ordersCache.map(o => {
+  tb.innerHTML = pageRows.map(o => {
     const num     = o.order_number ? '#'+o.order_number : '#'+String(o.id).slice(0,8);
     const fio     = [o.customer_first_name, o.customer_last_name].filter(Boolean).join(' ') || '—';
     const phone   = o.customer_phone || '';
@@ -1430,6 +1482,8 @@ async function renderOrdersTable(){
       </div></td>
     </tr>`;
   }).join('');
+
+  _renderOrdersPagination(ordersTotal, _ordersCurrentPage, ORDERS_PAGE_SIZE);
 }
 
 // ── DASHBOARD + ANALYTICS ─────────────────────────────────────────────────
