@@ -137,7 +137,7 @@ nav a.active{color:var(--orange)}
 .p-img{aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;width:100%}
 .p-img svg{transition:transform .4s ease}
 .p-card:hover .p-img svg{transform:scale(1.06) translateY(-3px)}
-.p-overlay{position:absolute;inset:0;background:rgba(27,42,74,.45);display:flex;align-items:center;justify-content:center;gap:10px;opacity:0;pointer-events:none;transition:opacity .25s;backdrop-filter:blur(3px);z-index:3}
+.p-overlay{position:absolute;inset:0;background:rgba(27,42,74,.45);display:flex;align-items:center;justify-content:center;gap:10px;opacity:0;pointer-events:none;transition:opacity .25s;backdrop-filter:blur(3px);z-index:1}
 .p-card:hover .p-overlay{opacity:1;pointer-events:auto}
 .p-overlay-btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:8px;font-family:'Nunito',sans-serif;font-weight:700;font-size:12px;border:none;cursor:pointer;transition:all .2s}
 .ob-white{background:white;color:var(--navy)}
@@ -151,12 +151,16 @@ nav a.active{color:var(--orange)}
 .badge-new{background:var(--navy);color:white}
 .badge-sale{background:var(--green);color:white}
 
-.p-wish{position:absolute;top:10px;right:10px;width:32px;height:32px;background:white;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-sm);transition:all .2s;z-index:2}
+.p-wish{position:absolute;top:10px;right:10px;width:32px;height:32px;background:white;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-sm);transition:all .2s;z-index:5}
 .p-wish:hover{transform:scale(1.15)}
 .p-wish svg{width:15px;height:15px;stroke:#94a3b8;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:all .2s}
 .p-wish.liked svg{stroke:#ef4444;fill:#ef4444}
 
-.p-compare{display:none}
+.p-compare{position:absolute;top:10px;right:50px;width:32px;height:32px;background:white;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-sm);transition:all .2s;z-index:5}
+.p-compare:hover{transform:scale(1.15)}
+.p-compare svg{width:15px;height:15px;stroke:#94a3b8;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:all .2s}
+.p-compare.active{background:var(--orange)}
+.p-compare.active svg{stroke:white}
 
 .p-body{padding:16px 18px 18px}
 .p-brand{font-size:10px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}

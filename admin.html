@@ -1747,12 +1747,11 @@ const DEFAULT_SLIDES = [
 ];
 
 function _normalizeSlide(s, fallbackOrder){
-  // Старе поле "link" → нове "cta1_link" для зворотної сумісності
-  const legacyLink = String(s.link || '');
-  // Конвертуємо старі URL-формати на ходу
+  // Конвертуємо старі URL-формати на ходу (не підставляємо хардкод-дефолти)
   function _fixUrl(u) {
-    if (!u) return '';
+    if (u == null) return '';
     let v = String(u);
+    if (!v) return '';
     // /catalog?type=jeep → catalog.html?cat=jeep
     v = v.replace(/^\/catalog/, 'catalog.html');
     v = v.replace(/^\/calculator/, 'calculator.html');
@@ -1760,15 +1759,19 @@ function _normalizeSlide(s, fallbackOrder){
     v = v.replace(/[?&]type=/, '?cat=');
     return v;
   }
-  const cta1Link = _fixUrl(s.cta1_link || legacyLink || 'catalog.html');
-  const cta2Link = _fixUrl(s.cta2_link || '');
+  // Старе поле "link" → нове "cta1_link" для зворотної сумісності
+  const legacyLink = s.link != null ? String(s.link) : '';
+  // ВАЖЛИВО: показуємо РЕАЛЬНО збережене значення, а не хардкод-дефолт.
+  // Якщо в БД поле порожнє — лишаємо порожнім, користувач побачить плейсхолдер.
+  const cta1Link = _fixUrl(s.cta1_link != null ? s.cta1_link : legacyLink);
+  const cta2Link = _fixUrl(s.cta2_link);
   return {
     id:      String(s.id || ('slide-' + Math.random().toString(36).slice(2,7))),
-    title:   String(s.title || ''),
+    title:   s.title != null ? String(s.title) : '',
     link:    cta1Link,                         // legacy mirror
-    cta1_text: String(s.cta1_text || 'Дізнатись більше'),
+    cta1_text: s.cta1_text != null ? String(s.cta1_text) : '',
     cta1_link: cta1Link,
-    cta2_text: String(s.cta2_text || ''),
+    cta2_text: s.cta2_text != null ? String(s.cta2_text) : '',
     cta2_link: cta2Link,
     enabled: s.enabled !== false,
     image:   typeof s.image === 'string' ? s.image : '',
@@ -1815,41 +1818,86 @@ async function loadSlides(){
 
 let _slidesTableMissing = false;
 
+// Колонки, яких немає в реальній таблиці slides у Supabase.
+// Заповнюється автоматично на ходу і використовується щоб не намагатись
+// записати поля, яких немає в БД (інакше PostgREST повертає PGRST204).
+const _slidesMissingCols = (function(){
+  try {
+    const raw = localStorage.getItem('kr_slides_missing_cols');
+    return new Set(raw ? JSON.parse(raw) : []);
+  } catch(e) { return new Set(); }
+})();
+function _slidesRememberMissing(col){
+  if (!col || col === 'id') return;
+  _slidesMissingCols.add(col);
+  try { localStorage.setItem('kr_slides_missing_cols', JSON.stringify([..._slidesMissingCols])); } catch(e){}
+}
+function _slidesBuildPayload(arr){
+  return arr.map((s, i) => {
+    const row = {
+      id: s.id,
+      title: s.title || '',
+      link: s.cta1_link || s.link || '',
+      cta1_text: s.cta1_text || '',
+      cta1_link: s.cta1_link || s.link || '',
+      cta2_text: s.cta2_text || '',
+      cta2_link: s.cta2_link || '',
+      enabled: s.enabled !== false,
+      image: s.image || '',
+      bg: s.bg || '',
+      sort_order: i,
+      // legacy alias на випадок старіших схем БД
+      cta_text: s.cta1_text || '',
+      cta_link: s.cta1_link || s.link || '',
+    };
+    // Прибираємо поля, які за минулий раз вже виявились відсутні в БД
+    for (const col of _slidesMissingCols) delete row[col];
+    return row;
+  });
+}
+
 async function _supabaseSyncSlides(arr){
   if (_slidesTableMissing) return;
-  // Upsert all current slides
-  const payload = arr.map((s, i) => ({
-    id: s.id,
-    title: s.title || '',
-    link: s.cta1_link || s.link || '',
-    cta1_text: s.cta1_text || '',
-    cta1_link: s.cta1_link || s.link || '',
-    cta2_text: s.cta2_text || '',
-    cta2_link: s.cta2_link || '',
-    enabled: s.enabled !== false,
-    image: s.image || '',
-    bg: s.bg || '',
-    sort_order: i,
-  }));
-  await sbFetch('slides?on_conflict=id', {
-    method: 'POST',
-    headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
-    body: JSON.stringify(payload),
-  });
-  // Delete those not present
-  if (payload.length) {
-    const ids = payload.map(p => '"' + String(p.id).replace(/"/g,'\\"') + '"').join(',');
-    await sbFetch('slides?id=not.in.(' + ids + ')', {
-      method: 'DELETE',
-      headers: { 'Prefer': 'return=minimal' },
-    }).catch(()=>{});
-  } else {
-    // empty payload — wipe all
-    await sbFetch('slides?id=neq.__none__', {
-      method: 'DELETE',
-      headers: { 'Prefer': 'return=minimal' },
-    }).catch(()=>{});
+  let lastErr = null;
+  // До 12 спроб: на кожну PGRST204 запам'ятовуємо колонку і перевикликаємо без неї
+  for (let attempt = 0; attempt < 12; attempt++) {
+    const payload = _slidesBuildPayload(arr);
+    try {
+      await sbFetch('slides?on_conflict=id', {
+        method: 'POST',
+        headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+        body: JSON.stringify(payload),
+      });
+      // Успіх → виходимо з циклу і робимо delete
+      if (payload.length) {
+        const ids = payload.map(p => '"' + String(p.id).replace(/"/g,'\\"') + '"').join(',');
+        await sbFetch('slides?id=not.in.(' + ids + ')', {
+          method: 'DELETE',
+          headers: { 'Prefer': 'return=minimal' },
+        }).catch(()=>{});
+      } else {
+        await sbFetch('slides?id=neq.__none__', {
+          method: 'DELETE',
+          headers: { 'Prefer': 'return=minimal' },
+        }).catch(()=>{});
+      }
+      return;
+    } catch (err) {
+      lastErr = err;
+      const msg = String(err && err.message || err);
+      // PGRST204: відсутня колонка → запам'ятати і повторити без неї
+      const m = msg.match(/'([^']+)' column of '[^']*'/i)
+            || msg.match(/Could not find the '([^']+)' column/i)
+            || msg.match(/column "?([a-z_0-9]+)"?/i);
+      if (msg.indexOf('PGRST204') >= 0 && m && m[1]) {
+        _slidesRememberMissing(m[1]);
+        continue;
+      }
+      // інша помилка — нагору
+      throw err;
+    }
   }
+  if (lastErr) throw lastErr;
 }
 
 async function persistSlides(arr){
