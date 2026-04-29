@@ -143,6 +143,16 @@ button{cursor:pointer;font-family:'Manrope',sans-serif}
 .chart-card{background:white;border-radius:var(--r);padding:20px;border:1px solid var(--border)}
 .chart-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
 .chart-title{font-size:15px;color:var(--navy)}
+
+/* ── DATE RANGE PICKER ── */
+.date-range-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.date-range-bar .dr-label{font-size:12px;color:var(--text-muted);font-weight:600;white-space:nowrap}
+.dr-input{padding:6px 10px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:'Manrope',sans-serif;font-size:12px;color:var(--navy);background:white;outline:none;cursor:pointer;transition:border-color .2s}
+.dr-input:focus{border-color:var(--orange)}
+.dr-presets{display:flex;gap:4px}
+.dr-preset{padding:5px 10px;border-radius:6px;font-size:11px;font-weight:700;border:none;background:var(--bg);color:var(--text-muted);cursor:pointer;font-family:'Nunito',sans-serif;transition:all .2s;white-space:nowrap}
+.dr-preset:hover{background:var(--orange-soft);color:var(--orange)}
+.dr-preset.active{background:var(--orange);color:white}
 .chart-period{display:flex;gap:4px}
 .cp-btn{padding:5px 10px;border-radius:6px;font-size:11px;font-weight:700;border:none;background:var(--bg);color:var(--text-muted);cursor:pointer;font-family:'Nunito',sans-serif}
 .cp-btn.active{background:var(--orange);color:white}
@@ -296,6 +306,7 @@ tr:hover td{background:rgba(240,242,248,.5)}
 
 /* TOAST */
 .toast-container{position:fixed;bottom:24px;right:24px;z-index:2000;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast.info{background:var(--blue)!important}
 .toast{background:var(--navy);color:white;padding:12px 18px;border-radius:var(--r);font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow-lg);animation:toastIn .3s ease;max-width:320px;pointer-events:all}
 .toast svg{width:16px;height:16px;stroke:white;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
 .toast.success{background:var(--green)}
@@ -346,6 +357,27 @@ tr:hover td{background:rgba(240,242,248,.5)}
   table{font-size:12px}
   th,td{padding:8px 12px}
 }
+
+/* ── Print / PDF styles ── */
+@media print {
+  body > *:not(#reportPrintModal) { display: none !important; }
+  #reportPrintModal {
+    position: static !important;
+    background: white !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+  #reportPrintModal > div {
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    max-width: 100% !important;
+  }
+  .no-print { display: none !important; }
+  @page { margin: 15mm; size: A4; }
+}
+
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top:3px solid var(--orange);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 
 
@@ -402,7 +434,11 @@ tr:hover td{background:rgba(240,242,248,.5)}
 
   <div class="sidebar-section">
     <div class="sidebar-section-label">Система</div>
-    <div class="nav-item">
+    <div class="nav-item" onclick="showPanel('reports',this)">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      Звіти
+    </div>
+    <div class="nav-item" onclick="showPanel('settings',this)">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
       Налаштування
     </div>
@@ -450,12 +486,20 @@ tr:hover td{background:rgba(240,242,248,.5)}
 
     <!-- ═══ DASHBOARD ═══ -->
     <div class="panel active" id="panel-dashboard">
-      <div class="section-header">
-        <h2 class="section-title">Огляд <span>за сьогодні</span></h2>
-        <button class="btn btn-outline btn-sm">
-          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          27 квітня 2026
-        </button>
+      <div class="section-header" style="flex-wrap:wrap;gap:12px">
+        <h2 class="section-title">Огляд <span id="dashPeriodLabel">за сьогодні</span></h2>
+        <div class="date-range-bar">
+          <div class="dr-presets">
+            <button class="dr-preset active" onclick="setDashPreset('today',this)">Сьогодні</button>
+            <button class="dr-preset" onclick="setDashPreset('week',this)">Тиждень</button>
+            <button class="dr-preset" onclick="setDashPreset('month',this)">Місяць</button>
+            <button class="dr-preset" onclick="setDashPreset('year',this)">Рік</button>
+          </div>
+          <span class="dr-label">або</span>
+          <input type="date" class="dr-input" id="dashDateFrom" onchange="onDashDateChange()">
+          <span class="dr-label">—</span>
+          <input type="date" class="dr-input" id="dashDateTo" onchange="onDashDateChange()">
+        </div>
       </div>
 
       <div class="stats-grid">
@@ -538,15 +582,19 @@ tr:hover td{background:rgba(240,242,248,.5)}
 
     <!-- ═══ ANALYTICS ═══ -->
     <div class="panel" id="panel-analytics">
-      <div class="section-header">
+      <div class="section-header" style="flex-wrap:wrap;gap:12px">
         <h2 class="section-title">Аналітика <span>відвідувань</span></h2>
-        <div style="display:flex;gap:8px">
-          <select class="filter-select" id="anPeriod" onchange="renderAnalytics()">
-            <option value="1">Сьогодні</option>
-            <option value="7">7 днів</option>
-            <option value="30" selected>30 днів</option>
-            <option value="365">Рік</option>
-          </select>
+        <div class="date-range-bar">
+          <div class="dr-presets">
+            <button class="dr-preset" onclick="setAnPreset('today',this)">Сьогодні</button>
+            <button class="dr-preset" onclick="setAnPreset('week',this)">7 днів</button>
+            <button class="dr-preset active" onclick="setAnPreset('month',this)">30 днів</button>
+            <button class="dr-preset" onclick="setAnPreset('year',this)">Рік</button>
+          </div>
+          <span class="dr-label">або</span>
+          <input type="date" class="dr-input" id="anDateFrom" onchange="onAnDateChange()">
+          <span class="dr-label">—</span>
+          <input type="date" class="dr-input" id="anDateTo" onchange="onAnDateChange()">
         </div>
       </div>
 
@@ -773,6 +821,368 @@ tr:hover td{background:rgba(240,242,248,.5)}
           </tbody>
         </table>
       </div>
+    </div>
+
+    <!-- ═══ REPORTS ═══ -->
+    <div class="panel" id="panel-reports">
+      <div class="section-header">
+        <h2 class="section-title">Звіти <span>та аналітика</span></h2>
+      </div>
+
+      <!-- Report Builder -->
+      <div style="display:grid;grid-template-columns:320px 1fr;gap:20px;align-items:start">
+
+        <!-- Left: Config -->
+        <div>
+          <div class="import-card" style="margin-bottom:16px">
+            <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;margin-bottom:14px;color:var(--navy)">📅 Період</h3>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
+              <button class="dr-preset active" id="rep-preset-month" onclick="setRepPreset('month',this)">Місяць</button>
+              <button class="dr-preset" id="rep-preset-week" onclick="setRepPreset('week',this)">Тиждень</button>
+              <button class="dr-preset" id="rep-preset-quarter" onclick="setRepPreset('quarter',this)">Квартал</button>
+              <button class="dr-preset" id="rep-preset-year" onclick="setRepPreset('year',this)">Рік</button>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <div style="flex:1"><label class="f-label">Від</label><input type="date" id="repDateFrom" class="dr-input" onchange="onRepDateChange()"></div>
+              <div style="flex:1"><label class="f-label">До</label><input type="date" id="repDateTo" class="dr-input" onchange="onRepDateChange()"></div>
+            </div>
+          </div>
+
+          <div class="import-card" style="margin-bottom:16px">
+            <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;margin-bottom:14px;color:var(--navy)">📋 Розділи звіту</h3>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <label style="display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;cursor:pointer"><input type="checkbox" id="rep_sec_summary" checked style="width:15px;height:15px;accent-color:var(--orange)"> Зведена статистика</label>
+              <label style="display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;cursor:pointer"><input type="checkbox" id="rep_sec_orders" checked style="width:15px;height:15px;accent-color:var(--orange)"> Динаміка замовлень</label>
+              <label style="display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;cursor:pointer"><input type="checkbox" id="rep_sec_products" checked style="width:15px;height:15px;accent-color:var(--orange)"> Топ товари</label>
+              <label style="display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;cursor:pointer"><input type="checkbox" id="rep_sec_geo" checked style="width:15px;height:15px;accent-color:var(--orange)"> Географія замовлень</label>
+              <label style="display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;cursor:pointer"><input type="checkbox" id="rep_sec_payment" checked style="width:15px;height:15px;accent-color:var(--orange)"> Способи оплати</label>
+              <label style="display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;cursor:pointer"><input type="checkbox" id="rep_sec_reviews" checked style="width:15px;height:15px;accent-color:var(--orange)"> Відгуки покупців</label>
+            </div>
+          </div>
+
+          <button class="btn btn-primary" style="width:100%;justify-content:center;font-size:14px;padding:12px" onclick="buildReport()">
+            <svg viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            Сформувати звіт
+          </button>
+        </div>
+
+        <!-- Right: Preview placeholder -->
+        <div id="reportPreviewCard" style="min-height:400px;background:white;border:1.5px solid var(--border);border-radius:var(--r);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:var(--text-muted)">
+          <svg viewBox="0 0 24 24" style="width:48px;height:48px;opacity:.3"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <span style="font-size:14px;font-weight:600">Натисніть «Сформувати звіт»</span>
+          <span style="font-size:12px">Звіт з'явиться тут для перегляду</span>
+        </div>
+      </div>
+
+      <!-- Report Output (hidden, filled by buildReport) -->
+      <div id="reportOutput" style="display:none"></div>
+    </div>
+
+    <!-- ═══ REPORT PRINT MODAL ═══ -->
+    <div id="reportPrintModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.6);overflow-y:auto;padding:20px">
+      <div style="max-width:900px;margin:0 auto;background:white;border-radius:12px;padding:0;box-shadow:0 20px 60px rgba(0,0,0,.4)">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid #eee;position:sticky;top:0;background:white;z-index:1;border-radius:12px 12px 0 0" class="no-print">
+          <span style="font-family:'Nunito',sans-serif;font-weight:800;font-size:16px;color:#1B2A4A">Попередній перегляд звіту</span>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-primary btn-sm" onclick="window.print()">
+              <svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+              Зберегти PDF / Друк
+            </button>
+            <button class="btn btn-outline btn-sm" onclick="closeReportModal()">✕ Закрити</button>
+          </div>
+        </div>
+        <div id="reportPrintContent" style="padding:32px 40px;font-family:'Manrope',sans-serif"></div>
+      </div>
+    </div>
+
+    <!-- ═══ SETTINGS ═══ -->
+    <div class="panel" id="panel-settings">
+      <div class="section-header">
+        <h2 class="section-title">Налаштування <span>магазину</span></h2>
+        <button class="btn btn-primary" onclick="saveAllSettings()">
+          <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Зберегти всі зміни
+        </button>
+      </div>
+
+      <!-- Settings Tabs -->
+      <div style="display:flex;gap:4px;margin-bottom:24px;background:white;border:1px solid var(--border);border-radius:var(--r);padding:4px;flex-wrap:wrap">
+        <button class="settings-tab active" onclick="switchSettingsTab('store',this)">🏪 Магазин</button>
+        <button class="settings-tab" onclick="switchSettingsTab('orders',this)">📦 Замовлення</button>
+        <button class="settings-tab" onclick="switchSettingsTab('notify',this)">🔔 Сповіщення</button>
+        <button class="settings-tab" onclick="switchSettingsTab('delivery',this)">🚚 Доставка</button>
+        <button class="settings-tab" onclick="switchSettingsTab('appearance',this)">🎨 Вигляд</button>
+        <button class="settings-tab" onclick="switchSettingsTab('seo',this)">🔍 SEO</button>
+        <button class="settings-tab" onclick="switchSettingsTab('export',this)">📊 Дані</button>
+        <button class="settings-tab" onclick="switchSettingsTab('security',this)">🔐 Безпека</button>
+      </div>
+
+      <!-- TAB: STORE -->
+      <div class="settings-section active" id="stab-store">
+        <div class="import-card" style="margin-bottom:16px">
+          <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:18px;color:var(--navy)">Основна інформація</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div class="f-group"><label class="f-label">Назва магазину</label><input id="cfg_shop_name" type="text" placeholder="KidsRide"></div>
+            <div class="f-group"><label class="f-label">Слоган / підзаголовок</label><input id="cfg_shop_tagline" type="text" placeholder="Дитячий транспорт"></div>
+            <div class="f-group"><label class="f-label">Телефон</label><input id="cfg_phone" type="text" placeholder="+380 XX XXX XX XX"></div>
+            <div class="f-group"><label class="f-label">Email для покупців</label><input id="cfg_email" type="email" placeholder="info@kidsride.com.ua"></div>
+            <div class="f-group"><label class="f-label">Робочі години</label><input id="cfg_hours" type="text" placeholder="Пн–Пт 9:00–18:00"></div>
+            <div class="f-group"><label class="f-label">Місто / Адреса</label><input id="cfg_address" type="text" placeholder="м. Київ, вул. ..."></div>
+          </div>
+          <div class="f-group" style="margin-top:12px"><label class="f-label">URL логотипу (зображення)</label><input id="cfg_logo_url" type="text" placeholder="https://..."></div>
+          <div class="f-group" style="margin-top:12px"><label class="f-label">Коротко про магазин (відображається в footer)</label><textarea id="cfg_about" rows="3" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:'Manrope',sans-serif;font-size:13px;color:var(--navy);outline:none;resize:vertical" placeholder="Ми продаємо якісний дитячий транспорт..."></textarea></div>
+        </div>
+        <div class="import-card">
+          <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:18px;color:var(--navy)">Соціальні мережі</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div class="f-group"><label class="f-label">Instagram</label><input id="cfg_instagram" type="text" placeholder="https://instagram.com/kidsride"></div>
+            <div class="f-group"><label class="f-label">Facebook</label><input id="cfg_facebook" type="text" placeholder="https://facebook.com/kidsride"></div>
+            <div class="f-group"><label class="f-label">TikTok</label><input id="cfg_tiktok" type="text" placeholder="https://tiktok.com/@kidsride"></div>
+            <div class="f-group"><label class="f-label">YouTube</label><input id="cfg_youtube" type="text" placeholder="https://youtube.com/@kidsride"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: ORDERS -->
+      <div class="settings-section" id="stab-orders">
+        <div class="import-card" style="margin-bottom:16px">
+          <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:18px;color:var(--navy)">Параметри замовлень</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div class="f-group"><label class="f-label">Префікс номера замовлення</label><input id="cfg_order_prefix" type="text" placeholder="KR-" maxlength="10"></div>
+            <div class="f-group"><label class="f-label">Мінімальна сума замовлення (₴)</label><input id="cfg_min_order" type="number" min="0" placeholder="0"></div>
+            <div class="f-group"><label class="f-label">Автозакрити «Новий» через (днів)</label><input id="cfg_auto_close_days" type="number" min="0" placeholder="0 = вимкнено" title="Через скільки днів без дії замовлення авто-переходить в 'Скасовано'"></div>
+            <div class="f-group"><label class="f-label">Текст підтвердження (SMS/email)</label><input id="cfg_confirm_text" type="text" placeholder="Дякуємо! Ваше замовлення прийнято."></div>
+          </div>
+        </div>
+        <div class="import-card" style="margin-bottom:16px">
+          <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:14px;color:var(--navy)">Способи оплати (відображати на сайті)</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);cursor:pointer;font-size:13px;font-weight:600"><input type="checkbox" id="cfg_pay_cod" style="width:16px;height:16px;accent-color:var(--orange)"> Накладений платіж</label>
+            <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);cursor:pointer;font-size:13px;font-weight:600"><input type="checkbox" id="cfg_pay_card" style="width:16px;height:16px;accent-color:var(--orange)"> Оплата карткою онлайн</label>
+            <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);cursor:pointer;font-size:13px;font-weight:600"><input type="checkbox" id="cfg_pay_bank" style="width:16px;height:16px;accent-color:var(--orange)"> Банківський переказ</label>
+            <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);cursor:pointer;font-size:13px;font-weight:600"><input type="checkbox" id="cfg_pay_crypto" style="width:16px;height:16px;accent-color:var(--orange)"> Криптовалюта</label>
+          </div>
+        </div>
+        <div class="import-card">
+          <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:14px;color:var(--navy)">Швидкі нотатки для менеджера</h3>
+          <textarea id="cfg_manager_notes" rows="4" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:'Manrope',sans-serif;font-size:13px;color:var(--navy);outline:none;resize:vertical" placeholder="Нагадування для себе: наприклад, які курʼєри доступні, спецумови..."></textarea>
+        </div>
+      </div>
+
+      <!-- TAB: NOTIFICATIONS -->
+      <div class="settings-section" id="stab-notify">
+        <div class="import-card" style="margin-bottom:16px">
+          <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:18px;color:var(--navy)">📧 Email-сповіщення</h3>
+          <div class="f-group"><label class="f-label">Email для нових замовлень</label><input id="cfg_notify_email_orders" type="email" placeholder="manager@kidsride.com.ua"></div>
+          <div class="f-group" style="margin-top:12px"><label class="f-label">Email для нових відгуків</label><input id="cfg_notify_email_reviews" type="email" placeholder="manager@kidsride.com.ua"></div>
+          <div style="background:var(--blue-soft);border:1px solid rgba(33,150,243,.2);border-radius:var(--r-sm);padding:12px 14px;margin-top:14px;font-size:12px;color:var(--navy)">
+            💡 Для відправки листів підключіть <strong>Resend</strong> або <strong>SendGrid</strong> через Supabase Edge Functions (edge function <code>send-notification</code>).
+          </div>
+        </div>
+        <div class="import-card" style="margin-bottom:16px">
+          <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:18px;color:var(--navy)">🤖 Telegram-сповіщення</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div class="f-group"><label class="f-label">Bot Token</label><input id="cfg_tg_token" type="text" placeholder="123456:ABC-DEF..."></div>
+            <div class="f-group"><label class="f-label">Chat ID (ваш або групи)</label><input id="cfg_tg_chat" type="text" placeholder="-100123456789"></div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;cursor:pointer"><input type="checkbox" id="cfg_tg_new_order" style="width:15px;height:15px;accent-color:var(--orange)"> Нове замовлення</label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;cursor:pointer"><input type="checkbox" id="cfg_tg_new_review" style="width:15px;height:15px;accent-color:var(--orange)"> Новий відгук</label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;cursor:pointer"><input type="checkbox" id="cfg_tg_low_stock" style="width:15px;height:15px;accent-color:var(--orange)"> Малий залишок товару</label>
+          </div>
+          <button class="btn btn-outline btn-sm" style="margin-top:14px" onclick="testTelegramNotification()">
+            <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Надіслати тестове повідомлення
+          </button>
+        </div>
+        <div class="import-card">
+          <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:14px;color:var(--navy)">🔔 Браузерні сповіщення</h3>
+          <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px">Отримуйте Push-сповіщення навіть коли адмінка відкрита у фоні.</p>
+          <button class="btn btn-outline btn-sm" onclick="requestBrowserNotifications()">
+            <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span id="notifPermBtn">Увімкнути Push-сповіщення</span>
+          </button>
+          <div id="notifPermStatus" style="margin-top:8px;font-size:12px;color:var(--text-muted)"></div>
+        </div>
+      </div>
+
+      <!-- TAB: DELIVERY -->
+      <div class="settings-section" id="stab-delivery">
+        <div class="import-card" style="margin-bottom:16px">
+          <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:18px;color:var(--navy)">🚀 Нова Пошта</h3>
+          <div class="f-group"><label class="f-label">API Ключ Нової Пошти</label><input id="cfg_np_api_key" type="text" placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px">
+            <div class="f-group"><label class="f-label">ПІБ відправника</label><input id="cfg_np_sender_name" type="text" placeholder="Іваненко Іван Іванович"></div>
+            <div class="f-group"><label class="f-label">Телефон відправника</label><input id="cfg_np_sender_phone" type="text" placeholder="+380XXXXXXXXX"></div>
+            <div class="f-group"><label class="f-label">Місто відправника</label><input id="cfg_np_city" type="text" placeholder="Київ"></div>
+            <div class="f-group"><label class="f-label">Відділення відправника</label><input id="cfg_np_warehouse" type="text" placeholder="1"></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px">
+            <div class="f-group"><label class="f-label">Вага за замовч. (кг)</label><input id="cfg_np_weight" type="number" step="0.1" min="0.1" placeholder="1"></div>
+            <div class="f-group"><label class="f-label">Габарити (ДхШхВ, см)</label><input id="cfg_np_size" type="text" placeholder="30x20x15"></div>
+          </div>
+        </div>
+        <div class="import-card" style="margin-bottom:16px">
+          <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:14px;color:var(--navy)">💵 Накладений платіж</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div class="f-group"><label class="f-label">Комісія НП за НП (%)</label><input id="cfg_cod_fee_pct" type="number" step="0.1" min="0" placeholder="2"></div>
+            <div class="f-group"><label class="f-label">Мін. комісія (₴)</label><input id="cfg_cod_fee_min" type="number" min="0" placeholder="20"></div>
+          </div>
+          <label style="display:flex;align-items:center;gap:10px;margin-top:12px;font-size:13px;font-weight:600;cursor:pointer"><input type="checkbox" id="cfg_cod_include_in_total" style="width:15px;height:15px;accent-color:var(--orange)"> Враховувати комісію НП у сумі замовлення</label>
+        </div>
+        <div class="import-card">
+          <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:14px;color:var(--navy)">🏠 Самовивіз</h3>
+          <label style="display:flex;align-items:center;gap:10px;margin-bottom:12px;font-size:13px;font-weight:600;cursor:pointer"><input type="checkbox" id="cfg_pickup_enabled" style="width:15px;height:15px;accent-color:var(--orange)"> Дозволити самовивіз</label>
+          <div class="f-group"><label class="f-label">Адреса самовивізу</label><input id="cfg_pickup_address" type="text" placeholder="м. Київ, вул. Хрещатик, 1"></div>
+        </div>
+      </div>
+
+      <!-- TAB: APPEARANCE -->
+      <div class="settings-section" id="stab-appearance">
+        <div class="import-card" style="margin-bottom:16px">
+          <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:18px;color:var(--navy)">🎨 Брендові кольори</h3>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px">
+            <div class="f-group">
+              <label class="f-label">Основний колір (акцент)</label>
+              <div style="display:flex;align-items:center;gap:10px">
+                <input type="color" id="cfg_color_primary" value="#FF6B35" style="width:44px;height:38px;border:1.5px solid var(--border);border-radius:var(--r-sm);cursor:pointer;padding:2px">
+                <input type="text" id="cfg_color_primary_hex" value="#FF6B35" placeholder="#FF6B35" style="flex:1;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:'Manrope',sans-serif;font-size:13px;outline:none" oninput="document.getElementById('cfg_color_primary').value=this.value">
+              </div>
+            </div>
+            <div class="f-group">
+              <label class="f-label">Колір навігації</label>
+              <div style="display:flex;align-items:center;gap:10px">
+                <input type="color" id="cfg_color_nav" value="#1B2A4A" style="width:44px;height:38px;border:1.5px solid var(--border);border-radius:var(--r-sm);cursor:pointer;padding:2px">
+                <input type="text" id="cfg_color_nav_hex" value="#1B2A4A" placeholder="#1B2A4A" style="flex:1;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:'Manrope',sans-serif;font-size:13px;outline:none" oninput="document.getElementById('cfg_color_nav').value=this.value">
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-outline btn-sm" style="margin-top:14px" onclick="applyThemeColors()">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+            Переглянути зміни
+          </button>
+        </div>
+        <div class="import-card" style="margin-bottom:16px">
+          <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:18px;color:var(--navy)">📐 Інтерфейс адмінки</h3>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <label style="display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;cursor:pointer"><input type="checkbox" id="cfg_ui_compact" style="width:15px;height:15px;accent-color:var(--orange)"> Компактний режим таблиць</label>
+            <label style="display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;cursor:pointer"><input type="checkbox" id="cfg_ui_animations" checked style="width:15px;height:15px;accent-color:var(--orange)"> Анімації та переходи</label>
+            <label style="display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;cursor:pointer"><input type="checkbox" id="cfg_ui_sound" style="width:15px;height:15px;accent-color:var(--orange)"> Звук при новому замовленні</label>
+          </div>
+        </div>
+        <div class="import-card">
+          <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:14px;color:var(--navy)">📊 Кількість рядків у таблицях</h3>
+          <div class="f-group"><label class="f-label">Замовлень на сторінку</label>
+            <select id="cfg_orders_per_page" style="padding:9px 28px 9px 10px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:'Manrope',sans-serif;font-size:13px;color:var(--navy);background:white;outline:none">
+              <option value="10">10</option>
+              <option value="20" selected>20</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: SEO -->
+      <div class="settings-section" id="stab-seo">
+        <div class="import-card" style="margin-bottom:16px">
+          <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:18px;color:var(--navy)">🔍 Мета-теги сайту</h3>
+          <div class="f-group"><label class="f-label">Title сайту (тег &lt;title&gt;)</label><input id="cfg_seo_title" type="text" placeholder="KidsRide — дитячий транспорт"></div>
+          <div class="f-group" style="margin-top:12px"><label class="f-label">Meta Description</label><textarea id="cfg_seo_description" rows="3" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:'Manrope',sans-serif;font-size:13px;color:var(--navy);outline:none;resize:vertical" placeholder="Найкращий дитячий транспорт в Україні..."></textarea></div>
+          <div class="f-group" style="margin-top:12px"><label class="f-label">OG Image URL (для соцмереж)</label><input id="cfg_og_image" type="text" placeholder="https://kidsride.com.ua/opengraph.jpg"></div>
+          <div class="f-group" style="margin-top:12px"><label class="f-label">Google Analytics ID</label><input id="cfg_ga_id" type="text" placeholder="G-XXXXXXXXXX"></div>
+          <div class="f-group" style="margin-top:12px"><label class="f-label">Facebook Pixel ID</label><input id="cfg_fb_pixel" type="text" placeholder="123456789012345"></div>
+        </div>
+        <div class="import-card">
+          <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:14px;color:var(--navy)">🔗 Канонічний URL</h3>
+          <div class="f-group"><label class="f-label">Основний домен сайту</label><input id="cfg_site_url" type="text" placeholder="https://kidsride.com.ua"></div>
+        </div>
+      </div>
+
+      <!-- TAB: DATA EXPORT -->
+      <div class="settings-section" id="stab-export">
+        <div class="import-card" style="margin-bottom:16px">
+          <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:18px;color:var(--navy)">📤 Експорт даних</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div style="padding:16px;background:var(--bg);border-radius:var(--r-sm);border:1px solid var(--border)">
+              <div style="font-weight:700;font-size:14px;margin-bottom:8px">📦 Замовлення</div>
+              <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px">Всі замовлення з деталями у форматі CSV</div>
+              <button class="btn btn-outline btn-sm" onclick="exportOrdersCSV()">
+                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Завантажити CSV
+              </button>
+            </div>
+            <div style="padding:16px;background:var(--bg);border-radius:var(--r-sm);border:1px solid var(--border)">
+              <div style="font-weight:700;font-size:14px;margin-bottom:8px">🛍️ Товари</div>
+              <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px">Каталог товарів з цінами та SKU</div>
+              <button class="btn btn-outline btn-sm" onclick="exportProductsCSV()">
+                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Завантажити CSV
+              </button>
+            </div>
+            <div style="padding:16px;background:var(--bg);border-radius:var(--r-sm);border:1px solid var(--border)">
+              <div style="font-weight:700;font-size:14px;margin-bottom:8px">💬 Відгуки</div>
+              <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px">Всі відгуки покупців</div>
+              <button class="btn btn-outline btn-sm" onclick="exportReviewsCSV()">
+                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Завантажити CSV
+              </button>
+            </div>
+            <div style="padding:16px;background:var(--bg);border-radius:var(--r-sm);border:1px solid var(--border)">
+              <div style="font-weight:700;font-size:14px;margin-bottom:8px">📊 Аналітика</div>
+              <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px">Перегляди сторінок за останні 30 днів</div>
+              <button class="btn btn-outline btn-sm" onclick="exportAnalyticsCSV()">
+                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Завантажити CSV
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="import-card" style="margin-bottom:16px">
+          <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:14px;color:var(--navy)">🧹 Управління кешем</h3>
+          <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px">Якщо дані відображаються застаріло — очистіть кеш адмінки.</p>
+          <button class="btn btn-outline btn-sm" onclick="clearAdminCache()">
+            <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.18"/></svg>
+            Очистити кеш і перезавантажити дані
+          </button>
+        </div>
+        <div class="import-card">
+          <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:14px;color:var(--navy)">🗃️ SQL для Supabase</h3>
+          <p style="font-size:13px;color:var(--text-muted);margin-bottom:10px">Скопіюйте та виконайте в Supabase → SQL Editor для зберігання налаштувань:</p>
+          <pre style="background:var(--navy);color:rgba(255,255,255,.85);padding:14px;border-radius:var(--r-sm);font-size:11px;line-height:1.7;overflow-x:auto;font-family:monospace">CREATE TABLE IF NOT EXISTS admin_settings (
+  key   text PRIMARY KEY,
+  value text,
+  updated_at timestamptz DEFAULT now()
+);
+ALTER TABLE admin_settings ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "admin_only" ON admin_settings
+  USING (auth.role() = 'authenticated')
+  WITH CHECK (auth.role() = 'authenticated');</pre>
+        </div>
+      </div>
+
+      <!-- TAB: SECURITY -->
+      <div class="settings-section" id="stab-security">
+        <div class="import-card" style="margin-bottom:16px">
+          <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:18px;color:var(--navy)">🔑 Зміна пароля адміністратора</h3>
+          <div class="f-group"><label class="f-label">Новий пароль</label><input id="cfg_new_password" type="password" placeholder="Мінімум 8 символів" autocomplete="new-password"></div>
+          <div class="f-group" style="margin-top:12px"><label class="f-label">Підтвердження пароля</label><input id="cfg_confirm_password" type="password" placeholder="Повторіть пароль" autocomplete="new-password"></div>
+          <button class="btn btn-primary btn-sm" style="margin-top:14px" onclick="changeAdminPassword()">Змінити пароль</button>
+        </div>
+        <div class="import-card" style="margin-bottom:16px">
+          <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:14px;color:var(--navy)">🛡️ Сесія та доступ</h3>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <label style="display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;cursor:pointer"><input type="checkbox" id="cfg_auto_logout" style="width:15px;height:15px;accent-color:var(--orange)"> Авто-вихід через 30 хв. бездіяльності</label>
+            <label style="display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;cursor:pointer"><input type="checkbox" id="cfg_log_actions" checked style="width:15px;height:15px;accent-color:var(--orange)"> Логувати дії адміністратора</label>
+          </div>
+        </div>
+        <div class="import-card">
+          <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:14px;color:var(--navy)">📋 Supabase</h3>
+          <div class="f-group"><label class="f-label">Project URL</label><input type="text" value="${SUPABASE_URL}" readonly style="padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:13px;background:var(--bg);color:var(--text-muted);width:100%;font-family:monospace"></div>
+          <div class="f-group" style="margin-top:12px"><label class="f-label">Anon Key (тільки читання)</label><input type="password" id="cfg_sb_key_display" value="${SUPABASE_KEY}" readonly style="padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:13px;background:var(--bg);color:var(--text-muted);width:100%;font-family:monospace"></div>
+        </div>
+      </div>
+
     </div>
 
   </div><!-- /content -->
@@ -1352,7 +1762,7 @@ async function sbUpdateOrderStatus(id, status, ttn = null) {
 // Date init moved to initAdmin()
 
 // ── NAVIGATION ────────────────────────────────────────────────────────────
-const pageTitles={dashboard:'Dashboard',analytics:'Аналітика відвідувань',orders:'Замовлення',products:'Товари',carousel:'Карусель сайту',import:'Імпорт товарів',reviews:'Відгуки'};
+const pageTitles={dashboard:'Dashboard',analytics:'Аналітика відвідувань',orders:'Замовлення',products:'Товари',carousel:'Карусель сайту',import:'Імпорт товарів',reviews:'Відгуки',settings:'Налаштування',reports:'Звіти та аналітика'};
 
 function showPanel(id, navEl) {
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
@@ -1363,6 +1773,8 @@ function showPanel(id, navEl) {
   if(id==='orders')    renderOrdersTable();
   if(id==='dashboard') renderDashboard();
   if(id==='analytics') renderAnalytics();
+  if(id==='settings')  renderSettings();
+  if(id==='reports')   renderReports();
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   if(navEl) navEl.classList.add('active');
   document.getElementById('pageTitle').textContent = pageTitles[id]||id;
@@ -1556,45 +1968,104 @@ async function _getProductsCount(){
   } catch { return 0; }
 }
 
+// ── Dashboard date-range helpers ─────────────────────────────
+function _dateToISO(d){ return d.toISOString().slice(0,10); }
+function _isoToDate(s){ const [y,m,d]=s.split('-').map(Number); return new Date(y,m-1,d); }
+function _dashRange(){
+  const f = document.getElementById('dashDateFrom')?.value;
+  const t = document.getElementById('dashDateTo')?.value;
+  const from = f ? _isoToDate(f) : _todayStart();
+  let to = t ? _isoToDate(t) : _todayStart();
+  // end of day
+  to = new Date(to.getFullYear(), to.getMonth(), to.getDate(), 23, 59, 59, 999);
+  return { fromMs: from.getTime(), toMs: to.getTime() };
+}
+function _fmtDateRange(){
+  const f = document.getElementById('dashDateFrom')?.value;
+  const t = document.getElementById('dashDateTo')?.value;
+  if (!f && !t) return 'за сьогодні';
+  const fmt = s => { const[y,m,d]=s.split('-'); return d+'.'+m+'.'+y; };
+  if (f === t || (!t && !f)) return 'за ' + fmt(f||_dateToISO(new Date()));
+  return fmt(f||_dateToISO(new Date())) + ' — ' + fmt(t||_dateToISO(new Date()));
+}
+
+function setDashPreset(preset, btn) {
+  document.querySelectorAll('#panel-dashboard .dr-preset').forEach(b=>b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const today = _dateToISO(new Date());
+  const df = document.getElementById('dashDateFrom');
+  const dt = document.getElementById('dashDateTo');
+  if (preset === 'today') {
+    df.value = today; dt.value = today;
+  } else if (preset === 'week') {
+    df.value = _dateToISO(_daysAgo(6)); dt.value = today;
+  } else if (preset === 'month') {
+    df.value = _dateToISO(_daysAgo(29)); dt.value = today;
+  } else if (preset === 'year') {
+    df.value = _dateToISO(_daysAgo(364)); dt.value = today;
+  }
+  renderDashboard();
+}
+function onDashDateChange(){
+  document.querySelectorAll('#panel-dashboard .dr-preset').forEach(b=>b.classList.remove('active'));
+  renderDashboard();
+}
+
 async function renderDashboard(){
+  // Init date pickers on first render
+  const df = document.getElementById('dashDateFrom');
+  const dt = document.getElementById('dashDateTo');
+  if (df && !df.value) {
+    const today = _dateToISO(new Date());
+    df.value = today; dt.value = today;
+  }
+
+  const { fromMs, toMs } = _dashRange();
+  const rangeDays = Math.max(1, Math.round((toMs - fromMs) / 86400000));
+  const prevFromMs = fromMs - rangeDays * 86400000;
+  const prevToMs   = fromMs - 1;
+
   const orders = await _getAllOrders();
   const productsCount = await _getProductsCount();
 
-  // Сьогодні vs Вчора (orders, revenue)
-  const todayMs = _todayStart().getTime();
-  const yMs     = _yesterdayStart().getTime();
-  let oToday=0, oYest=0, rToday=0, rYest=0;
+  // Current period vs previous period
+  let oCur=0, oPrev=0, rCur=0, rPrev=0;
   for (const o of orders) {
     const t = new Date(o.created_at).getTime();
-    if (t >= todayMs) { oToday++; rToday += Number(o.total||0); }
-    else if (t >= yMs) { oYest++; rYest += Number(o.total||0); }
+    if (t >= fromMs && t <= toMs)   { oCur++;  rCur  += Number(o.total||0); }
+    else if (t >= prevFromMs && t <= prevToMs) { oPrev++; rPrev += Number(o.total||0); }
   }
-  const setDelta = (id, today, yest, suffix) => {
+
+  const setDelta = (id, cur, prev, suffix) => {
     const el = document.getElementById(id);
     if (!el) return;
-    if (yest === 0 && today === 0) { el.textContent = 'без даних вчора'; el.className='stat-delta'; return; }
-    if (yest === 0) { el.textContent = '+' + today + suffix + ' (вчора 0)'; el.className='stat-delta delta-up'; return; }
-    const pct = Math.round((today - yest) / yest * 100);
-    el.textContent = (pct >= 0 ? '+' : '') + pct + '% до вчора';
+    if (prev === 0 && cur === 0) { el.textContent = 'немає даних'; el.className='stat-delta'; return; }
+    if (prev === 0) { el.textContent = '+' + cur + suffix; el.className='stat-delta delta-up'; return; }
+    const pct = Math.round((cur - prev) / prev * 100);
+    el.textContent = (pct >= 0 ? '+' : '') + pct + '% до попереднього';
     el.className = 'stat-delta ' + (pct >= 0 ? 'delta-up' : 'delta-down');
   };
-  document.getElementById('dashOrdersToday').textContent  = oToday;
-  document.getElementById('dashRevenueToday').textContent = _fmtPrice(rToday);
-  setDelta('dashOrdersDelta',  oToday, oYest, '');
-  setDelta('dashRevenueDelta', rToday, rYest, '');
+  document.getElementById('dashOrdersToday').textContent  = oCur;
+  document.getElementById('dashRevenueToday').textContent = _fmtPrice(rCur);
+  setDelta('dashOrdersDelta',  oCur,  oPrev, '');
+  setDelta('dashRevenueDelta', rCur,  rPrev, '');
 
-  // Відвідувачі (за сьогодні vs учора, з page_views)
+  // Update stat card labels to reflect period
+  const ordLbl = document.getElementById('dashOrdersToday')?.closest('.stat-card')?.querySelector('.stat-label');
+  const revLbl = document.getElementById('dashRevenueToday')?.closest('.stat-card')?.querySelector('.stat-label');
+  if (ordLbl) ordLbl.textContent = 'Замовлень за період';
+  if (revLbl) revLbl.textContent = 'Виручка за період';
+
+  // Відвідувачі (з page_views за обраний діапазон)
   try {
-    const since = new Date(yMs).toISOString();
-    const pv = await sbFetch('page_views?select=visitor_id,created_at&created_at=gte.' + encodeURIComponent(since) + '&limit=10000');
-    const setT = new Set(), setY = new Set();
-    for (const r of pv) {
-      const t = new Date(r.created_at).getTime();
-      if (t >= todayMs) setT.add(r.visitor_id);
-      else if (t >= yMs) setY.add(r.visitor_id);
-    }
-    document.getElementById('dashVisitorsToday').textContent = setT.size;
-    setDelta('dashVisitorsDelta', setT.size, setY.size, '');
+    const since = new Date(fromMs).toISOString();
+    const till  = new Date(toMs).toISOString();
+    const pv = await sbFetch('page_views?select=visitor_id,created_at&created_at=gte.' + encodeURIComponent(since) + '&created_at=lte.' + encodeURIComponent(till) + '&limit=10000');
+    const pvPrev = await sbFetch('page_views?select=visitor_id,created_at&created_at=gte.' + encodeURIComponent(new Date(prevFromMs).toISOString()) + '&created_at=lte.' + encodeURIComponent(new Date(prevToMs).toISOString()) + '&limit=5000');
+    const setCur = new Set(pv.map(r=>r.visitor_id));
+    const setPrev = new Set(pvPrev.map(r=>r.visitor_id));
+    document.getElementById('dashVisitorsToday').textContent = setCur.size;
+    setDelta('dashVisitorsDelta', setCur.size, setPrev.size, '');
   } catch(e) {
     document.getElementById('dashVisitorsToday').textContent = '0';
     document.getElementById('dashVisitorsDelta').textContent = 'таблиця page_views не створена';
@@ -1604,12 +2075,12 @@ async function renderDashboard(){
   document.getElementById('dashProductsCount').textContent = productsCount.toLocaleString('uk-UA').replace(/,/g,' ');
   document.getElementById('dashProductsDelta').textContent = 'усього в каталозі';
 
-  // Donut оплат за останні 30 днів
-  const cutoff30 = _daysAgo(30).getTime();
+  // Donut оплат за обраний діапазон
   const payCounts = {};
   let payTotal = 0;
   for (const o of orders) {
-    if (new Date(o.created_at).getTime() < cutoff30) continue;
+    const t = new Date(o.created_at).getTime();
+    if (t < fromMs || t > toMs) continue;
     const k = PAY_NAMES[o.payment_method] ? o.payment_method : 'other';
     payCounts[k] = (payCounts[k] || 0) + 1;
     payTotal++;
@@ -1619,7 +2090,7 @@ async function renderDashboard(){
   document.getElementById('dashPayTotal').textContent = payTotal;
   if (payTotal === 0) {
     donut.innerHTML = '<circle cx="18" cy="18" r="15.9" fill="none" stroke="#e5e7f0" stroke-width="3"/>';
-    legend.innerHTML = '<div style="color:var(--text-muted);font-size:13px">Немає замовлень за 30 днів</div>';
+    legend.innerHTML = '<div style="color:var(--text-muted);font-size:13px">Немає замовлень за період</div>';
   } else {
     let circles = '<circle cx="18" cy="18" r="15.9" fill="none" stroke="#e5e7f0" stroke-width="3"/>';
     let leg = '';
@@ -1631,22 +2102,24 @@ async function renderDashboard(){
       leg += `<div class="dl-item"><div class="dl-dot" style="background:${c}"></div><span class="dl-name">${PAY_NAMES[k]||k}</span><span class="dl-val">${Math.round(pct)}%</span></div>`;
       offset += pct;
     });
-    donut.innerHTML = legend.innerHTML; // clear
     donut.innerHTML = circles;
     legend.innerHTML = leg;
   }
 
-  // Bar chart замовлень за тиждень
+  // Bar chart — за обраним діапазоном
   renderDashboardOrdersChart(orders);
 
-  // Останні замовлення (5)
+  // Останні замовлення у вибраному діапазоні (5)
   const tb = document.getElementById('dashRecentBody');
   if (tb) {
-    const recent = orders.slice(0, 5);
+    const inRange = orders.filter(o => {
+      const t = new Date(o.created_at).getTime();
+      return t >= fromMs && t <= toMs;
+    });
+    const recent = inRange.slice(0, 5);
     if (!recent.length) {
-      tb.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-muted)">Замовлень ще немає</td></tr>';
+      tb.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-muted)">Немає замовлень за обраний період</td></tr>';
     } else {
-      // Підвантажимо ще з імʼям клієнта одним запитом
       try {
         const ids = recent.map(o => o.id);
         const detail = await sbFetch('orders?select=*&id=in.(' + ids.map(encodeURIComponent).join(',') + ')');
@@ -1676,73 +2149,121 @@ async function renderDashboard(){
     }
   }
 
-  // Поновити дату в кнопці-плашці
-  const dh = document.querySelector('#panel-dashboard .section-header .btn');
-  if (dh) {
-    const months=['січня','лютого','березня','квітня','травня','червня','липня','серпня','вересня','жовтня','листопада','грудня'];
-    const now = new Date();
-    dh.innerHTML = `<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
-  }
+  // Update period label in title
+  const lbl = document.getElementById('dashPeriodLabel');
+  if (lbl) lbl.textContent = _fmtDateRange();
 }
 
 function renderDashboardOrdersChart(ordersInput){
   const orders = ordersInput || _allOrdersCache || [];
+  const { fromMs, toMs } = _dashRange();
+  const rangeDays = Math.max(1, Math.round((toMs - fromMs) / 86400000) + 1);
   let bins, labels;
-  if (_dashOrdersPeriod === 'week') {
+  if (rangeDays <= 31) {
     const dn = ['Нд','Пн','Вт','Ср','Чт','Пт','Сб'];
-    bins = new Array(7).fill(0);
-    labels = new Array(7);
-    for (let i = 6; i >= 0; i--) {
-      const d = _daysAgo(i);
-      labels[6-i] = dn[d.getDay()];
+    bins = new Array(rangeDays).fill(0);
+    labels = new Array(rangeDays);
+    for (let i = 0; i < rangeDays; i++) {
+      const d = new Date(fromMs + i * 86400000);
+      labels[i] = rangeDays <= 7 ? dn[d.getDay()] : String(d.getDate());
     }
-    const start = _daysAgo(6).getTime();
     for (const o of orders) {
       const t = new Date(o.created_at).getTime();
-      if (t < start) continue;
-      const dayIdx = Math.floor((t - start) / 86400000);
-      if (dayIdx >= 0 && dayIdx < 7) bins[dayIdx]++;
+      if (t < fromMs || t > toMs) continue;
+      const idx = Math.floor((t - fromMs) / 86400000);
+      if (idx >= 0 && idx < rangeDays) bins[idx]++;
     }
-  } else if (_dashOrdersPeriod === 'month') {
-    bins = new Array(30).fill(0);
-    labels = new Array(30);
-    const start = _daysAgo(29).getTime();
-    for (let i = 0; i < 30; i++) labels[i] = String(new Date(start + i*86400000).getDate());
+  } else if (rangeDays <= 366) {
+    const weeks = Math.ceil(rangeDays / 7);
+    bins = new Array(weeks).fill(0);
+    labels = new Array(weeks);
+    for (let i = 0; i < weeks; i++) {
+      const d = new Date(fromMs + i * 7 * 86400000);
+      labels[i] = String(d.getDate()) + '/' + String(d.getMonth()+1);
+    }
     for (const o of orders) {
       const t = new Date(o.created_at).getTime();
-      if (t < start) continue;
-      const idx = Math.floor((t - start) / 86400000);
-      if (idx >= 0 && idx < 30) bins[idx]++;
+      if (t < fromMs || t > toMs) continue;
+      const idx = Math.floor((t - fromMs) / (7 * 86400000));
+      if (idx >= 0 && idx < weeks) bins[idx]++;
     }
   } else {
-    const mn = ['Січ','Лют','Бер','Кві','Тра','Чер','Лип','Сер','Вер','Жов','Лис','Гру'];
-    bins = new Array(12).fill(0);
-    labels = new Array(12);
-    const now = new Date();
-    for (let i = 11; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
-      labels[11-i] = mn[d.getMonth()];
+    const mn = ['Січ','Лют','Бер','Кві','Тра','Чер','Лип','Сер','Жов','Лис','Гру'];
+    const fromDate = new Date(fromMs);
+    const toDate = new Date(toMs);
+    const months = (toDate.getFullYear() - fromDate.getFullYear()) * 12 + (toDate.getMonth() - fromDate.getMonth()) + 1;
+    bins = new Array(months).fill(0);
+    labels = new Array(months);
+    for (let i = 0; i < months; i++) {
+      const d = new Date(fromDate.getFullYear(), fromDate.getMonth() + i, 1);
+      labels[i] = mn[d.getMonth()];
     }
-    const startYr = new Date(now.getFullYear(), now.getMonth()-11, 1).getTime();
     for (const o of orders) {
       const t = new Date(o.created_at);
-      if (t.getTime() < startYr) continue;
-      const idx = (t.getFullYear() - now.getFullYear()) * 12 + (t.getMonth() - now.getMonth()) + 11;
-      if (idx >= 0 && idx < 12) bins[idx]++;
+      if (t.getTime() < fromMs || t.getTime() > toMs) continue;
+      const idx = (t.getFullYear() - fromDate.getFullYear()) * 12 + (t.getMonth() - fromDate.getMonth());
+      if (idx >= 0 && idx < months) bins[idx]++;
     }
   }
-  renderBarChart('barChart', bins.map((v,i)=>({label:labels[i], v})));
+  const maxBars = 30;
+  const showBins   = bins.length > maxBars ? bins.slice(-maxBars) : bins;
+  const showLabels = labels.length > maxBars ? labels.slice(-maxBars) : labels;
+  renderBarChart('barChart', showBins.map((v,i)=>({label:showLabels[i], v})));
+  const title = document.querySelector('#panel-dashboard .chart-card .chart-title');
+  if (title) {
+    const t = rangeDays === 1 ? 'за день' : 'за ' + rangeDays + ' дн.';
+    title.textContent = 'Замовлення ' + t;
+  }
+}
+
+// ── Analytics date-range helpers ─────────────────────────────
+function _anRange(){
+  const f = document.getElementById('anDateFrom')?.value;
+  const t = document.getElementById('anDateTo')?.value;
+  const from = f ? _isoToDate(f) : _daysAgo(29);
+  let to = t ? _isoToDate(t) : new Date();
+  to = new Date(to.getFullYear(), to.getMonth(), to.getDate(), 23, 59, 59, 999);
+  return { fromMs: from.getTime(), toMs: to.getTime(),
+           days: Math.max(1, Math.round((to.getTime() - from.getTime()) / 86400000) + 1) };
+}
+function setAnPreset(preset, btn) {
+  document.querySelectorAll('#panel-analytics .dr-preset').forEach(b=>b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const today = _dateToISO(new Date());
+  const af = document.getElementById('anDateFrom');
+  const at = document.getElementById('anDateTo');
+  if (preset === 'today') {
+    af.value = today; at.value = today;
+  } else if (preset === 'week') {
+    af.value = _dateToISO(_daysAgo(6)); at.value = today;
+  } else if (preset === 'month') {
+    af.value = _dateToISO(_daysAgo(29)); at.value = today;
+  } else if (preset === 'year') {
+    af.value = _dateToISO(_daysAgo(364)); at.value = today;
+  }
+  renderAnalytics();
+}
+function onAnDateChange(){
+  document.querySelectorAll('#panel-analytics .dr-preset').forEach(b=>b.classList.remove('active'));
+  renderAnalytics();
 }
 
 async function renderAnalytics(){
-  const periodSel = document.getElementById('anPeriod');
-  const days = Number(periodSel?.value || 30);
-  const since = _daysAgo(days - 1).toISOString();
+  // Init date pickers on first render
+  const af = document.getElementById('anDateFrom');
+  const at = document.getElementById('anDateTo');
+  if (af && !af.value) {
+    af.value = _dateToISO(_daysAgo(29));
+    at.value = _dateToISO(new Date());
+  }
+  const { fromMs, toMs, days } = _anRange();
+  const since = new Date(fromMs).toISOString();
+  const till  = new Date(toMs).toISOString();
 
   // Pull page_views
   let rows = [];
   try {
-    rows = await sbFetch('page_views?select=path,source,device,visitor_id,session_id,created_at&created_at=gte.'+encodeURIComponent(since)+'&limit=50000&order=created_at.asc');
+    rows = await sbFetch('page_views?select=path,source,device,visitor_id,session_id,created_at&created_at=gte.'+encodeURIComponent(since)+'&created_at=lte.'+encodeURIComponent(till)+'&limit=50000&order=created_at.asc');
   } catch(e) {
     document.getElementById('anUniqueVisitors').textContent = '—';
     document.getElementById('anPageviews').textContent = '—';
@@ -1776,13 +2297,16 @@ async function renderAnalytics(){
   const pageviews = rows.length;
   document.getElementById('anUniqueVisitors').textContent = visitors.size.toLocaleString('uk-UA').replace(/,/g,' ');
   document.getElementById('anPageviews').textContent      = pageviews.toLocaleString('uk-UA').replace(/,/g,' ');
-  document.getElementById('anUniqueDelta').textContent     = 'за останні ' + days + ' дн.';
-  document.getElementById('anPageviewsDelta').textContent  = 'за останні ' + days + ' дн.';
+  const anRangeLabel = days === 1 ? 'за день' : 'за ' + days + ' дн.';
+  document.getElementById('anUniqueDelta').textContent     = anRangeLabel;
+  document.getElementById('anPageviewsDelta').textContent  = anRangeLabel;
 
   // Конверсія: orders за період / unique visitors
   const orders = await _getAllOrders();
-  const cutoff = _daysAgo(days - 1).getTime();
-  const ordersInPeriod = orders.filter(o => new Date(o.created_at).getTime() >= cutoff).length;
+  const ordersInPeriod = orders.filter(o => {
+    const t = new Date(o.created_at).getTime();
+    return t >= fromMs && t <= toMs;
+  }).length;
   const conv = visitors.size > 0 ? (ordersInPeriod / visitors.size * 100) : 0;
   document.getElementById('anConversion').textContent = conv.toFixed(1).replace('.', ',') + '%';
   document.getElementById('anConversionDelta').textContent = ordersInPeriod + ' зам. / ' + visitors.size + ' відвід.';
@@ -1805,19 +2329,17 @@ async function renderAnalytics(){
   document.getElementById('anAvgTime').textContent = _fmtDuration(avgSec);
   document.getElementById('anAvgTimeDelta').textContent = sessN + ' сесій з 2+ переглядами';
 
-  // Bar chart по днях
+  // Bar chart — за обраним діапазоном
   const dayBins = new Array(days).fill(0);
   const dayLabels = new Array(days);
-  const start = _daysAgo(days - 1).getTime();
   for (let i = 0; i < days; i++) {
-    const d = new Date(start + i*86400000);
+    const d = new Date(fromMs + i * 86400000);
     dayLabels[i] = String(d.getDate());
   }
   for (const r of rows) {
-    const idx = Math.floor((new Date(r.created_at).getTime() - start) / 86400000);
+    const idx = Math.floor((new Date(r.created_at).getTime() - fromMs) / 86400000);
     if (idx >= 0 && idx < days) dayBins[idx]++;
   }
-  // Якщо діапазон великий — показати останні 30
   const showN = Math.min(days, 30);
   const sliceStart = days - showN;
   renderBarChart('visitChart',
@@ -3436,13 +3958,692 @@ function initAdmin() {
 }
 
 // Запустити захист після завантаження всієї сторінки
+
+
+// ══════════════════════════════════════════════════════════════
+//  REPORTS MODULE
+// ══════════════════════════════════════════════════════════════
+
+// ── Date helpers ──────────────────────────────────────────────
+function _repRange() {
+  const f = document.getElementById('repDateFrom')?.value;
+  const t = document.getElementById('repDateTo')?.value;
+  const from = f ? _isoToDate(f) : _daysAgo(29);
+  let to = t ? _isoToDate(t) : new Date();
+  to = new Date(to.getFullYear(), to.getMonth(), to.getDate(), 23, 59, 59, 999);
+  return { from, to, fromMs: from.getTime(), toMs: to.getTime(),
+    days: Math.max(1, Math.round((to.getTime() - from.getTime()) / 86400000) + 1) };
+}
+function setRepPreset(p, btn) {
+  document.querySelectorAll('#panel-reports .dr-preset').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const today = _dateToISO(new Date());
+  const af = document.getElementById('repDateFrom'), at = document.getElementById('repDateTo');
+  if (p === 'week')    { af.value = _dateToISO(_daysAgo(6));   at.value = today; }
+  else if (p==='month')   { af.value = _dateToISO(_daysAgo(29));  at.value = today; }
+  else if (p==='quarter') { af.value = _dateToISO(_daysAgo(89));  at.value = today; }
+  else if (p==='year')    { af.value = _dateToISO(_daysAgo(364)); at.value = today; }
+}
+function onRepDateChange() {
+  document.querySelectorAll('#panel-reports .dr-preset').forEach(b => b.classList.remove('active'));
+}
+
+// ── Render placeholder ────────────────────────────────────────
+function renderReports() {
+  const af = document.getElementById('repDateFrom');
+  const at = document.getElementById('repDateTo');
+  if (af && !af.value) setRepPreset('month', document.getElementById('rep-preset-month'));
+}
+
+// ── Main report builder ───────────────────────────────────────
+async function buildReport() {
+  const previewCard = document.getElementById('reportPreviewCard');
+  previewCard.innerHTML = `<div style="text-align:center;padding:40px">
+    <div class="spinner" style="margin:0 auto 16px"></div>
+    <div style="font-size:14px;color:var(--text-muted)">Збираємо дані…</div>
+  </div>`;
+  document.getElementById('reportPreviewCard').style.display = 'flex';
+
+  try {
+    const { from, to, fromMs, toMs, days } = _repRange();
+    const since = new Date(fromMs).toISOString();
+    const till  = new Date(toMs).toISOString();
+
+    // Parallel fetches
+    const [allOrders, allProducts, reviews] = await Promise.all([
+      sbFetch('orders?select=*&order=created_at.asc&limit=10000').catch(() => []),
+      sbFetch('products?select=id,name,price,category&limit=5000').catch(() => []),
+      sbFetch('reviews?select=*&created_at=gte.'+encodeURIComponent(since)+'&created_at=lte.'+encodeURIComponent(till)+'&limit=5000').catch(() => [])
+    ]);
+
+    // Filter orders to period
+    const orders = allOrders.filter(o => {
+      const t = new Date(o.created_at).getTime();
+      return t >= fromMs && t <= toMs;
+    });
+
+    // Previous period for comparison
+    const prevFrom = fromMs - (toMs - fromMs) - 1;
+    const prevTo   = fromMs - 1;
+    const prevOrders = allOrders.filter(o => {
+      const t = new Date(o.created_at).getTime();
+      return t >= prevFrom && t <= prevTo;
+    });
+
+    // Build sections
+    const sections = {
+      summary:  document.getElementById('rep_sec_summary')?.checked,
+      orders:   document.getElementById('rep_sec_orders')?.checked,
+      products: document.getElementById('rep_sec_products')?.checked,
+      geo:      document.getElementById('rep_sec_geo')?.checked,
+      payment:  document.getElementById('rep_sec_payment')?.checked,
+      reviews:  document.getElementById('rep_sec_reviews')?.checked,
+    };
+
+    const cfg = loadSettings();
+    const shopName = cfg.cfg_shop_name || 'KidsRide';
+    const html = _buildReportHTML({ orders, prevOrders, allProducts, reviews, from, to, days, sections, shopName });
+
+    // Show in modal
+    document.getElementById('reportPrintContent').innerHTML = html;
+    document.getElementById('reportPrintModal').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+
+    previewCard.innerHTML = `<div style="text-align:center;padding:40px">
+      <div style="font-size:32px;margin-bottom:12px">✅</div>
+      <div style="font-size:14px;font-weight:700;color:var(--navy)">Звіт сформовано!</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:6px">${orders.length} замовлень за ${days} дн.</div>
+      <button class="btn btn-primary btn-sm" style="margin-top:16px" onclick="document.getElementById('reportPrintModal').style.display='block';document.body.style.overflow='hidden'">Відкрити знову</button>
+    </div>`;
+
+  } catch(e) {
+    previewCard.innerHTML = `<div style="color:var(--red);padding:20px;text-align:center">Помилка: ${e.message}</div>`;
+    showToast('Помилка генерації звіту: ' + e.message, 'error');
+  }
+}
+
+function closeReportModal() {
+  document.getElementById('reportPrintModal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+// ── HTML Report Builder ───────────────────────────────────────
+function _buildReportHTML({ orders, prevOrders, allProducts, reviews, from, to, days, sections, shopName }) {
+  const fmt = n => Number(n || 0).toLocaleString('uk-UA');
+  const fmtM = n => Number(n || 0).toLocaleString('uk-UA', {minimumFractionDigits:0, maximumFractionDigits:0});
+  const pct = (a,b) => b ? Math.round((a-b)/b*100) : (a ? 100 : 0);
+  const arrow = d => d > 0 ? `<span style="color:#22c55e">▲ ${d}%</span>` : d < 0 ? `<span style="color:#ef4444">▼ ${Math.abs(d)}%</span>` : `<span style="color:#aaa">= 0%</span>`;
+
+  const totalRevenue     = orders.reduce((s,o) => s + Number(o.total||o.subtotal||0), 0);
+  const prevRevenue      = prevOrders.reduce((s,o) => s + Number(o.total||o.subtotal||0), 0);
+  const avgOrder         = orders.length ? totalRevenue / orders.length : 0;
+  const completedOrders  = orders.filter(o => o.status === 'Доставлено').length;
+  const cancelledOrders  = orders.filter(o => o.status === 'Скасовано').length;
+  const newOrders        = orders.filter(o => o.status === 'Новий').length;
+  const cancelRate       = orders.length ? Math.round(cancelledOrders/orders.length*100) : 0;
+
+  const dateRange = `${from.toLocaleDateString('uk-UA',{day:'2-digit',month:'long'})} — ${to.toLocaleDateString('uk-UA',{day:'2-digit',month:'long',year:'numeric'})}`;
+  const generated = new Date().toLocaleString('uk-UA',{day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'});
+
+  // Products map
+  const prodMap = {};
+  allProducts.forEach(p => { prodMap[p.id] = p; });
+
+  // Product frequency from orders
+  const prodFreq = {};
+  const prodRev  = {};
+  orders.forEach(o => {
+    let items = [];
+    try { items = typeof o.items === 'string' ? JSON.parse(o.items) : (o.items || []); } catch(e){}
+    items.forEach(it => {
+      const pid = it.product_id || it.id;
+      prodFreq[pid] = (prodFreq[pid]||0) + (it.qty || it.quantity || 1);
+      prodRev[pid]  = (prodRev[pid]||0) + Number(it.price||0) * (it.qty||it.quantity||1);
+    });
+  });
+
+  const topProducts = Object.entries(prodFreq)
+    .sort((a,b) => b[1]-a[1]).slice(0,10)
+    .map(([id, qty]) => ({ id, qty, rev: prodRev[id]||0, name: prodMap[id]?.name || ('Товар #'+id) }));
+
+  // Geo
+  const geoCount = {};
+  orders.forEach(o => { const c = o.delivery_city||o.city||'Невідомо'; geoCount[c] = (geoCount[c]||0)+1; });
+  const topGeo = Object.entries(geoCount).sort((a,b)=>b[1]-a[1]).slice(0,8);
+
+  // Payment methods
+  const payCount = {};
+  orders.forEach(o => { const p = o.payment_method||'Інше'; payCount[p] = (payCount[p]||0)+1; });
+
+  // Status breakdown
+  const statusCount = { 'Новий':0,'Підтверджено':0,'Відправлено':0,'Доставлено':0,'Скасовано':0 };
+  orders.forEach(o => { if (statusCount[o.status]!==undefined) statusCount[o.status]++; });
+
+  // Daily orders for sparkline
+  const dayBins = new Array(days).fill(0);
+  const dayRevBins = new Array(days).fill(0);
+  const fromMs = from.getTime();
+  orders.forEach(o => {
+    const idx = Math.floor((new Date(o.created_at).getTime() - fromMs) / 86400000);
+    if (idx >= 0 && idx < days) {
+      dayBins[idx]++;
+      dayRevBins[idx] += Number(o.total||o.subtotal||0);
+    }
+  });
+
+  // Bar chart renderer (SVG-based, print-friendly)
+  function svgBar(data, color = '#FF6B35', width = 760, height = 120) {
+    if (!data.length) return '';
+    const maxV = Math.max(...data.map(d=>d.v), 1);
+    const barW = Math.max(4, Math.floor((width - data.length * 2) / data.length));
+    const showEvery = data.length > 30 ? Math.ceil(data.length / 15) : 1;
+    let bars = '', labels = '';
+    data.forEach((d, i) => {
+      const bh = Math.max(1, Math.round(d.v / maxV * (height - 24)));
+      const x = i * (barW + 2);
+      const y = height - 24 - bh;
+      bars += `<rect x="${x}" y="${y}" width="${barW}" height="${bh}" rx="2" fill="${color}" opacity=".85"/>`;
+      if (i % showEvery === 0 || i === data.length-1) {
+        labels += `<text x="${x + barW/2}" y="${height-6}" text-anchor="middle" font-size="9" fill="#888">${d.label}</text>`;
+      }
+    });
+    const totalW = data.length * (barW + 2);
+    return `<svg viewBox="0 0 ${totalW} ${height}" style="width:100%;height:${height}px;display:block">${bars}${labels}</svg>`;
+  }
+
+  // Daily data for chart
+  const chartData = Array.from({length:days},(_,i)=>({
+    label: new Date(fromMs + i*86400000).getDate().toString(),
+    v: dayBins[i]
+  }));
+  const showN = Math.min(days, 60);
+  const sliceStart = days - showN;
+  const chartSlice = chartData.slice(sliceStart);
+
+  const revChartData = Array.from({length:days},(_,i)=>({
+    label: new Date(fromMs + i*86400000).getDate().toString(),
+    v: dayRevBins[i]
+  })).slice(sliceStart);
+
+  // ── Assemble HTML ────────────────────────────────────────────
+  const secCard = (title, icon, content) => `
+    <div style="background:white;border:1px solid #e5e9ef;border-radius:10px;margin-bottom:20px;overflow:hidden;page-break-inside:avoid">
+      <div style="background:#f8fafc;border-bottom:1px solid #e5e9ef;padding:12px 18px;display:flex;align-items:center;gap:8px">
+        <span style="font-size:16px">${icon}</span>
+        <span style="font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;color:#1B2A4A">${title}</span>
+      </div>
+      <div style="padding:18px">${content}</div>
+    </div>`;
+
+  const kpiCard = (label, val, sub, color='#FF6B35') =>
+    `<div style="background:#f8fafc;border-radius:8px;padding:14px 16px;border-left:3px solid ${color}">
+      <div style="font-size:11px;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">${label}</div>
+      <div style="font-size:22px;font-weight:800;color:#1B2A4A;font-family:'Nunito',sans-serif">${val}</div>
+      ${sub ? `<div style="font-size:11px;color:#888;margin-top:3px">${sub}</div>` : ''}
+    </div>`;
+
+  let body = `
+    <!-- HEADER -->
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;padding-bottom:20px;border-bottom:2px solid #FF6B35">
+      <div>
+        <div style="font-family:'Nunito',sans-serif;font-weight:900;font-size:26px;color:#1B2A4A">${shopName}</div>
+        <div style="font-size:13px;color:#FF6B35;font-weight:700;margin-top:4px">📊 Звіт продажів</div>
+        <div style="font-size:12px;color:#888;margin-top:4px">${dateRange} · ${days} дн.</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:11px;color:#aaa">Сформовано</div>
+        <div style="font-size:12px;color:#555;font-weight:600">${generated}</div>
+      </div>
+    </div>`;
+
+  // SUMMARY
+  if (sections.summary) {
+    body += secCard('Зведена статистика', '📈', `
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px">
+        ${kpiCard('Замовлення',orders.length, arrow(pct(orders.length, prevOrders.length)))}
+        ${kpiCard('Виручка', fmtM(totalRevenue) + ' ₴', arrow(pct(totalRevenue, prevRevenue)), '#3B82F6')}
+        ${kpiCard('Середній чек', fmtM(avgOrder) + ' ₴', 'на замовлення', '#22c55e')}
+        ${kpiCard('Скасування', cancelRate + '%', cancelledOrders + ' замовл.', cancelRate > 10 ? '#ef4444' : '#aaa')}
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px">
+        ${Object.entries(statusCount).map(([s,c]) => `
+          <div style="text-align:center;padding:10px;background:#f8fafc;border-radius:8px">
+            <div style="font-size:18px;font-weight:800;color:#1B2A4A;font-family:'Nunito',sans-serif">${c}</div>
+            <div style="font-size:10px;color:#888;margin-top:2px">${s}</div>
+          </div>`).join('')}
+      </div>`);
+  }
+
+  // ORDERS DYNAMICS
+  if (sections.orders) {
+    body += secCard('Динаміка замовлень', '📦', `
+      <div style="margin-bottom:12px">
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:600">КІЛЬКІСТЬ ЗАМОВЛЕНЬ ПО ДНЯХ</div>
+        ${svgBar(chartSlice, '#FF6B35')}
+      </div>
+      <div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:600">ВИРУЧКА ПО ДНЯХ (₴)</div>
+        ${svgBar(revChartData, '#3B82F6')}
+      </div>`);
+  }
+
+  // TOP PRODUCTS
+  if (sections.products && topProducts.length) {
+    const rows = topProducts.map((p, i) => `
+      <tr style="border-bottom:1px solid #f0f0f0">
+        <td style="padding:8px 10px;font-size:12px;color:#888;width:24px">${i+1}</td>
+        <td style="padding:8px 10px;font-size:13px;font-weight:600;color:#1B2A4A">${p.name}</td>
+        <td style="padding:8px 10px;font-size:13px;font-weight:700;text-align:center">${p.qty} шт.</td>
+        <td style="padding:8px 10px;font-size:13px;font-weight:700;text-align:right;color:#22c55e">${fmtM(p.rev)} ₴</td>
+      </tr>`).join('');
+    body += secCard('Топ товари за продажами', '🏆', `
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr style="background:#f8fafc">
+          <th style="padding:8px 10px;font-size:11px;color:#888;text-align:left">#</th>
+          <th style="padding:8px 10px;font-size:11px;color:#888;text-align:left">Товар</th>
+          <th style="padding:8px 10px;font-size:11px;color:#888;text-align:center">Продано</th>
+          <th style="padding:8px 10px;font-size:11px;color:#888;text-align:right">Виручка</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`);
+  }
+
+  // GEO
+  if (sections.geo && topGeo.length) {
+    const maxGeo = topGeo[0][1];
+    const geoRows = topGeo.map(([city, cnt]) => {
+      const w = Math.round(cnt/maxGeo*100);
+      return `<div style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+          <span style="font-size:13px;font-weight:600;color:#1B2A4A">${city}</span>
+          <span style="font-size:13px;font-weight:700;color:#FF6B35">${cnt} зам.</span>
+        </div>
+        <div style="height:6px;background:#f0f0f0;border-radius:3px">
+          <div style="height:6px;width:${w}%;background:linear-gradient(90deg,#FF6B35,#FF9A6C);border-radius:3px"></div>
+        </div>
+      </div>`;
+    }).join('');
+    body += secCard('Географія замовлень', '🗺️', geoRows);
+  }
+
+  // PAYMENT
+  if (sections.payment && Object.keys(payCount).length) {
+    const total = orders.length || 1;
+    const payRows = Object.entries(payCount).sort((a,b)=>b[1]-a[1]).map(([method, cnt]) => {
+      const w = Math.round(cnt/total*100);
+      return `<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+        <div style="flex:1;font-size:13px;font-weight:600;color:#1B2A4A;min-width:140px">${method}</div>
+        <div style="flex:3;height:8px;background:#f0f0f0;border-radius:4px">
+          <div style="height:8px;width:${w}%;background:#3B82F6;border-radius:4px"></div>
+        </div>
+        <div style="font-size:13px;font-weight:700;color:#3B82F6;min-width:60px;text-align:right">${cnt} (${w}%)</div>
+      </div>`;
+    }).join('');
+    body += secCard('Способи оплати', '💳', payRows);
+  }
+
+  // REVIEWS
+  if (sections.reviews) {
+    const avgRating = reviews.length ? (reviews.reduce((s,r)=>s+Number(r.rating||0),0)/reviews.length).toFixed(1) : 0;
+    const ratingDist = [5,4,3,2,1].map(n => ({ n, cnt: reviews.filter(r=>Number(r.rating)===n).length }));
+    const maxRatCnt = Math.max(...ratingDist.map(r=>r.cnt), 1);
+    const ratingRows = ratingDist.map(({n,cnt}) => `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <span style="font-size:13px;font-weight:700;min-width:18px;text-align:right">${n}</span>
+        <span>⭐</span>
+        <div style="flex:1;height:8px;background:#f0f0f0;border-radius:4px">
+          <div style="height:8px;width:${Math.round(cnt/maxRatCnt*100)}%;background:#f59e0b;border-radius:4px"></div>
+        </div>
+        <span style="font-size:12px;color:#888;min-width:28px">${cnt}</span>
+      </div>`).join('');
+    body += secCard('Відгуки покупців', '💬', `
+      <div style="display:grid;grid-template-columns:120px 1fr;gap:20px;align-items:start">
+        <div style="text-align:center">
+          <div style="font-size:48px;font-weight:900;color:#1B2A4A;font-family:'Nunito',sans-serif;line-height:1">${avgRating}</div>
+          <div style="color:#f59e0b;font-size:18px;margin:4px 0">⭐⭐⭐⭐⭐</div>
+          <div style="font-size:12px;color:#888">${reviews.length} відгуків</div>
+        </div>
+        <div>${ratingRows}</div>
+      </div>`);
+  }
+
+  // FOOTER
+  body += `<div style="margin-top:28px;padding-top:16px;border-top:1px solid #eee;display:flex;justify-content:space-between;font-size:11px;color:#aaa">
+    <span>${shopName} — звіт за ${dateRange}</span>
+    <span>Сформовано: ${generated}</span>
+  </div>`;
+
+  return body;
+}
+
+
+// ── APPLY STORED THEME ON LOAD ───────────────────────────────
+function _applyStoredTheme() {
+  const cfg = loadSettings();
+  if (cfg.cfg_color_primary) document.documentElement.style.setProperty('--orange', cfg.cfg_color_primary);
+  if (cfg.cfg_color_nav)     document.documentElement.style.setProperty('--navy', cfg.cfg_color_nav);
+  if (cfg.cfg_orders_per_page) window.ORDERS_PAGE_SIZE = parseInt(cfg.cfg_orders_per_page) || 20;
+  if (cfg.cfg_ui_compact === 'true') document.body.classList.add('compact-mode');
+}
+
+// ── SETTINGS CSS (tabs) ──────────────────────────────────────
+// Inject settings tab styles
+(function(){
+  const s = document.createElement('style');
+  s.textContent = `
+.settings-tab{padding:8px 14px;border-radius:8px;font-size:12px;font-weight:700;border:none;background:none;color:var(--text-muted);cursor:pointer;font-family:'Nunito',sans-serif;transition:all .2s;white-space:nowrap}
+.settings-tab:hover{background:var(--bg);color:var(--navy)}
+.settings-tab.active{background:var(--orange);color:white}
+.settings-section{display:none}
+.settings-section.active{display:block}
+  `;
+  document.head.appendChild(s);
+})();
+
+// ── SETTINGS STORAGE ─────────────────────────────────────────
+const SETTINGS_KEY = 'kr_admin_settings';
+
+function loadSettings() {
+  try {
+    return JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+  } catch(e) { return {}; }
+}
+function persistSettings(obj) {
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(obj));
+  // Try saving to Supabase admin_settings table as well
+  _syncSettingsToSupabase(obj).catch(()=>{});
+}
+async function _syncSettingsToSupabase(obj) {
+  const rows = Object.entries(obj).map(([key, value]) => ({ key, value: String(value) }));
+  if (!rows.length) return;
+  await sbFetch('admin_settings?on_conflict=key', {
+    method: 'POST',
+    headers: { Prefer: 'resolution=merge-duplicates' },
+    body: JSON.stringify(rows)
+  });
+}
+async function _loadSettingsFromSupabase() {
+  try {
+    const rows = await sbFetch('admin_settings?select=key,value');
+    const obj = {};
+    rows.forEach(r => { obj[r.key] = r.value; });
+    return obj;
+  } catch(e) { return {}; }
+}
+
+// ── SETTINGS TAB SWITCH ───────────────────────────────────────
+function switchSettingsTab(tab, btn) {
+  document.querySelectorAll('.settings-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.settings-section').forEach(s => s.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const section = document.getElementById('stab-' + tab);
+  if (section) section.classList.add('active');
+}
+
+// ── RENDER SETTINGS (fill form from storage) ─────────────────
+async function renderSettings() {
+  // Load from Supabase first, fall back to localStorage
+  let cfg = await _loadSettingsFromSupabase();
+  if (!Object.keys(cfg).length) cfg = loadSettings();
+
+  const ids = [
+    'cfg_shop_name','cfg_shop_tagline','cfg_phone','cfg_email','cfg_hours','cfg_address',
+    'cfg_logo_url','cfg_about','cfg_instagram','cfg_facebook','cfg_tiktok','cfg_youtube',
+    'cfg_order_prefix','cfg_min_order','cfg_auto_close_days','cfg_confirm_text',
+    'cfg_notify_email_orders','cfg_notify_email_reviews',
+    'cfg_tg_token','cfg_tg_chat',
+    'cfg_np_api_key','cfg_np_sender_name','cfg_np_sender_phone','cfg_np_city',
+    'cfg_np_warehouse','cfg_np_weight','cfg_np_size',
+    'cfg_cod_fee_pct','cfg_cod_fee_min','cfg_pickup_address',
+    'cfg_color_primary','cfg_color_primary_hex','cfg_color_nav','cfg_color_nav_hex',
+    'cfg_orders_per_page',
+    'cfg_seo_title','cfg_seo_description','cfg_og_image','cfg_ga_id','cfg_fb_pixel','cfg_site_url',
+    'cfg_manager_notes','cfg_new_password','cfg_confirm_password'
+  ];
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && cfg[id] !== undefined) {
+      if (el.tagName === 'SELECT') el.value = cfg[id];
+      else el.value = cfg[id];
+    }
+  });
+
+  // Checkboxes
+  const checks = ['cfg_pay_cod','cfg_pay_card','cfg_pay_bank','cfg_pay_crypto',
+    'cfg_tg_new_order','cfg_tg_new_review','cfg_tg_low_stock',
+    'cfg_cod_include_in_total','cfg_pickup_enabled',
+    'cfg_ui_compact','cfg_ui_animations','cfg_ui_sound',
+    'cfg_auto_logout','cfg_log_actions'];
+  checks.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && cfg[id] !== undefined) el.checked = cfg[id] === 'true' || cfg[id] === true;
+  });
+
+  // Sync color preview inputs
+  const cpEl = document.getElementById('cfg_color_primary');
+  const cnEl = document.getElementById('cfg_color_nav');
+  if (cpEl) document.getElementById('cfg_color_primary_hex').value = cpEl.value;
+  if (cnEl) document.getElementById('cfg_color_nav_hex').value = cnEl.value;
+
+  // Browser notification status
+  const permEl = document.getElementById('notifPermStatus');
+  if (permEl && 'Notification' in window) {
+    permEl.textContent = 'Поточний статус: ' + (Notification.permission === 'granted' ? '✅ Увімкнено' : Notification.permission === 'denied' ? '❌ Заборонено' : '⏳ Не налаштовано');
+  }
+
+  // Orders per page — apply immediately
+  if (cfg.cfg_orders_per_page) {
+    window.ORDERS_PAGE_SIZE = parseInt(cfg.cfg_orders_per_page) || 20;
+  }
+}
+
+// ── SAVE ALL SETTINGS ─────────────────────────────────────────
+function saveAllSettings() {
+  const cfg = loadSettings();
+
+  const textIds = [
+    'cfg_shop_name','cfg_shop_tagline','cfg_phone','cfg_email','cfg_hours','cfg_address',
+    'cfg_logo_url','cfg_about','cfg_instagram','cfg_facebook','cfg_tiktok','cfg_youtube',
+    'cfg_order_prefix','cfg_min_order','cfg_auto_close_days','cfg_confirm_text',
+    'cfg_notify_email_orders','cfg_notify_email_reviews',
+    'cfg_tg_token','cfg_tg_chat',
+    'cfg_np_api_key','cfg_np_sender_name','cfg_np_sender_phone','cfg_np_city',
+    'cfg_np_warehouse','cfg_np_weight','cfg_np_size',
+    'cfg_cod_fee_pct','cfg_cod_fee_min','cfg_pickup_address',
+    'cfg_color_primary','cfg_color_nav',
+    'cfg_orders_per_page',
+    'cfg_seo_title','cfg_seo_description','cfg_og_image','cfg_ga_id','cfg_fb_pixel','cfg_site_url',
+    'cfg_manager_notes'
+  ];
+  textIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) cfg[id] = el.value;
+  });
+
+  const checks = ['cfg_pay_cod','cfg_pay_card','cfg_pay_bank','cfg_pay_crypto',
+    'cfg_tg_new_order','cfg_tg_new_review','cfg_tg_low_stock',
+    'cfg_cod_include_in_total','cfg_pickup_enabled',
+    'cfg_ui_compact','cfg_ui_animations','cfg_ui_sound',
+    'cfg_auto_logout','cfg_log_actions'];
+  checks.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) cfg[id] = el.checked ? 'true' : 'false';
+  });
+
+  persistSettings(cfg);
+
+  // Apply orders per page immediately
+  const opEl = document.getElementById('cfg_orders_per_page');
+  if (opEl) window.ORDERS_PAGE_SIZE = parseInt(opEl.value) || 20;
+
+  // Apply compact mode
+  document.body.classList.toggle('compact-mode', cfg.cfg_ui_compact === 'true');
+
+  showToast('✅ Налаштування збережено', 'success');
+}
+
+// ── APPLY THEME COLORS ────────────────────────────────────────
+function applyThemeColors() {
+  const primary = document.getElementById('cfg_color_primary')?.value || '#FF6B35';
+  const nav     = document.getElementById('cfg_color_nav')?.value || '#1B2A4A';
+  document.documentElement.style.setProperty('--orange', primary);
+  document.documentElement.style.setProperty('--navy', nav);
+  // Update hex inputs
+  const hexP = document.getElementById('cfg_color_primary_hex');
+  const hexN = document.getElementById('cfg_color_nav_hex');
+  if (hexP) hexP.value = primary;
+  if (hexN) hexN.value = nav;
+  showToast('🎨 Кольори застосовано', 'success');
+}
+
+// ── CHANGE PASSWORD ───────────────────────────────────────────
+async function changeAdminPassword() {
+  const np = document.getElementById('cfg_new_password')?.value;
+  const cp = document.getElementById('cfg_confirm_password')?.value;
+  if (!np || np.length < 8) { showToast('Пароль має бути не менше 8 символів', 'error'); return; }
+  if (np !== cp) { showToast('Паролі не збігаються', 'error'); return; }
+  try {
+    const { data, error } = { data: null, error: null };
+    // Use Supabase auth
+    const res = await fetch(SUPABASE_URL + '/auth/v1/user', {
+      method: 'PUT',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + (_adminToken||SUPABASE_KEY), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: np })
+    });
+    if (res.ok) {
+      showToast('✅ Пароль змінено успішно', 'success');
+      document.getElementById('cfg_new_password').value = '';
+      document.getElementById('cfg_confirm_password').value = '';
+    } else {
+      const e = await res.json();
+      showToast('Помилка: ' + (e.msg || e.message || res.status), 'error');
+    }
+  } catch(e) { showToast('Помилка: ' + e.message, 'error'); }
+}
+
+// ── TELEGRAM TEST ─────────────────────────────────────────────
+async function testTelegramNotification() {
+  const token = document.getElementById('cfg_tg_token')?.value;
+  const chat  = document.getElementById('cfg_tg_chat')?.value;
+  if (!token || !chat) { showToast('Введіть Bot Token та Chat ID', 'error'); return; }
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: chat, text: '✅ KidsRide Admin — тестове повідомлення. Telegram підключено!' })
+    });
+    const j = await res.json();
+    if (j.ok) showToast('✅ Повідомлення надіслано в Telegram!', 'success');
+    else showToast('❌ Помилка Telegram: ' + (j.description||''), 'error');
+  } catch(e) { showToast('Помилка: ' + e.message, 'error'); }
+}
+
+// ── BROWSER NOTIFICATIONS ─────────────────────────────────────
+async function requestBrowserNotifications() {
+  if (!('Notification' in window)) { showToast('Браузер не підтримує сповіщення', 'error'); return; }
+  const perm = await Notification.requestPermission();
+  const el = document.getElementById('notifPermStatus');
+  if (el) el.textContent = 'Статус: ' + (perm === 'granted' ? '✅ Увімкнено' : '❌ Відмовлено');
+  if (perm === 'granted') {
+    new Notification('KidsRide Admin', { body: '🎉 Push-сповіщення увімкнено!', icon: '/favicon.svg' });
+    showToast('✅ Push-сповіщення увімкнено', 'success');
+  } else {
+    showToast('Браузер відмовив у дозволі', 'error');
+  }
+}
+
+// ── CSV EXPORT HELPERS ────────────────────────────────────────
+function _downloadCSV(filename, rows) {
+  if (!rows.length) { showToast('Немає даних для експорту', 'error'); return; }
+  const headers = Object.keys(rows[0]);
+  const csv = [headers.join(','), ...rows.map(r => headers.map(h => {
+    const v = r[h] == null ? '' : String(r[h]);
+    return v.includes(',') || v.includes('"') || v.includes('\n')
+      ? '"' + v.replace(/"/g,'""') + '"' : v;
+  }).join(','))].join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+}
+
+async function exportOrdersCSV() {
+  showToast('Завантаження замовлень...', 'info');
+  try {
+    const orders = await sbFetch('orders?select=*&order=created_at.desc&limit=10000');
+    const rows = orders.map(o => ({
+      id: o.id, order_number: o.order_number||'',
+      status: o.status||'',
+      customer: ((o.customer_first_name||'')+' '+(o.customer_last_name||'')).trim(),
+      phone: o.customer_phone||'', email: o.customer_email||'',
+      city: o.delivery_city||'', address: o.delivery_address||'',
+      payment: o.payment_method||'', subtotal: o.subtotal||0,
+      total: o.total||0, items_count: o.items_count||0,
+      created_at: o.created_at||''
+    }));
+    _downloadCSV('orders_' + new Date().toISOString().slice(0,10) + '.csv', rows);
+    showToast('✅ Замовлення експортовано (' + rows.length + ' шт.)', 'success');
+  } catch(e) { showToast('Помилка: ' + e.message, 'error'); }
+}
+
+async function exportProductsCSV() {
+  showToast('Завантаження товарів...', 'info');
+  try {
+    const products = await sbFetch('products?select=*&order=created_at.desc&limit=10000');
+    const rows = products.map(p => ({
+      id: p.id, sku: p.sku||'', name: p.name||'',
+      price: p.price||0, old_price: p.old_price||'',
+      category: p.category||'', brand: p.brand||'',
+      age: p.age||'', in_stock: p.in_stock||'',
+      active: p.active||'', badge: p.badge||'',
+      created_at: p.created_at||''
+    }));
+    _downloadCSV('products_' + new Date().toISOString().slice(0,10) + '.csv', rows);
+    showToast('✅ Товари експортовано (' + rows.length + ' шт.)', 'success');
+  } catch(e) { showToast('Помилка: ' + e.message, 'error'); }
+}
+
+async function exportReviewsCSV() {
+  showToast('Завантаження відгуків...', 'info');
+  try {
+    const reviews = await sbFetch('reviews?select=*&order=created_at.desc&limit=10000');
+    const rows = reviews.map(r => ({
+      id: r.id, author: r.author_name||'', city: r.city||'',
+      rating: r.rating||0, text: r.text||'',
+      approved: r.approved||false, created_at: r.created_at||''
+    }));
+    _downloadCSV('reviews_' + new Date().toISOString().slice(0,10) + '.csv', rows);
+    showToast('✅ Відгуки експортовано (' + rows.length + ' шт.)', 'success');
+  } catch(e) { showToast('Помилка: ' + e.message, 'error'); }
+}
+
+async function exportAnalyticsCSV() {
+  showToast('Завантаження аналітики...', 'info');
+  try {
+    const since = new Date(Date.now() - 30*86400000).toISOString();
+    const rows_data = await sbFetch('page_views?select=*&created_at=gte.'+encodeURIComponent(since)+'&order=created_at.desc&limit=50000');
+    _downloadCSV('analytics_' + new Date().toISOString().slice(0,10) + '.csv', rows_data);
+    showToast('✅ Аналітику експортовано (' + rows_data.length + ' рядків)', 'success');
+  } catch(e) { showToast('Помилка: ' + e.message, 'error'); }
+}
+
+// ── CLEAR CACHE ───────────────────────────────────────────────
+function clearAdminCache() {
+  window._allOrdersCache = null;
+  window._ordersCache = [];
+  window._productsRawCache = null;
+  showToast('✅ Кеш очищено. Дані оновляться при наступному відкритті розділу.', 'success');
+}
+
+
 window.addEventListener('load', () => {
   const _visTimeout = setTimeout(() => {
     document.body.style.visibility = 'visible';
   }, 3000);
 
   guardAdminPage()
-    .then(() => { clearTimeout(_visTimeout); updateNavBadges(); setInterval(updateNavBadges, 60000); })
+    .then(() => { clearTimeout(_visTimeout); updateNavBadges(); setInterval(updateNavBadges, 60000); _applyStoredTheme(); })
     .catch(e => {
       clearTimeout(_visTimeout);
       document.body.style.visibility = 'visible';
