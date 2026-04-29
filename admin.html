@@ -1741,16 +1741,35 @@ async function renderAnalytics(){
 
 // ── CAROUSEL SLIDES ───────────────────────────────────────────────────────
 const DEFAULT_SLIDES = [
-  { id:'slide-1', title:'Подаруй дитині справжні емоції',                link:'/catalog',          enabled:true, image:'', bg:'linear-gradient(135deg,#1B2A4A,#2d4270)' },
-  { id:'slide-2', title:'Джипи та квадроцикли для справжніх героїв',     link:'/catalog?type=jeep',enabled:true, image:'', bg:'linear-gradient(135deg,#FF6B35,#ff9a6c)' },
-  { id:'slide-3', title:'Пакунок малюка та держпідтримка 7000 грн',       link:'/delivery#payment', enabled:true, image:'', bg:'linear-gradient(135deg,#1B2A4A,#0f1e36)' },
+  { id:'slide-1', title:'Подаруй дитині справжні емоції',                link:'catalog.html',           cta1_text:'Переглянути каталог', cta1_link:'catalog.html',           cta2_text:'Підібрати за віком', cta2_link:'calculator.html', enabled:true, image:'', bg:'linear-gradient(135deg,#1B2A4A,#2d4270)' },
+  { id:'slide-2', title:'Джипи та квадроцикли для справжніх героїв',     link:'catalog.html?cat=jeep',  cta1_text:'Дивитись джипи',      cta1_link:'catalog.html?cat=jeep',  cta2_text:'Всі категорії',      cta2_link:'catalog.html',    enabled:true, image:'', bg:'linear-gradient(135deg,#FF6B35,#ff9a6c)' },
+  { id:'slide-3', title:'Пакунок малюка та держпідтримка 7000 грн',      link:'#delivery-section',      cta1_text:'Дізнатись більше',    cta1_link:'#delivery-section',      cta2_text:'Умови оплати',       cta2_link:'#delivery-section',enabled:true, image:'', bg:'linear-gradient(135deg,#1B2A4A,#0f1e36)' },
 ];
 
 function _normalizeSlide(s, fallbackOrder){
+  // Старе поле "link" → нове "cta1_link" для зворотної сумісності
+  const legacyLink = String(s.link || '');
+  // Конвертуємо старі URL-формати на ходу
+  function _fixUrl(u) {
+    if (!u) return '';
+    let v = String(u);
+    // /catalog?type=jeep → catalog.html?cat=jeep
+    v = v.replace(/^\/catalog/, 'catalog.html');
+    v = v.replace(/^\/calculator/, 'calculator.html');
+    v = v.replace(/^\/delivery.*$/, '#delivery-section');
+    v = v.replace(/[?&]type=/, '?cat=');
+    return v;
+  }
+  const cta1Link = _fixUrl(s.cta1_link || legacyLink || 'catalog.html');
+  const cta2Link = _fixUrl(s.cta2_link || '');
   return {
     id:      String(s.id || ('slide-' + Math.random().toString(36).slice(2,7))),
     title:   String(s.title || ''),
-    link:    String(s.link || ''),
+    link:    cta1Link,                         // legacy mirror
+    cta1_text: String(s.cta1_text || 'Дізнатись більше'),
+    cta1_link: cta1Link,
+    cta2_text: String(s.cta2_text || ''),
+    cta2_link: cta2Link,
     enabled: s.enabled !== false,
     image:   typeof s.image === 'string' ? s.image : '',
     bg:      String(s.bg || 'linear-gradient(135deg,#1B2A4A,#2d4270)'),
@@ -1802,7 +1821,11 @@ async function _supabaseSyncSlides(arr){
   const payload = arr.map((s, i) => ({
     id: s.id,
     title: s.title || '',
-    link: s.link || '',
+    link: s.cta1_link || s.link || '',
+    cta1_text: s.cta1_text || '',
+    cta1_link: s.cta1_link || s.link || '',
+    cta2_text: s.cta2_text || '',
+    cta2_link: s.cta2_link || '',
     enabled: s.enabled !== false,
     image: s.image || '',
     bg: s.bg || '',
@@ -1890,7 +1913,51 @@ function _renderSlidesGridSync(){
         </div>
         <div class="slide-body">
           <input class="slide-title-inp" value="${escAdmAttr(s.title)}" placeholder="Заголовок слайду" oninput="slideUpdate(${idx},'title',this.value)">
-          <input class="slide-title-inp" value="${escAdmAttr(s.link)}"  placeholder="Посилання CTA (URL)" oninput="slideUpdate(${idx},'link',this.value)">
+
+          <div style="font-family:'Nunito',sans-serif;font-weight:800;font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin:10px 0 6px">Кнопка 1 (основна)</div>
+          <div style="display:grid;grid-template-columns:1fr 1.3fr;gap:6px">
+            <input class="slide-title-inp" style="margin-bottom:6px" value="${escAdmAttr(s.cta1_text)}" placeholder="Текст" oninput="slideUpdate(${idx},'cta1_text',this.value)">
+            <input class="slide-title-inp" style="margin-bottom:6px" value="${escAdmAttr(s.cta1_link)}" placeholder="Посилання / фільтр" oninput="slideUpdate(${idx},'cta1_link',this.value)">
+          </div>
+          <select class="slide-title-inp" style="margin-bottom:10px;cursor:pointer" onchange="slideQuickFilter(${idx},'cta1_link',this.value);this.value=''">
+            <option value="">↓ Швидкий вибір дії…</option>
+            <option value="catalog.html">Весь каталог</option>
+            <option value="catalog.html?cat=jeep">Каталог: Джипи</option>
+            <option value="catalog.html?cat=car">Каталог: Машини</option>
+            <option value="catalog.html?cat=quad">Каталог: Квадроцикли</option>
+            <option value="catalog.html?cat=moto">Каталог: Мотоцикли</option>
+            <option value="catalog.html?cat=tractor">Каталог: Трактори</option>
+            <option value="catalog.html?cat=truck">Каталог: Вантажівки</option>
+            <option value="catalog.html?cat=buggy">Каталог: Баггі</option>
+            <option value="catalog.html?cat=walker">Каталог: Каталки-толокари</option>
+            <option value="calculator.html">Підбір за віком</option>
+            <option value="#delivery-section">Доставка та оплата</option>
+            <option value="#warranty-section">Гарантія</option>
+            <option value="#contacts-section">Контакти</option>
+          </select>
+
+          <div style="font-family:'Nunito',sans-serif;font-weight:800;font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin:0 0 6px">Кнопка 2 (додаткова, можна лишити пустою)</div>
+          <div style="display:grid;grid-template-columns:1fr 1.3fr;gap:6px">
+            <input class="slide-title-inp" style="margin-bottom:6px" value="${escAdmAttr(s.cta2_text)}" placeholder="Текст (необов'язково)" oninput="slideUpdate(${idx},'cta2_text',this.value)">
+            <input class="slide-title-inp" style="margin-bottom:6px" value="${escAdmAttr(s.cta2_link)}" placeholder="Посилання" oninput="slideUpdate(${idx},'cta2_link',this.value)">
+          </div>
+          <select class="slide-title-inp" style="margin-bottom:10px;cursor:pointer" onchange="slideQuickFilter(${idx},'cta2_link',this.value);this.value=''">
+            <option value="">↓ Швидкий вибір дії…</option>
+            <option value="catalog.html">Весь каталог</option>
+            <option value="catalog.html?cat=jeep">Каталог: Джипи</option>
+            <option value="catalog.html?cat=car">Каталог: Машини</option>
+            <option value="catalog.html?cat=quad">Каталог: Квадроцикли</option>
+            <option value="catalog.html?cat=moto">Каталог: Мотоцикли</option>
+            <option value="catalog.html?cat=tractor">Каталог: Трактори</option>
+            <option value="catalog.html?cat=truck">Каталог: Вантажівки</option>
+            <option value="catalog.html?cat=buggy">Каталог: Баггі</option>
+            <option value="catalog.html?cat=walker">Каталог: Каталки-толокари</option>
+            <option value="calculator.html">Підбір за віком</option>
+            <option value="#delivery-section">Доставка та оплата</option>
+            <option value="#warranty-section">Гарантія</option>
+            <option value="#contacts-section">Контакти</option>
+          </select>
+
           <div class="slide-footer">
             <span style="font-size:11px;color:var(--text-muted)">Слайд ${idx+1} · ${statusLabel}</span>
             <div style="display:flex;gap:6px">
@@ -2018,6 +2085,37 @@ function slideDragEnd(e){
 
 async function slidesSaveAll(){
   if (await persistSlides(_slides)) showToast('Зміни збережено', 'success');
+}
+
+// Швидкий вибір дії з випадайки — підставляє url в потрібне поле + одразу зберігає
+async function slideQuickFilter(idx, field, value){
+  if (!value) return;
+  if (!_slides[idx]) return;
+  _slides[idx][field] = value;
+  // Якщо текст кнопки порожній — підставити людинозрозумілий за замовч.
+  const labelMap = {
+    'catalog.html':'Весь каталог',
+    'catalog.html?cat=jeep':'Дивитись джипи',
+    'catalog.html?cat=car':'Дивитись машини',
+    'catalog.html?cat=quad':'Дивитись квадроцикли',
+    'catalog.html?cat=moto':'Дивитись мотоцикли',
+    'catalog.html?cat=tractor':'Дивитись трактори',
+    'catalog.html?cat=truck':'Дивитись вантажівки',
+    'catalog.html?cat=buggy':'Дивитись баггі',
+    'catalog.html?cat=walker':'Дивитись каталки',
+    'calculator.html':'Підібрати за віком',
+    '#delivery-section':'Дізнатись про доставку',
+    '#warranty-section':'Гарантія',
+    '#contacts-section':'Контакти'
+  };
+  const txtField = field === 'cta1_link' ? 'cta1_text' : 'cta2_text';
+  if (!_slides[idx][txtField] && labelMap[value]) {
+    _slides[idx][txtField] = labelMap[value];
+  }
+  // Дзеркалимо у legacy-поле link, щоб старий код, що читає s.link, теж працював
+  if (field === 'cta1_link') _slides[idx].link = value;
+  _renderSlidesGridSync();
+  if (await persistSlides(_slides)) showToast('Дія кнопки оновлена', 'success');
 }
 
 // ── SIDEBAR MOBILE ────────────────────────────────────────────────────────

@@ -619,7 +619,7 @@ footer{background:var(--navy);color:white;padding:72px 48px 0}
               <h1 class="hero-h1">Джипи та<br><em>квадроцикли</em><br>для справжніх героїв</h1>
               <p class="hero-p">4-моторні електромобілі з пультом 2.4G, шкіряним сидінням та колесами EVA.</p>
               <div class="hero-btns">
-                <a href="catalog.html" class="btn btn-primary" style="font-size:15px;padding:14px 28px">Дивитись джипи</a>
+                <a href="catalog.html?cat=jeep" class="btn btn-primary" style="font-size:15px;padding:14px 28px">Дивитись джипи</a>
                 <a href="catalog.html" class="btn btn-white" style="font-size:15px;padding:14px 28px">Всі категорії</a>
               </div>
             </div>
@@ -1517,12 +1517,26 @@ if (pag) {
 function _krEscAttr(s){ return String(s==null?'':s).replace(/"/g,'&quot;').replace(/&/g,'&amp;'); }
 function _krEscHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
+// Конвертує старі URL-формати на актуальні
+function _krFixSlideUrl(u) {
+  if (!u) return '';
+  let v = String(u);
+  v = v.replace(/^\/catalog/, 'catalog.html');
+  v = v.replace(/^\/calculator/, 'calculator.html');
+  v = v.replace(/^\/delivery.*$/, '#delivery-section');
+  v = v.replace(/[?&]type=/, '?cat=');
+  return v;
+}
+
 function _krBuildGenericSlide(s){
   const bg  = s.bg || 'linear-gradient(135deg,#1B2A4A,#2d4270)';
   const img = s.image
     ? `<img src="${_krEscAttr(s.image)}" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block">`
     : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.06);font-family:'Nunito',sans-serif;color:rgba(255,255,255,.5);font-size:14px">KidsRide</div>`;
-  const link = _krEscAttr(s.link || '/catalog');
+  const cta1Text = _krEscHtml(s.cta1_text || 'Дізнатись більше');
+  const cta1Link = _krEscAttr(_krFixSlideUrl(s.cta1_link || s.link || 'catalog.html'));
+  const cta2Text = s.cta2_text ? _krEscHtml(s.cta2_text) : '';
+  const cta2Link = _krEscAttr(_krFixSlideUrl(s.cta2_link || 'catalog.html'));
   const title = _krEscHtml(s.title || 'KidsRide');
   return `
     <div class="swiper-slide" data-slide-id="${_krEscAttr(s.id)}">
@@ -1534,8 +1548,8 @@ function _krBuildGenericSlide(s){
             <div class="hero-chip"><span class="hero-chip-dot"></span> KidsRide</div>
             <h1 class="hero-h1">${title}</h1>
             <div class="hero-btns">
-              <a href="${link}" class="btn btn-primary" style="font-size:15px;padding:14px 28px">Дізнатись більше</a>
-              <a href="catalog.html" class="btn btn-white" style="font-size:15px;padding:14px 28px">До каталогу</a>
+              <a href="${cta1Link}" class="btn btn-primary" style="font-size:15px;padding:14px 28px">${cta1Text}</a>
+              ${cta2Text ? `<a href="${cta2Link}" class="btn btn-white" style="font-size:15px;padding:14px 28px">${cta2Text}</a>` : ''}
             </div>
           </div>
           <div class="hero-img-wrap">
@@ -1544,6 +1558,30 @@ function _krBuildGenericSlide(s){
         </div>
       </div>
     </div>`;
+}
+
+// Підставити налаштування з адмінки в існуючий статичний слайд (текст h1, кнопки)
+function _krPatchExistingSlide(tplEl, s){
+  if (s.title) {
+    const h1 = tplEl.querySelector('.hero-h1');
+    if (h1) h1.textContent = s.title;
+  }
+  const btns = tplEl.querySelectorAll('.hero-btns a');
+  if (btns[0]) {
+    if (s.cta1_text) btns[0].textContent = s.cta1_text;
+    const link = _krFixSlideUrl(s.cta1_link || s.link);
+    if (link) btns[0].setAttribute('href', link);
+  }
+  if (btns[1]) {
+    if (s.cta2_text) {
+      btns[1].textContent = s.cta2_text;
+      btns[1].style.display = '';
+    } else if (typeof s.cta2_text === 'string' && s.cta2_text === '') {
+      btns[1].style.display = 'none';
+    }
+    const link2 = _krFixSlideUrl(s.cta2_link);
+    if (link2) btns[1].setAttribute('href', link2);
+  }
 }
 
 function _krApplySlides(saved){
@@ -1570,6 +1608,8 @@ function _krApplySlides(saved){
         const card = tpl.querySelector('.hero-img-card');
         if (card) card.innerHTML = '<img src="' + _krEscAttr(s.image) + '" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block">';
       }
+      // Підставляємо адмінські налаштування (заголовок, текст і дії кнопок)
+      _krPatchExistingSlide(tpl, s);
       wrapper.appendChild(tpl);
     } else {
       // Unknown id — render via generic template
