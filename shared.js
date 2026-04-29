@@ -26,65 +26,25 @@ const KR = {
     this.dispatchCartEvent(cart);
   },
 
-  // Стабільний slug з назви товару (укр + лат + цифри)
-  slug(s) {
-    return String(s || '')
-      .toLowerCase()
-      .replace(/[^a-z0-9а-яіїєґ]+/gi, '-')
-      .replace(/^-+|-+$/g, '')
-      .slice(0, 60) || 'item';
-  },
-
-  // Стабільний ключ дедуплікації: slug(name) + color.
-  // Це дозволяє об'єднати один і той самий товар, доданий з різних сторінок
-  // (index, catalog, product) — навіть якщо вони передали різні id.
-  cartKey(p) {
-    return this.slug(p && p.name) + '|' + String((p && p.color) || '');
-  },
-
-  // Нормалізувати товар: гарантувати стабільний id.
-  normalizeProduct(product) {
-    const p = { ...(product || {}) };
-    if (!p.id || /^(idx|tmp|cat)-/.test(String(p.id))) {
-      p.id = 'p-' + this.slug(p.name);
-    }
-    if (!p.color) p.color = '';
-    return p;
-  },
-
   // Додати товар
   addToCart(product) {
-    // product = { id?, name, brand, price, color?, voltage?, age?, img? }
-    if (!product || !product.name) return this.getCart();
-    const p = this.normalizeProduct(product);
+    // product = { id, name, brand, price, color, voltage, age, img }
     const cart = this.getCart();
-    const key = this.cartKey(p);
-    const existing = cart.find(i => this.cartKey(i) === key);
+    const existing = cart.find(i => i.id === product.id && i.color === product.color);
     if (existing) {
       existing.qty = Math.min((existing.qty || 1) + 1, 10);
-      // оновлюємо ціну/бренд/img якщо вони були неповні
-      if (!existing.price && p.price) existing.price = p.price;
-      if (!existing.brand && p.brand) existing.brand = p.brand;
-      if (!existing.img && p.img) existing.img = p.img;
     } else {
-      cart.push({ ...p, qty: 1, addedAt: Date.now() });
+      cart.push({ ...product, qty: 1, addedAt: Date.now() });
     }
     this.saveCart(cart);
-    this.showToast(`✓ "${p.name}" додано в кошик`, 'success');
+    this.showToast(`✓ "${product.name}" додано в кошик`, 'success');
     this.animateCartBadge();
     return cart;
   },
 
-  // Видалити товар (за стабільним ключем slug(name)+color)
-  removeFromCart(idOrProduct, color) {
-    const target = (typeof idOrProduct === 'object')
-      ? this.cartKey(idOrProduct)
-      : this.slug(arguments[2] || '') /* legacy */ ;
-    // Сумісність з попереднім API: якщо передали (id, color) — видаляємо за id+color АБО за slug(name)+color
-    const cart = this.getCart().filter(i => {
-      if (typeof idOrProduct === 'object') return this.cartKey(i) !== target;
-      return !((i.id === idOrProduct || this.slug(i.name) === this.slug(String(idOrProduct))) && (i.color || '') === (color || ''));
-    });
+  // Видалити товар
+  removeFromCart(id, color) {
+    const cart = this.getCart().filter(i => !(i.id === id && i.color === color));
     this.saveCart(cart);
   },
 
@@ -107,17 +67,6 @@ const KR = {
     });
   },
 
-  // Оновити бейдж порівняння у header
-  updateCompareBadge() {
-    let list = [];
-    try { list = JSON.parse(localStorage.getItem('kr_compare') || '[]'); } catch{}
-    const count = list.length;
-    document.querySelectorAll('#compareBadge, .compare-badge, [data-compare-badge]').forEach(el => {
-      el.textContent = count;
-      el.style.display = count > 0 ? 'flex' : 'none';
-    });
-  },
-
   // Анімація бейджа
   animateCartBadge() {
     document.querySelectorAll('#cartBadge, .cart-badge').forEach(el => {
@@ -126,11 +75,9 @@ const KR = {
     });
   },
 
-  // Dispatch event для інших компонентів.
-  // Шлемо обидві назви, бо різні сторінки слухають по-різному.
+  // Dispatch event для інших компонентів
   dispatchCartEvent(cart) {
-    try { window.dispatchEvent(new CustomEvent('kr:cartUpdated',  { detail: { cart } })); } catch(e) {}
-    try { window.dispatchEvent(new CustomEvent('kr:cart-changed', { detail: { cart } })); } catch(e) {}
+    window.dispatchEvent(new CustomEvent('kr:cartUpdated', { detail: { cart } }));
   },
 
   // ── WISHLIST ──────────────────────────────────────────────────────────────
@@ -452,14 +399,7 @@ const KR = {
     this.injectWishStyles();
     this.updateCartBadge();
     this.updateWishBadge();
-    this.updateCompareBadge();
     this.updateAuthUI();
-    // Слухаємо локальні зміни kr_compare у тому ж табі та змінення з інших табів
-    window.addEventListener('storage', (e) => {
-      if (e.key === 'kr_compare') this.updateCompareBadge();
-      if (e.key === 'kr_cart') this.updateCartBadge();
-      if (e.key === 'kr_wishlist') this.updateWishBadge();
-    });
     this.trackVisit();
 
     // Активний пункт навігації

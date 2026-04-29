@@ -21,8 +21,7 @@
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
-body{font-family:'Manrope',sans-serif;color:var(--text);background:var(--bg-soft);overflow-x:hidden}
-img{display:block;max-width:100%}
+body{font-family:'Manrope',sans-serif;color:var(--text);background:var(--bg-soft)}
 h1,h2,h3,h4{font-family:'Nunito',sans-serif;font-weight:800}
 a{text-decoration:none;color:inherit}
 
@@ -249,7 +248,6 @@ a{text-decoration:none;color:inherit}
 </style>
 </head>
 <body>
-<script src="shared.js"></script>
 
 <!-- HEADER -->
 <header class="header">
@@ -428,7 +426,7 @@ a{text-decoration:none;color:inherit}
 
           <!-- Warehouse search -->
           <div class="field" id="warehouseField" style="display:none">
-            <label id="warehouseLabel">Відділення <span class="req">*</span></label>
+            <label>Відділення або поштомат <span class="req">*</span></label>
             <div class="np-wrap" id="warehouseWrap">
               <input type="text" id="warehouseInput"
                 placeholder="Номер або адреса відділення..."
@@ -467,15 +465,7 @@ a{text-decoration:none;color:inherit}
           <div class="field-row">
             <div class="field">
               <label>Вулиця <span class="req">*</span></label>
-              <div class="np-wrap" id="streetWrap">
-                <input type="text" id="street"
-                  placeholder="Спочатку оберіть місто..."
-                  autocomplete="off"
-                  disabled
-                  oninput="searchStreet(this.value)"
-                  onkeydown="handleDropdownKey(event,'streetDrop')">
-                <div class="np-dropdown" id="streetDrop" role="listbox"></div>
-              </div>
+              <input type="text" id="street" placeholder="вул. Хрещатик">
             </div>
             <div class="field">
               <label>Будинок <span class="req">*</span></label>
@@ -661,20 +651,14 @@ a{text-decoration:none;color:inherit}
 
 <script>
 // ── NP API ─────────────────────────────────────────────────────────────────
-// Використовуємо власний серверний проксі /api/np (Vercel Serverless Function).
-// Ключ Нової Пошти зберігається на сервері в env-змінній NP_API_KEY,
-// у фронтенд він НЕ потрапляє.
-const NP_API_URL = '/api/np';
+// API ключ — замінити на реальний з np.ua
+const NP_API_KEY = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+const NP_API_URL = 'https://api.novaposhta.ua/v2.0/json/';
 
 const cityData = { selected: null, ref: null };
 const warehouseData = { selected: null };
-const addrCityData = { selected: null, ref: null };
-const streetData   = { selected: null };
 
-// Який тип НП-точки зараз обраний у вкладках: 'warehouse' (відділення) або 'postomat'
-let currentWhType = 'warehouse';
-
-let cityTimer, warehouseTimer, streetTimer;
+let cityTimer, warehouseTimer;
 
 // Search city via NP API
 async function searchCity(query, mode='main') {
@@ -689,16 +673,17 @@ async function searchCity(query, mode='main') {
 
   cityTimer = setTimeout(async () => {
     try {
-      // Звертаємось до власного проксі /api/np — ключ підставляє сервер
+      // Try real NP API first
       const res = await fetch(NP_API_URL, {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify({
+          apiKey: NP_API_KEY,
           modelName: 'Address',
           calledMethod: 'getCities',
           methodProperties: {
             FindByString: query,
-            Limit: 50
+            Limit: 12
           }
         })
       });
@@ -709,7 +694,7 @@ async function searchCity(query, mode='main') {
       }
     } catch(e) {}
 
-    // Fallback: mock data для демо (якщо проксі недоступний)
+    // Fallback: mock data для демо
     renderCities(getMockCities(query), drop, mode);
   }, 350);
 }
@@ -769,22 +754,11 @@ function renderCities(cities, drop, mode) {
 }
 
 function selectCity(city, mode='main') {
-  if (mode === 'addr') {
-    addrCityData.selected = city;
-    addrCityData.ref = city.Ref || city.DeliveryCity;
+  if (mode !== 'main') {
     document.getElementById('addrCityInput').value = city.Description;
     document.getElementById('addrCityDrop').classList.remove('open');
-
-    // Розблокувати поле вулиці і скинути попередній вибір
-    const streetInput = document.getElementById('street');
-    streetInput.disabled = false;
-    streetInput.value = '';
-    streetInput.placeholder = 'Почніть вводити: Хрещатик, Соборна...';
-    streetData.selected = null;
-    document.getElementById('streetDrop')?.classList.remove('open');
     return;
   }
-
   cityData.selected = city;
   cityData.ref = city.Ref || city.DeliveryCity;
   document.getElementById('cityInput').value = '';
@@ -802,7 +776,7 @@ function selectCity(city, mode='main') {
   document.getElementById('warehouseSelected').classList.remove('show');
   clearWarehouseData();
 
-  // Auto-load first warehouses (з фільтром по поточному типу)
+  // Auto-load first warehouses
   searchWarehouse('');
 }
 
@@ -815,13 +789,6 @@ function clearCity() {
   clearWarehouseData();
 }
 
-// Ref-и типів НП-точок для server-side фільтра у getWarehouses
-const NP_TYPE_REF = {
-  postomat: 'f9316480-5f2d-425d-bc2c-ac7cd29decf0' // Поштомат
-  // для відділень не передаємо TypeOfWarehouseRef і фільтруємо клієнтом
-  // (бо "відділення" = багато підтипів: Branch, ParcelShop тощо)
-};
-
 // Search warehouse
 async function searchWarehouse(query) {
   if (!cityData.ref) return;
@@ -829,52 +796,35 @@ async function searchWarehouse(query) {
   clearTimeout(warehouseTimer);
   showLoading(drop);
 
-  const wantPostomat = currentWhType === 'postomat';
-
   warehouseTimer = setTimeout(async () => {
     try {
-      const methodProperties = {
-        CityRef: cityData.ref,
-        FindByString: query,
-        Limit: 500,
-        Language: 'UA'
-      };
-      if (wantPostomat) {
-        methodProperties.TypeOfWarehouseRef = NP_TYPE_REF.postomat;
-      }
       const body = {
+        apiKey: NP_API_KEY,
         modelName: 'AddressGeneral',
         calledMethod: 'getWarehouses',
-        methodProperties
+        methodProperties: {
+          CityRef: cityData.ref,
+          FindByString: query,
+          Limit: 20,
+          Language: 'UA'
+        }
       };
       const res = await fetch(NP_API_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
       const data = await res.json();
-      if (data.success && Array.isArray(data.data)) {
-        // Клієнтський фільтр — НП іноді віддає змішане навіть з TypeOfWarehouseRef
-        const filtered = data.data.filter(w => isPostomat(w) === wantPostomat);
-        renderWarehouses(filtered, drop);
+      if (data.success && data.data?.length > 0) {
+        renderWarehouses(data.data, drop);
         return;
       }
     } catch(e) {}
-    renderWarehouses(getMockWarehouses(cityData.selected?.Description || '', query, wantPostomat), drop);
+    renderWarehouses(getMockWarehouses(cityData.selected?.Description || '', query), drop);
   }, 300);
 }
 
-// Чи є дана точка поштоматом (за категорією або назвою)
-function isPostomat(w) {
-  if (!w) return false;
-  if (w.CategoryOfWarehouse === 'Postomat') return true;
-  const t = (w.TypeOfWarehouse || '').toString();
-  if (/postomat/i.test(t)) return true;
-  return /поштомат|postomat/i.test(w.Description || '');
-}
-
-function getMockWarehouses(city, q, wantPostomat) {
+function getMockWarehouses(city, q) {
   const q_low = q.toLowerCase();
   const warehouses = [];
   for (let i = 1; i <= 30; i++) {
     const isPost = i % 5 === 0;
-    if (wantPostomat !== undefined && isPost !== wantPostomat) continue;
     const num = i;
     const streets = ['вул. Хрещатик','вул. Соборна','вул. Незалежності','вул. Шевченка','пр. Перемоги','вул. Головна','пр. Свободи'];
     const street = streets[i % streets.length];
@@ -886,8 +836,9 @@ function getMockWarehouses(city, q, wantPostomat) {
         Description: desc,
         ShortAddress: `${city}, ${street}, ${num}`,
         Number: String(num),
-        CategoryOfWarehouse: isPost ? 'Postomat' : 'Branch',
-        TypeOfWarehouse: isPost ? 'Postomat' : 'Branch',
+        TypeOfWarehouse: isPost
+          ? 'Postomat'
+          : 'Branch',
         Ref: `wh-${city}-${num}`
       });
     }
@@ -1015,124 +966,12 @@ function setDeliveryType(type, btn) {
   document.querySelectorAll('.dt-panel').forEach(p => p.classList.remove('active'));
   const targetId = type === 'warehouse' || type === 'postomat' ? 'dt-warehouse' : 'dt-address';
   document.getElementById(targetId).classList.add('active');
-
-  // Перемикання між "Відділення" та "Поштомат"
-  if (type === 'warehouse' || type === 'postomat') {
-    const changed = currentWhType !== type;
-    currentWhType = type;
-
-    const whInput = document.getElementById('warehouseInput');
-    const whLabel = document.getElementById('warehouseLabel');
-
-    if (type === 'postomat') {
-      whInput.placeholder = 'Номер або адреса поштомату...';
-      if (whLabel) whLabel.innerHTML = 'Поштомат <span class="req">*</span>';
-    } else {
-      whInput.placeholder = 'Номер або адреса відділення...';
-      if (whLabel) whLabel.innerHTML = 'Відділення <span class="req">*</span>';
-    }
-
-    // Якщо тип змінився — скидаємо попередній вибір і перевантажуємо список
-    if (changed) {
-      warehouseData.selected = null;
-      whInput.value = '';
-      whInput.style.display = 'block';
-      document.getElementById('warehouseSelected').classList.remove('show');
-      document.getElementById('warehouseDrop').classList.remove('open');
-      if (cityData.ref) searchWarehouse('');
-    }
+  // Update warehouse search placeholder
+  if (type === 'postomat') {
+    document.getElementById('warehouseInput').placeholder = 'Номер або адреса поштомату...';
+  } else {
+    document.getElementById('warehouseInput').placeholder = 'Номер або адреса відділення...';
   }
-}
-
-// ── STREET SEARCH (для адресної доставки) ─────────────────────────────────
-async function searchStreet(query) {
-  const drop = document.getElementById('streetDrop');
-  if (!addrCityData.ref) { drop.classList.remove('open'); return; }
-  if (!query || query.length < 1) { drop.classList.remove('open'); return; }
-
-  clearTimeout(streetTimer);
-  showLoading(drop);
-
-  streetTimer = setTimeout(async () => {
-    let streets = [];
-    try {
-      // Основний метод: Address.getStreet (приймає CityRef із getCities)
-      const res = await fetch(NP_API_URL, {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({
-          modelName: 'Address',
-          calledMethod: 'getStreet',
-          methodProperties: {
-            CityRef: addrCityData.ref,
-            FindByString: query,
-            Limit: 50
-          }
-        })
-      });
-      const data = await res.json();
-      if (data?.success && Array.isArray(data.data)) {
-        streets = data.data.map(s => ({
-          Description: ((s.StreetsTypeDescription || s.StreetsType || '') + ' ' + (s.Description || '')).trim()
-        }));
-      }
-
-      // Резервний метод: searchSettlementStreets (для населених пунктів)
-      if (!streets.length) {
-        const res2 = await fetch(NP_API_URL, {
-          method: 'POST',
-          headers: {'Content-Type':'application/json'},
-          body: JSON.stringify({
-            modelName: 'Address',
-            calledMethod: 'searchSettlementStreets',
-            methodProperties: {
-              StreetName: query,
-              SettlementRef: addrCityData.ref,
-              Limit: 50
-            }
-          })
-        });
-        const data2 = await res2.json();
-        if (data2?.success && Array.isArray(data2.data) && data2.data[0]?.Addresses) {
-          streets = data2.data[0].Addresses.map(a => ({
-            Description: a.Present || ((a.StreetsType ? a.StreetsType + ' ' : '') + (a.Street || ''))
-          }));
-        }
-      }
-
-      renderStreets(streets, drop);
-    } catch(e) {
-      drop.innerHTML = '<div class="np-empty">Не вдалось завантажити вулиці. Введіть вручну.</div>';
-      positionDropdown(drop);
-      drop.classList.add('open');
-    }
-  }, 300);
-}
-
-function renderStreets(streets, drop) {
-  if (!streets.length) {
-    drop.innerHTML = '<div class="np-empty">Вулицю не знайдено. Можна ввести вручну.</div>';
-    positionDropdown(drop);
-    drop.classList.add('open');
-    return;
-  }
-  positionDropdown(drop);
-  drop.innerHTML = streets.slice(0, 50).map(s => `
-    <div class="np-option" role="option" tabindex="-1" onclick='selectStreet(${JSON.stringify({Description: s.Description}).replace(/'/g,"&#39;")})'>
-      <div class="np-option-icon">
-        <svg viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V9l7-5 7 5v12"/><path d="M10 21v-6h4v6"/></svg>
-      </div>
-      <div>
-        <div class="np-option-main">${s.Description}</div>
-      </div>
-    </div>`).join('');
-  drop.classList.add('open');
-}
-
-function selectStreet(s) {
-  streetData.selected = s;
-  document.getElementById('street').value = s.Description;
-  document.getElementById('streetDrop').classList.remove('open');
 }
 
 // ── PAYMENT ──────────────────────────────────────────────────────────────
@@ -1266,10 +1105,7 @@ function buildOrderPayload(){
     }
   }
 
-  // Якщо передали снапшот (з submitOrder) — використовуємо його, інакше читаємо.
-  const cart = (Array.isArray(arguments[0]) && arguments[0].length)
-    ? arguments[0]
-    : ((window.KR && KR.getCart) ? KR.getCart() : []);
+  const cart = (window.KR && KR.getCart) ? KR.getCart() : [];
   const subtotal = cart.reduce((s,i) => s + Number(i.price||0) * Number(i.qty||1), 0);
   const total    = subtotal; // доставка/знижки можна додати тут
 
@@ -1335,29 +1171,8 @@ async function _supaInsert(table, body, returnRepresentation=false){
   return null;
 }
 
-async function _supaRpc(fnName, params){
-  const res = await fetch(SUPA_URL + '/rest/v1/rpc/' + fnName, {
-    method: 'POST',
-    headers: {
-      'apikey': SUPA_KEY,
-      'Authorization': 'Bearer ' + SUPA_KEY,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(params)
-  });
-  const txt = await res.text().catch(() => '{}');
-  let data;
-  try { data = JSON.parse(txt); } catch { data = {}; }
-  if (!res.ok) throw new Error('RPC ' + fnName + ': ' + res.status + ' ' + txt.slice(0, 220));
-  return data;
-}
-
 // ── SUBMIT ─────────────────────────────────────────────────────────────────
-let _submitInFlight = false;
 async function submitOrder() {
-  // Захист від подвійного кліку
-  if (_submitInFlight) return;
-
   const firstName = document.getElementById('firstName').value.trim();
   const lastName = document.getElementById('lastName').value.trim();
   const phone = document.getElementById('phone').value.trim();
@@ -1366,73 +1181,44 @@ async function submitOrder() {
   if (phone.replace(/\D/g,'').length !== 12) { document.getElementById('phone').focus(); showShake('phone'); return; }
   if (!termsAccepted) { showToast('Будь ласка, погодьтесь з умовами'); return; }
 
-  // Робимо ОДИН снапшот кошика на самому початку і використовуємо лише його далі.
-  // Це усуває race-condition, коли в іншій вкладці кошик чистять/змінюють під час відправки.
-  let cartSnapshot = [];
-  try { cartSnapshot = JSON.parse(localStorage.getItem('kr_cart') || '[]'); } catch(e) {}
-  if (!Array.isArray(cartSnapshot) || !cartSnapshot.length) {
-    showToast('Кошик порожній — поверніться до каталогу');
-    return;
-  }
+  const cartCheck = (window.KR && KR.getCart) ? KR.getCart() : [];
+  if (!cartCheck.length) { showToast('Кошик порожній'); return; }
 
-  _submitInFlight = true;
   const btn = document.getElementById('submitBtn');
   const originalHTML = btn.innerHTML;
   btn.disabled = true;
   btn.innerHTML = '<div style="width:20px;height:20px;border:2px solid rgba(255,255,255,.4);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite"></div>Оформляємо...';
 
   try {
-    // Передаємо снапшот, щоб buildOrderPayload не перечитував localStorage
-    const { order, items } = buildOrderPayload(cartSnapshot);
+    const { order, items } = buildOrderPayload();
 
-    if (!items.length) {
-      throw new Error('Кошик порожній');
+    // 1) INSERT в orders → отримуємо повний рядок (включно з id)
+    const inserted = await _supaInsert('orders', order, true);
+    const created  = Array.isArray(inserted) ? inserted[0] : inserted;
+    if (!created || !created.id) {
+      throw new Error('orders: не отримано id з відповіді Supabase');
     }
 
-    // Викликаємо RPC-функцію place_order, яка атомарно:
-    // 1) перевіряє залишки (блокує рядки FOR UPDATE)
-    // 2) вставляє orders + order_items
-    // 3) зменшує stock
-    const result = await _supaRpc('place_order', { p_order: order, p_items: items });
-
-    if (!result.success) {
-      // Помилка наявності товару — показуємо окремий styled toast
-      const errMsg = result.error || 'Не вдалось оформити замовлення';
-      showStockError(errMsg);
-      btn.disabled = false;
-      btn.innerHTML = originalHTML;
-      return;
+    // 2) INSERT у order_items одним запитом масивом
+    if (items.length) {
+      const withOrderId = items.map(it => ({ ...it, order_id: created.id }));
+      await _supaInsert('order_items', withOrderId, false);
     }
 
-    // Успіх — очистити кошик і показати сторінку підтвердження
-    try {
-      localStorage.setItem('kr_cart', '[]');
-      if (window.KR) {
-        KR.updateCartBadge && KR.updateCartBadge();
-        KR.dispatchCartEvent && KR.dispatchCartEvent([]);
-      }
-    } catch(e) {}
+    // 3) Очистити кошик і показати успіх
+    try { localStorage.setItem('kr_cart', '[]'); window.KR && KR.updateCartBadge && KR.updateCartBadge(); } catch(e) {}
 
     document.getElementById('checkoutPage').style.display = 'none';
     document.getElementById('successPage').style.display = 'block';
     document.getElementById('successPayment').textContent = getPayName();
     const numEl = document.querySelector('.success-order-row .success-order-val');
-    if (numEl) numEl.textContent = '#' + (result.order_number || order.order_number);
-    document.querySelectorAll('.success-order-row').forEach(row => {
-      const label = row.querySelector('.success-order-label')?.textContent || '';
-      if (/Сума/i.test(label)) {
-        const val = row.querySelector('.success-order-val');
-        if (val) val.textContent = (Math.round(order.total||0).toLocaleString('uk-UA').replace(/,/g,' ')) + ' ₴';
-      }
-    });
+    if (numEl) numEl.textContent = '#' + (created.order_number || order.order_number);
     window.scrollTo({top:0,behavior:'smooth'});
   } catch (e) {
     console.error('submitOrder Supabase error:', e);
     showToast('Не вдалось зберегти замовлення: ' + (e.message || 'помилка'));
     btn.disabled = false;
     btn.innerHTML = originalHTML;
-  } finally {
-    _submitInFlight = false;
   }
 }
 
@@ -1452,32 +1238,6 @@ function showToast(msg) {
   if (!t) { t = document.createElement('div'); t.id='_toast'; t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:11px 22px;border-radius:100px;font-family:Nunito,sans-serif;font-weight:700;font-size:13px;z-index:3000;box-shadow:0 8px 24px rgba(0,0,0,.2);white-space:nowrap;transition:opacity .25s'; document.body.appendChild(t); }
   t.textContent = msg; t.style.opacity='1';
   setTimeout(() => t.style.opacity='0', 2500);
-}
-
-function showStockError(msg) {
-  let el = document.getElementById('_stockErr');
-  if (!el) {
-    el = document.createElement('div');
-    el.id = '_stockErr';
-    el.style.cssText = [
-      'position:fixed','bottom:24px','left:50%','transform:translateX(-50%)',
-      'background:#fff','color:var(--navy)','padding:16px 22px 16px 18px',
-      'border-radius:14px','font-family:Manrope,sans-serif','font-size:13px',
-      'z-index:3000','box-shadow:0 12px 40px rgba(0,0,0,.18)',
-      'border-left:4px solid var(--red)','max-width:420px','line-height:1.5',
-      'display:flex','align-items:flex-start','gap:12px','transition:opacity .3s'
-    ].join(';');
-    el.innerHTML = `
-      <svg style="width:20px;height:20px;flex-shrink:0;margin-top:1px;stroke:var(--red);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24">
-        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-      </svg>
-      <span id="_stockErrMsg"></span>`;
-    document.body.appendChild(el);
-  }
-  document.getElementById('_stockErrMsg').textContent = msg;
-  el.style.opacity = '1';
-  clearTimeout(el._timer);
-  el._timer = setTimeout(() => { el.style.opacity = '0'; }, 5000);
 }
 
 // Add shake animation
@@ -1504,11 +1264,7 @@ function _fallbackImg(){
 }
 
 function renderOrderSummary(){
-  // Завжди читаємо напряму з localStorage — це працює навіть якщо shared.js
-  // ще не завантажився / завантажився з помилкою.
-  let cart = [];
-  try { cart = JSON.parse(localStorage.getItem('kr_cart') || '[]'); } catch(e) { cart = []; }
-  if (!Array.isArray(cart)) cart = [];
+  const cart = (window.KR && KR.getCart) ? KR.getCart() : [];
   const itemsEl = document.getElementById('osItems');
   const titleEl = document.getElementById('osTitle');
   const subEl   = document.getElementById('osSubtotal');
@@ -1548,26 +1304,14 @@ function renderOrderSummary(){
   if (totEl) totEl.textContent = _fmtPriceCk(subtotal);
 }
 
-// Перерендерити підсумок і синхронізувати стан кнопки submit
-function _refreshCheckoutState(){
-  renderOrderSummary();
-  let cart = [];
-  try { cart = JSON.parse(localStorage.getItem('kr_cart') || '[]'); } catch(e) {}
-  if (!Array.isArray(cart)) cart = [];
-  const btn = document.getElementById('submitBtn');
-  if (!btn) return;
-  if (!cart.length) {
-    btn.disabled = true; btn.style.opacity = '0.6'; btn.title = 'Кошик порожній';
-  } else if (!_submitInFlight) {
-    btn.disabled = false; btn.style.opacity = ''; btn.title = '';
-  }
-}
-
+// Запустити після того, як shared.js додасть KR
 function _initCheckoutSummary(){
-  _refreshCheckoutState();
-  let cart = [];
-  try { cart = JSON.parse(localStorage.getItem('kr_cart') || '[]'); } catch(e) {}
-  if (!Array.isArray(cart) || !cart.length) {
+  renderOrderSummary();
+  const cart = (window.KR && KR.getCart) ? KR.getCart() : [];
+  if (!cart.length) {
+    // Якщо кошик порожній — показуємо повідомлення і блокуємо submit
+    const btn = document.getElementById('submitBtn');
+    if (btn) { btn.disabled = true; btn.style.opacity = '0.6'; btn.title = 'Кошик порожній'; }
     showToast('Кошик порожній — спочатку додайте товари');
   }
 }
@@ -1576,11 +1320,10 @@ if (document.readyState === 'loading') {
 } else {
   setTimeout(_initCheckoutSummary, 50);
 }
-// Реагуємо на зміни кошика з інших вкладок ТА з цієї сторінки (обидві назви події).
-window.addEventListener('storage', e => { if (e.key === 'kr_cart') _refreshCheckoutState(); });
-window.addEventListener('kr:cart-changed', _refreshCheckoutState);
-window.addEventListener('kr:cartUpdated',  _refreshCheckoutState);
+// Оновлюємо, якщо в іншій вкладці змінили кошик
+window.addEventListener('storage', e => { if (e.key === 'kr_cart') renderOrderSummary(); });
+window.addEventListener('kr:cart-changed', renderOrderSummary);
 </script>
-<!-- shared.js завантажено вгорі сторінки, щоб KR був гарантовано доступний -->
+<script src="shared.js"></script>
 </body>
 </html>

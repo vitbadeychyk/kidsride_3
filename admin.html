@@ -379,12 +379,7 @@ tr:hover td{background:rgba(240,242,248,.5)}
     <div class="nav-item" onclick="showPanel('orders',this)">
       <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
       Замовлення
-      <span class="nav-badge" id="ordersNewBadge" style="display:none">0</span>
-    </div>
-    <div class="nav-item" onclick="showPanel('leads',this)">
-      <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-      Заявки
-      <span class="nav-badge green" id="leadsNewBadge" style="display:none">0</span>
+      <span class="nav-badge">5</span>
     </div>
     <div class="nav-item" onclick="showPanel('products',this)">
       <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 2 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
@@ -401,13 +396,13 @@ tr:hover td{background:rgba(240,242,248,.5)}
     <div class="nav-item" onclick="showPanel('reviews',this)">
       <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
       Відгуки
-      <span class="nav-badge green" id="reviewsCountBadge" style="display:none">0</span>
+      <span class="nav-badge green">3</span>
     </div>
   </div>
 
   <div class="sidebar-section">
     <div class="sidebar-section-label">Система</div>
-    <div class="nav-item" onclick="showPanel('settings',this)">
+    <div class="nav-item">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
       Налаштування
     </div>
@@ -438,23 +433,15 @@ tr:hover td{background:rgba(240,242,248,.5)}
       </button>
       <h1 class="page-title-bar" id="pageTitle">Dashboard</h1>
     </div>
-    <div class="topbar-right" style="position:relative">
+    <div class="topbar-right">
       <div class="tb-date" id="tbDate"></div>
-      <button class="tb-btn" title="Сповіщення" onclick="toggleNotifPanel(event)">
+      <button class="tb-btn" title="Сповіщення">
         <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-        <div class="tb-notif" id="tbNotifDot" style="display:none"></div>
+        <div class="tb-notif"></div>
       </button>
       <button class="tb-btn" title="Перейти на сайт" onclick="window.open('index.html')">
         <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
       </button>
-
-      <div id="notifPanel" style="display:none;position:absolute;top:46px;right:0;width:340px;max-width:calc(100vw - 32px);background:white;border:1px solid var(--border);border-radius:var(--r-sm);box-shadow:0 12px 32px rgba(0,0,0,.15);z-index:1000;overflow:hidden">
-        <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
-          <strong style="font-size:14px">Сповіщення</strong>
-          <button onclick="document.getElementById('notifPanel').style.display='none'" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:18px;line-height:1">×</button>
-        </div>
-        <div id="notifList" style="max-height:420px;overflow:auto"></div>
-      </div>
     </div>
   </div>
 
@@ -595,81 +582,25 @@ tr:hover td{background:rgba(240,242,248,.5)}
     <!-- ═══ ORDERS ═══ -->
     <div class="panel" id="panel-orders">
       <div class="section-header">
-        <h2 class="section-title">Замовлення <span id="ordersCount" style="color:var(--text-muted);font-weight:500;font-size:14px"></span></h2>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn btn-outline btn-sm" onclick="loadOrders()" title="Оновити">
-            <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-            Оновити
-          </button>
-          <button class="btn btn-outline btn-sm" onclick="exportOrdersCsv()"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>CSV</button>
-        </div>
+        <h2 class="section-title">Замовлення</h2>
+        <button class="btn btn-outline btn-sm"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>CSV</button>
       </div>
       <div class="table-card">
         <div class="table-head">
           <span class="table-head-title">Всі замовлення</span>
           <div class="table-tools">
-            <div class="search-input"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><input id="ordersSearch" placeholder="№, телефон, ім'я..." oninput="renderOrdersTable()"></div>
-            <select id="ordersStatusFilter" class="filter-select" onchange="renderOrdersTable()">
-              <option value="">Всі статуси</option>
-              <option value="Новий">Новий</option>
-              <option value="Підтверджено">Підтверджено</option>
-              <option value="Відправлено">Відправлено</option>
-              <option value="Доставлено">Доставлено</option>
-              <option value="Скасовано">Скасовано</option>
-            </select>
-            <select id="ordersPayFilter" class="filter-select" onchange="renderOrdersTable()">
-              <option value="">Всі оплати</option>
-              <option value="fop">ФОП</option>
-              <option value="privat">ПриватБанк</option>
-              <option value="packet">Пакунок малюка</option>
-              <option value="partial">Передоплата</option>
-              <option value="state7k">Держпідтримка 7000</option>
-            </select>
+            <div class="search-input"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><input placeholder="Пошук..."></div>
+            <select class="filter-select"><option>Всі статуси</option><option>Новий</option><option>Підтверджено</option><option>Відправлено</option><option>Доставлено</option><option>Скасовано</option></select>
+            <select class="filter-select"><option>Всі оплати</option><option>ФОП</option><option>ПриватБанк</option><option>Пакунок малюка</option></select>
           </div>
         </div>
         <table>
-          <thead><tr><th>№</th><th>Покупець</th><th>Товари</th><th>Сума</th><th>Оплата</th><th>Доставка</th><th>Статус</th><th>Дата</th><th>Дії</th></tr></thead>
+          <thead><tr><th class="sortable">№</th><th>Покупець</th><th>Товари</th><th class="sortable">Сума</th><th>Оплата</th><th>Доставка</th><th>Статус</th><th class="sortable">Дата</th><th>Дії</th></tr></thead>
           <tbody id="ordersBody">
             <tr><td colspan="9" style="text-align:center;padding:24px;color:var(--text-muted)">Завантаження…</td></tr>
           </tbody>
         </table>
-      </div>
-    </div>
-
-    <!-- ═══ LEADS (Заявки) ═══ -->
-    <div class="panel" id="panel-leads">
-      <div class="section-header">
-        <h2 class="section-title">Заявки <span id="leadsCount" style="color:var(--text-muted);font-weight:500;font-size:14px"></span></h2>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn btn-outline btn-sm" onclick="loadLeads()" title="Оновити">
-            <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-            Оновити
-          </button>
-        </div>
-      </div>
-      <div class="table-card">
-        <div class="table-head">
-          <span class="table-head-title">Усі заявки з сайту</span>
-          <div class="table-tools">
-            <div class="search-input">
-              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-              <input id="leadsSearch" placeholder="Телефон, ім'я, товар..." oninput="renderLeads()">
-            </div>
-            <select id="leadsStatusFilter" class="filter-select" onchange="renderLeads()">
-              <option value="">Всі статуси</option>
-              <option value="new">Нові</option>
-              <option value="contacted">Передзвонили</option>
-              <option value="completed">Оформлено</option>
-              <option value="cancelled">Скасовано</option>
-            </select>
-          </div>
-        </div>
-        <table>
-          <thead><tr><th>№</th><th>Телефон</th><th>Ім'я</th><th>Товар</th><th>Сума</th><th>Джерело</th><th>Статус</th><th>Дата</th><th>Дії</th></tr></thead>
-          <tbody id="leadsBody">
-            <tr><td colspan="9" style="text-align:center;padding:24px;color:var(--text-muted)">Завантаження…</td></tr>
-          </tbody>
-        </table>
+        <div class="pagination"><span>Показано 1–10 з 1 847</span><div class="pag-btns"><button class="pag-btn"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button><button class="pag-btn active">1</button><button class="pag-btn">2</button><button class="pag-btn">3</button><span style="padding:0 4px;color:var(--text-muted)">…</span><button class="pag-btn">185</button><button class="pag-btn"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button></div></div>
       </div>
     </div>
 
@@ -698,7 +629,7 @@ tr:hover td{background:rgba(240,242,248,.5)}
           </div>
         </div>
         <table>
-          <thead><tr><th>Фото</th><th class="sortable">Назва / Артикул</th><th>Бренд</th><th class="sortable">Ціна</th><th>РРЦ</th><th>Залишок</th><th>Під замовлення</th><th>Статус</th><th>Дії</th></tr></thead>
+          <thead><tr><th>Фото</th><th class="sortable">Назва / Артикул</th><th>Бренд</th><th class="sortable">Ціна</th><th>РРЦ</th><th>Залишок</th><th>Статус</th><th>Дії</th></tr></thead>
           <tbody id="productsBody"></tbody>
         </table>
         <div class="pagination"><span>Показано 1–20 з 809</span><div class="pag-btns"><button class="pag-btn"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button><button class="pag-btn active">1</button><button class="pag-btn">2</button><button class="pag-btn">3</button><span style="padding:0 4px;color:var(--text-muted)">…</span><button class="pag-btn">41</button><button class="pag-btn"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button></div></div>
@@ -832,59 +763,6 @@ tr:hover td{background:rgba(240,242,248,.5)}
       </div>
     </div>
 
-    <!-- ═══ SETTINGS ═══ -->
-    <div class="panel" id="panel-settings">
-      <div class="section-header">
-        <h2 class="section-title">Налаштування</h2>
-      </div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px">
-
-        <div class="table-card" style="padding:20px">
-          <h3 style="margin:0 0 12px;font-size:15px">Обліковий запис</h3>
-          <div style="font-size:13px;color:var(--text-muted);margin-bottom:6px">Email</div>
-          <div id="setAdminEmail" style="font-weight:600;margin-bottom:12px;word-break:break-all">—</div>
-          <div style="font-size:13px;color:var(--text-muted);margin-bottom:6px">Роль</div>
-          <div style="font-weight:600;margin-bottom:16px">Адміністратор</div>
-          <button class="btn btn-outline btn-sm" onclick="adminLogout()">Вийти з адмінки</button>
-        </div>
-
-        <div class="table-card" style="padding:20px">
-          <h3 style="margin:0 0 12px;font-size:15px">Supabase</h3>
-          <div style="font-size:13px;color:var(--text-muted);margin-bottom:6px">URL проекту</div>
-          <div id="setSupabaseUrl" style="font-family:monospace;font-size:12px;word-break:break-all;margin-bottom:12px">—</div>
-          <div style="font-size:13px;color:var(--text-muted);margin-bottom:6px">Anon ключ</div>
-          <div style="font-family:monospace;font-size:12px;color:#888;margin-bottom:12px">встановлено в коді</div>
-          <a class="btn btn-outline btn-sm" href="https://supabase.com/dashboard" target="_blank" rel="noopener">Відкрити dashboard →</a>
-        </div>
-
-        <div class="table-card" style="padding:20px">
-          <h3 style="margin:0 0 12px;font-size:15px">Nova Poshta</h3>
-          <div style="font-size:13px;color:var(--text-muted);margin-bottom:12px">API ключ задається змінною середовища <code>NP_API_KEY</code> у Vercel.</div>
-          <div id="setNpStatus" style="font-size:13px;margin-bottom:12px">Перевірка…</div>
-          <a class="btn btn-outline btn-sm" href="https://my.novaposhta.ua/settings/index#apikeys" target="_blank" rel="noopener">Кабінет НП →</a>
-        </div>
-
-        <div class="table-card" style="padding:20px">
-          <h3 style="margin:0 0 12px;font-size:15px">Telegram сповіщення</h3>
-          <div style="font-size:13px;color:var(--text-muted);margin-bottom:12px">Налаштовується через змінні <code>TELEGRAM_BOT_TOKEN</code> та <code>TELEGRAM_CHAT_ID</code> у Vercel.</div>
-          <div style="font-size:13px;color:var(--text-muted)">Інструкція в README.txt → ОНОВЛЕННЯ 2.</div>
-        </div>
-
-        <div class="table-card" style="padding:20px">
-          <h3 style="margin:0 0 12px;font-size:15px">Локальне сховище</h3>
-          <div style="font-size:13px;color:var(--text-muted);margin-bottom:12px">Очистити кеш браузера (відгуки, локальні налаштування фронту).</div>
-          <button class="btn btn-outline btn-sm" onclick="if(confirm('Очистити локальне сховище?')){localStorage.clear();showToast('Очищено','success');setTimeout(()=>location.reload(),800);}">Очистити localStorage</button>
-        </div>
-
-        <div class="table-card" style="padding:20px">
-          <h3 style="margin:0 0 12px;font-size:15px">Версія</h3>
-          <div style="font-size:13px;color:var(--text-muted);margin-bottom:6px">KidsRide Admin</div>
-          <div style="font-weight:600">v1.4 — фільтри замовлень + сповіщення</div>
-        </div>
-
-      </div>
-    </div>
-
   </div><!-- /content -->
 </div><!-- /main -->
 
@@ -943,24 +821,6 @@ tr:hover td{background:rgba(240,242,248,.5)}
           <label>Артикул / Код <span style="color:var(--orange)">*</span></label>
           <input type="text" id="pSku" placeholder="M 3804EBLR-1">
         </div>
-        <div class="f-group">
-          <label>Код моделі для кольорів
-            <span style="font-weight:400;color:var(--text-muted);font-size:11px">(напр. <b>4259</b> — об'єднає M 4259EBLR-1, -2, -3 і M 4259EBLRS-3)</span>
-          </label>
-          <input type="text" id="pModelCode" placeholder="4259">
-        </div>
-      </div>
-
-      <div class="f-row single">
-        <div class="f-group">
-          <label>Колір цього варіанта
-            <span style="font-weight:400;color:var(--text-muted);font-size:11px">(показується в блоці "В інших кольорах": <b>Чорний</b>, <b>Білий</b>, <b>Червоний</b>...)</span>
-          </label>
-          <input type="text" id="pColor" placeholder="Чорний">
-        </div>
-      </div>
-
-      <div class="f-row">
         <div class="f-group">
           <label>Бренд <span style="color:var(--orange)">*</span></label>
           <select id="pBrand">
@@ -1041,11 +901,6 @@ tr:hover td{background:rgba(240,242,248,.5)}
 
       <div class="f-row">
         <div class="f-group">
-          <label>Під замовлення (днів готовності)</label>
-          <input type="number" id="pPreorderDays" value="0" min="0" placeholder="напр. 10 (0 = вимкнено)">
-          <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Якщо залишок 0, але тут не 0 — товар показується з підписом "Під замовлення X днів"</div>
-        </div>
-        <div class="f-group">
           <label>Бейдж</label>
           <select id="pBadge">
             <option value="">Без бейджу</option>
@@ -1063,28 +918,6 @@ tr:hover td{background:rgba(240,242,248,.5)}
             <option value="car">Машина</option>
             <option value="tractor">Трактор</option>
           </select>
-        </div>
-      </div>
-
-      <div class="f-row single">
-        <div class="f-group">
-          <label>Фото товару <small style="color:var(--text-muted)">(перше — головне для каталогу, до 15 шт.)</small></label>
-          <input type="file" id="pPhotoInput" accept="image/*" multiple style="display:none">
-          <div id="pPhotoBox" style="padding:12px;border:1px dashed var(--border);border-radius:var(--r-sm);background:var(--bg)">
-            <div id="pPhotoGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:8px;margin-bottom:10px"></div>
-            <div id="pPhotoEmpty" style="text-align:center;color:var(--text-muted);font-size:12px;padding:18px 0;border:1px dashed var(--border);border-radius:8px;margin-bottom:10px;background:#fff">Фото ще не додані</div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-              <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('pPhotoInput').click()">
-                <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                Додати фото
-              </button>
-              <button type="button" class="btn btn-outline btn-sm" id="pPhotoClearBtn" onclick="productPhotoClearAll()" style="display:none">
-                <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
-                Очистити всі
-              </button>
-              <span style="font-size:11px;color:var(--text-muted);flex:1;min-width:200px">JPG/PNG/WebP, до 1 МБ за файл. Натисніть ★ щоб зробити фото головним, × — щоб видалити.</span>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -1253,8 +1086,6 @@ async function sbGetProducts() {
 async function sbSaveProduct(productData, editId = null) {
   const payload = {
     sku:        productData.sku || null,
-    model_code: (productData.modelCode || '').trim() || null,
-    color:      (productData.color || '').trim() || null,
     name:       productData.name,
     description: productData.desc || null,
     brand:      productData.brand,
@@ -1264,51 +1095,32 @@ async function sbSaveProduct(productData, editId = null) {
     voltage:    productData.voltage,
     age_range:  productData.age,
     stock:      productData.stock,
-    preorder_days: productData.preorderDays || 0,
     badge:      productData.badge || null,
     img_type:   productData.img,
     features:   productData.features || [],
-    images:     Array.isArray(productData.images) ? productData.images : [],
     video_url:  productData.video || null,
     active:     productData.active
   };
 
-  const doSave = async (body) => {
+  try {
     if (editId) {
-      await sbFetch('products?id=eq.' + editId, { method: 'PATCH', body: JSON.stringify(body) });
+      // Оновити існуючий
+      await sbFetch('products?id=eq.' + editId, {
+        method: 'PATCH',
+        body: JSON.stringify(payload)
+      });
     } else {
-      await sbFetch('products', { method: 'POST', body: JSON.stringify(body) });
+      // Додати новий
+      await sbFetch('products', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
     }
-  };
-
-  // Якщо PostgREST повертає помилку про відсутню колонку,
-  // витягуємо назву і повторюємо БЕЗ неї. До 6 спроб поспіль.
-  const droppedCols = [];
-  let body = { ...payload };
-  let lastErr = null;
-  for (let attempt = 0; attempt < 6; attempt++) {
-    try {
-      await doSave(body);
-      return droppedCols.length
-        ? { success: true, warning: 'Колонки відсутні в БД: ' + droppedCols.join(', ') + '. Додайте їх SQL.' }
-        : { success: true };
-    } catch(e) {
-      lastErr = e;
-      const msg = (e && e.message) ? String(e.message) : '';
-      // Витягуємо назву колонки з помилки PostgREST/Postgres
-      let col = null;
-      let m = msg.match(/'([a-z_]+)' column of '[a-z_]+'/i)         // PGRST204
-           || msg.match(/column ['"]?([a-z_]+)['"]? .* does not exist/i)
-           || msg.match(/Could not find the ['"]?([a-z_]+)['"]?/i);
-      if (m) col = m[1];
-      if (!col || !(col in body)) break;
-      console.warn('Supabase: колонка "' + col + '" відсутня. Зберігаємо без неї. SQL: ALTER TABLE products ADD COLUMN ' + col + ' ...;');
-      droppedCols.push(col);
-      delete body[col];
-    }
+    return { success: true };
+  } catch(e) {
+    console.error('sbSaveProduct:', e);
+    return { success: false, error: e.message };
   }
-  console.error('sbSaveProduct:', lastErr);
-  return { success: false, error: (lastErr && lastErr.message) || 'Помилка збереження' };
 }
 
 async function sbDeleteProduct(id) {
@@ -1360,171 +1172,25 @@ async function sbUpdateOrderStatus(id, status, ttn = null) {
 // Date init moved to initAdmin()
 
 // ── NAVIGATION ────────────────────────────────────────────────────────────
-const pageTitles={dashboard:'Dashboard',analytics:'Аналітика відвідувань',orders:'Замовлення',leads:'Заявки',products:'Товари',carousel:'Карусель сайту',import:'Імпорт товарів',reviews:'Відгуки',settings:'Налаштування'};
+const pageTitles={dashboard:'Dashboard',analytics:'Аналітика відвідувань',orders:'Замовлення',products:'Товари',carousel:'Карусель сайту',import:'Імпорт товарів',reviews:'Відгуки'};
 
 function showPanel(id, navEl) {
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-  const panel = document.getElementById('panel-'+id);
-  if (panel) panel.classList.add('active');
+  document.getElementById('panel-'+id).classList.add('active');
   if(id==='products')  renderProductsTable();
-  if(id==='reviews')   { renderReviewsTable(); updateReviewsBadge(); }
+  if(id==='reviews')   renderReviewsTable();
   if(id==='carousel')  renderSlidesGrid();
-  if(id==='orders')    loadOrders();
-  if(id==='leads')     loadLeads();
+  if(id==='orders')    renderOrdersTable();
   if(id==='dashboard') renderDashboard();
   if(id==='analytics') renderAnalytics();
-  if(id==='settings')  renderSettings();
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   if(navEl) navEl.classList.add('active');
   document.getElementById('pageTitle').textContent = pageTitles[id]||id;
   if(window.innerWidth<=900) closeSidebar();
 }
 
-// ── LEADS (Заявки) ─────────────────────────────────────────────────────────
-let _leadsCache = [];
-
-async function loadLeads() {
-  const tbody = document.getElementById('leadsBody');
-  if (!tbody) return;
-  tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--text-muted)">Завантаження…</td></tr>';
-  try {
-    // Використовуємо anon-ключ (RLS policy для leads = TO anon).
-    // Доступ до сторінки вже захищений guardAdminPage().
-    const r = await fetch(SUPABASE_URL + '/rest/v1/leads?select=*&order=created_at.desc&limit=500', {
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
-    });
-    if (!r.ok) {
-      const err = await r.text();
-      if (/relation.*leads.*does not exist/i.test(err) || r.status === 404) {
-        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--text-muted)">Таблиця <code>leads</code> ще не створена в Supabase.<br><br>Виконайте SQL з README.txt і оновіть сторінку.</td></tr>';
-        return;
-      }
-      throw new Error(err);
-    }
-    _leadsCache = await r.json();
-    renderLeads();
-    updateLeadsBadge();
-  } catch(e) {
-    console.error('loadLeads:', e);
-    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:24px;color:#e53935">Помилка: ' + _escHtml(e.message) + '</td></tr>';
-  }
-}
-
-function updateLeadsBadge() {
-  const badge = document.getElementById('leadsNewBadge');
-  if (!badge) return;
-  const n = _leadsCache.filter(l => l.status === 'new').length;
-  if (n > 0) { badge.style.display = ''; badge.textContent = String(n); }
-  else badge.style.display = 'none';
-}
-
-function renderLeads() {
-  const tbody = document.getElementById('leadsBody');
-  const cnt = document.getElementById('leadsCount');
-  if (!tbody) return;
-  const q = (document.getElementById('leadsSearch')?.value || '').trim().toLowerCase();
-  const sf = document.getElementById('leadsStatusFilter')?.value || '';
-  let rows = _leadsCache.slice();
-  if (sf) rows = rows.filter(l => (l.status || 'new') === sf);
-  if (q) rows = rows.filter(l =>
-    (l.phone || '').toLowerCase().includes(q) ||
-    (l.name || '').toLowerCase().includes(q) ||
-    (l.product_name || '').toLowerCase().includes(q)
-  );
-  if (cnt) cnt.textContent = rows.length ? '· ' + rows.length : '';
-
-  if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--text-muted)">Заявок поки немає</td></tr>';
-    return;
-  }
-
-  const STATUS_LABEL = {
-    new: { txt: 'Нова', bg: '#FEE2E2', fg: '#991B1B' },
-    contacted: { txt: 'Передзвонили', bg: '#DBEAFE', fg: '#1E40AF' },
-    completed: { txt: 'Оформлено', bg: '#D1FAE5', fg: '#065F46' },
-    cancelled: { txt: 'Скасовано', bg: '#F3F4F6', fg: '#6B7280' }
-  };
-  const SOURCE_LABEL = {
-    quick_order: '⚡ 1 клік',
-    product_page: '📄 Картка товару',
-    catalog: '🛒 Каталог',
-    checkout: '🧾 Оформлення',
-    cart: '🛍 Кошик'
-  };
-
-  tbody.innerHTML = rows.map(l => {
-    const st = STATUS_LABEL[l.status] || STATUS_LABEL.new;
-    const src = SOURCE_LABEL[l.source] || _escHtml(l.source || '—');
-    const phoneHtml = '<a href="tel:' + _escHtml(l.phone) + '" style="color:var(--orange);font-weight:600;text-decoration:none">' + _escHtml(l.phone) + '</a>';
-    const product = l.product_name
-      ? '<div style="font-size:13px">' + _escHtml(l.product_name) + '</div>' + (l.product_id ? '<div style="font-size:11px;color:var(--text-muted)">ID: ' + _escHtml(l.product_id) + '</div>' : '')
-      : '<span style="color:var(--text-muted)">—</span>';
-    const sum = l.product_price ? _fmtPrice(l.product_price) : '<span style="color:var(--text-muted)">—</span>';
-    return `<tr>
-      <td>${l.id}</td>
-      <td>${phoneHtml}</td>
-      <td>${l.name ? _escHtml(l.name) : '<span style="color:var(--text-muted)">—</span>'}</td>
-      <td>${product}</td>
-      <td>${sum}</td>
-      <td><span style="font-size:12px">${src}</span></td>
-      <td>
-        <select onchange="updateLeadStatus(${l.id}, this.value)" style="padding:4px 8px;border-radius:6px;border:1px solid ${st.fg};background:${st.bg};color:${st.fg};font-weight:600;font-size:12px;cursor:pointer">
-          <option value="new" ${l.status==='new'?'selected':''}>Нова</option>
-          <option value="contacted" ${l.status==='contacted'?'selected':''}>Передзвонили</option>
-          <option value="completed" ${l.status==='completed'?'selected':''}>Оформлено</option>
-          <option value="cancelled" ${l.status==='cancelled'?'selected':''}>Скасовано</option>
-        </select>
-      </td>
-      <td style="font-size:12px;color:var(--text-muted)">${_fmtDate(l.created_at)}</td>
-      <td>
-        <button onclick="deleteLead(${l.id})" title="Видалити" style="background:none;border:none;cursor:pointer;color:#e53935;padding:4px">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>
-        </button>
-      </td>
-    </tr>`;
-  }).join('');
-}
-
-async function updateLeadStatus(id, status) {
-  try {
-    const r = await fetch(SUPABASE_URL + '/rest/v1/leads?id=eq.' + id, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': SUPABASE_KEY,
-        'Authorization': 'Bearer ' + SUPABASE_KEY
-      },
-      body: JSON.stringify({ status })
-    });
-    if (!r.ok) throw new Error(await r.text());
-    const lead = _leadsCache.find(l => l.id === id);
-    if (lead) lead.status = status;
-    renderLeads();
-    updateLeadsBadge();
-  } catch(e) {
-    alert('Помилка оновлення: ' + e.message);
-    loadLeads();
-  }
-}
-
-async function deleteLead(id) {
-  if (!confirm('Видалити заявку №' + id + '?')) return;
-  try {
-    const r = await fetch(SUPABASE_URL + '/rest/v1/leads?id=eq.' + id, {
-      method: 'DELETE',
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
-    });
-    if (!r.ok) throw new Error(await r.text());
-    _leadsCache = _leadsCache.filter(l => l.id !== id);
-    renderLeads();
-    updateLeadsBadge();
-  } catch(e) {
-    alert('Помилка: ' + e.message);
-  }
-}
-
 // ── ORDERS RENDER ─────────────────────────────────────────────────────────
-let _ordersCache = null;
+let _ordersCache = [];
 
 function _escHtml(s){
   return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1569,64 +1235,28 @@ function _itemsLabel(items, fallbackCount){
   return `<div class="td-name">${_escHtml(first.product_name || '')} × ${first.quantity || 1}</div>${more}`;
 }
 
-async function loadOrders(){
-  const tb = document.getElementById('ordersBody');
-  if (tb) tb.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--text-muted)">Завантаження…</td></tr>';
-  try {
-    _ordersCache = await sbFetch('orders?select=*,order_items(*)&order=created_at.desc&limit=500');
-  } catch(e) {
-    console.error('loadOrders:', e);
-    if (tb) tb.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:24px;color:#c33">Помилка завантаження: ${_escHtml(e.message||e)}</td></tr>`;
-    return;
-  }
-  updateOrdersBadge();
-  renderOrdersTable();
-}
-
-function renderOrdersTable(){
+async function renderOrdersTable(){
   const tb = document.getElementById('ordersBody');
   if (!tb) return;
+  tb.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--text-muted)">Завантаження…</td></tr>';
 
-  // Якщо кеш ще порожній — показати завантаження і запросити
-  if (!_ordersCache || !_ordersCache.length) {
-    if (!_ordersCache) {
-      tb.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--text-muted)">Завантаження…</td></tr>';
-      loadOrders();
-      return;
-    }
-    tb.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--text-muted)">Замовлень ще немає</td></tr>';
-    const cnt0 = document.getElementById('ordersCount');
-    if (cnt0) cnt0.textContent = '';
+  let orders = [];
+  try {
+    orders = await sbFetch('orders?select=*,order_items(*)&order=created_at.desc&limit=200');
+  } catch(e) {
+    console.error('renderOrdersTable:', e);
+    tb.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:24px;color:#c33">Помилка завантаження: ${_escHtml(e.message||e)}</td></tr>`;
     return;
   }
 
-  // Фільтри
-  const q  = (document.getElementById('ordersSearch')?.value || '').trim().toLowerCase();
-  const sf = document.getElementById('ordersStatusFilter')?.value || '';
-  const pf = document.getElementById('ordersPayFilter')?.value || '';
-
-  let rows = _ordersCache.slice();
-  if (sf) rows = rows.filter(o => (o.status || 'Новий') === sf);
-  if (pf) rows = rows.filter(o => (o.payment_method || '') === pf);
-  if (q)  rows = rows.filter(o =>
-    String(o.order_number||'').toLowerCase().includes(q) ||
-    String(o.id||'').toLowerCase().includes(q) ||
-    (o.customer_phone||'').toLowerCase().includes(q) ||
-    (o.customer_first_name||'').toLowerCase().includes(q) ||
-    (o.customer_last_name||'').toLowerCase().includes(q) ||
-    (o.customer_email||'').toLowerCase().includes(q)
-  );
-
-  const cnt = document.getElementById('ordersCount');
-  if (cnt) cnt.textContent = rows.length ? '· ' + rows.length : '';
-
-  if (!rows.length) {
-    tb.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--text-muted)">Нічого не знайдено</td></tr>';
+  _ordersCache = orders || [];
+  if (!_ordersCache.length) {
+    tb.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--text-muted)">Замовлень ще немає</td></tr>';
     return;
   }
 
   const statuses = ['Новий','Підтверджено','Відправлено','Доставлено','Скасовано'];
-  tb.innerHTML = rows.map(o => {
+  tb.innerHTML = _ordersCache.map(o => {
     const num     = o.order_number ? '#'+o.order_number : '#'+String(o.id).slice(0,8);
     const fio     = [o.customer_first_name, o.customer_last_name].filter(Boolean).join(' ') || '—';
     const phone   = o.customer_phone || '';
@@ -2360,13 +1990,6 @@ async function updateStatus(sel){
   const r = await sbUpdateOrderStatus(id, sel.value);
   if (r.success) showToast('Статус оновлено','success');
   else showToast('Помилка: ' + (r.error||''),'error');
-  // Оновити кеш + бейджі
-  if (_ordersCache) {
-    const o = _ordersCache.find(x => String(x.id) === String(id));
-    if (o) o.status = sel.value;
-  }
-  if (typeof updateOrdersBadge === 'function') updateOrdersBadge();
-  if (typeof refreshNotifBadge === 'function') refreshNotifBadge();
 }
 
 // ── MODALS ────────────────────────────────────────────────────────────────
@@ -2563,8 +2186,6 @@ function openProductModal(id = null) {
 
   // Заповнити поля
   document.getElementById('pSku').value = p?.sku || '';
-  document.getElementById('pModelCode').value = p?.modelCode ?? p?.model_code ?? '';
-  document.getElementById('pColor').value = p?.color || '';
   document.getElementById('pBrand').value = p?.brand || 'Bambi Racer';
   document.getElementById('pName').value = p?.name || '';
   document.getElementById('pDesc').value = p?.desc || '';
@@ -2574,18 +2195,10 @@ function openProductModal(id = null) {
   document.getElementById('pVoltage').value = p?.voltage || '12V';
   document.getElementById('pAge').value = p?.age || '3-8';
   document.getElementById('pStock').value = p?.stock ?? 1;
-  document.getElementById('pPreorderDays').value = p?.preorderDays ?? p?.preorder_days ?? 0;
   document.getElementById('pBadge').value = p?.badge || '';
   document.getElementById('pImg').value = p?.img || 'jeep';
   document.getElementById('pFeatures').value = Array.isArray(p?.features) ? p.features.join(', ') : '';
   document.getElementById('pVideo').value = p?.video || '';
-
-  // Фото товару (галерея)
-  const existingPhotos = Array.isArray(p?.images) ? p.images.filter(Boolean) : [];
-  productPhotosSet(existingPhotos);
-  const fileInput = document.getElementById('pPhotoInput');
-  fileInput.value = '';
-  fileInput.onchange = function(){ productPhotoHandleFiles(fileInput.files); fileInput.value = ''; };
 
   // Toggle активний
   const isActive = p ? p.active !== false : true;
@@ -2594,114 +2207,6 @@ function openProductModal(id = null) {
   document.getElementById('productModal').classList.add('open');
   document.body.style.overflow = 'hidden';
   document.getElementById('pName').focus();
-}
-
-// ── ФОТО ТОВАРУ (галерея, до 15 шт.) ─────────────────────────
-const PHOTO_MAX = 15;
-let _pPhotos = []; // масив dataURL'ів; [0] — головне фото для каталогу
-
-function productPhotosSet(arr) {
-  _pPhotos = Array.isArray(arr) ? arr.filter(Boolean).slice(0, PHOTO_MAX) : [];
-  productPhotosRender();
-}
-
-function productPhotosRender() {
-  const grid = document.getElementById('pPhotoGrid');
-  const empty = document.getElementById('pPhotoEmpty');
-  const clearBtn = document.getElementById('pPhotoClearBtn');
-  if (!grid) return;
-  grid.innerHTML = '';
-  if (!_pPhotos.length) {
-    if (empty) empty.style.display = 'block';
-    if (clearBtn) clearBtn.style.display = 'none';
-    return;
-  }
-  if (empty) empty.style.display = 'none';
-  if (clearBtn) clearBtn.style.display = 'inline-flex';
-  _pPhotos.forEach((url, i) => {
-    const cell = document.createElement('div');
-    cell.style.cssText =
-      'position:relative;aspect-ratio:4/3;border-radius:8px;overflow:hidden;background:#fff;border:1px solid var(--border);' +
-      (i === 0 ? 'box-shadow:0 0 0 2px var(--orange) inset' : '');
-    const mainBadge = i === 0
-      ? '<span style="position:absolute;top:4px;left:4px;background:var(--orange);color:#fff;font-size:9px;font-weight:800;padding:2px 6px;border-radius:4px;font-family:Nunito,sans-serif;text-transform:uppercase;letter-spacing:.04em;pointer-events:none">Головне</span>'
-      : '<button type="button" title="Зробити головним" onclick="productPhotoMakeMain(' + i + ')" style="position:absolute;top:4px;left:4px;width:24px;height:24px;border:none;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;cursor:pointer;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;padding:0">★</button>';
-    cell.innerHTML =
-      '<img src="' + url + '" alt="" style="width:100%;height:100%;object-fit:cover;display:block">' +
-      mainBadge +
-      '<button type="button" title="Видалити" onclick="productPhotoRemove(' + i + ')" style="position:absolute;top:4px;right:4px;width:24px;height:24px;border:none;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;cursor:pointer;font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center;padding:0">×</button>' +
-      '<span style="position:absolute;bottom:4px;right:6px;background:rgba(0,0,0,.55);color:#fff;font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;pointer-events:none">' + (i + 1) + '/' + _pPhotos.length + '</span>';
-    grid.appendChild(cell);
-  });
-}
-
-function productPhotoMakeMain(i) {
-  if (i <= 0 || i >= _pPhotos.length) return;
-  const item = _pPhotos.splice(i, 1)[0];
-  _pPhotos.unshift(item);
-  productPhotosRender();
-}
-
-function productPhotoRemove(i) {
-  if (i < 0 || i >= _pPhotos.length) return;
-  _pPhotos.splice(i, 1);
-  productPhotosRender();
-}
-
-function productPhotoClearAll() {
-  if (_pPhotos.length && !confirm('Видалити всі фото товару?')) return;
-  _pPhotos = [];
-  productPhotosRender();
-  const fi = document.getElementById('pPhotoInput');
-  if (fi) fi.value = '';
-}
-
-function productPhotoHandleFiles(files) {
-  if (!files || !files.length) return;
-  const list = Array.from(files);
-  const room = PHOTO_MAX - _pPhotos.length;
-  if (room <= 0) { showToast('Максимум ' + PHOTO_MAX + ' фото на товар', 'error'); return; }
-  const toProcess = list.slice(0, room);
-  if (list.length > room) showToast('Додано тільки ' + room + ' з ' + list.length + ' фото (ліміт ' + PHOTO_MAX + ')', 'info');
-  toProcess.forEach(file => {
-    productPhotoProcessOne(file, function(dataUrl){
-      if (dataUrl) {
-        if (_pPhotos.length >= PHOTO_MAX) return;
-        _pPhotos.push(dataUrl);
-        productPhotosRender();
-      }
-    });
-  });
-}
-
-function productPhotoProcessOne(file, cb) {
-  if (!file || !file.type || !file.type.startsWith('image/')) {
-    showToast('Файл «' + (file && file.name) + '» не зображення', 'error'); cb(null); return;
-  }
-  if (file.size > 1024 * 1024) { showToast('«' + file.name + '» більше 1 МБ — пропущено', 'error'); cb(null); return; }
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const img = new Image();
-    img.onload = function() {
-      const maxDim = 1200;
-      let w = img.naturalWidth, h = img.naturalHeight;
-      if (Math.max(w, h) > maxDim) {
-        const k = maxDim / Math.max(w, h);
-        w = Math.round(w * k); h = Math.round(h * k);
-      }
-      const canvas = document.createElement('canvas');
-      canvas.width = w; canvas.height = h;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, w, h);
-      const isPng = file.type === 'image/png';
-      const out = isPng ? canvas.toDataURL('image/png') : canvas.toDataURL('image/jpeg', 0.85);
-      cb(out);
-    };
-    img.onerror = function() { cb(e.target.result); };
-    img.src = e.target.result;
-  };
-  reader.onerror = function() { showToast('Помилка читання файлу', 'error'); cb(null); };
-  reader.readAsDataURL(file);
 }
 
 function setProductActiveToggle(active) {
@@ -2739,8 +2244,6 @@ function saveProduct() {
   const productData = {
     id: editId || 'prod-' + Date.now(),
     sku: document.getElementById('pSku').value.trim(),
-    modelCode: document.getElementById('pModelCode').value.trim(),
-    color: document.getElementById('pColor').value.trim(),
     brand: document.getElementById('pBrand').value,
     name,
     desc: document.getElementById('pDesc').value.trim(),
@@ -2750,11 +2253,9 @@ function saveProduct() {
     voltage: document.getElementById('pVoltage').value,
     age: document.getElementById('pAge').value,
     stock: parseInt(document.getElementById('pStock').value) || 0,
-    preorderDays: parseInt(document.getElementById('pPreorderDays').value) || 0,
     badge: document.getElementById('pBadge').value,
     img: document.getElementById('pImg').value,
     features,
-    images: Array.isArray(_pPhotos) ? _pPhotos.slice(0, PHOTO_MAX) : [],
     video: document.getElementById('pVideo').value.trim(),
     active: isActive,
     addedAt: editId ? (products.find(p=>p.id===editId)?.addedAt || Date.now()) : Date.now(),
@@ -2825,7 +2326,7 @@ async function renderProductsTable() {
   if (!tbody) return;
 
   // Показати loader
-  tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--text-muted)"><div style="width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--orange);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px"></div>Завантаження...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-muted)"><div style="width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--orange);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px"></div>Завантаження...</td></tr>';
 
   // Завантажити з Supabase
   const supabaseProducts = await sbGetProducts();
@@ -2834,20 +2335,12 @@ async function renderProductsTable() {
     sku: p.sku,
     name: p.name,
     brand: p.brand,
-    desc: p.description,
     price: parseFloat(p.price),
     oldPrice: p.old_price,
     category: p.category,
-    voltage: p.voltage,
-    age: p.age_range,
     stock: p.stock,
-    preorderDays: p.preorder_days || 0,
-    badge: p.badge,
     active: p.active,
     img: p.img_type || 'jeep',
-    features: Array.isArray(p.features) ? p.features : [],
-    images: Array.isArray(p.images) ? p.images : [],
-    video: p.video_url || '',
     addedAt: new Date(p.created_at).getTime()
   })) : getProducts();
 
@@ -2858,7 +2351,7 @@ async function renderProductsTable() {
 
   if (!products.length) {
     tbody.innerHTML = `
-      <tr><td colspan="9" style="text-align:center;padding:48px;color:var(--text-muted)">
+      <tr><td colspan="8" style="text-align:center;padding:48px;color:var(--text-muted)">
         <div style="font-size:32px;margin-bottom:12px">📦</div>
         <div style="font-family:'Nunito',sans-serif;font-weight:700;font-size:16px;margin-bottom:8px">Товарів ще немає</div>
         <div style="font-size:13px">Натисніть "Додати товар" щоб почати</div>
@@ -2884,20 +2377,12 @@ async function renderProductsTable() {
       : '<span class="status s-hidden">Прихований</span>';
     const stockColor = p.stock === 0 ? 'var(--red)' : p.stock <= 2 ? 'var(--yellow)' : 'var(--green)';
     const oldP = p.oldPrice ? `<br><span style="font-size:11px;color:var(--text-muted);text-decoration:line-through">${Number(p.oldPrice).toLocaleString('uk-UA')} ₴</span>` : '';
-    const preDays = Number(p.preorderDays || 0);
-    const preorderCell = preDays > 0
-      ? `<span style="font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;color:var(--orange)">${preDays} дн</span>`
-      : '<span style="color:var(--text-muted);font-size:12px">—</span>';
 
-    const photoUrl = (Array.isArray(p.images) && p.images.length > 0) ? p.images[0] : '';
-    const thumb = photoUrl
-      ? `<img src="${photoUrl}" alt="" style="width:100%;height:100%;object-fit:cover">`
-      : svg;
     return `
     <tr>
       <td>
-        <div style="width:44px;height:38px;border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;border:1px solid var(--border);overflow:hidden">
-          ${thumb}
+        <div style="width:44px;height:38px;border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;border:1px solid var(--border)">
+          ${svg}
         </div>
       </td>
       <td>
@@ -2913,7 +2398,6 @@ async function renderProductsTable() {
       <td>
         <span style="font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;color:${stockColor}">${p.stock ?? '—'} шт</span>
       </td>
-      <td>${preorderCell}</td>
       <td>${status}</td>
       <td>
         <div class="td-actions">
@@ -2938,244 +2422,6 @@ function searchProducts() {
 }
 
 
-// ── BADGES (sidebar counts) ───────────────────────────────────────────────
-function updateOrdersBadge(){
-  const badge = document.getElementById('ordersNewBadge');
-  if (!badge) return;
-  const list = _ordersCache || [];
-  const n = list.filter(o => (o.status || 'Новий') === 'Новий').length;
-  if (n > 0) { badge.style.display = ''; badge.textContent = String(n); }
-  else badge.style.display = 'none';
-}
-
-function updateReviewsBadge(){
-  const badge = document.getElementById('reviewsCountBadge');
-  if (!badge) return;
-  const n = _krLoadReviews().length;
-  if (n > 0) { badge.style.display = ''; badge.textContent = String(n); }
-  else badge.style.display = 'none';
-}
-
-// ── CSV EXPORT (orders) ───────────────────────────────────────────────────
-function _csvEsc(v){
-  const s = (v==null) ? '' : String(v);
-  return '"' + s.replace(/"/g, '""') + '"';
-}
-function exportOrdersCsv(){
-  const rows = _ordersCache || [];
-  if (!rows.length) { showToast('Немає замовлень для експорту','error'); return; }
-
-  // Застосувати ті ж фільтри, що зараз в таблиці
-  const q  = (document.getElementById('ordersSearch')?.value || '').trim().toLowerCase();
-  const sf = document.getElementById('ordersStatusFilter')?.value || '';
-  const pf = document.getElementById('ordersPayFilter')?.value || '';
-  let data = rows.slice();
-  if (sf) data = data.filter(o => (o.status || 'Новий') === sf);
-  if (pf) data = data.filter(o => (o.payment_method || '') === pf);
-  if (q)  data = data.filter(o =>
-    String(o.order_number||'').toLowerCase().includes(q) ||
-    String(o.id||'').toLowerCase().includes(q) ||
-    (o.customer_phone||'').toLowerCase().includes(q) ||
-    (o.customer_first_name||'').toLowerCase().includes(q) ||
-    (o.customer_last_name||'').toLowerCase().includes(q) ||
-    (o.customer_email||'').toLowerCase().includes(q)
-  );
-
-  if (!data.length) { showToast('Фільтр не дав результатів','error'); return; }
-
-  const headers = ['№','ID','Дата','Прізвище','Імя','Телефон','Email','Оплата','Доставка','Місто','Відділення/Адреса','Сума','Статус','ТТН','Товари'];
-  const lines = [headers.map(_csvEsc).join(',')];
-  for (const o of data){
-    const items = (o.order_items||[]).map(i => `${i.product_name||''} x${i.quantity||1}`).join(' | ');
-    const addr  = o.delivery_warehouse_number || o.delivery_address || '';
-    lines.push([
-      o.order_number || '',
-      o.id || '',
-      o.created_at || '',
-      o.customer_last_name || '',
-      o.customer_first_name || '',
-      o.customer_phone || '',
-      o.customer_email || '',
-      _payLabel(o),
-      o.delivery_type || '',
-      o.delivery_city || '',
-      addr,
-      o.total || '',
-      o.status || 'Новий',
-      o.ttn || '',
-      items
-    ].map(_csvEsc).join(','));
-  }
-  const blob = new Blob(['\ufeff' + lines.join('\n')], { type:'text/csv;charset=utf-8' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href     = url;
-  a.download = 'orders_' + new Date().toISOString().slice(0,10) + '.csv';
-  document.body.appendChild(a); a.click(); a.remove();
-  URL.revokeObjectURL(url);
-  showToast('CSV завантажено: ' + data.length + ' зап.','success');
-}
-
-// ── NOTIFICATIONS PANEL ───────────────────────────────────────────────────
-function toggleNotifPanel(e){
-  if (e) e.stopPropagation();
-  const panel = document.getElementById('notifPanel');
-  if (!panel) return;
-  if (panel.style.display === 'block') { panel.style.display = 'none'; return; }
-  renderNotifPanel();
-  panel.style.display = 'block';
-}
-
-document.addEventListener('click', e => {
-  const panel = document.getElementById('notifPanel');
-  if (!panel || panel.style.display !== 'block') return;
-  if (panel.contains(e.target)) return;
-  // Не закривати від кліку по дзвіночку (він toggleNotifPanel)
-  if (e.target.closest && e.target.closest('.tb-btn[onclick*="toggleNotifPanel"]')) return;
-  panel.style.display = 'none';
-});
-
-async function renderNotifPanel(){
-  const list = document.getElementById('notifList');
-  if (!list) return;
-  list.innerHTML = '<div style="padding:16px;color:var(--text-muted);font-size:13px;text-align:center">Завантаження…</div>';
-
-  const items = [];
-  try {
-    const r = await fetch(SUPABASE_URL + '/rest/v1/leads?select=id,phone,name,created_at,status&status=eq.new&order=created_at.desc&limit=10', {
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
-    });
-    if (r.ok) {
-      const leads = await r.json();
-      leads.forEach(l => items.push({
-        kind:'lead', id:l.id,
-        title:'Нова заявка: ' + (l.name || l.phone || ''),
-        sub:l.phone || '',
-        when:l.created_at
-      }));
-    }
-  } catch(e) { console.warn('notif leads:', e); }
-
-  try {
-    const ord = await sbFetch("orders?select=id,order_number,customer_first_name,customer_last_name,total,created_at,status&status=eq.%D0%9D%D0%BE%D0%B2%D0%B8%D0%B9&order=created_at.desc&limit=10");
-    ord.forEach(o => items.push({
-      kind:'order', id:o.id,
-      title:'Нове замовлення #' + (o.order_number || String(o.id).slice(0,8)),
-      sub:[(o.customer_first_name||'')+' '+(o.customer_last_name||''),
-           o.total ? _fmtPrice(o.total) : ''].filter(s=>s.trim()).join(' · '),
-      when:o.created_at
-    }));
-  } catch(e) { console.warn('notif orders:', e); }
-
-  items.sort((a,b) => new Date(b.when) - new Date(a.when));
-
-  // Бейдж біля дзвіночка
-  const dot = document.getElementById('tbNotifDot');
-  if (dot) dot.style.display = items.length ? '' : 'none';
-
-  if (!items.length){
-    list.innerHTML = '<div style="padding:24px;color:var(--text-muted);font-size:13px;text-align:center">Немає нових сповіщень</div>';
-    return;
-  }
-
-  list.innerHTML = items.slice(0,15).map(it => {
-    const target = it.kind === 'lead' ? 'leads' : 'orders';
-    const time = _fmtDate(it.when).replace('<br>',' · ');
-    return `<div class="notif-item" data-target="${target}" style="padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;display:flex;gap:10px;align-items:flex-start;transition:background .15s" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background=''">
-      <div style="width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex:none;background:${it.kind==='lead'?'#fee2e2':'#fff7ed'};color:${it.kind==='lead'?'#991b1b':'#9a3412'}">${it.kind==='lead'?'📞':'🛒'}</div>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${_escHtml(it.title)}</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${_escHtml(it.sub)}</div>
-        <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${time}</div>
-      </div>
-    </div>`;
-  }).join('');
-
-  // Делегування кліку: переходимо у відповідну вкладку
-  list.querySelectorAll('.notif-item').forEach(el => {
-    el.addEventListener('click', () => {
-      const t = el.dataset.target;
-      document.getElementById('notifPanel').style.display = 'none';
-      // Знаходимо потрібну nav-item
-      const nav = Array.from(document.querySelectorAll('.nav-item')).find(n => (n.getAttribute('onclick')||'').includes("'"+t+"'"));
-      showPanel(t, nav || null);
-    });
-  });
-}
-
-async function refreshNotifBadge(){
-  let nLeads = 0, nOrders = 0;
-  try {
-    const r1 = await fetch(SUPABASE_URL + '/rest/v1/leads?select=id&status=eq.new', {
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Prefer':'count=exact', 'Range':'0-0' }
-    });
-    if (r1.ok || r1.status === 206) {
-      const cr = r1.headers.get('content-range') || '';
-      const m = cr.match(/\/(\d+)$/);
-      nLeads = m ? Number(m[1]) : 0;
-    }
-  } catch(e) {}
-
-  try {
-    const r2 = await fetch(SUPABASE_URL + '/rest/v1/orders?select=id&status=eq.' + encodeURIComponent('Новий'), {
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + (_adminToken||SUPABASE_KEY), 'Prefer':'count=exact', 'Range':'0-0' }
-    });
-    if (r2.ok || r2.status === 206) {
-      const cr = r2.headers.get('content-range') || '';
-      const m = cr.match(/\/(\d+)$/);
-      nOrders = m ? Number(m[1]) : 0;
-    }
-  } catch(e) {}
-
-  // Дзвіночок
-  const dot = document.getElementById('tbNotifDot');
-  if (dot) dot.style.display = (nLeads + nOrders) > 0 ? '' : 'none';
-
-  // Бейджі sidebar
-  const lb = document.getElementById('leadsNewBadge');
-  if (lb){
-    if (nLeads > 0) { lb.style.display = ''; lb.textContent = String(nLeads); }
-    else lb.style.display = 'none';
-  }
-  const ob = document.getElementById('ordersNewBadge');
-  if (ob){
-    if (nOrders > 0) { ob.style.display = ''; ob.textContent = String(nOrders); }
-    else ob.style.display = 'none';
-  }
-}
-
-// ── SETTINGS ──────────────────────────────────────────────────────────────
-async function renderSettings(){
-  const e1 = document.getElementById('setAdminEmail');
-  if (e1) e1.textContent = (_adminUser && _adminUser.email) || '—';
-  const e2 = document.getElementById('setSupabaseUrl');
-  if (e2) e2.textContent = SUPABASE_URL;
-
-  const np = document.getElementById('setNpStatus');
-  if (np) {
-    np.innerHTML = '<span style="color:var(--text-muted)">Перевірка…</span>';
-    try {
-      const r = await fetch('/api/np', {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ modelName:'Address', calledMethod:'getAreas', methodProperties:{} })
-      });
-      const j = await r.json().catch(()=>null);
-      if (j && j.success) {
-        np.innerHTML = '<span style="color:#16a34a">✓</span> Працює (отримано ' + (j.data?.length || 0) + ' областей)';
-      } else if (j && j.errors && j.errors.length) {
-        np.innerHTML = '<span style="color:#dc2626">✗</span> ' + _escHtml(j.errors.join(', '));
-      } else if (r.status === 500) {
-        np.innerHTML = '<span style="color:#dc2626">✗</span> Не задано NP_API_KEY у Vercel';
-      } else {
-        np.innerHTML = '<span style="color:#dc2626">✗</span> Невідомий стан (HTTP ' + r.status + ')';
-      }
-    } catch(e) {
-      np.innerHTML = '<span style="color:#dc2626">✗</span> ' + _escHtml(e.message);
-    }
-  }
-}
-
 // ── INIT ADMIN (викликається після перевірки авторизації) ──────────────────
 function initAdmin() {
   // Дата в topbar
@@ -3192,13 +2438,6 @@ function initAdmin() {
   if(document.getElementById('panel-products')?.classList.contains('active')) {
     renderProductsTable();
   }
-
-  // Завантажити лічильники у sidebar бейджі та дзвіночок
-  refreshNotifBadge();
-  updateReviewsBadge();
-
-  // Періодично оновлювати бейджі (кожні 60с)
-  setInterval(refreshNotifBadge, 60000);
 }
 
 // Запустити захист після завантаження всієї сторінки

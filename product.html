@@ -1660,23 +1660,38 @@ async function buildColorVariants(currentSku, currentId, supaUrl, supaKey, model
   let arr = null;
   let usedStrategy = '';
 
+  // Хелпер: безпечний запит — пробує максимальний select; якщо в БД ще нема
+  // якихось колонок (model_code / color), послідовно скорочує select до мінімуму.
+  async function _fetchVariants(qsBase){
+    const headers = { 'apikey': supaKey, 'Authorization': 'Bearer ' + supaKey };
+    const selects = [
+      'id,sku,model_code,color,name,images,stock',
+      'id,sku,color,name,images,stock',
+      'id,sku,model_code,name,images,stock',
+      'id,sku,name,images,stock'
+    ];
+    for (const sel of selects){
+      try{
+        const r = await fetch(supaUrl + '/rest/v1/' + qsBase + sel, { headers });
+        if (r.ok) return await r.json();
+        if (r.status !== 400) return null; // 401/403/500 — не пробуємо далі
+      } catch(e){ return null; }
+    }
+    return null;
+  }
+
   // ── Стратегія 1: за model_code (якщо є) ────────────────────────────────
   if (code){
-    const qs = 'products?model_code=eq.' + encodeURIComponent(code)
+    const qsBase = 'products?model_code=eq.' + encodeURIComponent(code)
       + '&active=eq.true'
-      + '&select=id,sku,model_code,color,name,images,stock';
-    try{
-      const r = await fetch(supaUrl + '/rest/v1/' + qs, {
-        headers: { 'apikey': supaKey, 'Authorization': 'Bearer ' + supaKey }
-      });
-      if (r.ok){
-        arr = await r.json();
-        usedStrategy = 'model_code=' + code;
-      } else if (r.status === 400){
-        // Колонки ще нема — мовчки переходимо на fallback
-        console.warn('[KidsRide] model_code column not found in DB — fallback на префікс артикула');
-      }
-    } catch(e){ /* мережа — підемо у fallback */ }
+      + '&select=';
+    const data = await _fetchVariants(qsBase);
+    if (Array.isArray(data) && data.length){
+      arr = data;
+      usedStrategy = 'model_code=' + code;
+    } else {
+      console.warn('[KidsRide] model_code не дав результату (можливо, колонки ще нема) — fallback');
+    }
   }
 
   // ── Стратегія 2: fallback за префіксом артикула (формат "PREFIX-N") ─────
@@ -1686,49 +1701,34 @@ async function buildColorVariants(currentSku, currentId, supaUrl, supaKey, model
       const prefix = m[1].trim();
       if (prefix){
         const pattern = prefix + '-*';
-        const qs = 'products?sku=ilike.' + encodeURIComponent(pattern)
+        const qsBase = 'products?sku=ilike.' + encodeURIComponent(pattern)
           + '&active=eq.true'
-          + '&select=id,sku,model_code,color,name,images,stock';
-        try{
-          const r = await fetch(supaUrl + '/rest/v1/' + qs, {
-            headers: { 'apikey': supaKey, 'Authorization': 'Bearer ' + supaKey }
-          });
-          if (r.ok){
-            const arr2 = await r.json();
-            // Залишаємо лише ті, що мають числовий суфікс (-1, -2, -3 ...)
-            const filtered = Array.isArray(arr2) ? arr2.filter(v => /-(\d+)\s*$/.test(String(v.sku||''))) : [];
-            if (filtered.length > 1) {
-              arr = filtered;
-              usedStrategy = 'sku ilike ' + pattern;
-            }
-          }
-        } catch(e){}
+          + '&select=';
+        const data = await _fetchVariants(qsBase);
+        const filtered = Array.isArray(data) ? data.filter(v => /-(\d+)\s*$/.test(String(v.sku||''))) : [];
+        if (filtered.length > 1) {
+          arr = filtered;
+          usedStrategy = 'sku ilike ' + pattern;
+        }
       }
     }
   }
 
-  // ── Стратегія 3 (NEW): за числовим кодом моделі, що міститься в SKU ────
+  // ── Стратегія 3: за числовим кодом моделі, що міститься в SKU ──────────
   // Наприклад, для "M 4259EBLR-1" витягне "4259" і знайде усі товари,
   // у SKU яких є "4259". Спрацьовує, якщо ще не було знайдено варіантів.
   if (!Array.isArray(arr) || arr.length <= 1){
     const digits = (String(currentSku||'').match(/\d{3,}/g) || [])
       .sort((a,b) => b.length - a.length)[0];
     if (digits){
-      const qs = 'products?sku=ilike.' + encodeURIComponent('*' + digits + '*')
+      const qsBase = 'products?sku=ilike.' + encodeURIComponent('*' + digits + '*')
         + '&active=eq.true'
-        + '&select=id,sku,model_code,color,name,images,stock';
-      try{
-        const r = await fetch(supaUrl + '/rest/v1/' + qs, {
-          headers: { 'apikey': supaKey, 'Authorization': 'Bearer ' + supaKey }
-        });
-        if (r.ok){
-          const arr3 = await r.json();
-          if (Array.isArray(arr3) && arr3.length > 1){
-            arr = arr3;
-            usedStrategy = 'sku contains digits ' + digits;
-          }
-        }
-      } catch(e){}
+        + '&select=';
+      const data = await _fetchVariants(qsBase);
+      if (Array.isArray(data) && data.length > 1){
+        arr = data;
+        usedStrategy = 'sku contains digits ' + digits;
+      }
     }
   }
 
