@@ -822,6 +822,24 @@ tr:hover td{background:rgba(240,242,248,.5)}
           <input type="text" id="pSku" placeholder="M 3804EBLR-1">
         </div>
         <div class="f-group">
+          <label>Код моделі для кольорів
+            <span style="font-weight:400;color:var(--text-muted);font-size:11px">(напр. <b>4259</b> — об'єднає M 4259EBLR-1, -2, -3 і M 4259EBLRS-3)</span>
+          </label>
+          <input type="text" id="pModelCode" placeholder="4259">
+        </div>
+      </div>
+
+      <div class="f-row single">
+        <div class="f-group">
+          <label>Колір цього варіанта
+            <span style="font-weight:400;color:var(--text-muted);font-size:11px">(показується в блоці "В інших кольорах": <b>Чорний</b>, <b>Білий</b>, <b>Червоний</b>...)</span>
+          </label>
+          <input type="text" id="pColor" placeholder="Чорний">
+        </div>
+      </div>
+
+      <div class="f-row">
+        <div class="f-group">
           <label>Бренд <span style="color:var(--orange)">*</span></label>
           <select id="pBrand">
             <option>Bambi Racer</option>
@@ -901,6 +919,11 @@ tr:hover td{background:rgba(240,242,248,.5)}
 
       <div class="f-row">
         <div class="f-group">
+          <label>Під замовлення (днів готовності)</label>
+          <input type="number" id="pPreorderDays" value="0" min="0" placeholder="напр. 10 (0 = вимкнено)">
+          <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Якщо залишок 0, але тут не 0 — товар показується з підписом "Під замовлення X днів"</div>
+        </div>
+        <div class="f-group">
           <label>Бейдж</label>
           <select id="pBadge">
             <option value="">Без бейджу</option>
@@ -918,6 +941,28 @@ tr:hover td{background:rgba(240,242,248,.5)}
             <option value="car">Машина</option>
             <option value="tractor">Трактор</option>
           </select>
+        </div>
+      </div>
+
+      <div class="f-row single">
+        <div class="f-group">
+          <label>Фото товару <small style="color:var(--text-muted)">(перше — головне для каталогу, до 15 шт.)</small></label>
+          <input type="file" id="pPhotoInput" accept="image/*" multiple style="display:none">
+          <div id="pPhotoBox" style="padding:12px;border:1px dashed var(--border);border-radius:var(--r-sm);background:var(--bg)">
+            <div id="pPhotoGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:8px;margin-bottom:10px"></div>
+            <div id="pPhotoEmpty" style="text-align:center;color:var(--text-muted);font-size:12px;padding:18px 0;border:1px dashed var(--border);border-radius:8px;margin-bottom:10px;background:#fff">Фото ще не додані</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+              <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('pPhotoInput').click()">
+                <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                Додати фото
+              </button>
+              <button type="button" class="btn btn-outline btn-sm" id="pPhotoClearBtn" onclick="productPhotoClearAll()" style="display:none">
+                <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+                Очистити всі
+              </button>
+              <span style="font-size:11px;color:var(--text-muted);flex:1;min-width:200px">JPG/PNG/WebP, до 1 МБ за файл. Натисніть ★ щоб зробити фото головним, × — щоб видалити.</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1086,6 +1131,8 @@ async function sbGetProducts() {
 async function sbSaveProduct(productData, editId = null) {
   const payload = {
     sku:        productData.sku || null,
+    model_code: (productData.modelCode || '').trim() || null,
+    color:      (productData.color || '').trim() || null,
     name:       productData.name,
     description: productData.desc || null,
     brand:      productData.brand,
@@ -1095,32 +1142,50 @@ async function sbSaveProduct(productData, editId = null) {
     voltage:    productData.voltage,
     age_range:  productData.age,
     stock:      productData.stock,
+    preorder_days: productData.preorderDays || 0,
     badge:      productData.badge || null,
     img_type:   productData.img,
     features:   productData.features || [],
+    images:     Array.isArray(productData.images) ? productData.images : [],
     video_url:  productData.video || null,
     active:     productData.active
   };
 
-  try {
+  const doSave = async (body) => {
     if (editId) {
-      // Оновити існуючий
-      await sbFetch('products?id=eq.' + editId, {
-        method: 'PATCH',
-        body: JSON.stringify(payload)
-      });
+      await sbFetch('products?id=eq.' + editId, { method: 'PATCH', body: JSON.stringify(body) });
     } else {
-      // Додати новий
-      await sbFetch('products', {
-        method: 'POST',
-        body: JSON.stringify(payload)
-      });
+      await sbFetch('products', { method: 'POST', body: JSON.stringify(body) });
     }
-    return { success: true };
-  } catch(e) {
-    console.error('sbSaveProduct:', e);
-    return { success: false, error: e.message };
+  };
+
+  // Якщо PostgREST повертає помилку про відсутню колонку,
+  // витягуємо назву і повторюємо БЕЗ неї. До 6 спроб поспіль.
+  const droppedCols = [];
+  let body = { ...payload };
+  let lastErr = null;
+  for (let attempt = 0; attempt < 6; attempt++) {
+    try {
+      await doSave(body);
+      return droppedCols.length
+        ? { success: true, warning: 'Колонки відсутні в БД: ' + droppedCols.join(', ') + '. Додайте їх SQL.' }
+        : { success: true };
+    } catch(e) {
+      lastErr = e;
+      const msg = (e && e.message) ? String(e.message) : '';
+      let col = null;
+      let m = msg.match(/'([a-z_]+)' column of '[a-z_]+'/i)
+           || msg.match(/column ['"]?([a-z_]+)['"]? .* does not exist/i)
+           || msg.match(/Could not find the ['"]?([a-z_]+)['"]?/i);
+      if (m) col = m[1];
+      if (!col || !(col in body)) break;
+      console.warn('Supabase: колонка "' + col + '" відсутня. Зберігаємо без неї. SQL: ALTER TABLE products ADD COLUMN ' + col + ' ...;');
+      droppedCols.push(col);
+      delete body[col];
+    }
   }
+  console.error('sbSaveProduct:', lastErr);
+  return { success: false, error: (lastErr && lastErr.message) || 'Помилка збереження' };
 }
 
 async function sbDeleteProduct(id) {
@@ -2186,6 +2251,8 @@ function openProductModal(id = null) {
 
   // Заповнити поля
   document.getElementById('pSku').value = p?.sku || '';
+  document.getElementById('pModelCode').value = p?.modelCode ?? p?.model_code ?? '';
+  document.getElementById('pColor').value = p?.color || '';
   document.getElementById('pBrand').value = p?.brand || 'Bambi Racer';
   document.getElementById('pName').value = p?.name || '';
   document.getElementById('pDesc').value = p?.desc || '';
@@ -2195,10 +2262,20 @@ function openProductModal(id = null) {
   document.getElementById('pVoltage').value = p?.voltage || '12V';
   document.getElementById('pAge').value = p?.age || '3-8';
   document.getElementById('pStock').value = p?.stock ?? 1;
+  document.getElementById('pPreorderDays').value = p?.preorderDays ?? p?.preorder_days ?? 0;
   document.getElementById('pBadge').value = p?.badge || '';
   document.getElementById('pImg').value = p?.img || 'jeep';
   document.getElementById('pFeatures').value = Array.isArray(p?.features) ? p.features.join(', ') : '';
   document.getElementById('pVideo').value = p?.video || '';
+
+  // Фото товару (галерея, до 15 шт.)
+  const existingPhotos = Array.isArray(p?.images) ? p.images.filter(Boolean) : [];
+  productPhotosSet(existingPhotos);
+  const fileInput = document.getElementById('pPhotoInput');
+  if (fileInput) {
+    fileInput.value = '';
+    fileInput.onchange = function(){ productPhotoHandleFiles(fileInput.files); fileInput.value = ''; };
+  }
 
   // Toggle активний
   const isActive = p ? p.active !== false : true;
@@ -2207,6 +2284,114 @@ function openProductModal(id = null) {
   document.getElementById('productModal').classList.add('open');
   document.body.style.overflow = 'hidden';
   document.getElementById('pName').focus();
+}
+
+// ── ФОТО ТОВАРУ (галерея, до 15 шт.) ─────────────────────────
+const PHOTO_MAX = 15;
+let _pPhotos = []; // масив dataURL'ів; [0] — головне фото для каталогу
+
+function productPhotosSet(arr) {
+  _pPhotos = Array.isArray(arr) ? arr.filter(Boolean).slice(0, PHOTO_MAX) : [];
+  productPhotosRender();
+}
+
+function productPhotosRender() {
+  const grid = document.getElementById('pPhotoGrid');
+  const empty = document.getElementById('pPhotoEmpty');
+  const clearBtn = document.getElementById('pPhotoClearBtn');
+  if (!grid) return;
+  grid.innerHTML = '';
+  if (!_pPhotos.length) {
+    if (empty) empty.style.display = 'block';
+    if (clearBtn) clearBtn.style.display = 'none';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+  if (clearBtn) clearBtn.style.display = 'inline-flex';
+  _pPhotos.forEach((url, i) => {
+    const cell = document.createElement('div');
+    cell.style.cssText =
+      'position:relative;aspect-ratio:4/3;border-radius:8px;overflow:hidden;background:#fff;border:1px solid var(--border);' +
+      (i === 0 ? 'box-shadow:0 0 0 2px var(--orange) inset' : '');
+    const mainBadge = i === 0
+      ? '<span style="position:absolute;top:4px;left:4px;background:var(--orange);color:#fff;font-size:9px;font-weight:800;padding:2px 6px;border-radius:4px;font-family:Nunito,sans-serif;text-transform:uppercase;letter-spacing:.04em;pointer-events:none">Головне</span>'
+      : '<button type="button" title="Зробити головним" onclick="productPhotoMakeMain(' + i + ')" style="position:absolute;top:4px;left:4px;width:24px;height:24px;border:none;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;cursor:pointer;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;padding:0">★</button>';
+    cell.innerHTML =
+      '<img src="' + url + '" alt="" style="width:100%;height:100%;object-fit:cover;display:block">' +
+      mainBadge +
+      '<button type="button" title="Видалити" onclick="productPhotoRemove(' + i + ')" style="position:absolute;top:4px;right:4px;width:24px;height:24px;border:none;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;cursor:pointer;font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center;padding:0">×</button>' +
+      '<span style="position:absolute;bottom:4px;right:6px;background:rgba(0,0,0,.55);color:#fff;font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;pointer-events:none">' + (i + 1) + '/' + _pPhotos.length + '</span>';
+    grid.appendChild(cell);
+  });
+}
+
+function productPhotoMakeMain(i) {
+  if (i <= 0 || i >= _pPhotos.length) return;
+  const item = _pPhotos.splice(i, 1)[0];
+  _pPhotos.unshift(item);
+  productPhotosRender();
+}
+
+function productPhotoRemove(i) {
+  if (i < 0 || i >= _pPhotos.length) return;
+  _pPhotos.splice(i, 1);
+  productPhotosRender();
+}
+
+function productPhotoClearAll() {
+  if (_pPhotos.length && !confirm('Видалити всі фото товару?')) return;
+  _pPhotos = [];
+  productPhotosRender();
+  const fi = document.getElementById('pPhotoInput');
+  if (fi) fi.value = '';
+}
+
+function productPhotoHandleFiles(files) {
+  if (!files || !files.length) return;
+  const list = Array.from(files);
+  const room = PHOTO_MAX - _pPhotos.length;
+  if (room <= 0) { showToast('Максимум ' + PHOTO_MAX + ' фото на товар', 'error'); return; }
+  const toProcess = list.slice(0, room);
+  if (list.length > room) showToast('Додано тільки ' + room + ' з ' + list.length + ' фото (ліміт ' + PHOTO_MAX + ')', 'info');
+  toProcess.forEach(file => {
+    productPhotoProcessOne(file, function(dataUrl){
+      if (dataUrl) {
+        if (_pPhotos.length >= PHOTO_MAX) return;
+        _pPhotos.push(dataUrl);
+        productPhotosRender();
+      }
+    });
+  });
+}
+
+function productPhotoProcessOne(file, cb) {
+  if (!file || !file.type || !file.type.startsWith('image/')) {
+    showToast('Файл «' + (file && file.name) + '» не зображення', 'error'); cb(null); return;
+  }
+  if (file.size > 1024 * 1024) { showToast('«' + file.name + '» більше 1 МБ — пропущено', 'error'); cb(null); return; }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      const maxDim = 1200;
+      let w = img.naturalWidth, h = img.naturalHeight;
+      if (Math.max(w, h) > maxDim) {
+        const k = maxDim / Math.max(w, h);
+        w = Math.round(w * k); h = Math.round(h * k);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      const isPng = file.type === 'image/png';
+      const out = isPng ? canvas.toDataURL('image/png') : canvas.toDataURL('image/jpeg', 0.85);
+      cb(out);
+    };
+    img.onerror = function() { cb(e.target.result); };
+    img.src = e.target.result;
+  };
+  reader.onerror = function() { showToast('Помилка читання файлу', 'error'); cb(null); };
+  reader.readAsDataURL(file);
 }
 
 function setProductActiveToggle(active) {
@@ -2244,6 +2429,8 @@ function saveProduct() {
   const productData = {
     id: editId || 'prod-' + Date.now(),
     sku: document.getElementById('pSku').value.trim(),
+    modelCode: document.getElementById('pModelCode').value.trim(),
+    color: document.getElementById('pColor').value.trim(),
     brand: document.getElementById('pBrand').value,
     name,
     desc: document.getElementById('pDesc').value.trim(),
@@ -2253,9 +2440,11 @@ function saveProduct() {
     voltage: document.getElementById('pVoltage').value,
     age: document.getElementById('pAge').value,
     stock: parseInt(document.getElementById('pStock').value) || 0,
+    preorderDays: parseInt(document.getElementById('pPreorderDays').value) || 0,
     badge: document.getElementById('pBadge').value,
     img: document.getElementById('pImg').value,
     features,
+    images: Array.isArray(_pPhotos) ? _pPhotos.slice(0, PHOTO_MAX) : [],
     video: document.getElementById('pVideo').value.trim(),
     active: isActive,
     addedAt: editId ? (products.find(p=>p.id===editId)?.addedAt || Date.now()) : Date.now(),
