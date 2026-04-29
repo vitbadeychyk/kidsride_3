@@ -621,7 +621,7 @@ tr:hover td{background:rgba(240,242,248,.5)}
               <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
               <input id="productSearch" placeholder="Назва або артикул..." oninput="searchProducts()">
             </div>
-            <select id="productStatusFilter" class="filter-select" onchange="renderProductsTable()">
+            <select id="productStatusFilter" class="filter-select" onchange="searchProducts()">
               <option value="">Всі статуси</option>
               <option value="active">Активні</option>
               <option value="hidden">Приховані</option>
@@ -632,7 +632,7 @@ tr:hover td{background:rgba(240,242,248,.5)}
           <thead><tr><th>Фото</th><th class="sortable">Назва / Артикул</th><th>Бренд</th><th class="sortable">Ціна</th><th>РРЦ</th><th>Залишок</th><th>Статус</th><th>Дії</th></tr></thead>
           <tbody id="productsBody"></tbody>
         </table>
-        <div class="pagination"><span>Показано 1–20 з 809</span><div class="pag-btns"><button class="pag-btn"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button><button class="pag-btn active">1</button><button class="pag-btn">2</button><button class="pag-btn">3</button><span style="padding:0 4px;color:var(--text-muted)">…</span><button class="pag-btn">41</button><button class="pag-btn"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button></div></div>
+        <div class="pagination" id="productsPagination" style="display:none"></div>
       </div>
     </div>
 
@@ -956,6 +956,61 @@ tr:hover td{background:rgba(240,242,248,.5)}
         </div>
       </div>
 
+      <div style="margin:18px 0 6px;padding-top:14px;border-top:1px solid var(--border);font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;color:var(--navy);text-transform:uppercase;letter-spacing:.04em">
+        Технічні характеристики <span style="font-weight:400;color:var(--text-muted);font-size:11px;text-transform:none;letter-spacing:0">(показуються в блоці "Характеристики" на сторінці товару)</span>
+      </div>
+
+      <div class="f-row single">
+        <div class="f-group">
+          <label>Короткий опис під назвою <small style="color:var(--text-muted)">(short_desc)</small></label>
+          <input type="text" id="pShortDesc" placeholder="напр. 4-моторний електромобіль з пультом 2.4G">
+        </div>
+      </div>
+
+      <div class="f-row">
+        <div class="f-group">
+          <label>Кількість моторів / потужність</label>
+          <input type="text" id="pMotor" placeholder="напр. 4 × 45 Вт">
+        </div>
+        <div class="f-group">
+          <label>Акумулятор (детально)</label>
+          <input type="text" id="pBattery" placeholder="напр. 12 В / 7 Аг">
+        </div>
+      </div>
+
+      <div class="f-row">
+        <div class="f-group">
+          <label>Швидкість</label>
+          <input type="text" id="pSpeed" placeholder="напр. 5 км/год">
+        </div>
+        <div class="f-group">
+          <label>Максимальне навантаження</label>
+          <input type="text" id="pMaxLoad" placeholder="напр. 30 кг">
+        </div>
+      </div>
+
+      <div class="f-row">
+        <div class="f-group">
+          <label>Вага</label>
+          <input type="text" id="pWeight" placeholder="напр. 12 кг">
+        </div>
+        <div class="f-group">
+          <label>Гарантія</label>
+          <input type="text" id="pWarranty" placeholder="напр. 12 міс.">
+        </div>
+      </div>
+
+      <div class="f-row">
+        <div class="f-group">
+          <label>Час збирання</label>
+          <input type="text" id="pAssemblyTime" placeholder="напр. 20 хв">
+        </div>
+        <div class="f-group">
+          <label>Підкатегорія <small style="color:var(--text-muted)">(напр. "Джипи 4×4")</small></label>
+          <input type="text" id="pSubcategory" placeholder="">
+        </div>
+      </div>
+
       <div class="f-row single">
         <div class="f-group">
           <label>Фото товару <small style="color:var(--text-muted)">(перше — головне для каталогу, до 15 шт.)</small></label>
@@ -1145,6 +1200,7 @@ async function sbGetProducts() {
 }
 
 async function sbSaveProduct(productData, editId = null) {
+  const _trim = v => (v == null ? null : (String(v).trim() || null));
   const payload = {
     sku:        productData.sku || null,
     model_code: (productData.modelCode || '').trim() || null,
@@ -1157,6 +1213,7 @@ async function sbSaveProduct(productData, editId = null) {
     category:   productData.category,
     voltage:    productData.voltage,
     age_range:  productData.age,
+    age:        productData.age, // дублюємо в text-колонку (схема SUPABASE_PRODUCTS_COLUMNS.sql)
     stock:      productData.stock,
     preorder_days: productData.preorderDays || 0,
     badge:      productData.badge || null,
@@ -1164,7 +1221,17 @@ async function sbSaveProduct(productData, editId = null) {
     features:   productData.features || [],
     images:     Array.isArray(productData.images) ? productData.images : [],
     video_url:  productData.video || null,
-    active:     productData.active
+    active:     productData.active,
+    // Технічні характеристики (див. SUPABASE_PRODUCTS_COLUMNS.sql)
+    short_desc:    _trim(productData.shortDesc),
+    motor:         _trim(productData.motor),
+    battery:       _trim(productData.battery),
+    speed:         _trim(productData.speed),
+    max_load:      _trim(productData.maxLoad),
+    weight:        _trim(productData.weight),
+    warranty:      _trim(productData.warranty),
+    assembly_time: _trim(productData.assemblyTime),
+    subcategory:   _trim(productData.subcategory)
   };
 
   const doSave = async (body) => {
@@ -2542,7 +2609,9 @@ async function _xmlImportFromText(text) {
   _xmlLog(summary, 'ok');
   document.getElementById('syncTime').textContent = new Date().toLocaleString('uk-UA') + ' · ' + (added + updated) + ' позицій';
   showToast('Імпорт завершено: +' + added + ' / ~' + updated + (failed ? ' / ✗' + failed : ''), failed ? 'warn' : 'success');
+  window._productsRawCache = []; // інвалідуємо raw-кеш — підтягнемо свіжий список з БД
   if (typeof loadProductsFromSupabase === 'function') { try { await loadProductsFromSupabase(); renderProductsTable(); } catch(e){} }
+  else { renderProductsTable(); }
 }
 
 // ── REVIEWS (з Supabase, таблиця reviews) ────────────────────────────────
@@ -2710,32 +2779,58 @@ function saveProducts(products) {
   localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
 }
 
+// Кеш "сирих" рядків з Supabase — використовуємо при відкритті модалки,
+// щоб бачити всі поля (model_code, motor, battery тощо), яких немає в легасі-кеші.
+window._productsRawCache = window._productsRawCache || [];
+
+function _findRawProduct(id) {
+  if (!id) return null;
+  const arr = Array.isArray(window._productsRawCache) ? window._productsRawCache : [];
+  return arr.find(x => String(x.id) === String(id)) || null;
+}
+
 // Відкрити модалку — новий товар
 function openProductModal(id = null) {
   const products = getProducts();
-  const p = id ? products.find(x => x.id === id) : null;
+  const legacy = id ? products.find(x => x.id === id) : null;
+  const raw = id ? _findRawProduct(id) : null;
+  // raw має пріоритет (там є усі поля з БД)
+  const p = raw || legacy || null;
+  const has = (p && p === raw);
 
-  document.getElementById('productModalTitle').textContent = p ? 'Редагувати товар' : 'Додати товар';
+  document.getElementById('productModalTitle').textContent = id ? 'Редагувати товар' : 'Додати товар';
   document.getElementById('editProductId').value = id || '';
 
-  // Заповнити поля
-  document.getElementById('pSku').value = p?.sku || '';
-  document.getElementById('pModelCode').value = p?.modelCode ?? p?.model_code ?? '';
+  // Заповнити поля (підтримуємо як snake_case з Supabase, так і camelCase з legacy)
+  document.getElementById('pSku').value = (has ? p.sku : (p?.sku)) || '';
+  document.getElementById('pModelCode').value = (p?.model_code ?? p?.modelCode ?? '') || '';
   document.getElementById('pColor').value = p?.color || '';
   document.getElementById('pBrand').value = p?.brand || 'Bambi Racer';
   document.getElementById('pName').value = p?.name || '';
-  document.getElementById('pDesc').value = p?.desc || '';
+  document.getElementById('pDesc').value = (p?.description ?? p?.desc) || '';
   document.getElementById('pPrice').value = p?.price || '';
-  document.getElementById('pOldPrice').value = p?.oldPrice || '';
+  document.getElementById('pOldPrice').value = (p?.old_price ?? p?.oldPrice) || '';
   document.getElementById('pCategory').value = p?.category || 'jeep';
   document.getElementById('pVoltage').value = p?.voltage || '12V';
-  document.getElementById('pAge').value = p?.age || '3-8';
-  document.getElementById('pStock').value = p?.stock ?? 1;
-  document.getElementById('pPreorderDays').value = p?.preorderDays ?? p?.preorder_days ?? 0;
+  document.getElementById('pAge').value = (p?.age_range ?? p?.age) || '3-8';
+  document.getElementById('pStock').value = (p?.stock ?? 1);
+  document.getElementById('pPreorderDays').value = (p?.preorder_days ?? p?.preorderDays ?? 0);
   document.getElementById('pBadge').value = p?.badge || '';
-  document.getElementById('pImg').value = p?.img || 'jeep';
+  document.getElementById('pImg').value = (p?.img_type ?? p?.img) || 'jeep';
   document.getElementById('pFeatures').value = Array.isArray(p?.features) ? p.features.join(', ') : '';
-  document.getElementById('pVideo').value = p?.video || '';
+  document.getElementById('pVideo').value = (p?.video_url ?? p?.video) || '';
+
+  // Технічні характеристики
+  const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v == null ? '' : v; };
+  setVal('pShortDesc',    p?.short_desc);
+  setVal('pMotor',        p?.motor);
+  setVal('pBattery',      p?.battery);
+  setVal('pSpeed',        p?.speed);
+  setVal('pMaxLoad',      p?.max_load);
+  setVal('pWeight',       p?.weight);
+  setVal('pWarranty',     p?.warranty);
+  setVal('pAssemblyTime', p?.assembly_time);
+  setVal('pSubcategory',  p?.subcategory);
 
   // Фото товару (галерея, до 15 шт.)
   const existingPhotos = Array.isArray(p?.images) ? p.images.filter(Boolean) : [];
@@ -2966,6 +3061,8 @@ function saveProduct() {
 
   const oldPriceVal = parseFloat(document.getElementById('pOldPrice').value);
 
+  const _val = id => (document.getElementById(id)?.value || '').trim();
+
   const productData = {
     id: editId || 'prod-' + Date.now(),
     sku: document.getElementById('pSku').value.trim(),
@@ -2987,6 +3084,16 @@ function saveProduct() {
     images: Array.isArray(_pPhotos) ? _pPhotos.slice(0, PHOTO_MAX) : [],
     video: document.getElementById('pVideo').value.trim(),
     active: isActive,
+    // Технічні характеристики
+    shortDesc:    _val('pShortDesc'),
+    motor:        _val('pMotor'),
+    battery:      _val('pBattery'),
+    speed:        _val('pSpeed'),
+    maxLoad:      _val('pMaxLoad'),
+    weight:       _val('pWeight'),
+    warranty:     _val('pWarranty'),
+    assemblyTime: _val('pAssemblyTime'),
+    subcategory:  _val('pSubcategory'),
     addedAt: editId ? (products.find(p=>p.id===editId)?.addedAt || Date.now()) : Date.now(),
     updatedAt: Date.now(),
   };
@@ -3009,6 +3116,7 @@ function saveProduct() {
       // Також зберегти локально як кеш
       saveProducts(products);
       closeModal('productModal');
+      window._productsRawCache = []; // інвалідуємо raw-кеш — щоб підтягнути свіжі дані з усіма полями
       renderProductsTable();
       showToast(editId ? '✅ Товар оновлено в базі' : '✅ Товар додано в каталог', 'success');
     } else {
@@ -3028,6 +3136,7 @@ function deleteProduct(id) {
     if (result.success) {
       const products = getProducts().filter(p => p.id !== id);
       saveProducts(products);
+      window._productsRawCache = (window._productsRawCache || []).filter(p => String(p.id) !== String(id));
       renderProductsTable();
       showToast('Товар видалено', 'error');
     } else {
@@ -3043,10 +3152,55 @@ function toggleProductStatus(id) {
   const newActive = p ? !p.active : true;
   if (p) { p.active = newActive; p.updatedAt = Date.now(); }
   saveProducts(products);
+  // Синхронно оновимо raw-кеш, щоб не моргала картинка
+  const rawArr = Array.isArray(window._productsRawCache) ? window._productsRawCache : [];
+  const rawP = rawArr.find(x => String(x.id) === String(id));
+  if (rawP) rawP.active = newActive;
   sbToggleProductStatus(id, newActive).then(() => {
     renderProductsTable();
     showToast(newActive ? '✅ Товар активований' : 'Товар прихований');
   });
+}
+
+// Стан пагінації товарів
+const PRODUCTS_PAGE_SIZE = 20;
+let _productsCurrentPage = 1;
+
+function setProductsPage(n) {
+  _productsCurrentPage = Math.max(1, parseInt(n) || 1);
+  renderProductsTable();
+  // Прокрутити нагору таблиці для зручності
+  const panel = document.getElementById('panel-products');
+  if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function _renderProductsPagination(total, page, pageSize) {
+  const el = document.getElementById('productsPagination');
+  if (!el) return;
+  if (!total) { el.style.display = 'none'; el.innerHTML = ''; return; }
+  const pages = Math.max(1, Math.ceil(total / pageSize));
+  const cur = Math.min(Math.max(1, page), pages);
+  const from = (cur - 1) * pageSize + 1;
+  const to = Math.min(cur * pageSize, total);
+
+  // Який діапазон показати: 1, поточна-1, поточна, поточна+1, остання
+  const set = new Set([1, pages, cur - 1, cur, cur + 1]);
+  const list = [...set].filter(n => n >= 1 && n <= pages).sort((a,b) => a - b);
+
+  let btnsHtml = '';
+  // Prev
+  btnsHtml += `<button class="pag-btn" ${cur<=1?'disabled':''} onclick="setProductsPage(${cur-1})"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>`;
+  let prev = 0;
+  list.forEach(n => {
+    if (prev && n - prev > 1) btnsHtml += `<span style="padding:0 4px;color:var(--text-muted)">…</span>`;
+    btnsHtml += `<button class="pag-btn ${n===cur?'active':''}" onclick="setProductsPage(${n})">${n}</button>`;
+    prev = n;
+  });
+  // Next
+  btnsHtml += `<button class="pag-btn" ${cur>=pages?'disabled':''} onclick="setProductsPage(${cur+1})"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>`;
+
+  el.style.display = 'flex';
+  el.innerHTML = `<span>Показано ${from}–${to} з ${total.toLocaleString('uk-UA').replace(/,/g,' ')}</span><div class="pag-btns">${btnsHtml}</div>`;
 }
 
 // Рендер таблиці товарів в адміні (async — завантажує з Supabase)
@@ -3054,12 +3208,20 @@ async function renderProductsTable() {
   const tbody = document.getElementById('productsBody');
   if (!tbody) return;
 
-  // Показати loader
-  tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-muted)"><div style="width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--orange);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px"></div>Завантаження...</td></tr>';
+  // Показати loader тільки якщо raw кешу ще немає (перший рендер)
+  const isFirstLoad = !Array.isArray(window._productsRawCache) || !window._productsRawCache.length;
+  if (isFirstLoad) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-muted)"><div style="width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--orange);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px"></div>Завантаження...</td></tr>';
+    // Завантажити з Supabase
+    const supabaseProducts = await sbGetProducts();
+    if (Array.isArray(supabaseProducts) && supabaseProducts.length) {
+      window._productsRawCache = supabaseProducts;
+    }
+  }
 
-  // Завантажити з Supabase
-  const supabaseProducts = await sbGetProducts();
-  const products = supabaseProducts.length > 0 ? supabaseProducts.map(p => ({
+  const raw = Array.isArray(window._productsRawCache) ? window._productsRawCache : [];
+
+  const products = raw.length ? raw.map(p => ({
     id: p.id,
     sku: p.sku,
     name: p.name,
@@ -3070,13 +3232,14 @@ async function renderProductsTable() {
     stock: p.stock,
     active: p.active,
     img: p.img_type || 'jeep',
-    addedAt: new Date(p.created_at).getTime()
+    images: Array.isArray(p.images) ? p.images.filter(Boolean) : [],
+    addedAt: p.created_at ? new Date(p.created_at).getTime() : 0
   })) : getProducts();
 
-  // Оновити локальний кеш
-  if (supabaseProducts.length > 0) saveProducts(products);
+  // Оновити локальний кеш для офлайн-фолбеку
+  if (raw.length) saveProducts(products);
   const countEl = document.getElementById('productsCount');
-  if (countEl) countEl.textContent = '(' + products.length + ')';
+  if (countEl) countEl.textContent = '(' + products.length.toLocaleString('uk-UA').replace(/,/g,' ') + ')';
 
   if (!products.length) {
     tbody.innerHTML = `
@@ -3085,6 +3248,7 @@ async function renderProductsTable() {
         <div style="font-family:'Nunito',sans-serif;font-weight:700;font-size:16px;margin-bottom:8px">Товарів ще немає</div>
         <div style="font-size:13px">Натисніть "Додати товар" щоб почати</div>
       </td></tr>`;
+    _renderProductsPagination(0, 1, PRODUCTS_PAGE_SIZE);
     return;
   }
 
@@ -3099,31 +3263,44 @@ async function renderProductsTable() {
     return true;
   });
 
-  tbody.innerHTML = filtered.map(p => {
-    const svg = PRODUCT_SVGS[p.img] || PRODUCT_SVGS.jeep;
+  // Пагінація
+  const total = filtered.length;
+  const pages = Math.max(1, Math.ceil(total / PRODUCTS_PAGE_SIZE));
+  if (_productsCurrentPage > pages) _productsCurrentPage = pages;
+  if (_productsCurrentPage < 1) _productsCurrentPage = 1;
+  const start = (_productsCurrentPage - 1) * PRODUCTS_PAGE_SIZE;
+  const pageItems = filtered.slice(start, start + PRODUCTS_PAGE_SIZE);
+
+  tbody.innerHTML = pageItems.map(p => {
     const status = p.active !== false
       ? '<span class="status s-active">Активний</span>'
       : '<span class="status s-hidden">Прихований</span>';
     const stockColor = p.stock === 0 ? 'var(--red)' : p.stock <= 2 ? 'var(--yellow)' : 'var(--green)';
     const oldP = p.oldPrice ? `<br><span style="font-size:11px;color:var(--text-muted);text-decoration:line-through">${Number(p.oldPrice).toLocaleString('uk-UA')} ₴</span>` : '';
 
+    // Реальне фото товару, якщо є; інакше — іконка-фолбек
+    const firstImg = (Array.isArray(p.images) && p.images.length) ? p.images[0] : null;
+    const photoHtml = firstImg
+      ? `<img src="${_escHtml(firstImg)}" alt="" loading="lazy" onerror="this.outerHTML='<div style=\\'font-size:22px\\'>📦</div>'" style="width:100%;height:100%;object-fit:cover;display:block">`
+      : (PRODUCT_SVGS[p.img] || PRODUCT_SVGS.jeep);
+
     return `
     <tr>
       <td>
-        <div style="width:44px;height:38px;border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;border:1px solid var(--border)">
-          ${svg}
+        <div style="width:52px;height:44px;border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;border:1px solid var(--border);overflow:hidden">
+          ${photoHtml}
         </div>
       </td>
       <td>
-        <div class="td-name" style="max-width:200px">${p.name}</div>
-        <div style="font-size:11px;color:var(--text-muted)">${p.sku || ''}</div>
+        <div class="td-name" style="max-width:240px">${_escHtml(p.name || '')}</div>
+        <div style="font-size:11px;color:var(--text-muted)">${_escHtml(p.sku || '')}</div>
       </td>
-      <td style="font-size:12px;color:var(--text-muted)">${p.brand}</td>
+      <td style="font-size:12px;color:var(--text-muted)">${_escHtml(p.brand || '')}</td>
       <td>
-        <div class="td-price">${Number(p.price).toLocaleString('uk-UA')} ₴</div>
+        <div class="td-price">${Number(p.price || 0).toLocaleString('uk-UA')} ₴</div>
         ${oldP}
       </td>
-      <td style="font-size:12px;color:var(--text-muted)">${p.category || '—'}</td>
+      <td style="font-size:12px;color:var(--text-muted)">${_escHtml(p.category || '—')}</td>
       <td>
         <span style="font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;color:${stockColor}">${p.stock ?? '—'} шт</span>
       </td>
@@ -3143,10 +3320,13 @@ async function renderProductsTable() {
       </td>
     </tr>`;
   }).join('');
+
+  _renderProductsPagination(total, _productsCurrentPage, PRODUCTS_PAGE_SIZE);
 }
 
 // Пошук товарів
 function searchProducts() {
+  _productsCurrentPage = 1; // скидаємо на першу сторінку при новому пошуку
   renderProductsTable();
 }
 

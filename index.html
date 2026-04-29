@@ -1624,38 +1624,74 @@ function _krApplySlides(saved){
   }
 }
 
+// Stable signature of slide settings — used to detect real changes
+function _krSlidesSig(arr){
+  if (!Array.isArray(arr)) return '';
+  return JSON.stringify(arr.slice()
+    .sort((a,b) => (a.sort_order||0) - (b.sort_order||0))
+    .filter(s => s && s.enabled !== false)
+    .map(s => ({
+      id: s.id || '',
+      sort_order: s.sort_order || 0,
+      image: s.image || '',
+      bg: s.bg || '',
+      title: s.title || '',
+      cta1_text: s.cta1_text || '',
+      cta1_link: s.cta1_link || s.link || '',
+      cta2_text: s.cta2_text || '',
+      cta2_link: s.cta2_link || ''
+    })));
+}
+window._krAppliedSlidesSig = '';
+
 (function applySlideSettings(){
   // 1) Apply localStorage cache immediately (fast, prevents flicker)
   let cached = null;
   try { cached = JSON.parse(localStorage.getItem('kr_slides') || 'null'); } catch(e) {}
-  if (Array.isArray(cached) && cached.length) _krApplySlides(cached);
+  if (Array.isArray(cached) && cached.length) {
+    _krApplySlides(cached);
+    window._krAppliedSlidesSig = _krSlidesSig(cached);
+  }
 
-  // 2) Then refresh from Supabase in background and re-apply if changed
+  // 2) Then refresh from Supabase in background and re-apply ONLY if changed
   const SUPA_URL = 'https://xczrzdbikkycgpnvolib.supabase.co';
   const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
   fetch(SUPA_URL + '/rest/v1/slides?select=*&order=sort_order.asc', {
     headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
   }).then(r => r.ok ? r.json() : null).then(data => {
     if (!Array.isArray(data) || !data.length) return;
+    const newSig = _krSlidesSig(data);
+    // Always refresh local cache for next visit
     try { localStorage.setItem('kr_slides', JSON.stringify(data)); } catch(e) {}
-    // Reapply and reinitialize Swiper to pick up new DOM
-    if (typeof heroSwiper !== 'undefined' && heroSwiper && heroSwiper.destroy) {
-      try { heroSwiper.destroy(true, true); } catch(e) {}
+    // No visible change → skip destroy/reinit to avoid the flash
+    if (newSig && newSig === window._krAppliedSlidesSig) return;
+
+    // Preserve currently visible slide so a real change doesn't reset to slide 1
+    let preservedIdx = 0;
+    if (window.heroSwiper && typeof window.heroSwiper.realIndex === 'number') {
+      preservedIdx = window.heroSwiper.realIndex;
+    }
+
+    if (window.heroSwiper && window.heroSwiper.destroy) {
+      try { window.heroSwiper.destroy(true, true); } catch(e) {}
     }
     _krApplySlides(data);
+    window._krAppliedSlidesSig = newSig;
     if (typeof Swiper !== 'undefined') {
+      const slidesCount = document.querySelectorAll('.swiper-hero .swiper-slide:not(.swiper-slide-duplicate)').length;
+      const initSlide = Math.max(0, Math.min(preservedIdx, Math.max(0, slidesCount - 1)));
       window.heroSwiper = new Swiper('.swiper-hero', {
         loop: true, autoplay: { delay: 5500, disableOnInteraction: false },
         speed: 900, effect: 'fade', fadeEffect: { crossFade: true },
+        initialSlide: initSlide,
         on: { slideChange() { updatePag(this.realIndex); } }
       });
       // Rewire pagination dots count
       if (pag) {
         pag.innerHTML = '';
-        const slidesCount = document.querySelectorAll('.swiper-hero .swiper-slide:not(.swiper-slide-duplicate)').length;
         for (let i = 0; i < slidesCount; i++) {
           const d = document.createElement('div');
-          d.className = 'hp-dot' + (i === 0 ? ' active' : '');
+          d.className = 'hp-dot' + (i === initSlide ? ' active' : '');
           d.dataset.index = i;
           d.addEventListener('click', () => window.heroSwiper.slideToLoop(i));
           pag.appendChild(d);
