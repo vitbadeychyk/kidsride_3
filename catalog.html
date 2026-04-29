@@ -2030,15 +2030,31 @@ function catToggleCompare(btn, id, name, price, brand, img) {
   let list=[]; try{list=JSON.parse(localStorage.getItem('kr_compare')||'[]');}catch{}
   const prod = _findProd(id);
   const photo = _photoOf(prod);
-  if (btn.classList.contains('active')) {
-    if (list.length>=3){btn.classList.remove('active');showToastLocal('Максимум 3 товари для порівняння');return;}
-    list.push({id,name,price,brand,img,photo,specs:{'Бренд':brand,'Ціна':price+' ₴'}});
-    if (list.length>=2) showCompareBar();
+  const wasActive = btn.classList.contains('active');
+  if (wasActive) {
+    if (list.some(i=>i.id===id)) {
+      // вже у списку — нічого додатково
+    } else if (list.length>=3) {
+      btn.classList.remove('active');
+      showToastLocal('Можна порівнювати до 3 товарів одночасно');
+      return;
+    } else {
+      list.push({id,name,price,brand,img,photo,specs:{'Бренд':brand,'Ціна':price+' ₴'}});
+      showToastLocal('✓ Додано до порівняння (' + list.length + ')');
+    }
   } else {
     list=list.filter(i=>i.id!==id);
-    if (list.length<2) hideCompareBar();
+    showToastLocal('Видалено з порівняння');
   }
   localStorage.setItem('kr_compare',JSON.stringify(list));
+  // Синхронізуємо глобальний compareList, який читає showCompareBar()
+  compareList = list;
+  if (list.length>=2) {
+    showCompareBar();
+  } else {
+    const bar = document.getElementById('compareBar');
+    if (bar) bar.remove();
+  }
   if (window.KR && typeof window.KR.updateCompareBadge === 'function') window.KR.updateCompareBadge();
 }
 
