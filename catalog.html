@@ -1510,6 +1510,9 @@ async function loadProductsFromSupabase() {
       return data.map(p => ({
         id: p.id,
         sku: p.sku,
+        model_code: p.model_code || null,
+        modelCode: p.model_code || null,
+        color: p.color || null,
         name: p.name,
         brand: p.brand || 'Bambi Racer',
         price: parseFloat(p.price),

@@ -1677,29 +1677,60 @@ async function buildColorVariants(currentSku, currentId, supaUrl, supaKey, model
     } catch(e){ /* мережа — підемо у fallback */ }
   }
 
-  // ── Стратегія 2: fallback за префіксом артикула ────────────────────────
-  if (!Array.isArray(arr) || arr.length === 0){
+  // ── Стратегія 2: fallback за префіксом артикула (формат "PREFIX-N") ─────
+  if (!Array.isArray(arr) || arr.length <= 1){
     const m = String(currentSku || '').match(/^(.*?)-(\d+)\s*$/);
-    if (!m) return;
-    const prefix = m[1].trim();
-    if (!prefix) return;
-    const pattern = prefix + '-*';
-    const qs = 'products?sku=ilike.' + encodeURIComponent(pattern)
-      + '&active=eq.true'
-      + '&select=id,sku,model_code,color,name,images,stock';
-    try{
-      const r = await fetch(supaUrl + '/rest/v1/' + qs, {
-        headers: { 'apikey': supaKey, 'Authorization': 'Bearer ' + supaKey }
-      });
-      if (!r.ok) return;
-      arr = await r.json();
-      usedStrategy = 'sku ilike ' + pattern;
-    } catch(e){ return; }
-    // Для fallback залишаємо стару фільтрацію за числовим суфіксом
-    if (Array.isArray(arr)) arr = arr.filter(v => /-(\d+)\s*$/.test(String(v.sku||'')));
+    if (m){
+      const prefix = m[1].trim();
+      if (prefix){
+        const pattern = prefix + '-*';
+        const qs = 'products?sku=ilike.' + encodeURIComponent(pattern)
+          + '&active=eq.true'
+          + '&select=id,sku,model_code,color,name,images,stock';
+        try{
+          const r = await fetch(supaUrl + '/rest/v1/' + qs, {
+            headers: { 'apikey': supaKey, 'Authorization': 'Bearer ' + supaKey }
+          });
+          if (r.ok){
+            const arr2 = await r.json();
+            // Залишаємо лише ті, що мають числовий суфікс (-1, -2, -3 ...)
+            const filtered = Array.isArray(arr2) ? arr2.filter(v => /-(\d+)\s*$/.test(String(v.sku||''))) : [];
+            if (filtered.length > 1) {
+              arr = filtered;
+              usedStrategy = 'sku ilike ' + pattern;
+            }
+          }
+        } catch(e){}
+      }
+    }
   }
 
-  if (!Array.isArray(arr)) return;
+  // ── Стратегія 3 (NEW): за числовим кодом моделі, що міститься в SKU ────
+  // Наприклад, для "M 4259EBLR-1" витягне "4259" і знайде усі товари,
+  // у SKU яких є "4259". Спрацьовує, якщо ще не було знайдено варіантів.
+  if (!Array.isArray(arr) || arr.length <= 1){
+    const digits = (String(currentSku||'').match(/\d{3,}/g) || [])
+      .sort((a,b) => b.length - a.length)[0];
+    if (digits){
+      const qs = 'products?sku=ilike.' + encodeURIComponent('*' + digits + '*')
+        + '&active=eq.true'
+        + '&select=id,sku,model_code,color,name,images,stock';
+      try{
+        const r = await fetch(supaUrl + '/rest/v1/' + qs, {
+          headers: { 'apikey': supaKey, 'Authorization': 'Bearer ' + supaKey }
+        });
+        if (r.ok){
+          const arr3 = await r.json();
+          if (Array.isArray(arr3) && arr3.length > 1){
+            arr = arr3;
+            usedStrategy = 'sku contains digits ' + digits;
+          }
+        }
+      } catch(e){}
+    }
+  }
+
+  if (!Array.isArray(arr) || arr.length === 0) return;
   console.log('[KidsRide] color variants found:', arr.length, 'via', usedStrategy);
   if (arr.length <= 1) return;
 
