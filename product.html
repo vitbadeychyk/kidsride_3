@@ -1654,6 +1654,8 @@ async function buildColorVariants(currentSku, currentId, supaUrl, supaKey, model
   supaUrl = supaUrl || (window.KR && KR._SUPA_URL) || 'https://xczrzdbikkycgpnvolib.supabase.co';
   supaKey = supaKey || (window.KR && KR._SUPA_KEY) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
 
+  console.log('[KidsRide variants] start: sku=', currentSku, 'id=', currentId, 'modelCode=', modelCode);
+
   const code = (modelCode == null ? '' : String(modelCode)).trim();
   let arr = null;
   let usedStrategy = '';
@@ -1730,9 +1732,15 @@ async function buildColorVariants(currentSku, currentId, supaUrl, supaKey, model
     }
   }
 
-  if (!Array.isArray(arr) || arr.length === 0) return;
-  console.log('[KidsRide] color variants found:', arr.length, 'via', usedStrategy);
-  if (arr.length <= 1) return;
+  if (!Array.isArray(arr) || arr.length === 0) {
+    console.warn('[KidsRide variants] жодної моделі не знайдено. Заповніть поле "Код моделі для кольорів" в адмінці (напр. 4259) для всіх варіантів.');
+    return;
+  }
+  console.log('[KidsRide variants] знайдено:', arr.length, 'товарів через стратегію:', usedStrategy, arr.map(v => v.sku));
+  if (arr.length <= 1) {
+    console.warn('[KidsRide variants] лише 1 товар відповідає — інші варіанти не знайдено. Перевірте, що у решти товарів того ж кольорового ряду заповнено model_code або однаковий префікс SKU.');
+    return;
+  }
 
   // Сортуємо: спершу за SKU цілком (літери), потім за числовим суфіксом, щоб
   // M 4259EBLR-1, -2, -3, потім M 4259EBLRS-3 ішли в логічному порядку.
