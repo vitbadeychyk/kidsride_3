@@ -13,22 +13,53 @@ body{font-family:'Manrope',sans-serif;color:var(--text);background:var(--bg);min
 img{display:block;max-width:100%}
 h1,h2,h3{font-family:'Nunito',sans-serif;font-weight:800}
 a{text-decoration:none;color:inherit}
-.header{background:white;border-bottom:1px solid var(--border);padding:0 40px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
-.logo{display:flex;align-items:center;gap:10px;font-family:'Nunito',sans-serif;font-weight:900;font-size:22px;color:var(--navy)}
-.logo-mark{width:36px;height:36px;background:var(--orange);border-radius:9px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(255,107,53,.3)}
-.logo-mark svg{width:20px;height:20px;stroke:white;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+
+/* ── HEADER (uniform with index.html) ── */
+.header{
+  position:sticky;top:0;left:0;right:0;z-index:1000;
+  height:72px;padding:0 48px;
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(255,255,255,.92);
+  backdrop-filter:blur(20px) saturate(180%);
+  border-bottom:1px solid rgba(232,236,244,.7);
+  transition:box-shadow .3s;
+}
+.header.scrolled{box-shadow:var(--shadow-md)}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:'Nunito',sans-serif;font-weight:900;font-size:24px;color:var(--navy)}
+.logo-mark{width:38px;height:38px;background:var(--orange);border-radius:10px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(255,107,53,.35)}
+.logo-mark svg{width:22px;height:22px;stroke:white;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 .logo span{color:var(--orange)}
-.h-right{display:flex;align-items:center;gap:8px}
-.ic-btn{width:38px;height:38px;border:1.5px solid var(--border);background:white;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;color:var(--text-muted);position:relative;transition:all .2s;text-decoration:none}
-.ic-btn:hover{border-color:var(--orange);color:var(--orange)}
-.ic-btn svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.badge{position:absolute;top:4px;right:4px;width:16px;height:16px;background:var(--orange);border-radius:50%;font-size:9px;font-weight:700;color:white;display:flex;align-items:center;justify-content:center;font-family:'Nunito',sans-serif}
+nav{display:flex;gap:2px}
+nav a{text-decoration:none;color:var(--text-muted);font-weight:600;font-size:14px;padding:8px 14px;border-radius:8px;transition:all .2s}
+nav a:hover{color:var(--navy);background:var(--bg-soft)}
+nav a.active{color:var(--orange)}
+.h-right{display:flex;align-items:center;gap:6px}
+.ic-btn{width:40px;height:40px;border:none;background:none;cursor:pointer;border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);transition:all .2s;position:relative;text-decoration:none}
+.ic-btn:hover{background:var(--bg-soft);color:var(--navy)}
+.ic-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ic-btn .badge{position:absolute;top:4px;right:4px;width:18px;height:18px;background:var(--orange);border-radius:50%;font-size:10px;font-weight:700;color:white;display:flex;align-items:center;justify-content:center;font-family:'Nunito',sans-serif}
+.btn-login{display:inline-flex;align-items:center;gap:6px;background:var(--orange);color:white;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;padding:9px 18px;border-radius:10px;margin-left:6px;text-decoration:none;box-shadow:0 4px 16px rgba(255,107,53,.3);transition:all .25s cubic-bezier(.34,1.56,.64,1)}
+.btn-login:hover{background:var(--orange-dark);transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,107,53,.4)}
+
+/* Mobile burger */
+.mobile-burger{display:none;align-items:center;gap:8px;background:none;border:none;cursor:pointer;padding:8px 10px;border-radius:8px;color:var(--navy)}
+.mobile-burger:hover{background:var(--bg-soft)}
+.burger-lines{display:flex;flex-direction:column;gap:4px;width:18px}
+.burger-lines span{display:block;height:2px;background:var(--navy);border-radius:2px}
+.burger-label{font-size:13px;font-weight:700;font-family:'Nunito',sans-serif}
+.mobile-menu{position:fixed;top:72px;left:0;right:0;background:white;box-shadow:var(--shadow-md);padding:16px 20px;display:none;flex-direction:column;gap:4px;z-index:999;border-bottom:1px solid var(--border)}
+.mobile-menu.open{display:flex}
+.mobile-menu a{padding:12px 14px;border-radius:8px;font-weight:600;font-size:15px;color:var(--text-muted)}
+.mobile-menu a.active{color:var(--orange)}
+.mobile-menu a:hover{background:var(--bg-soft);color:var(--navy)}
+
 .calc-hero{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-light) 100%);padding:48px 40px;text-align:center;position:relative;overflow:hidden}
 .calc-hero::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,.04) 1px,transparent 1px);background-size:32px 32px}
-.calc-hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:100px;padding:6px 16px;font-size:12px;font-weight:600;color:white;margin-bottom:16px}
-.calc-hero-title{font-size:clamp(24px,4vw,40px);color:white;line-height:1.2;margin-bottom:10px}
+.calc-hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:100px;padding:6px 16px;font-size:12px;font-weight:600;color:white;margin-bottom:16px;position:relative;z-index:1}
+.calc-hero-title{font-size:clamp(24px,4vw,40px);color:white;line-height:1.2;margin-bottom:10px;position:relative;z-index:1}
 .calc-hero-title em{font-style:normal;color:var(--orange)}
-.calc-hero-desc{font-size:15px;color:rgba(255,255,255,.65);max-width:500px;margin:0 auto}
+.calc-hero-desc{font-size:15px;color:rgba(255,255,255,.65);max-width:540px;margin:0 auto;position:relative;z-index:1}
+.calc-hero-desc strong{color:white;font-weight:700}
 .wizard-wrap{max-width:820px;margin:0 auto;padding:32px 24px 64px}
 .wizard-progress{background:white;border-radius:var(--r-lg);padding:24px 28px;margin-bottom:24px;box-shadow:var(--shadow-sm);border:1px solid var(--border)}
 .wp-steps{display:flex;align-items:center;margin-bottom:16px}
@@ -96,15 +127,12 @@ a{text-decoration:none;color:inherit}
 .rs-tag{display:inline-flex;align-items:center;gap:6px;background:white;border:1px solid var(--border);border-radius:100px;padding:6px 14px;font-size:12px;font-weight:600;color:var(--navy)}
 .rs-tag svg{width:13px;height:13px;stroke:var(--orange);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .results-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
-.res-card{background:white;border-radius:var(--r);border:1.5px solid var(--border);overflow:hidden;transition:all .3s cubic-bezier(.34,1.56,.64,1);animation:fadeUp .4s ease both}
-.res-card:nth-child(1){animation-delay:.0s}
-.res-card:nth-child(2){animation-delay:.1s}
-.res-card:nth-child(3){animation-delay:.2s}
-.res-card:nth-child(4){animation-delay:.3s}
+.res-card{background:white;border-radius:var(--r);border:1.5px solid var(--border);overflow:hidden;transition:all .3s cubic-bezier(.34,1.56,.64,1);animation:fadeUp .4s ease both;position:relative}
 .res-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg);border-color:transparent}
 .res-card.best{border-color:var(--orange)}
 .res-best-badge{position:absolute;top:12px;left:12px;background:var(--orange);color:white;border-radius:6px;padding:4px 10px;font-family:'Nunito',sans-serif;font-size:11px;font-weight:800;z-index:2}
-.res-img{aspect-ratio:16/10;display:flex;align-items:center;justify-content:center;position:relative}
+.res-img{aspect-ratio:16/10;display:flex;align-items:center;justify-content:center;position:relative;background:#f0f2f7;overflow:hidden}
+.res-img img{width:100%;height:100%;object-fit:cover}
 .res-img svg{width:72%}
 .res-body{padding:16px 20px 20px}
 .res-brand{font-size:10px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px}
@@ -124,8 +152,17 @@ a{text-decoration:none;color:inherit}
 .btn-cart-sm svg{width:16px;height:16px;stroke:white;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .restart-btn{display:block;margin:28px auto 0;font-size:13px}
 @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:1024px){
+  .header{padding:0 24px}
+  nav a{padding:8px 10px;font-size:13px}
+}
+@media(max-width:880px){
+  nav{display:none}
+  .mobile-burger{display:flex}
+}
 @media(max-width:768px){
-  .header{height:58px;padding:0 16px}
+  .header{height:64px;padding:0 16px}
+  .mobile-menu{top:64px}
   .calc-hero{padding:32px 20px}
   .wizard-wrap{padding:20px 16px 80px}
   .step-card{padding:24px 18px}
@@ -133,6 +170,7 @@ a{text-decoration:none;color:inherit}
   .options-grid.cols-3{grid-template-columns:repeat(2,1fr)}
   .results-grid{grid-template-columns:1fr}
   .wp-step-info{display:none}
+  .btn-login{display:none}
 }
 @media(max-width:480px){
   .options-grid.cols-2{grid-template-columns:1fr}
@@ -141,27 +179,52 @@ a{text-decoration:none;color:inherit}
 </style>
 </head>
 <body>
-<header class="header">
+
+<!-- HEADER -->
+<header class="header" id="hdr">
   <a href="index.html" class="logo">
-    <div class="logo-mark"><svg viewBox="0 0 24 24"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect x="9" y="11" width="14" height="10" rx="2"/><circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/></svg></div>
-    Kids<span>Ride</span>
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect x="9" y="11" width="14" height="10" rx="2"/><circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/></svg>
+    </div>
+    <span style="color:inherit">Kids<span>Ride</span></span>
   </a>
+  <nav>
+    <a href="index.html">Головна</a>
+    <a href="catalog.html">Каталог</a>
+    <a href="calculator.html" class="active">Підбір</a>
+    <a href="compare.html">Порівняння</a>
+    <a href="index.html#delivery-section">Доставка</a>
+    <a href="index.html#warranty-section">Гарантія</a>
+    <a href="index.html#contacts-section">Контакти</a>
+  </nav>
+  <button class="mobile-burger" id="mobileBurger" onclick="toggleMobileMenu()" aria-label="Меню">
+    <span class="burger-lines"><span></span><span></span><span></span></span>
+    <span class="burger-label">Меню</span>
+  </button>
   <div class="h-right">
-    <a href="catalog.html" style="font-size:13px;font-weight:600;color:var(--text-muted);display:flex;align-items:center;gap:6px;border:1.5px solid var(--border);border-radius:var(--r-sm);padding:8px 14px;background:white;transition:all .2s">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/></svg>
-      Весь каталог
-    </a>
-    <a href="cart.html" class="ic-btn">
+    <a href="cart.html" class="ic-btn" title="Кошик">
       <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-      <span class="badge">0</span>
+      <span class="badge" id="cartBadge">0</span>
     </a>
+    <a href="auth.html" class="btn-login">Увійти</a>
   </div>
 </header>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="index.html">Головна</a>
+  <a href="catalog.html">Каталог</a>
+  <a href="calculator.html" class="active">Підбір</a>
+  <a href="compare.html">Порівняння</a>
+  <a href="index.html#delivery-section">Доставка</a>
+  <a href="index.html#warranty-section">Гарантія</a>
+  <a href="index.html#contacts-section">Контакти</a>
+</div>
+
 <div class="calc-hero">
   <div class="calc-hero-badge">⏱ Займе менше 1 хвилини</div>
   <h1 class="calc-hero-title">Підберемо <em>ідеальний</em><br>електромобіль для вашої дитини</h1>
-  <p class="calc-hero-desc">Відповідайте на 3 питання — отримаєте персональні рекомендації з 809 моделей</p>
+  <p class="calc-hero-desc">Відповідайте на 3 питання — отримаєте персональні рекомендації з <strong id="modelsCount">…</strong> моделей</p>
 </div>
+
 <div class="wizard-wrap">
   <div class="wizard-progress" id="wizardProgress">
     <div class="wp-steps">
@@ -173,46 +236,49 @@ a{text-decoration:none;color:inherit}
     </div>
     <div class="wp-bar-wrap"><div class="wp-bar-fill" id="wpBar" style="width:33%"></div></div>
   </div>
+
   <!-- STEP 1 -->
   <div class="step-card" id="step1">
     <h2 class="step-q">Скільки років вашій дитині?</h2>
     <p class="step-hint">Від віку залежить потужність, розмір та максимальна швидкість</p>
-    <div class="options-grid cols-4">
-      <div class="opt-card" onclick="selectOpt(this,'age','1-2')"><span class="opt-icon">👶</span><div class="opt-title">До 2 років</div><div class="opt-desc">Каталки з батьківською ручкою</div><div class="opt-tag">6V</div></div>
-      <div class="opt-card" onclick="selectOpt(this,'age','2-4')"><span class="opt-icon">🧒</span><div class="opt-title">2 – 4 роки</div><div class="opt-desc">Перші справжні електромобілі</div><div class="opt-tag">12V</div></div>
-      <div class="opt-card" onclick="selectOpt(this,'age','4-7')"><span class="opt-icon">🧒</span><div class="opt-title">4 – 7 років</div><div class="opt-desc">Джипи, квадроцикли, мотоцикли</div><div class="opt-tag">12V</div></div>
-      <div class="opt-card" onclick="selectOpt(this,'age','7-12')"><span class="opt-icon">🧑</span><div class="opt-title">7 – 12 років</div><div class="opt-desc">Потужні моделі для великих</div><div class="opt-tag">24V</div></div>
+    <div class="options-grid cols-3">
+      <div class="opt-card" onclick="selectOpt(this,'age','0-3')"><span class="opt-icon">👶</span><div class="opt-title">До 3 років</div><div class="opt-desc">Перші моделі, м'який старт, безпечна швидкість</div><div class="opt-tag">6V</div></div>
+      <div class="opt-card" onclick="selectOpt(this,'age','3-8')"><span class="opt-icon">🧒</span><div class="opt-title">Від 3 до 8 років</div><div class="opt-desc">Джипи, квадроцикли, мотоцикли, машини</div><div class="opt-tag">12V</div></div>
+      <div class="opt-card" onclick="selectOpt(this,'age','8-13')"><span class="opt-icon">🧑</span><div class="opt-title">Від 8 до 13 років</div><div class="opt-desc">Потужні моделі для впевнених водіїв</div><div class="opt-tag">24V</div></div>
     </div>
     <div class="step-nav"><div></div><button class="btn btn-primary" id="nextBtn1" onclick="goToStep(2)" disabled>Далі <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button></div>
   </div>
+
   <!-- STEP 2 -->
   <div class="step-card" id="step2" style="display:none">
     <h2 class="step-q">Де переважно кататиметься?</h2>
     <p class="step-hint">Це впливає на тип коліс, потужність та кліренс</p>
-    <div class="options-grid cols-3">
-      <div class="opt-card" onclick="selectOpt(this,'surface','indoor')"><div class="opt-icon-svg"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div><div class="opt-title">Вдома / квартира</div><div class="opt-desc">Рівна підлога, паркет або ламінат</div><div class="opt-tag">EVA колеса</div></div>
-      <div class="opt-card" onclick="selectOpt(this,'surface','pavement')"><div class="opt-icon-svg"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div><div class="opt-title">На вулиці (асфальт)</div><div class="opt-desc">Двір, тротуар, паркова доріжка</div><div class="opt-tag">Гумові колеса</div></div>
+    <div class="options-grid cols-2">
+      <div class="opt-card" onclick="selectOpt(this,'surface','pavement')"><div class="opt-icon-svg"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div><div class="opt-title">На вулиці (асфальт)</div><div class="opt-desc">Двір, тротуар, паркова доріжка</div><div class="opt-tag">EVA колеса</div></div>
       <div class="opt-card" onclick="selectOpt(this,'surface','offroad')"><div class="opt-icon-svg"><svg viewBox="0 0 24 24"><path d="M3 17l3-8 3 5 3-3 3 4 3-8"/><path d="M3 21h18"/></svg></div><div class="opt-title">Різні поверхні</div><div class="opt-desc">Трава, бруківка, бездоріжжя</div><div class="opt-tag">4×4 привід</div></div>
     </div>
     <div class="step-nav"><button class="btn btn-ghost" onclick="goToStep(1)"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>Назад</button><button class="btn btn-primary" id="nextBtn2" onclick="goToStep(3)" disabled>Далі <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button></div>
   </div>
+
   <!-- STEP 3 -->
   <div class="step-card" id="step3" style="display:none">
     <h2 class="step-q">Який у вас бюджет?</h2>
     <p class="step-hint">Виберіть максимальну суму — покажемо найкращі варіанти</p>
     <div style="padding:8px 0">
-      <div class="budget-display"><div class="budget-val" id="budgetVal">15 000 ₴</div><div class="budget-label">максимальний бюджет</div></div>
-      <div class="range-wrap"><input type="range" class="range-input" id="budgetRange" min="2000" max="60000" step="500" value="15000" oninput="updateBudget(this.value)"><div class="range-labels"><span>2 000 ₴</span><span>60 000 ₴</span></div></div>
+      <div class="budget-display"><div class="budget-val" id="budgetVal">25 000 ₴</div><div class="budget-label">максимальний бюджет</div></div>
+      <div class="range-wrap"><input type="range" class="range-input" id="budgetRange" min="2000" max="100000" step="500" value="25000" oninput="updateBudget(this.value)"><div class="range-labels"><span>2 000 ₴</span><span>100 000 ₴</span></div></div>
       <div class="budget-presets">
         <button class="budget-preset" onclick="setBudget(5000)">до 5 000 ₴</button>
         <button class="budget-preset" onclick="setBudget(10000)">до 10 000 ₴</button>
-        <button class="budget-preset active" onclick="setBudget(15000)">до 15 000 ₴</button>
-        <button class="budget-preset" onclick="setBudget(25000)">до 25 000 ₴</button>
-        <button class="budget-preset" onclick="setBudget(60000)">Без обмежень</button>
+        <button class="budget-preset" onclick="setBudget(20000)">до 20 000 ₴</button>
+        <button class="budget-preset active" onclick="setBudget(25000)">до 25 000 ₴</button>
+        <button class="budget-preset" onclick="setBudget(50000)">до 50 000 ₴</button>
+        <button class="budget-preset" onclick="setBudget(100000)">Без обмежень</button>
       </div>
     </div>
     <div class="step-nav"><button class="btn btn-ghost" onclick="goToStep(2)"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>Назад</button><button class="btn btn-primary" onclick="showResults()"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>Знайти електромобіль</button></div>
   </div>
+
   <!-- RESULTS -->
   <div class="results-wrap" id="resultsWrap" style="display:none">
     <div class="results-header">
@@ -224,129 +290,357 @@ a{text-decoration:none;color:inherit}
     <button class="btn btn-ghost restart-btn" onclick="restartCalc()"><svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.57"/></svg>Підібрати ще раз</button>
   </div>
 </div>
+
 <script>
-const answers={age:null,surface:null,budget:15000};
-let currentStep=1;
-const products=[
-  {id:1,name:'Каталка M 3241EBL',brand:'Bambi Racer',price:3200,specs:['1–3 р.','6V','Ручка'],color:'#FFE4D6,#ffd0b5',match_age:{'1-2':98,'2-4':75,'4-7':10,'7-12':0},match_surface:{'indoor':95,'pavement':80,'offroad':40},svg:'<svg viewBox="0 0 200 140"><rect x="20" y="60" width="160" height="50" rx="12" fill="#FFB085"/><rect x="40" y="35" width="100" height="40" rx="8" fill="#FFC49A"/><rect x="45" y="40" width="40" height="26" rx="4" fill="#90CAF9" opacity=".5"/><circle cx="50" cy="115" r="16" fill="#5D4037"/><circle cx="50" cy="115" r="8" fill="#FF6B35" opacity=".6"/><circle cx="150" cy="115" r="16" fill="#5D4037"/><circle cx="150" cy="115" r="8" fill="#FF6B35" opacity=".6"/><line x1="100" y1="35" x2="100" y2="5" stroke="#9ca3af" stroke-width="3"/><rect x="90" y="2" width="20" height="10" rx="3" fill="#e0e0e0"/></svg>'},
-  {id:2,name:'Джип M 3804EBLR',brand:'Bambi Racer',price:17224,specs:['4–8 р.','12V','4×45W','2.4G'],color:'#E8ECF7,#c8d0ea',match_age:{'1-2':0,'2-4':60,'4-7':98,'7-12':85},match_surface:{'indoor':60,'pavement':95,'offroad':88},svg:'<svg viewBox="0 0 200 140"><rect x="14" y="62" width="172" height="50" rx="12" fill="#c8d0ea"/><rect x="38" y="32" width="108" height="46" rx="10" fill="#d0d8f0"/><rect x="43" y="37" width="46" height="28" rx="5" fill="#90CAF9" opacity=".5"/><rect x="96" y="37" width="44" height="28" rx="5" fill="#90CAF9" opacity=".45"/><rect x="154" y="60" width="28" height="30" rx="4" fill="#c0c8e0"/><circle cx="52" cy="116" r="20" fill="#2d3748"/><circle cx="52" cy="116" r="11" fill="#FF6B35" opacity=".6"/><circle cx="148" cy="116" r="20" fill="#2d3748"/><circle cx="148" cy="116" r="11" fill="#FF6B35" opacity=".6"/></svg>'},
-  {id:3,name:'Квадроцикл M 4795EBLR',brand:'Bambi Racer',price:12210,specs:['3–8 р.','12V','EVA'],color:'#EEF0FF,#d6dcff',match_age:{'1-2':0,'2-4':80,'4-7':95,'7-12':70},match_surface:{'indoor':70,'pavement':90,'offroad':85},svg:'<svg viewBox="0 0 200 140"><rect x="40" y="58" width="120" height="40" rx="8" fill="#9FA8DA"/><rect x="56" y="34" width="88" height="38" rx="8" fill="#B0BAE0"/><rect x="62" y="39" width="36" height="22" rx="4" fill="#90CAF9" opacity=".5"/><rect x="102" y="39" width="30" height="22" rx="4" fill="#90CAF9" opacity=".45"/><circle cx="54" cy="106" r="20" fill="#2d4270" opacity=".9"/><circle cx="54" cy="106" r="11" fill="#FF6B35" opacity=".6"/><circle cx="146" cy="106" r="20" fill="#2d4270" opacity=".9"/><circle cx="146" cy="106" r="11" fill="#FF6B35" opacity=".6"/></svg>'},
-  {id:4,name:'Мотоцикл M 4274EL',brand:'Bambi Racer',price:8114,specs:['3–8 р.','12V','MP3'],color:'#FFF8E1,#ffecb3',match_age:{'1-2':0,'2-4':78,'4-7':92,'7-12':65},match_surface:{'indoor':80,'pavement':88,'offroad':55},svg:'<svg viewBox="0 0 200 140"><circle cx="52" cy="106" r="24" fill="#2d3748"/><circle cx="52" cy="106" r="14" fill="#FF6B35" opacity=".5"/><circle cx="148" cy="106" r="24" fill="#2d3748"/><circle cx="148" cy="106" r="14" fill="#FF6B35" opacity=".5"/><path d="M52 80 Q76 46 120 50 L148 80 Q122 84 92 82 Z" fill="#FFC107" opacity=".8"/><rect x="84" y="44" width="32" height="18" rx="4" fill="#90CAF9" opacity=".5"/></svg>'},
-  {id:5,name:'Трактор M 4419EBLR',brand:'Bambi Racer',price:10231,specs:['2–7 р.','12V','Причеп'],color:'#EDFFF5,#d5f5e5',match_age:{'1-2':0,'2-4':85,'4-7':90,'7-12':60},match_surface:{'indoor':55,'pavement':85,'offroad':80},svg:'<svg viewBox="0 0 200 140"><rect x="72" y="52" width="108" height="50" rx="8" fill="#66BB6A"/><rect x="76" y="28" width="64" height="40" rx="7" fill="#81C784"/><rect x="80" y="33" width="28" height="28" rx="4" fill="#A5D6A7" opacity=".6"/><circle cx="96" cy="110" r="26" fill="#2E7D32"/><circle cx="96" cy="110" r="15" fill="#27AE60" opacity=".5"/><circle cx="164" cy="112" r="18" fill="#2E7D32"/><circle cx="164" cy="112" r="10" fill="#27AE60" opacity=".5"/><rect x="16" y="72" width="56" height="32" rx="7" fill="#66BB6A"/></svg>'},
-  {id:6,name:'Джип PROF1 SPORT 24V',brand:'PROF1',price:24890,specs:['6–12 р.','24V','4 мотори'],color:'#E8F5E9,#c8e6c9',match_age:{'1-2':0,'2-4':0,'4-7':70,'7-12':98},match_surface:{'indoor':50,'pavement':95,'offroad':92},svg:'<svg viewBox="0 0 200 140"><rect x="10" y="58" width="180" height="54" rx="14" fill="#81C784"/><rect x="28" y="28" width="126" height="46" rx="11" fill="#A5D6A7"/><rect x="33" y="33" width="54" height="32" rx="5" fill="#90CAF9" opacity=".5"/><rect x="93" y="33" width="50" height="32" rx="5" fill="#90CAF9" opacity=".45"/><circle cx="46" cy="118" r="18" fill="#1B5E20"/><circle cx="46" cy="118" r="10" fill="#27AE60" opacity=".6"/><circle cx="154" cy="118" r="18" fill="#1B5E20"/><circle cx="154" cy="118" r="10" fill="#27AE60" opacity=".6"/></svg>'},
-  {id:7,name:'Машина M 4140EBLR',brand:'Bambi Racer',price:12120,specs:['3–6 р.','12V','2.4G'],color:'#FCE4EC,#f8bbd0',match_age:{'1-2':0,'2-4':88,'4-7':90,'7-12':55},match_surface:{'indoor':85,'pavement':88,'offroad':50},svg:'<svg viewBox="0 0 200 140"><rect x="16" y="60" width="168" height="52" rx="12" fill="#F48FB1"/><rect x="36" y="32" width="116" height="44" rx="10" fill="#F8BBD0"/><rect x="41" y="37" width="48" height="30" rx="5" fill="#90CAF9" opacity=".5"/><rect x="96" y="37" width="48" height="30" rx="5" fill="#90CAF9" opacity=".45"/><circle cx="50" cy="116" r="18" fill="#880E4F" opacity=".5"/><circle cx="50" cy="116" r="10" fill="#e91e63" opacity=".4"/><circle cx="150" cy="116" r="18" fill="#880E4F" opacity=".5"/><circle cx="150" cy="116" r="10" fill="#e91e63" opacity=".4"/></svg>'},
-  {id:8,name:'Баггі EL CAMINO Buggy',brand:'EL CAMINO',price:18500,specs:['4–10 р.','24V','Позашляховик'],color:'#FFF8E1,#ffecb3',match_age:{'1-2':0,'2-4':40,'4-7':88,'7-12':95},match_surface:{'indoor':40,'pavement':85,'offroad':98},svg:'<svg viewBox="0 0 200 140"><rect x="18" y="60" width="164" height="48" rx="14" fill="#FFC107"/><rect x="32" y="32" width="110" height="42" rx="11" fill="#FFD54F"/><rect x="36" y="37" width="46" height="28" rx="5" fill="#90CAF9" opacity=".5"/><rect x="86" y="37" width="44" height="28" rx="5" fill="#90CAF9" opacity=".45"/><circle cx="48" cy="112" r="22" fill="#4E342E"/><circle cx="48" cy="112" r="12" fill="#FF8F00" opacity=".7"/><circle cx="152" cy="112" r="22" fill="#4E342E"/><circle cx="152" cy="112" r="12" fill="#FF8F00" opacity=".7"/></svg>'}
-];
+// ── SUPABASE CONFIG ─────────────────────────────────────────
+const SUPABASE_URL = 'https://xczrzdbikkycgpnvolib.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
 
-function selectOpt(el,field,value){
-  el.closest('.options-grid').querySelectorAll('.opt-card').forEach(c=>c.classList.remove('selected'));
+// ── STATE ────────────────────────────────────────────────────
+const answers = { age: null, surface: null, budget: 25000 };
+let currentStep = 1;
+let allProducts = [];
+
+// Категорії, які вважаємо "електромобілями" (для лічильника та підбору)
+const EV_CATEGORIES = ['jeep','car','quad','moto','tractor','truck','buggy'];
+
+// Карта віку → діапазон років та "ідеальна" напруга
+const AGE_RANGES = {
+  '0-3':  { min: 0, max: 3,  voltage: '6V'  },
+  '3-8':  { min: 3, max: 8,  voltage: '12V' },
+  '8-13': { min: 8, max: 13, voltage: '24V' }
+};
+
+// Підказки для категорій під різні поверхні
+// pavement (асфальт) — підходить все, легкі моделі трохи краще
+// offroad (різні поверхні) — джипи, квадроцикли, баггі, трактори
+const SURFACE_PREFS = {
+  pavement: { jeep: 90, car: 100, quad: 95, moto: 90, tractor: 70, truck: 75, buggy: 85 },
+  offroad:  { jeep: 100, car: 55, quad: 100, moto: 70, tractor: 90, truck: 85, buggy: 100 }
+};
+
+// SVG fallback для карток (якщо у товара немає фото)
+const SVG_BY_TYPE = {
+  jeep:    '<svg viewBox="0 0 200 140"><rect x="14" y="62" width="172" height="50" rx="12" fill="#c8d0ea"/><rect x="38" y="32" width="108" height="46" rx="10" fill="#d0d8f0"/><rect x="43" y="37" width="46" height="28" rx="5" fill="#90CAF9" opacity=".5"/><rect x="96" y="37" width="44" height="28" rx="5" fill="#90CAF9" opacity=".45"/><circle cx="52" cy="116" r="20" fill="#2d3748"/><circle cx="52" cy="116" r="11" fill="#FF6B35" opacity=".6"/><circle cx="148" cy="116" r="20" fill="#2d3748"/><circle cx="148" cy="116" r="11" fill="#FF6B35" opacity=".6"/></svg>',
+  car:     '<svg viewBox="0 0 200 140"><rect x="16" y="60" width="168" height="52" rx="12" fill="#F48FB1"/><rect x="36" y="32" width="116" height="44" rx="10" fill="#F8BBD0"/><rect x="41" y="37" width="48" height="30" rx="5" fill="#90CAF9" opacity=".5"/><rect x="96" y="37" width="48" height="30" rx="5" fill="#90CAF9" opacity=".45"/><circle cx="50" cy="116" r="18" fill="#880E4F" opacity=".6"/><circle cx="150" cy="116" r="18" fill="#880E4F" opacity=".6"/></svg>',
+  quad:    '<svg viewBox="0 0 200 140"><rect x="40" y="58" width="120" height="40" rx="8" fill="#9FA8DA"/><rect x="56" y="34" width="88" height="38" rx="8" fill="#B0BAE0"/><circle cx="54" cy="106" r="20" fill="#2d4270"/><circle cx="146" cy="106" r="20" fill="#2d4270"/></svg>',
+  moto:    '<svg viewBox="0 0 200 140"><circle cx="52" cy="106" r="24" fill="#2d3748"/><circle cx="148" cy="106" r="24" fill="#2d3748"/><path d="M52 80 Q76 46 120 50 L148 80 Q122 84 92 82 Z" fill="#FFC107" opacity=".8"/></svg>',
+  tractor: '<svg viewBox="0 0 200 140"><rect x="72" y="52" width="108" height="50" rx="8" fill="#66BB6A"/><circle cx="96" cy="110" r="26" fill="#2E7D32"/><circle cx="164" cy="112" r="18" fill="#2E7D32"/></svg>',
+  truck:   '<svg viewBox="0 0 200 140"><rect x="14" y="58" width="100" height="50" rx="8" fill="#90A4AE"/><rect x="120" y="42" width="68" height="66" rx="8" fill="#B0BEC5"/><circle cx="42" cy="116" r="14" fill="#263238"/><circle cx="98" cy="116" r="14" fill="#263238"/><circle cx="158" cy="116" r="14" fill="#263238"/></svg>',
+  buggy:   '<svg viewBox="0 0 200 140"><rect x="18" y="60" width="164" height="48" rx="14" fill="#FFC107"/><rect x="32" y="32" width="110" height="42" rx="11" fill="#FFD54F"/><circle cx="48" cy="112" r="22" fill="#4E342E"/><circle cx="152" cy="112" r="22" fill="#4E342E"/></svg>',
+  walker:  '<svg viewBox="0 0 200 140"><rect x="20" y="60" width="160" height="50" rx="12" fill="#FFB085"/><circle cx="50" cy="115" r="16" fill="#5D4037"/><circle cx="150" cy="115" r="16" fill="#5D4037"/></svg>'
+};
+const BG_BY_TYPE = {
+  jeep:'#E8ECF7,#c8d0ea', car:'#FCE4EC,#f8bbd0', quad:'#EEF0FF,#d6dcff', moto:'#FFF8E1,#ffecb3',
+  tractor:'#EDFFF5,#d5f5e5', truck:'#ECEFF1,#cfd8dc', buggy:'#FFF8E1,#ffecb3', walker:'#FFE4D6,#ffd0b5',
+  default:'#F0F2F8,#e1e6f2'
+};
+
+// ── ЗАВАНТАЖЕННЯ ТОВАРІВ ────────────────────────────────────
+async function loadProducts() {
+  try {
+    const res = await fetch(
+      SUPABASE_URL + '/rest/v1/products?select=*&active=eq.true&order=sort_order.asc,created_at.desc',
+      {
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': 'Bearer ' + SUPABASE_KEY,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    if (!res.ok) throw new Error('Supabase ' + res.status);
+    const data = await res.json();
+    allProducts = (data || []).map(p => ({
+      id: p.id,
+      sku: p.sku,
+      name: p.name,
+      brand: p.brand || 'Bambi Racer',
+      price: parseFloat(p.price) || 0,
+      oldPrice: p.old_price ? parseFloat(p.old_price) : null,
+      category: p.category || 'jeep',
+      voltage: (p.voltage || '12V').toUpperCase().replace(/\s+/g,''),
+      age: p.age_range || '3-8',
+      stock: p.stock || 0,
+      preorderDays: p.preorder_days || 0,
+      img: p.img_type || p.category || 'jeep',
+      images: Array.isArray(p.images) ? p.images : []
+    }));
+  } catch (e) {
+    console.warn('Не вдалося завантажити товари з Supabase:', e.message);
+    // Пробуємо взяти з localStorage (зберігається з catalog.html)
+    try {
+      const saved = JSON.parse(localStorage.getItem('kr_products') || '[]');
+      if (saved.length > 0) allProducts = saved;
+    } catch(_){}
+  }
+  updateModelsCount();
+  updateCartBadge();
+}
+
+function updateModelsCount() {
+  const el = document.getElementById('modelsCount');
+  if (!el) return;
+  const evCount = allProducts.filter(p => EV_CATEGORIES.includes(p.category)).length;
+  el.textContent = evCount > 0 ? evCount.toLocaleString('uk-UA') : '—';
+}
+
+function updateCartBadge() {
+  try {
+    const cart = JSON.parse(localStorage.getItem('kr_cart') || '[]');
+    const n = Array.isArray(cart) ? cart.reduce((s,i)=>s+(i.qty||1),0) : 0;
+    const b = document.getElementById('cartBadge');
+    if (b) b.textContent = n;
+  } catch(_){}
+}
+
+// ── ВЗАЄМОДІЯ З КРОКАМИ ─────────────────────────────────────
+function selectOpt(el, field, value) {
+  el.closest('.options-grid').querySelectorAll('.opt-card').forEach(c => c.classList.remove('selected'));
   el.classList.add('selected');
-  answers[field]=value;
-  if(field==='age')document.getElementById('nextBtn1').disabled=false;
-  if(field==='surface')document.getElementById('nextBtn2').disabled=false;
+  answers[field] = value;
+  if (field === 'age') document.getElementById('nextBtn1').disabled = false;
+  if (field === 'surface') document.getElementById('nextBtn2').disabled = false;
 }
 
-function goToStep(step){
-  document.getElementById('step'+currentStep).style.display='none';
-  currentStep=step;
-  document.getElementById('step'+step).style.display='block';
+function goToStep(step) {
+  document.getElementById('step' + currentStep).style.display = 'none';
+  currentStep = step;
+  document.getElementById('step' + step).style.display = 'block';
   updateProgress(step);
-  window.scrollTo({top:0,behavior:'smooth'});
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function updateProgress(step){
-  const pct={1:33,2:66,3:100};
-  document.getElementById('wpBar').style.width=pct[step]+'%';
-  [1,2,3].forEach(i=>{
-    const el=document.getElementById('ws'+i);
-    if(i<step){el.className='wp-step done';el.querySelector('.wp-step-num').innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';}
-    else if(i===step){el.className='wp-step active';el.querySelector('.wp-step-num').textContent=i;}
-    else{el.className='wp-step pending';el.querySelector('.wp-step-num').textContent=i;}
+function updateProgress(step) {
+  const pct = { 1: 33, 2: 66, 3: 100 };
+  document.getElementById('wpBar').style.width = pct[step] + '%';
+  [1,2,3].forEach(i => {
+    const el = document.getElementById('ws' + i);
+    if (i < step) {
+      el.className = 'wp-step done';
+      el.querySelector('.wp-step-num').innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+    } else if (i === step) {
+      el.className = 'wp-step active';
+      el.querySelector('.wp-step-num').textContent = i;
+    } else {
+      el.className = 'wp-step pending';
+      el.querySelector('.wp-step-num').textContent = i;
+    }
   });
-  [1,2].forEach(i=>{document.getElementById('wc'+i).className='wp-connector '+(i<step?'done':'pending');});
+  [1,2].forEach(i => {
+    document.getElementById('wc' + i).className = 'wp-connector ' + (i < step ? 'done' : 'pending');
+  });
 }
 
-function updateBudget(val){
-  answers.budget=parseInt(val);
-  document.getElementById('budgetVal').textContent=parseInt(val).toLocaleString('uk-UA')+' ₴';
-  const pct=((val-2000)/(60000-2000))*100;
-  document.getElementById('budgetRange').style.background=`linear-gradient(to right,var(--orange) 0%,var(--orange) ${pct}%,var(--border) ${pct}%,var(--border) 100%)`;
-  document.querySelectorAll('.budget-preset').forEach(b=>b.classList.remove('active'));
+function updateBudget(val) {
+  answers.budget = parseInt(val);
+  document.getElementById('budgetVal').textContent = parseInt(val).toLocaleString('uk-UA') + ' ₴';
+  const pct = ((val - 2000) / (100000 - 2000)) * 100;
+  document.getElementById('budgetRange').style.background =
+    `linear-gradient(to right,var(--orange) 0%,var(--orange) ${pct}%,var(--border) ${pct}%,var(--border) 100%)`;
+  document.querySelectorAll('.budget-preset').forEach(b => b.classList.remove('active'));
 }
 
-function setBudget(val){
-  answers.budget=val;
-  document.getElementById('budgetRange').value=val;
+function setBudget(val) {
+  answers.budget = val;
+  document.getElementById('budgetRange').value = val;
   updateBudget(val);
-  document.querySelectorAll('.budget-preset').forEach(b=>{
-    const txt=b.textContent;
-    const isMatch=(val===60000&&txt==='Без обмежень')||(txt.includes(val.toLocaleString('uk-UA')));
-    b.classList.toggle('active',isMatch);
+  document.querySelectorAll('.budget-preset').forEach(b => {
+    const txt = b.textContent;
+    const isMatch = (val === 100000 && txt === 'Без обмежень') || txt.includes(val.toLocaleString('uk-UA'));
+    b.classList.toggle('active', isMatch);
   });
 }
 
-function showResults(){
-  document.getElementById('step3').style.display='none';
-  document.getElementById('wizardProgress').style.display='none';
-  document.getElementById('resultsWrap').style.display='block';
-  const scored=products
-    .filter(p=>p.price<=answers.budget)
-    .map(p=>{
-      const ageScore = answers.age ? (p.match_age[answers.age]||0) : 50;
-      const surfScore = answers.surface ? (p.match_surface[answers.surface]||0) : 50;
-      const s=Math.round(ageScore*.6+surfScore*.4);
-      return{...p,score:s};
-    })
-    .filter(p=>p.score>20)
-    .sort((a,b)=>b.score-a.score)
-    .slice(0,4);
-  const ageL={'1-2':'До 2 років','2-4':'2–4 роки','4-7':'4–7 років','7-12':'7–12 років'};
-  const surfL={'indoor':'Вдома','pavement':'На вулиці','offroad':'Позашляховик'};
-  document.getElementById('resultsSummary').innerHTML=[
-    `<div class="rs-tag"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${ageL[answers.age]}</div>`,
-    `<div class="rs-tag"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${surfL[answers.surface]}</div>`,
+// ── ПІДРАХУНОК СУМІСНОСТІ ───────────────────────────────────
+function ageScore(product) {
+  const range = AGE_RANGES[answers.age];
+  if (!range) return 50;
+
+  // 1) Бал за збігом напруги
+  const v = String(product.voltage || '').toUpperCase().replace(/\s+/g,'');
+  let voltScore = 50;
+  if (v === range.voltage) voltScore = 100;
+  else if ((range.voltage === '6V'  && v === '12V') ||
+           (range.voltage === '12V' && (v === '6V'  || v === '24V')) ||
+           (range.voltage === '24V' && v === '12V')) voltScore = 60;
+  else voltScore = 25;
+
+  // 2) Бал за перетином діапазону віку
+  const m = String(product.age || '').match(/(\d+)\s*[-–—]?\s*(\d*)/);
+  let pMin = 0, pMax = 0;
+  if (m) { pMin = +m[1] || 0; pMax = +(m[2] || m[1]); }
+  const overlap = Math.max(0, Math.min(pMax, range.max) - Math.max(pMin, range.min));
+  const span = Math.max(1, range.max - range.min);
+  const ageOverlapScore = Math.min(100, (overlap / span) * 100 + (overlap > 0 ? 30 : 0));
+
+  return Math.round(voltScore * 0.6 + ageOverlapScore * 0.4);
+}
+
+function surfaceScore(product) {
+  const prefs = SURFACE_PREFS[answers.surface];
+  if (!prefs) return 70;
+  return prefs[product.category] != null ? prefs[product.category] : 60;
+}
+
+function fitsAge(product) {
+  // Жорсткий фільтр: товар має хоча б трохи перетинатися з обраною віковою групою
+  const range = AGE_RANGES[answers.age];
+  if (!range) return true;
+  const m = String(product.age || '').match(/(\d+)\s*[-–—]?\s*(\d*)/);
+  if (!m) return true;
+  const pMin = +m[1] || 0;
+  const pMax = +(m[2] || m[1]);
+  return pMax >= range.min && pMin <= range.max;
+}
+
+// ── ПОКАЗ РЕЗУЛЬТАТІВ ───────────────────────────────────────
+function showResults() {
+  document.getElementById('step3').style.display = 'none';
+  document.getElementById('wizardProgress').style.display = 'none';
+  document.getElementById('resultsWrap').style.display = 'block';
+
+  // Жорсткі фільтри
+  const filtered = (allProducts || []).filter(p => {
+    if (!EV_CATEGORIES.includes(p.category)) return false;       // тільки електромобілі
+    if (p.price > answers.budget) return false;                  // бюджет
+    if (!fitsAge(p)) return false;                               // вік
+    return true;
+  });
+
+  // Підрахунок балу та сортування — БЕЗ обмеження по кількості
+  const scored = filtered.map(p => {
+    const a = ageScore(p);
+    const s = surfaceScore(p);
+    const score = Math.round(a * 0.6 + s * 0.4);
+    return { ...p, score };
+  }).sort((a, b) => b.score - a.score);
+
+  // Підпис вибору
+  const ageL = { '0-3': 'До 3 років', '3-8': 'Від 3 до 8 років', '8-13': 'Від 8 до 13 років' };
+  const surfL = { pavement: 'На вулиці (асфальт)', offroad: 'Різні поверхні' };
+  document.getElementById('resultsSummary').innerHTML = [
+    `<div class="rs-tag"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${ageL[answers.age] || ''}</div>`,
+    `<div class="rs-tag"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${surfL[answers.surface] || ''}</div>`,
     `<div class="rs-tag"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>до ${answers.budget.toLocaleString('uk-UA')} ₴</div>`
   ].join('');
-  if(!scored.length){document.getElementById('resultsGrid').innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;background:white;border-radius:var(--r);border:1.5px solid var(--border)"><h3 style="color:var(--navy);margin-bottom:8px">Не знайдено результатів</h3><p style="color:var(--text-muted);margin-bottom:20px">Спробуйте збільшити бюджет</p><button class="btn btn-primary" onclick="restartCalc()">Спробувати знову</button></div>';return;}
-  document.getElementById('resultsDesc').textContent='Знайдено '+scored.length+' ідеальних варіанти для вас';
-  document.getElementById('resultsGrid').innerHTML=scored.map((p,i)=>`
-    <div class="res-card${i===0?' best':''}">
-      ${i===0?'<div class="res-best-badge">🏆 Найкраще співпадіння</div>':''}
-      <div class="res-img" style="background:linear-gradient(145deg,${p.color})">${p.svg}</div>
+
+  if (!scored.length) {
+    document.getElementById('resultsDesc').textContent = '';
+    document.getElementById('resultsGrid').innerHTML =
+      '<div style="grid-column:1/-1;text-align:center;padding:40px;background:white;border-radius:var(--r);border:1.5px solid var(--border)">' +
+      '<h3 style="color:var(--navy);margin-bottom:8px">Не знайдено результатів</h3>' +
+      '<p style="color:var(--text-muted);margin-bottom:20px">Спробуйте збільшити бюджет або змінити параметри</p>' +
+      '<button class="btn btn-primary" onclick="restartCalc()">Спробувати знову</button></div>';
+    return;
+  }
+
+  document.getElementById('resultsDesc').textContent =
+    'Знайдено ' + scored.length + ' ' + plural(scored.length, ['модель','моделі','моделей']) + ', що підходять вашим критеріям';
+
+  document.getElementById('resultsGrid').innerHTML = scored.map((p, i) => {
+    const photo = (p.images && p.images[0]) ? p.images[0] : '';
+    const visual = photo
+      ? `<img src="${escAttr(photo)}" alt="${escAttr(p.name)}" loading="lazy">`
+      : (SVG_BY_TYPE[p.img] || SVG_BY_TYPE.jeep);
+    const bg = photo ? '#fff' : `linear-gradient(145deg,${BG_BY_TYPE[p.img] || BG_BY_TYPE.default})`;
+    const specs = [];
+    if (p.age) specs.push(p.age + ' р.');
+    if (p.voltage) specs.push(p.voltage);
+    return `
+    <div class="res-card${i === 0 ? ' best' : ''}">
+      ${i === 0 ? '<div class="res-best-badge">🏆 Найкраще співпадіння</div>' : ''}
+      <div class="res-img" style="background:${bg}">${visual}</div>
       <div class="res-body">
-        <div class="res-brand">${p.brand}</div>
-        <div class="res-name">${p.name}</div>
+        <div class="res-brand">${escHtml(p.brand)}</div>
+        <div class="res-name">${escHtml(p.name)}</div>
         <div class="res-match">
           <div class="res-match-bar"><div class="res-match-fill" style="width:${p.score}%"></div></div>
           <div class="res-match-pct" style="color:${p.score>=80?'var(--green)':p.score>=60?'var(--orange)':'var(--text-muted)'}">${p.score}%</div>
         </div>
-        <div class="res-specs">${p.specs.map(s=>`<span class="res-spec">${s}</span>`).join('')}</div>
+        <div class="res-specs">${specs.map(s => `<span class="res-spec">${escHtml(s)}</span>`).join('')}</div>
         <div class="res-bottom">
-          <div class="res-price">${p.price.toLocaleString('uk-UA')} ₴</div>
+          <div class="res-price">${Number(p.price).toLocaleString('uk-UA')} ₴</div>
           <div class="res-actions">
-            <a href="product.html" class="btn btn-ghost btn-sm" style="font-size:12px;padding:8px 14px">Детальніше</a>
-            <button class="btn-cart-sm" onclick="this.style.background='var(--green)';setTimeout(()=>this.style.background='var(--orange)',1400)">
+            <a href="product.html?id=${encodeURIComponent(p.id)}" class="btn btn-ghost btn-sm" style="font-size:12px;padding:8px 14px">Детальніше</a>
+            <button class="btn-cart-sm" onclick="addToCart('${escAttr(p.id)}', this)" title="Додати в кошик">
               <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
             </button>
           </div>
         </div>
       </div>
-    </div>`).join('');
-  window.scrollTo({top:0,behavior:'smooth'});
+    </div>`;
+  }).join('');
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function restartCalc(){
-  answers.age=null;answers.surface=null;answers.budget=15000;
-  currentStep=1;
-  document.getElementById('resultsWrap').style.display='none';
-  document.getElementById('wizardProgress').style.display='block';
-  ['step1','step2','step3'].forEach((id,i)=>document.getElementById(id).style.display=i===0?'block':'none');
-  document.querySelectorAll('.opt-card').forEach(c=>c.classList.remove('selected'));
-  document.getElementById('nextBtn1').disabled=true;
-  document.getElementById('nextBtn2').disabled=true;
+function restartCalc() {
+  answers.age = null;
+  answers.surface = null;
+  answers.budget = 25000;
+  currentStep = 1;
+  document.getElementById('resultsWrap').style.display = 'none';
+  document.getElementById('wizardProgress').style.display = 'block';
+  ['step1','step2','step3'].forEach((id, i) =>
+    document.getElementById(id).style.display = i === 0 ? 'block' : 'none'
+  );
+  document.querySelectorAll('.opt-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('nextBtn1').disabled = true;
+  document.getElementById('nextBtn2').disabled = true;
+  setBudget(25000);
   updateProgress(1);
-  window.scrollTo({top:0,behavior:'smooth'});
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
+function addToCart(id, btn) {
+  try {
+    const p = (allProducts || []).find(x => String(x.id) === String(id));
+    if (!p) return;
+    const cart = JSON.parse(localStorage.getItem('kr_cart') || '[]');
+    const existing = cart.find(i => String(i.id) === String(id));
+    if (existing) existing.qty = (existing.qty || 1) + 1;
+    else cart.push({ id: p.id, name: p.name, price: p.price, img: (p.images && p.images[0]) || '', qty: 1 });
+    localStorage.setItem('kr_cart', JSON.stringify(cart));
+    updateCartBadge();
+    if (btn) {
+      btn.style.background = 'var(--green)';
+      setTimeout(() => { btn.style.background = 'var(--orange)'; }, 1400);
+    }
+  } catch(e) { console.warn(e); }
+}
+
+// ── УТИЛІТИ ─────────────────────────────────────────────────
+function plural(n, forms) {
+  const a = Math.abs(n) % 100;
+  const b = a % 10;
+  if (a > 10 && a < 20) return forms[2];
+  if (b > 1 && b < 5)   return forms[1];
+  if (b === 1)          return forms[0];
+  return forms[2];
+}
+function escHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function escAttr(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+}
+function toggleMobileMenu() {
+  document.getElementById('mobileMenu').classList.toggle('open');
+}
+
+// ── СКРОЛ ХЕДЕРА ────────────────────────────────────────────
+window.addEventListener('scroll', () => {
+  const h = document.getElementById('hdr');
+  if (!h) return;
+  if (window.scrollY > 8) h.classList.add('scrolled'); else h.classList.remove('scrolled');
+});
+
+// ── СТАРТ ───────────────────────────────────────────────────
+loadProducts();
 </script>
 </body>
 </html>
