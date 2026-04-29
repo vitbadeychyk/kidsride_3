@@ -697,33 +697,48 @@ tr:hover td{background:rgba(240,242,248,.5)}
           <div class="import-icon" style="background:linear-gradient(135deg,#2196F3,#1976D2)">
             <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.57"/></svg>
           </div>
-          <h3 class="import-title">Синхронізація XML (залишки)</h3>
-          <p class="import-desc">Автоматично оновлює наявність та ціни з XML файлу постачальника. Запускається вручну або кожні 30 хвилин.</p>
+          <h3 class="import-title">Імпорт / синхронізація з XML</h3>
+          <p class="import-desc">Вкажи URL XML-фіду постачальника (формат YML/Prom) — система сама зчитає товари, фото, ціни і запише в базу. Існуючі товари оновляться за артикулом (vendorCode).</p>
           <div class="sync-status">
             <div class="sync-dot" id="syncDot"></div>
             <div class="sync-info">
               <div class="sync-label">Остання синхронізація</div>
-              <div class="sync-time" id="syncTime">Сьогодні о 10:30 · оновлено 247 позицій</div>
+              <div class="sync-time" id="syncTime">Ще не запускалась</div>
             </div>
           </div>
           <div class="import-info">
-            <div class="import-info-title">Що оновлюється</div>
-            <div class="import-col"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>quantity_in_stock → залишок</div>
-            <div class="import-col"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>available (true/false) → наявність</div>
-            <div class="import-col"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>price → закупівельна ціна</div>
-            <div class="import-col"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>old_price, discount → знижки</div>
-            <div class="import-col"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>vendorCode = Код_товару (ключ)</div>
+            <div class="import-info-title">Що зчитується з кожного &lt;item&gt;</div>
+            <div class="import-col"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>vendorCode → артикул (ключ оновлення)</div>
+            <div class="import-col"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>name_ua / name → назва товару</div>
+            <div class="import-col"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>vendor → бренд</div>
+            <div class="import-col"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>price, quantity_in_stock, available</div>
+            <div class="import-col"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>усі &lt;image&gt; → фото галерея</div>
+            <div class="import-col"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>description_ua → опис, &lt;param&gt; → характеристики</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px">
+            <label style="font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em">URL XML постачальника</label>
+            <input type="url" id="xmlSyncUrl" placeholder="https://metr-plus.com.ua/feed/feed.xml"
+                   style="padding:10px 12px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:13px;font-family:inherit;background:#fff">
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--navy);cursor:pointer">
+                <input type="checkbox" id="xmlOnlyUpdate" style="margin:0">
+                Тільки оновлювати наявні (не додавати нові)
+              </label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--navy);cursor:pointer">
+                <input type="checkbox" id="xmlSkipImages" style="margin:0">
+                Не чіпати фото
+              </label>
+            </div>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
             <button class="btn btn-primary" onclick="startXmlSync()">
               <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.57"/></svg>
-              Синхронізувати
+              Запустити імпорт з URL
             </button>
             <div style="display:flex;flex-direction:column;gap:4px">
-              <label style="font-size:11px;color:var(--text-muted);font-weight:600">Або завантажте XML</label>
               <button class="btn btn-outline btn-sm" onclick="document.getElementById('xmlUpload').click()">
                 <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                Завантажити XML
+                Або завантажити .xml файл
               </button>
               <input type="file" id="xmlUpload" accept=".xml" style="display:none" onchange="startXmlImport(this)">
             </div>
@@ -733,12 +748,9 @@ tr:hover td{background:rgba(240,242,248,.5)}
             <div class="progress-text"><span id="xmlStatus">Синхронізація...</span><span id="xmlPct">0%</span></div>
             <div class="import-log" id="xmlLog"></div>
           </div>
-          <div style="margin-top:14px;padding:12px;background:var(--bg);border-radius:var(--r-sm)">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-              <span style="font-size:12px;font-weight:700;color:var(--navy)">Автосинхронізація кожні 30 хв</span>
-              <button class="slide-toggle on" id="autoSyncToggle" onclick="toggleAutoSync(this)"></button>
-            </div>
-            <div style="font-size:11px;color:var(--text-muted)">Наступна синхронізація: <strong>о 11:00</strong></div>
+          <div style="margin-top:14px;padding:12px;background:#fff8e1;border:1px solid #f9d56a;border-radius:var(--r-sm)">
+            <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:4px">⚠️ Якщо браузер блокує (CORS)</div>
+            <div style="font-size:11px;color:var(--text-muted);line-height:1.5">Більшість постачальників не дозволяють пряме читання XML з браузера. Скрипт автоматично пробує через публічний проксі (corsproxy.io). Якщо й це не працює — завантаж файл XML вручну кнопкою вище.</div>
           </div>
         </div>
       </div>
@@ -954,13 +966,17 @@ tr:hover td{background:rgba(240,242,248,.5)}
             <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
               <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('pPhotoInput').click()">
                 <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                Додати фото
+                Завантажити з ПК
+              </button>
+              <button type="button" class="btn btn-outline btn-sm" onclick="productPhotoOpenUrlDialog()">
+                <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                Додати за URL
               </button>
               <button type="button" class="btn btn-outline btn-sm" id="pPhotoClearBtn" onclick="productPhotoClearAll()" style="display:none">
                 <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
                 Очистити всі
               </button>
-              <span style="font-size:11px;color:var(--text-muted);flex:1;min-width:200px">JPG/PNG/WebP, до 1 МБ за файл. Натисніть ★ щоб зробити фото головним, × — щоб видалити.</span>
+              <span style="font-size:11px;color:var(--text-muted);flex:1;min-width:200px">JPG/PNG/WebP, до 1 МБ за файл. Або встав URL'и постачальника через кому / новий рядок. Натисни ★ щоб зробити фото головним, × — щоб видалити.</span>
             </div>
           </div>
         </div>
@@ -2095,67 +2111,292 @@ function handleDrop(e){
 function handleFileUpload(inp){if(inp.files[0]) processSlideFile(inp.files[0])}
 function processSlideFile(file){showToast(`Слайд "${file.name}" завантажено`,'success')}
 
-// ── IMPORT ────────────────────────────────────────────────────────────────
+// ── IMPORT (Excel — заглушка, XML — справжній імпорт у Supabase) ─────────
 function handleExcelDrop(e){
   e.preventDefault();e.currentTarget.classList.remove('drag');
   const files=e.dataTransfer.files;
-  if(files[0]) simulateImport('excel',files[0].name);
+  if(files[0]) simulateExcelImport(files[0].name);
 }
-function startExcelImport(inp){if(inp.files[0]) simulateImport('excel',inp.files[0].name)}
-function startXmlImport(inp){if(inp.files[0]) simulateImport('xml',inp.files[0].name)}
+function startExcelImport(inp){ if(inp.files[0]) simulateExcelImport(inp.files[0].name) }
 
-function startXmlSync(){
-  simulateImport('xml','Постачальник.xml',true);
-  document.getElementById('syncDot').classList.add('syncing');
-}
-
-function simulateImport(type, filename, isSync){
-  const prefix=type==='excel'?'excel':'xml';
-  const progress=document.getElementById(prefix+'Progress');
-  const bar=document.getElementById(prefix+'Bar');
-  const status=document.getElementById(prefix+'Status');
-  const pct=document.getElementById(prefix+'Pct');
-  const log=document.getElementById(prefix+'Log');
-
-  progress.classList.add('show');
-  bar.style.width='0%';
-  log.innerHTML='';
-
-  const msgs=type==='excel'?[
-    {t:300,p:10,msg:'<span class="log-info">📂 Читання файлу '+filename+'...</span>'},
-    {t:800,p:25,msg:'<span class="log-info">🔍 Знайдено 809 рядків...</span>'},
-    {t:1400,p:45,msg:'<span class="log-ok">✓ Оброблено 200/809...</span>'},
-    {t:2100,p:65,msg:'<span class="log-ok">✓ Оброблено 450/809...</span>'},
-    {t:2800,p:82,msg:'<span class="log-ok">✓ Завантаження фото (247 шт)...</span>'},
-    {t:3500,p:95,msg:'<span class="log-ok">✓ Збереження в базу даних...</span>'},
-    {t:4000,p:100,msg:'<span class="log-ok">✅ Імпорт завершено: 809 товарів (387 нових, 422 оновлено)</span>'},
-  ]:[
-    {t:200,p:15,msg:'<span class="log-info">📡 Завантаження XML...</span>'},
-    {t:700,p:35,msg:'<span class="log-info">🔍 Парсинг 2934 товарів...</span>'},
-    {t:1300,p:60,msg:'<span class="log-ok">✓ Оновлено залишки 500/2934...</span>'},
-    {t:2000,p:85,msg:'<span class="log-ok">✓ Оновлено залишки 2000/2934...</span>'},
-    {t:2600,p:100,msg:'<span class="log-ok">✅ Синхронізовано: 809 оновлено, 12 нових</span>'},
-  ];
-
-  msgs.forEach(({t,p,msg})=>{
-    setTimeout(()=>{
-      bar.style.width=p+'%';
-      pct.textContent=p+'%';
-      status.textContent=p<100?'Обробка...':'Завершено';
-      log.innerHTML+=msg+'<br>';
-      log.scrollTop=log.scrollHeight;
-      if(p===100){
-        showToast(type==='excel'?'Імпорт Excel завершено! 809 товарів':'Синхронізація XML завершена!','success');
-        document.getElementById('syncDot')?.classList.remove('syncing');
-        document.getElementById('syncTime').textContent=`Щойно · оновлено 809 позицій`;
-      }
-    },t);
-  });
+function simulateExcelImport(filename){
+  showToast('Excel-імпорт ще не активний. Поки що використай XML-фід або додавай товари вручну.', 'info');
+  const log=document.getElementById('excelLog');
+  const progress=document.getElementById('excelProgress');
+  if (progress) progress.classList.add('show');
+  if (log) log.innerHTML = '<span class="log-info">Файл «'+filename+'» отримано, але Excel-парсер ще не реалізований у цьому модулі.</span>';
 }
 
 function toggleAutoSync(btn){
   btn.classList.toggle('on');
-  showToast(btn.classList.contains('on')?'Автосинхронізація увімкнена':'Автосинхронізація вимкнена');
+  showToast(btn.classList.contains('on')?'Автосинхронізація увімкнена (працює лише на цій вкладці)':'Автосинхронізація вимкнена');
+  if (btn.classList.contains('on')) {
+    if (window._krAutoSyncTimer) clearInterval(window._krAutoSyncTimer);
+    window._krAutoSyncTimer = setInterval(() => { startXmlSync(true); }, 30 * 60 * 1000);
+  } else if (window._krAutoSyncTimer) {
+    clearInterval(window._krAutoSyncTimer);
+    window._krAutoSyncTimer = null;
+  }
+}
+
+// ── XML LOG / PROGRESS ────────────────────────────────────────────────────
+const XML_LAST_URL_KEY = 'kr_xml_last_url';
+function _xmlLog(html, level) {
+  const log = document.getElementById('xmlLog');
+  if (!log) return;
+  const cls = level === 'err' ? 'log-err' : level === 'warn' ? 'log-warn' : level === 'ok' ? 'log-ok' : 'log-info';
+  log.innerHTML += '<span class="' + cls + '">' + html + '</span><br>';
+  log.scrollTop = log.scrollHeight;
+}
+function _xmlProgress(pct, statusText) {
+  const bar = document.getElementById('xmlBar');
+  const pctEl = document.getElementById('xmlPct');
+  const stEl = document.getElementById('xmlStatus');
+  const wrap = document.getElementById('xmlProgress');
+  if (wrap) wrap.classList.add('show');
+  if (bar) bar.style.width = pct + '%';
+  if (pctEl) pctEl.textContent = Math.round(pct) + '%';
+  if (stEl) stEl.textContent = statusText || (pct >= 100 ? 'Завершено' : 'Обробка...');
+}
+function _xmlReset() {
+  const log = document.getElementById('xmlLog');
+  if (log) log.innerHTML = '';
+  _xmlProgress(0, 'Старт...');
+  document.getElementById('syncDot')?.classList.add('syncing');
+}
+
+// Restore last URL on load
+document.addEventListener('DOMContentLoaded', function() {
+  const inp = document.getElementById('xmlSyncUrl');
+  if (inp) {
+    const saved = localStorage.getItem(XML_LAST_URL_KEY);
+    if (saved) inp.value = saved;
+  }
+});
+
+// ── XML FETCH (з обходом CORS через публічний проксі) ────────────────────
+async function _xmlFetchUrl(url) {
+  // 1) Прямий запит
+  try {
+    const r = await fetch(url, { credentials: 'omit' });
+    if (r.ok) return await r.text();
+    throw new Error('HTTP ' + r.status);
+  } catch (e) {
+    _xmlLog('Прямий запит не вдався (' + (e.message || 'CORS') + '). Пробую через проксі...', 'warn');
+  }
+  // 2) corsproxy.io
+  try {
+    const r = await fetch('https://corsproxy.io/?' + encodeURIComponent(url));
+    if (r.ok) return await r.text();
+    throw new Error('HTTP ' + r.status);
+  } catch (e) {
+    _xmlLog('corsproxy.io не вдався (' + (e.message || 'CORS') + '). Пробую allorigins...', 'warn');
+  }
+  // 3) allorigins
+  try {
+    const r = await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent(url));
+    if (r.ok) return await r.text();
+    throw new Error('HTTP ' + r.status);
+  } catch (e) {
+    throw new Error('Не вдалося завантажити XML з URL. Спробуй завантажити файл вручну.');
+  }
+}
+
+// ── XML PARSER ───────────────────────────────────────────────────────────
+function _xmlText(node, sel) {
+  if (!node) return '';
+  const el = node.querySelector(sel);
+  return el ? (el.textContent || '').trim() : '';
+}
+function _xmlAll(node, sel) {
+  if (!node) return [];
+  return Array.from(node.querySelectorAll(sel));
+}
+
+// Визначає внутрішню категорію за назвою
+function _xmlGuessCategory(name) {
+  const n = String(name || '').toLowerCase();
+  if (/велосипед|bike/.test(n)) return 'bike';
+  if (/мотоцикл|motorcycle|moto\b/.test(n)) return 'moto';
+  if (/квадроцикл|atv|quad/.test(n)) return 'quad';
+  if (/трактор|tractor/.test(n)) return 'tractor';
+  if (/джип|jeep|внедорожник|позашляховик/.test(n)) return 'jeep';
+  if (/машин|car|авто/.test(n)) return 'car';
+  if (/самокат|scooter/.test(n)) return 'scooter';
+  return 'jeep';
+}
+function _xmlGuessImg(category) {
+  const map = { bike:'bike', moto:'moto', quad:'quad', tractor:'tractor', jeep:'jeep', car:'car', scooter:'scooter' };
+  return map[category] || 'jeep';
+}
+// Витягує "12V"/"24V" з назви або параметрів
+function _xmlGuessVoltage(name, params) {
+  const txt = (name || '') + ' ' + Object.values(params || {}).join(' ');
+  const m = txt.match(/\b(6|12|24|36|48)\s*[Vв]\b/i);
+  if (m) return m[1] + 'V';
+  return '12V';
+}
+// Витягує "model_code" з артикула: "M 4259EBLR-1" → "4259"
+function _xmlGuessModelCode(sku) {
+  const m = String(sku || '').match(/(\d{3,5})/);
+  return m ? m[1] : '';
+}
+
+function _xmlParseItem(item) {
+  const name = _xmlText(item, 'name_ua') || _xmlText(item, 'name');
+  const sku = _xmlText(item, 'vendorCode') || _xmlText(item, 'article') || ('item-' + (item.getAttribute('id') || Date.now()));
+  const desc = _xmlText(item, 'description_ua') || _xmlText(item, 'description');
+  const priceRaw = _xmlText(item, 'price');
+  const oldPriceRaw = _xmlText(item, 'price_old') || _xmlText(item, 'oldprice') || _xmlText(item, 'price_promo');
+  const stockRaw = _xmlText(item, 'quantity_in_stock') || _xmlText(item, 'stock_quantity') || _xmlText(item, 'quantity');
+  const availableRaw = _xmlText(item, 'available') || (item.getAttribute('available') || '');
+  const vendor = _xmlText(item, 'vendor');
+  const images = _xmlAll(item, 'image, picture').map(n => (n.textContent || '').trim()).filter(Boolean).slice(0, PHOTO_MAX);
+
+  // Параметри (характеристики)
+  const params = {};
+  const features = [];
+  _xmlAll(item, 'param').forEach(p => {
+    const pn = (p.getAttribute('name') || '').trim();
+    const ukVal = p.querySelector('value[lang="uk"]');
+    const pv = (ukVal ? ukVal.textContent : p.textContent || '').trim();
+    if (pn && pv) {
+      params[pn] = pv;
+      features.push(pn + ': ' + pv);
+    }
+  });
+
+  const category = _xmlGuessCategory(name);
+  return {
+    sku: sku.trim(),
+    modelCode: _xmlGuessModelCode(sku),
+    color: params['Колір'] || params['Цвет'] || '',
+    name,
+    desc,
+    brand: vendor || params['Бренд'] || params['Виробник'] || 'Без бренду',
+    price: parseFloat(String(priceRaw).replace(',', '.')) || 0,
+    oldPrice: oldPriceRaw ? (parseFloat(String(oldPriceRaw).replace(',', '.')) || null) : null,
+    category,
+    img: _xmlGuessImg(category),
+    voltage: _xmlGuessVoltage(name, params),
+    age: '3-8',
+    stock: parseInt(stockRaw, 10) || 0,
+    preorderDays: 0,
+    badge: '',
+    features: features.slice(0, 30),
+    images,
+    video: '',
+    active: !/false|нет|ні|0/i.test(availableRaw) || (parseInt(stockRaw, 10) > 0)
+  };
+}
+
+function _xmlParseString(xmlStr) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(xmlStr, 'text/xml');
+  const err = doc.querySelector('parsererror');
+  if (err) throw new Error('Невалідний XML: ' + err.textContent.slice(0, 120));
+  // YML/Prom: <offer>; інші: <item>
+  let nodes = Array.from(doc.querySelectorAll('item'));
+  if (!nodes.length) nodes = Array.from(doc.querySelectorAll('offer'));
+  if (!nodes.length) throw new Error('У XML не знайдено жодного <item> або <offer>');
+  return nodes.map(_xmlParseItem).filter(p => p.name && p.sku);
+}
+
+// ── XML IMPORT FLOW ──────────────────────────────────────────────────────
+async function startXmlSync(silent) {
+  const url = (document.getElementById('xmlSyncUrl')?.value || '').trim();
+  if (!url) { showToast('Вкажи URL XML-фіду', 'error'); return; }
+  localStorage.setItem(XML_LAST_URL_KEY, url);
+  if (!silent) _xmlReset();
+  _xmlLog('Завантажую XML з ' + url + ' ...', 'info');
+  _xmlProgress(5, 'Завантаження...');
+  try {
+    const text = await _xmlFetchUrl(url);
+    _xmlLog('Отримано ' + Math.round(text.length / 1024) + ' КБ. Парсинг...', 'ok');
+    _xmlProgress(20, 'Парсинг...');
+    await _xmlImportFromText(text);
+  } catch (e) {
+    _xmlLog('❌ ' + e.message, 'err');
+    _xmlProgress(100, 'Помилка');
+    document.getElementById('syncDot')?.classList.remove('syncing');
+    showToast(e.message, 'error');
+  }
+}
+
+function startXmlImport(inp) {
+  if (!inp.files || !inp.files[0]) return;
+  const file = inp.files[0];
+  _xmlReset();
+  _xmlLog('Читаю файл ' + file.name + ' (' + Math.round(file.size / 1024) + ' КБ)...', 'info');
+  _xmlProgress(10, 'Читання файлу...');
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try { await _xmlImportFromText(String(e.target.result || '')); }
+    catch (err) {
+      _xmlLog('❌ ' + err.message, 'err');
+      _xmlProgress(100, 'Помилка');
+      document.getElementById('syncDot')?.classList.remove('syncing');
+      showToast(err.message, 'error');
+    }
+  };
+  reader.onerror = () => { _xmlLog('❌ Не вдалося прочитати файл', 'err'); document.getElementById('syncDot')?.classList.remove('syncing'); };
+  reader.readAsText(file, 'utf-8');
+  inp.value = '';
+}
+
+async function _xmlImportFromText(text) {
+  const items = _xmlParseString(text);
+  _xmlLog('Знайдено товарів: <b>' + items.length + '</b>', 'ok');
+  _xmlProgress(25, 'Зіставлення з базою...');
+
+  const onlyUpdate = !!document.getElementById('xmlOnlyUpdate')?.checked;
+  const skipImages = !!document.getElementById('xmlSkipImages')?.checked;
+
+  // Витягуємо існуючі товари з Supabase, щоб зіставити за sku
+  let existingBySku = new Map();
+  try {
+    const all = await sbFetch('products?select=id,sku,images&limit=10000');
+    if (Array.isArray(all)) all.forEach(p => { if (p.sku) existingBySku.set(p.sku.trim(), p); });
+    _xmlLog('У базі вже є товарів: ' + existingBySku.size, 'info');
+  } catch (e) {
+    _xmlLog('Не вдалося прочитати наявні товари: ' + e.message, 'warn');
+  }
+
+  let added = 0, updated = 0, skipped = 0, failed = 0;
+  const total = items.length;
+
+  for (let i = 0; i < total; i++) {
+    const it = items[i];
+    const existing = existingBySku.get(it.sku);
+
+    if (!existing && onlyUpdate) { skipped++; continue; }
+
+    if (skipImages) {
+      if (existing && Array.isArray(existing.images)) it.images = existing.images;
+      else it.images = [];
+    }
+
+    const result = await sbSaveProduct(it, existing ? existing.id : null);
+    if (result.success) {
+      if (existing) updated++; else added++;
+    } else {
+      failed++;
+      if (failed <= 5) _xmlLog('✗ ' + it.sku + ': ' + result.error, 'err');
+    }
+
+    if ((i + 1) % 10 === 0 || i === total - 1) {
+      const pct = 25 + Math.round(((i + 1) / total) * 70);
+      _xmlProgress(pct, 'Збережено ' + (i + 1) + '/' + total);
+    }
+  }
+
+  _xmlProgress(100, 'Завершено');
+  document.getElementById('syncDot')?.classList.remove('syncing');
+  const summary = '✅ Готово. Додано: ' + added + ', оновлено: ' + updated + ', пропущено: ' + skipped + (failed ? ', помилок: ' + failed : '');
+  _xmlLog(summary, 'ok');
+  document.getElementById('syncTime').textContent = new Date().toLocaleString('uk-UA') + ' · ' + (added + updated) + ' позицій';
+  showToast('Імпорт завершено: +' + added + ' / ~' + updated + (failed ? ' / ✗' + failed : ''), failed ? 'warn' : 'success');
+  if (typeof loadProductsFromSupabase === 'function') { try { await loadProductsFromSupabase(); renderProductsTable(); } catch(e){} }
 }
 
 // ── REVIEWS ───────────────────────────────────────────────────────────────
@@ -2362,6 +2603,77 @@ function productPhotoHandleFiles(files) {
       }
     });
   });
+}
+
+function productPhotoOpenUrlDialog() {
+  const room = PHOTO_MAX - _pPhotos.length;
+  if (room <= 0) { showToast('Максимум ' + PHOTO_MAX + ' фото на товар', 'error'); return; }
+  const example =
+    'https://metr-plus.com.ua/img/881609.jpg,\n' +
+    'https://metr-plus.com.ua/img/894259.jpg\n\n' +
+    'Або встав XML від постачальника (<image>...</image>) — URL\'и витягну автоматично.';
+  const raw = prompt('Встав URL\'и фото (через кому, з нового рядка або XML). Можна додати ще ' + room + ':\n\n' + example, '');
+  if (raw == null) return;
+  productPhotoAddUrls(raw);
+}
+
+// Витягує URL'и фото з будь-якого тексту: список через кому, XML <image>...</image>,
+// атрибути src="...", або просто URL у тексті.
+function productPhotoExtractUrls(raw) {
+  if (!raw) return [];
+  const text = String(raw);
+  const found = [];
+  const seen = new Set();
+  const push = (u) => {
+    if (!u) return;
+    u = u.trim().replace(/^["'<>\s]+|["'<>\s]+$/g, '');
+    if (!u) return;
+    if (/&amp;/i.test(u)) u = u.replace(/&amp;/gi, '&');
+    if (!(/^https?:\/\//i.test(u) || /^data:image\//i.test(u))) return;
+    if (seen.has(u)) return;
+    seen.add(u); found.push(u);
+  };
+
+  // 1) XML-теги <image>...</image> / <picture>...</picture>
+  const tagRe = /<(?:image|picture|img|photo|url)[^>]*>([\s\S]*?)<\/(?:image|picture|img|photo|url)>/gi;
+  let m;
+  while ((m = tagRe.exec(text)) !== null) push(m[1]);
+
+  // 2) Атрибути src="..." / href="..."
+  const attrRe = /(?:src|href|url)\s*=\s*["']([^"']+)["']/gi;
+  while ((m = attrRe.exec(text)) !== null) push(m[1]);
+
+  // 3) Будь-які http(s) URL з картинковим розширенням у вільному тексті
+  const urlRe = /https?:\/\/[^\s"'<>]+?\.(?:jpe?g|png|webp|gif|bmp|avif)(?:\?[^\s"'<>]*)?/gi;
+  while ((m = urlRe.exec(text)) !== null) push(m[0]);
+
+  // 4) Якщо нічого не знайшли — спробуємо як простий список через роздільники
+  if (!found.length) {
+    text.split(/[\s,;]+/).forEach(push);
+  }
+
+  return found;
+}
+
+function productPhotoAddUrls(raw) {
+  if (!raw) return;
+  const urls = productPhotoExtractUrls(raw);
+  if (!urls.length) { showToast('Не знайдено валідних URL (мають починатися з http:// або https://)', 'error'); return; }
+  const seen = new Set(_pPhotos);
+  const room = PHOTO_MAX - _pPhotos.length;
+  let added = 0, dup = 0;
+  for (const u of urls) {
+    if (added >= room) break;
+    if (seen.has(u)) { dup++; continue; }
+    _pPhotos.push(u);
+    seen.add(u);
+    added++;
+  }
+  productPhotosRender();
+  let msg = 'Знайдено URL: ' + urls.length + ', додано: ' + added;
+  if (dup) msg += ', дублікатів: ' + dup;
+  if (urls.length > added + dup) msg += ', обрізано до ліміту ' + PHOTO_MAX;
+  showToast(msg, added ? 'success' : 'info');
 }
 
 function productPhotoProcessOne(file, cb) {
