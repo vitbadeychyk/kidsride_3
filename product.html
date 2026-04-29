@@ -1657,8 +1657,13 @@ async function buildColorVariants(currentSku, currentId, supaUrl, supaKey, model
   console.log('[KidsRide variants] start: sku=', currentSku, 'id=', currentId, 'modelCode=', modelCode);
 
   const code = (modelCode == null ? '' : String(modelCode)).trim();
-  let arr = null;
-  let usedStrategy = '';
+  // ── ОБ'ЄДНАНА СТРАТЕГІЯ ────────────────────────────────────────────────
+  // Раніше код зупинявся на першій стратегії, яка щось знайшла. Через це,
+  // якщо у поточного товару заповнений model_code, а у його кольорових
+  // "сусідів" — ні, ці сусіди губилися при перемиканні. Тепер запускаємо
+  // ВСІ стратегії та об'єднуємо результати по id (без дублікатів).
+  const merged = new Map(); // id → товар
+  const usedStrategies = [];
 
   // Хелпер: безпечний запит — пробує максимальний select; якщо в БД ще нема
   // якихось колонок (model_code / color), послідовно скорочує select до мінімуму.
@@ -1679,6 +1684,25 @@ async function buildColorVariants(currentSku, currentId, supaUrl, supaKey, model
     }
     return null;
   }
+  function _mergeIn(data){
+    if (!Array.isArray(data)) return 0;
+    let added = 0;
+    for (const v of data){
+      if (!v || !v.id) continue;
+      if (!merged.has(v.id)) { merged.set(v.id, v); added++; }
+      else {
+        // Об'єднуємо поля — щоб color/model_code, отримані в одному запиті,
+        // не загубилися, якщо в іншому запиті їх не було.
+        const cur = merged.get(v.id);
+        merged.set(v.id, Object.assign({}, v, cur, {
+          color: cur.color || v.color,
+          model_code: cur.model_code || v.model_code,
+          images: (Array.isArray(cur.images) && cur.images.length) ? cur.images : v.images
+        }));
+      }
+    }
+    return added;
+  }
 
   // ── Стратегія 1: за model_code (якщо є) ────────────────────────────────
   if (code){
@@ -1686,16 +1710,12 @@ async function buildColorVariants(currentSku, currentId, supaUrl, supaKey, model
       + '&active=eq.true'
       + '&select=';
     const data = await _fetchVariants(qsBase);
-    if (Array.isArray(data) && data.length){
-      arr = data;
-      usedStrategy = 'model_code=' + code;
-    } else {
-      console.warn('[KidsRide] model_code не дав результату (можливо, колонки ще нема) — fallback');
-    }
+    const added = _mergeIn(data);
+    if (added) usedStrategies.push('model_code=' + code + ' (+' + added + ')');
   }
 
-  // ── Стратегія 2: fallback за префіксом артикула (формат "PREFIX-N") ─────
-  if (!Array.isArray(arr) || arr.length <= 1){
+  // ── Стратегія 2: за префіксом артикула (формат "PREFIX-N") ─────────────
+  {
     const m = String(currentSku || '').match(/^(.*?)-(\d+)\s*$/);
     if (m){
       const prefix = m[1].trim();
@@ -1706,18 +1726,17 @@ async function buildColorVariants(currentSku, currentId, supaUrl, supaKey, model
           + '&select=';
         const data = await _fetchVariants(qsBase);
         const filtered = Array.isArray(data) ? data.filter(v => /-(\d+)\s*$/.test(String(v.sku||''))) : [];
-        if (filtered.length > 1) {
-          arr = filtered;
-          usedStrategy = 'sku ilike ' + pattern;
-        }
+        const added = _mergeIn(filtered);
+        if (added) usedStrategies.push('sku ilike ' + pattern + ' (+' + added + ')');
       }
     }
   }
 
   // ── Стратегія 3: за числовим кодом моделі, що міститься в SKU ──────────
   // Наприклад, для "M 4259EBLR-1" витягне "4259" і знайде усі товари,
-  // у SKU яких є "4259". Спрацьовує, якщо ще не було знайдено варіантів.
-  if (!Array.isArray(arr) || arr.length <= 1){
+  // у SKU яких є "4259". Це найширша стратегія — добре ловить варіанти
+  // з різними літерними суфіксами (M 4259EBLR-1 і M 4259EBLRS-3).
+  {
     const digits = (String(currentSku||'').match(/\d{3,}/g) || [])
       .sort((a,b) => b.length - a.length)[0];
     if (digits){
@@ -1725,18 +1744,18 @@ async function buildColorVariants(currentSku, currentId, supaUrl, supaKey, model
         + '&active=eq.true'
         + '&select=';
       const data = await _fetchVariants(qsBase);
-      if (Array.isArray(data) && data.length > 1){
-        arr = data;
-        usedStrategy = 'sku contains digits ' + digits;
-      }
+      const added = _mergeIn(data);
+      if (added) usedStrategies.push('sku contains ' + digits + ' (+' + added + ')');
     }
   }
 
-  if (!Array.isArray(arr) || arr.length === 0) {
+  let arr = Array.from(merged.values());
+
+  if (arr.length === 0) {
     console.warn('[KidsRide variants] жодної моделі не знайдено. Заповніть поле "Код моделі для кольорів" в адмінці (напр. 4259) для всіх варіантів.');
     return;
   }
-  console.log('[KidsRide variants] знайдено:', arr.length, 'товарів через стратегію:', usedStrategy, arr.map(v => v.sku));
+  console.log('[KidsRide variants] знайдено:', arr.length, 'товарів через стратегії:', usedStrategies.join(' + '), arr.map(v => v.sku));
   if (arr.length <= 1) {
     console.warn('[KidsRide variants] лише 1 товар відповідає — інші варіанти не знайдено. Перевірте, що у решти товарів того ж кольорового ряду заповнено model_code або однаковий префікс SKU.');
     return;
