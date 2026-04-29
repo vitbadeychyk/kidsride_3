@@ -1149,15 +1149,44 @@ tr:hover td{background:rgba(240,242,248,.5)}
         <div class="import-card">
           <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:14px;color:var(--navy)">🗃️ SQL для Supabase</h3>
           <p style="font-size:13px;color:var(--text-muted);margin-bottom:10px">Скопіюйте та виконайте в Supabase → SQL Editor для зберігання налаштувань:</p>
-          <pre style="background:var(--navy);color:rgba(255,255,255,.85);padding:14px;border-radius:var(--r-sm);font-size:11px;line-height:1.7;overflow-x:auto;font-family:monospace">CREATE TABLE IF NOT EXISTS admin_settings (
-  key   text PRIMARY KEY,
-  value text,
-  updated_at timestamptz DEFAULT now()
-);
-ALTER TABLE admin_settings ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "admin_only" ON admin_settings
-  USING (auth.role() = 'authenticated')
-  WITH CHECK (auth.role() = 'authenticated');</pre>
+          <pre style="background:var(--navy);color:rgba(255,255,255,.85);padding:14px;border-radius:var(--r-sm);font-size:11px;line-height:1.7;overflow-x:auto;font-family:monospace">-- Виконайте в Supabase → SQL Editor
+-- (кожна вкладка Налаштувань = окрема таблиця)
+
+-- 1. Магазин
+CREATE TABLE IF NOT EXISTS settings_store (id int PRIMARY KEY DEFAULT 1, shop_name text, tagline text, phone text, email text, hours text, address text, logo_url text, about text, instagram text, facebook text, tiktok text, youtube text, updated_at timestamptz DEFAULT now());
+INSERT INTO settings_store (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
+ALTER TABLE settings_store ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "admin_store" ON settings_store USING (auth.role()='authenticated') WITH CHECK (auth.role()='authenticated');
+
+-- 2. Замовлення
+CREATE TABLE IF NOT EXISTS settings_orders (id int PRIMARY KEY DEFAULT 1, order_prefix text DEFAULT 'KR-', min_order numeric DEFAULT 0, auto_close_days int DEFAULT 0, confirm_text text, manager_notes text, pay_cod bool DEFAULT true, pay_card bool DEFAULT true, pay_bank bool DEFAULT false, pay_crypto bool DEFAULT false, updated_at timestamptz DEFAULT now());
+INSERT INTO settings_orders (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
+ALTER TABLE settings_orders ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "admin_orders_cfg" ON settings_orders USING (auth.role()='authenticated') WITH CHECK (auth.role()='authenticated');
+
+-- 3. Сповіщення
+CREATE TABLE IF NOT EXISTS settings_notifications (id int PRIMARY KEY DEFAULT 1, email_orders text, email_reviews text, tg_token text, tg_chat text, tg_new_order bool DEFAULT false, tg_new_review bool DEFAULT false, tg_low_stock bool DEFAULT false, updated_at timestamptz DEFAULT now());
+INSERT INTO settings_notifications (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
+ALTER TABLE settings_notifications ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "admin_notify" ON settings_notifications USING (auth.role()='authenticated') WITH CHECK (auth.role()='authenticated');
+
+-- 4. Доставка
+CREATE TABLE IF NOT EXISTS settings_delivery (id int PRIMARY KEY DEFAULT 1, np_api_key text, np_sender_name text, np_sender_phone text, np_city text, np_warehouse text, np_weight numeric DEFAULT 1, np_size text, cod_fee_pct numeric DEFAULT 2, cod_fee_min numeric DEFAULT 20, cod_include_in_total bool DEFAULT false, pickup_enabled bool DEFAULT false, pickup_address text, updated_at timestamptz DEFAULT now());
+INSERT INTO settings_delivery (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
+ALTER TABLE settings_delivery ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "admin_delivery" ON settings_delivery USING (auth.role()='authenticated') WITH CHECK (auth.role()='authenticated');
+
+-- 5. Вигляд
+CREATE TABLE IF NOT EXISTS settings_appearance (id int PRIMARY KEY DEFAULT 1, color_primary text DEFAULT '#FF6B35', color_nav text DEFAULT '#1B2A4A', orders_per_page int DEFAULT 20, ui_compact bool DEFAULT false, ui_animations bool DEFAULT true, ui_sound bool DEFAULT false, updated_at timestamptz DEFAULT now());
+INSERT INTO settings_appearance (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
+ALTER TABLE settings_appearance ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "admin_appearance" ON settings_appearance USING (auth.role()='authenticated') WITH CHECK (auth.role()='authenticated');
+
+-- 6. SEO
+CREATE TABLE IF NOT EXISTS settings_seo (id int PRIMARY KEY DEFAULT 1, seo_title text, seo_description text, og_image text, ga_id text, fb_pixel text, site_url text, updated_at timestamptz DEFAULT now());
+INSERT INTO settings_seo (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
+ALTER TABLE settings_seo ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "admin_seo" ON settings_seo USING (auth.role()='authenticated') WITH CHECK (auth.role()='authenticated');</pre>
         </div>
       </div>
 
@@ -4319,15 +4348,22 @@ function _buildReportHTML({ orders, prevOrders, allProducts, reviews, from, to, 
 
 // ── APPLY STORED THEME ON LOAD ───────────────────────────────
 function _applyStoredTheme() {
-  const cfg = loadSettings();
+  const cfg = loadSettings(); // localStorage fallback
   if (cfg.cfg_color_primary) document.documentElement.style.setProperty('--orange', cfg.cfg_color_primary);
   if (cfg.cfg_color_nav)     document.documentElement.style.setProperty('--navy', cfg.cfg_color_nav);
   if (cfg.cfg_orders_per_page) window.ORDERS_PAGE_SIZE = parseInt(cfg.cfg_orders_per_page) || 20;
   if (cfg.cfg_ui_compact === 'true') document.body.classList.add('compact-mode');
+  // Also apply from DB asap
+  _loadAllSettingsTables().then(d => {
+    const a = d.appearance;
+    if (a.color_primary) document.documentElement.style.setProperty('--orange', a.color_primary);
+    if (a.color_nav)     document.documentElement.style.setProperty('--navy', a.color_nav);
+    if (a.orders_per_page) window.ORDERS_PAGE_SIZE = parseInt(a.orders_per_page) || 20;
+    if (a.ui_compact) document.body.classList.toggle('compact-mode', a.ui_compact === true || a.ui_compact === 'true');
+  }).catch(()=>{});
 }
 
 // ── SETTINGS CSS (tabs) ──────────────────────────────────────
-// Inject settings tab styles
 (function(){
   const s = document.createElement('style');
   s.textContent = `
@@ -4336,39 +4372,59 @@ function _applyStoredTheme() {
 .settings-tab.active{background:var(--orange);color:white}
 .settings-section{display:none}
 .settings-section.active{display:block}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top:3px solid var(--orange);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
   `;
   document.head.appendChild(s);
 })();
 
-// ── SETTINGS STORAGE ─────────────────────────────────────────
+// ── SETTINGS STORAGE (localStorage fallback) ─────────────────
 const SETTINGS_KEY = 'kr_admin_settings';
-
 function loadSettings() {
-  try {
-    return JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
-  } catch(e) { return {}; }
+  try { return JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); } catch(e) { return {}; }
 }
-function persistSettings(obj) {
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(obj));
-  // Try saving to Supabase admin_settings table as well
-  _syncSettingsToSupabase(obj).catch(()=>{});
+function _cacheSettings(obj) {
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify({ ...loadSettings(), ...obj }));
 }
-async function _syncSettingsToSupabase(obj) {
-  const rows = Object.entries(obj).map(([key, value]) => ({ key, value: String(value) }));
-  if (!rows.length) return;
-  await sbFetch('admin_settings?on_conflict=key', {
+
+// ── PER-TABLE DB LOAD / SAVE ──────────────────────────────────
+async function _loadAllSettingsTables() {
+  const [store, orders, notify, delivery, appearance, seo] = await Promise.all([
+    sbFetch('settings_store?id=eq.1&limit=1').catch(()=>[]),
+    sbFetch('settings_orders?id=eq.1&limit=1').catch(()=>[]),
+    sbFetch('settings_notifications?id=eq.1&limit=1').catch(()=>[]),
+    sbFetch('settings_delivery?id=eq.1&limit=1').catch(()=>[]),
+    sbFetch('settings_appearance?id=eq.1&limit=1').catch(()=>[]),
+    sbFetch('settings_seo?id=eq.1&limit=1').catch(()=>[]),
+  ]);
+  return {
+    store:      store[0]      || {},
+    orders:     orders[0]     || {},
+    notify:     notify[0]     || {},
+    delivery:   delivery[0]   || {},
+    appearance: appearance[0] || {},
+    seo:        seo[0]        || {},
+  };
+}
+
+async function _upsertSettingsTable(table, data) {
+  return sbFetch(table + '?on_conflict=id', {
     method: 'POST',
     headers: { Prefer: 'resolution=merge-duplicates' },
-    body: JSON.stringify(rows)
+    body: JSON.stringify([{ id: 1, ...data, updated_at: new Date().toISOString() }])
   });
 }
-async function _loadSettingsFromSupabase() {
-  try {
-    const rows = await sbFetch('admin_settings?select=key,value');
-    const obj = {};
-    rows.forEach(r => { obj[r.key] = r.value; });
-    return obj;
-  } catch(e) { return {}; }
+
+// Helper: set input/textarea value safely
+function _setField(id, val) {
+  const el = document.getElementById(id);
+  if (!el || val == null) return;
+  el.value = val;
+}
+function _setCheck(id, val) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.checked = val === true || val === 'true';
 }
 
 // ── SETTINGS TAB SWITCH ───────────────────────────────────────
@@ -4380,106 +4436,219 @@ function switchSettingsTab(tab, btn) {
   if (section) section.classList.add('active');
 }
 
-// ── RENDER SETTINGS (fill form from storage) ─────────────────
+// ── RENDER SETTINGS (load from DB → fill form) ────────────────
 async function renderSettings() {
-  // Load from Supabase first, fall back to localStorage
-  let cfg = await _loadSettingsFromSupabase();
-  if (!Object.keys(cfg).length) cfg = loadSettings();
-
-  const ids = [
-    'cfg_shop_name','cfg_shop_tagline','cfg_phone','cfg_email','cfg_hours','cfg_address',
-    'cfg_logo_url','cfg_about','cfg_instagram','cfg_facebook','cfg_tiktok','cfg_youtube',
-    'cfg_order_prefix','cfg_min_order','cfg_auto_close_days','cfg_confirm_text',
-    'cfg_notify_email_orders','cfg_notify_email_reviews',
-    'cfg_tg_token','cfg_tg_chat',
-    'cfg_np_api_key','cfg_np_sender_name','cfg_np_sender_phone','cfg_np_city',
-    'cfg_np_warehouse','cfg_np_weight','cfg_np_size',
-    'cfg_cod_fee_pct','cfg_cod_fee_min','cfg_pickup_address',
-    'cfg_color_primary','cfg_color_primary_hex','cfg_color_nav','cfg_color_nav_hex',
-    'cfg_orders_per_page',
-    'cfg_seo_title','cfg_seo_description','cfg_og_image','cfg_ga_id','cfg_fb_pixel','cfg_site_url',
-    'cfg_manager_notes','cfg_new_password','cfg_confirm_password'
-  ];
-  ids.forEach(id => {
-    const el = document.getElementById(id);
-    if (el && cfg[id] !== undefined) {
-      if (el.tagName === 'SELECT') el.value = cfg[id];
-      else el.value = cfg[id];
+  // Show loading spinner briefly
+  document.querySelectorAll('.settings-section').forEach(s => {
+    if (s.classList.contains('active')) {
+      const prev = s.innerHTML;
+      s._prevHTML = prev;
     }
   });
 
-  // Checkboxes
-  const checks = ['cfg_pay_cod','cfg_pay_card','cfg_pay_bank','cfg_pay_crypto',
-    'cfg_tg_new_order','cfg_tg_new_review','cfg_tg_low_stock',
-    'cfg_cod_include_in_total','cfg_pickup_enabled',
-    'cfg_ui_compact','cfg_ui_animations','cfg_ui_sound',
-    'cfg_auto_logout','cfg_log_actions'];
-  checks.forEach(id => {
-    const el = document.getElementById(id);
-    if (el && cfg[id] !== undefined) el.checked = cfg[id] === 'true' || cfg[id] === true;
-  });
+  let d;
+  try {
+    d = await _loadAllSettingsTables();
+  } catch(e) {
+    showToast('Не вдалося завантажити налаштування: ' + e.message, 'error');
+    d = { store:{}, orders:{}, notify:{}, delivery:{}, appearance:{}, seo:{} };
+  }
 
-  // Sync color preview inputs
-  const cpEl = document.getElementById('cfg_color_primary');
-  const cnEl = document.getElementById('cfg_color_nav');
-  if (cpEl) document.getElementById('cfg_color_primary_hex').value = cpEl.value;
-  if (cnEl) document.getElementById('cfg_color_nav_hex').value = cnEl.value;
+  // ── Магазин ──
+  const s = d.store;
+  _setField('cfg_shop_name',    s.shop_name);
+  _setField('cfg_shop_tagline', s.tagline);
+  _setField('cfg_phone',        s.phone);
+  _setField('cfg_email',        s.email);
+  _setField('cfg_hours',        s.hours);
+  _setField('cfg_address',      s.address);
+  _setField('cfg_logo_url',     s.logo_url);
+  _setField('cfg_about',        s.about);
+  _setField('cfg_instagram',    s.instagram);
+  _setField('cfg_facebook',     s.facebook);
+  _setField('cfg_tiktok',       s.tiktok);
+  _setField('cfg_youtube',      s.youtube);
+
+  // ── Замовлення ──
+  const o = d.orders;
+  _setField('cfg_order_prefix',     o.order_prefix);
+  _setField('cfg_min_order',        o.min_order);
+  _setField('cfg_auto_close_days',  o.auto_close_days);
+  _setField('cfg_confirm_text',     o.confirm_text);
+  _setField('cfg_manager_notes',    o.manager_notes);
+  _setCheck('cfg_pay_cod',   o.pay_cod);
+  _setCheck('cfg_pay_card',  o.pay_card);
+  _setCheck('cfg_pay_bank',  o.pay_bank);
+  _setCheck('cfg_pay_crypto',o.pay_crypto);
+
+  // ── Сповіщення ──
+  const n = d.notify;
+  _setField('cfg_notify_email_orders',  n.email_orders);
+  _setField('cfg_notify_email_reviews', n.email_reviews);
+  _setField('cfg_tg_token',  n.tg_token);
+  _setField('cfg_tg_chat',   n.tg_chat);
+  _setCheck('cfg_tg_new_order',  n.tg_new_order);
+  _setCheck('cfg_tg_new_review', n.tg_new_review);
+  _setCheck('cfg_tg_low_stock',  n.tg_low_stock);
+
+  // ── Доставка ──
+  const del = d.delivery;
+  _setField('cfg_np_api_key',           del.np_api_key);
+  _setField('cfg_np_sender_name',       del.np_sender_name);
+  _setField('cfg_np_sender_phone',      del.np_sender_phone);
+  _setField('cfg_np_city',              del.np_city);
+  _setField('cfg_np_warehouse',         del.np_warehouse);
+  _setField('cfg_np_weight',            del.np_weight);
+  _setField('cfg_np_size',              del.np_size);
+  _setField('cfg_cod_fee_pct',          del.cod_fee_pct);
+  _setField('cfg_cod_fee_min',          del.cod_fee_min);
+  _setField('cfg_pickup_address',       del.pickup_address);
+  _setCheck('cfg_cod_include_in_total', del.cod_include_in_total);
+  _setCheck('cfg_pickup_enabled',       del.pickup_enabled);
+
+  // ── Вигляд ──
+  const a = d.appearance;
+  if (a.color_primary) {
+    _setField('cfg_color_primary', a.color_primary);
+    _setField('cfg_color_primary_hex', a.color_primary);
+  }
+  if (a.color_nav) {
+    _setField('cfg_color_nav', a.color_nav);
+    _setField('cfg_color_nav_hex', a.color_nav);
+  }
+  if (a.orders_per_page) {
+    const sel = document.getElementById('cfg_orders_per_page');
+    if (sel) sel.value = a.orders_per_page;
+  }
+  _setCheck('cfg_ui_compact',    a.ui_compact);
+  _setCheck('cfg_ui_animations', a.ui_animations != null ? a.ui_animations : true);
+  _setCheck('cfg_ui_sound',      a.ui_sound);
+
+  // ── SEO ──
+  const seo = d.seo;
+  _setField('cfg_seo_title',       seo.seo_title);
+  _setField('cfg_seo_description', seo.seo_description);
+  _setField('cfg_og_image',        seo.og_image);
+  _setField('cfg_ga_id',           seo.ga_id);
+  _setField('cfg_fb_pixel',        seo.fb_pixel);
+  _setField('cfg_site_url',        seo.site_url);
 
   // Browser notification status
   const permEl = document.getElementById('notifPermStatus');
   if (permEl && 'Notification' in window) {
     permEl.textContent = 'Поточний статус: ' + (Notification.permission === 'granted' ? '✅ Увімкнено' : Notification.permission === 'denied' ? '❌ Заборонено' : '⏳ Не налаштовано');
   }
-
-  // Orders per page — apply immediately
-  if (cfg.cfg_orders_per_page) {
-    window.ORDERS_PAGE_SIZE = parseInt(cfg.cfg_orders_per_page) || 20;
-  }
 }
 
 // ── SAVE ALL SETTINGS ─────────────────────────────────────────
-function saveAllSettings() {
-  const cfg = loadSettings();
+async function saveAllSettings() {
+  const btn = document.querySelector('#panel-settings .btn-primary');
+  if (btn) { btn.disabled = true; btn.textContent = 'Збереження…'; }
 
-  const textIds = [
-    'cfg_shop_name','cfg_shop_tagline','cfg_phone','cfg_email','cfg_hours','cfg_address',
-    'cfg_logo_url','cfg_about','cfg_instagram','cfg_facebook','cfg_tiktok','cfg_youtube',
-    'cfg_order_prefix','cfg_min_order','cfg_auto_close_days','cfg_confirm_text',
-    'cfg_notify_email_orders','cfg_notify_email_reviews',
-    'cfg_tg_token','cfg_tg_chat',
-    'cfg_np_api_key','cfg_np_sender_name','cfg_np_sender_phone','cfg_np_city',
-    'cfg_np_warehouse','cfg_np_weight','cfg_np_size',
-    'cfg_cod_fee_pct','cfg_cod_fee_min','cfg_pickup_address',
-    'cfg_color_primary','cfg_color_nav',
-    'cfg_orders_per_page',
-    'cfg_seo_title','cfg_seo_description','cfg_og_image','cfg_ga_id','cfg_fb_pixel','cfg_site_url',
-    'cfg_manager_notes'
-  ];
-  textIds.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) cfg[id] = el.value;
-  });
+  try {
+    await Promise.all([
+      // settings_store
+      _upsertSettingsTable('settings_store', {
+        shop_name: document.getElementById('cfg_shop_name')?.value || '',
+        tagline:   document.getElementById('cfg_shop_tagline')?.value || '',
+        phone:     document.getElementById('cfg_phone')?.value || '',
+        email:     document.getElementById('cfg_email')?.value || '',
+        hours:     document.getElementById('cfg_hours')?.value || '',
+        address:   document.getElementById('cfg_address')?.value || '',
+        logo_url:  document.getElementById('cfg_logo_url')?.value || '',
+        about:     document.getElementById('cfg_about')?.value || '',
+        instagram: document.getElementById('cfg_instagram')?.value || '',
+        facebook:  document.getElementById('cfg_facebook')?.value || '',
+        tiktok:    document.getElementById('cfg_tiktok')?.value || '',
+        youtube:   document.getElementById('cfg_youtube')?.value || '',
+      }),
 
-  const checks = ['cfg_pay_cod','cfg_pay_card','cfg_pay_bank','cfg_pay_crypto',
-    'cfg_tg_new_order','cfg_tg_new_review','cfg_tg_low_stock',
-    'cfg_cod_include_in_total','cfg_pickup_enabled',
-    'cfg_ui_compact','cfg_ui_animations','cfg_ui_sound',
-    'cfg_auto_logout','cfg_log_actions'];
-  checks.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) cfg[id] = el.checked ? 'true' : 'false';
-  });
+      // settings_orders
+      _upsertSettingsTable('settings_orders', {
+        order_prefix:    document.getElementById('cfg_order_prefix')?.value || '',
+        min_order:       parseFloat(document.getElementById('cfg_min_order')?.value) || 0,
+        auto_close_days: parseInt(document.getElementById('cfg_auto_close_days')?.value) || 0,
+        confirm_text:    document.getElementById('cfg_confirm_text')?.value || '',
+        manager_notes:   document.getElementById('cfg_manager_notes')?.value || '',
+        pay_cod:    document.getElementById('cfg_pay_cod')?.checked    || false,
+        pay_card:   document.getElementById('cfg_pay_card')?.checked   || false,
+        pay_bank:   document.getElementById('cfg_pay_bank')?.checked   || false,
+        pay_crypto: document.getElementById('cfg_pay_crypto')?.checked || false,
+      }),
 
-  persistSettings(cfg);
+      // settings_notifications
+      _upsertSettingsTable('settings_notifications', {
+        email_orders:  document.getElementById('cfg_notify_email_orders')?.value  || '',
+        email_reviews: document.getElementById('cfg_notify_email_reviews')?.value || '',
+        tg_token:      document.getElementById('cfg_tg_token')?.value || '',
+        tg_chat:       document.getElementById('cfg_tg_chat')?.value  || '',
+        tg_new_order:  document.getElementById('cfg_tg_new_order')?.checked  || false,
+        tg_new_review: document.getElementById('cfg_tg_new_review')?.checked || false,
+        tg_low_stock:  document.getElementById('cfg_tg_low_stock')?.checked  || false,
+      }),
 
-  // Apply orders per page immediately
-  const opEl = document.getElementById('cfg_orders_per_page');
-  if (opEl) window.ORDERS_PAGE_SIZE = parseInt(opEl.value) || 20;
+      // settings_delivery
+      _upsertSettingsTable('settings_delivery', {
+        np_api_key:           document.getElementById('cfg_np_api_key')?.value      || '',
+        np_sender_name:       document.getElementById('cfg_np_sender_name')?.value  || '',
+        np_sender_phone:      document.getElementById('cfg_np_sender_phone')?.value || '',
+        np_city:              document.getElementById('cfg_np_city')?.value          || '',
+        np_warehouse:         document.getElementById('cfg_np_warehouse')?.value    || '',
+        np_weight:            parseFloat(document.getElementById('cfg_np_weight')?.value) || 1,
+        np_size:              document.getElementById('cfg_np_size')?.value          || '',
+        cod_fee_pct:          parseFloat(document.getElementById('cfg_cod_fee_pct')?.value) || 0,
+        cod_fee_min:          parseFloat(document.getElementById('cfg_cod_fee_min')?.value) || 0,
+        pickup_address:       document.getElementById('cfg_pickup_address')?.value  || '',
+        cod_include_in_total: document.getElementById('cfg_cod_include_in_total')?.checked || false,
+        pickup_enabled:       document.getElementById('cfg_pickup_enabled')?.checked       || false,
+      }),
 
-  // Apply compact mode
-  document.body.classList.toggle('compact-mode', cfg.cfg_ui_compact === 'true');
+      // settings_appearance
+      _upsertSettingsTable('settings_appearance', {
+        color_primary:   document.getElementById('cfg_color_primary')?.value || '#FF6B35',
+        color_nav:       document.getElementById('cfg_color_nav')?.value     || '#1B2A4A',
+        orders_per_page: parseInt(document.getElementById('cfg_orders_per_page')?.value) || 20,
+        ui_compact:      document.getElementById('cfg_ui_compact')?.checked    || false,
+        ui_animations:   document.getElementById('cfg_ui_animations')?.checked || true,
+        ui_sound:        document.getElementById('cfg_ui_sound')?.checked      || false,
+      }),
 
-  showToast('✅ Налаштування збережено', 'success');
+      // settings_seo
+      _upsertSettingsTable('settings_seo', {
+        seo_title:       document.getElementById('cfg_seo_title')?.value       || '',
+        seo_description: document.getElementById('cfg_seo_description')?.value || '',
+        og_image:        document.getElementById('cfg_og_image')?.value        || '',
+        ga_id:           document.getElementById('cfg_ga_id')?.value           || '',
+        fb_pixel:        document.getElementById('cfg_fb_pixel')?.value        || '',
+        site_url:        document.getElementById('cfg_site_url')?.value        || '',
+      }),
+    ]);
+
+    // Apply appearance live
+    const cp = document.getElementById('cfg_color_primary')?.value;
+    const cn = document.getElementById('cfg_color_nav')?.value;
+    if (cp) document.documentElement.style.setProperty('--orange', cp);
+    if (cn) document.documentElement.style.setProperty('--navy', cn);
+    const op = document.getElementById('cfg_orders_per_page')?.value;
+    if (op) window.ORDERS_PAGE_SIZE = parseInt(op) || 20;
+    document.body.classList.toggle('compact-mode', document.getElementById('cfg_ui_compact')?.checked || false);
+
+    // Cache in localStorage for offline/fast apply
+    _cacheSettings({
+      cfg_color_primary: cp, cfg_color_nav: cn,
+      cfg_orders_per_page: op,
+      cfg_ui_compact: document.getElementById('cfg_ui_compact')?.checked ? 'true':'false',
+    });
+
+    showToast('✅ Налаштування збережено в базі даних', 'success');
+  } catch(e) {
+    showToast('❌ Помилка збереження: ' + e.message, 'error');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Зберегти всі зміни';
+    }
+  }
 }
 
 // ── APPLY THEME COLORS ────────────────────────────────────────
@@ -4488,11 +4657,8 @@ function applyThemeColors() {
   const nav     = document.getElementById('cfg_color_nav')?.value || '#1B2A4A';
   document.documentElement.style.setProperty('--orange', primary);
   document.documentElement.style.setProperty('--navy', nav);
-  // Update hex inputs
-  const hexP = document.getElementById('cfg_color_primary_hex');
-  const hexN = document.getElementById('cfg_color_nav_hex');
-  if (hexP) hexP.value = primary;
-  if (hexN) hexN.value = nav;
+  _setField('cfg_color_primary_hex', primary);
+  _setField('cfg_color_nav_hex', nav);
   showToast('🎨 Кольори застосовано', 'success');
 }
 
@@ -4503,8 +4669,6 @@ async function changeAdminPassword() {
   if (!np || np.length < 8) { showToast('Пароль має бути не менше 8 символів', 'error'); return; }
   if (np !== cp) { showToast('Паролі не збігаються', 'error'); return; }
   try {
-    const { data, error } = { data: null, error: null };
-    // Use Supabase auth
     const res = await fetch(SUPABASE_URL + '/auth/v1/user', {
       method: 'PUT',
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + (_adminToken||SUPABASE_KEY), 'Content-Type': 'application/json' },
@@ -4512,8 +4676,8 @@ async function changeAdminPassword() {
     });
     if (res.ok) {
       showToast('✅ Пароль змінено успішно', 'success');
-      document.getElementById('cfg_new_password').value = '';
-      document.getElementById('cfg_confirm_password').value = '';
+      _setField('cfg_new_password', '');
+      _setField('cfg_confirm_password', '');
     } else {
       const e = await res.json();
       showToast('Помилка: ' + (e.msg || e.message || res.status), 'error');
@@ -4534,7 +4698,7 @@ async function testTelegramNotification() {
     });
     const j = await res.json();
     if (j.ok) showToast('✅ Повідомлення надіслано в Telegram!', 'success');
-    else showToast('❌ Помилка Telegram: ' + (j.description||''), 'error');
+    else showToast('❌ Telegram: ' + (j.description||''), 'error');
   } catch(e) { showToast('Помилка: ' + e.message, 'error'); }
 }
 
@@ -4547,9 +4711,7 @@ async function requestBrowserNotifications() {
   if (perm === 'granted') {
     new Notification('KidsRide Admin', { body: '🎉 Push-сповіщення увімкнено!', icon: '/favicon.svg' });
     showToast('✅ Push-сповіщення увімкнено', 'success');
-  } else {
-    showToast('Браузер відмовив у дозволі', 'error');
-  }
+  } else { showToast('Браузер відмовив у дозволі', 'error'); }
 }
 
 // ── CSV EXPORT HELPERS ────────────────────────────────────────
@@ -4563,69 +4725,59 @@ function _downloadCSV(filename, rows) {
   }).join(','))].join('\n');
   const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = filename;
-  a.click();
+  a.href = URL.createObjectURL(blob); a.download = filename; a.click();
 }
-
 async function exportOrdersCSV() {
-  showToast('Завантаження замовлень...', 'info');
+  showToast('Завантаження замовлень…', 'info');
   try {
     const orders = await sbFetch('orders?select=*&order=created_at.desc&limit=10000');
     const rows = orders.map(o => ({
-      id: o.id, order_number: o.order_number||'',
-      status: o.status||'',
-      customer: ((o.customer_first_name||'')+' '+(o.customer_last_name||'')).trim(),
-      phone: o.customer_phone||'', email: o.customer_email||'',
-      city: o.delivery_city||'', address: o.delivery_address||'',
-      payment: o.payment_method||'', subtotal: o.subtotal||0,
-      total: o.total||0, items_count: o.items_count||0,
-      created_at: o.created_at||''
+      id:o.id, order_number:o.order_number||'', status:o.status||'',
+      customer:((o.customer_first_name||'')+' '+(o.customer_last_name||'')).trim(),
+      phone:o.customer_phone||'', email:o.customer_email||'',
+      city:o.delivery_city||o.city||'', address:o.delivery_address||'',
+      payment:o.payment_method||'', subtotal:o.subtotal||0,
+      total:o.total||0, created_at:o.created_at||''
     }));
-    _downloadCSV('orders_' + new Date().toISOString().slice(0,10) + '.csv', rows);
-    showToast('✅ Замовлення експортовано (' + rows.length + ' шт.)', 'success');
-  } catch(e) { showToast('Помилка: ' + e.message, 'error'); }
+    _downloadCSV('orders_'+new Date().toISOString().slice(0,10)+'.csv', rows);
+    showToast('✅ Замовлення експортовано ('+rows.length+' шт.)', 'success');
+  } catch(e) { showToast('Помилка: '+e.message, 'error'); }
 }
-
 async function exportProductsCSV() {
-  showToast('Завантаження товарів...', 'info');
+  showToast('Завантаження товарів…', 'info');
   try {
     const products = await sbFetch('products?select=*&order=created_at.desc&limit=10000');
     const rows = products.map(p => ({
-      id: p.id, sku: p.sku||'', name: p.name||'',
-      price: p.price||0, old_price: p.old_price||'',
-      category: p.category||'', brand: p.brand||'',
-      age: p.age||'', in_stock: p.in_stock||'',
-      active: p.active||'', badge: p.badge||'',
-      created_at: p.created_at||''
+      id:p.id, sku:p.sku||'', name:p.name||'', price:p.price||0,
+      old_price:p.old_price||'', category:p.category||'', brand:p.brand||'',
+      age:p.age||'', in_stock:p.in_stock||'', active:p.active||'',
+      badge:p.badge||'', created_at:p.created_at||''
     }));
-    _downloadCSV('products_' + new Date().toISOString().slice(0,10) + '.csv', rows);
-    showToast('✅ Товари експортовано (' + rows.length + ' шт.)', 'success');
-  } catch(e) { showToast('Помилка: ' + e.message, 'error'); }
+    _downloadCSV('products_'+new Date().toISOString().slice(0,10)+'.csv', rows);
+    showToast('✅ Товари експортовано ('+rows.length+' шт.)', 'success');
+  } catch(e) { showToast('Помилка: '+e.message, 'error'); }
 }
-
 async function exportReviewsCSV() {
-  showToast('Завантаження відгуків...', 'info');
+  showToast('Завантаження відгуків…', 'info');
   try {
     const reviews = await sbFetch('reviews?select=*&order=created_at.desc&limit=10000');
     const rows = reviews.map(r => ({
-      id: r.id, author: r.author_name||'', city: r.city||'',
-      rating: r.rating||0, text: r.text||'',
-      approved: r.approved||false, created_at: r.created_at||''
+      id:r.id, author:r.author_name||'', city:r.city||'',
+      rating:r.rating||0, text:r.text||'',
+      approved:r.approved||false, created_at:r.created_at||''
     }));
-    _downloadCSV('reviews_' + new Date().toISOString().slice(0,10) + '.csv', rows);
-    showToast('✅ Відгуки експортовано (' + rows.length + ' шт.)', 'success');
-  } catch(e) { showToast('Помилка: ' + e.message, 'error'); }
+    _downloadCSV('reviews_'+new Date().toISOString().slice(0,10)+'.csv', rows);
+    showToast('✅ Відгуки експортовано ('+rows.length+' шт.)', 'success');
+  } catch(e) { showToast('Помилка: '+e.message, 'error'); }
 }
-
 async function exportAnalyticsCSV() {
-  showToast('Завантаження аналітики...', 'info');
+  showToast('Завантаження аналітики…', 'info');
   try {
-    const since = new Date(Date.now() - 30*86400000).toISOString();
+    const since = new Date(Date.now()-30*86400000).toISOString();
     const rows_data = await sbFetch('page_views?select=*&created_at=gte.'+encodeURIComponent(since)+'&order=created_at.desc&limit=50000');
-    _downloadCSV('analytics_' + new Date().toISOString().slice(0,10) + '.csv', rows_data);
-    showToast('✅ Аналітику експортовано (' + rows_data.length + ' рядків)', 'success');
-  } catch(e) { showToast('Помилка: ' + e.message, 'error'); }
+    _downloadCSV('analytics_'+new Date().toISOString().slice(0,10)+'.csv', rows_data);
+    showToast('✅ Аналітику експортовано ('+rows_data.length+' рядків)', 'success');
+  } catch(e) { showToast('Помилка: '+e.message, 'error'); }
 }
 
 // ── CLEAR CACHE ───────────────────────────────────────────────
