@@ -1906,6 +1906,26 @@ function applyUrlFilters() {
       if (label.toLowerCase() === brand.toLowerCase()) opt.classList.add('checked');
     });
   }
+  // Фільтр по напрузі акумулятора (?voltage=6V або ?voltage=6)
+  const voltageRaw = params.get('voltage') || params.get('volt') || '';
+  if (voltageRaw) {
+    const vNorm = voltageRaw.trim().toUpperCase().replace(/\s+/g,'').replace(/^(\d+)$/, '$1V');
+    document.querySelectorAll('.filter-option[data-group="voltage"]').forEach(opt => {
+      const label = (opt.querySelector('.filter-label')?.textContent || '').trim().toUpperCase();
+      if (label === vNorm) opt.classList.add('checked');
+    });
+  }
+  // Фільтр по віку (?age=1-3 або ?age=3-6 або ?age=6-10)
+  const ageRaw = params.get('age') || '';
+  if (ageRaw) {
+    const aNorm = ageRaw.trim().replace(/\s/g,'');
+    document.querySelectorAll('.filter-option[data-group="age"]').forEach(opt => {
+      const label = (opt.querySelector('.filter-label')?.textContent || '').trim();
+      // Порівнюємо числа: "1 – 3 роки" → "1-3"
+      const m = label.match(/(\d+)[\s–-]+(\d+)/);
+      if (m && (m[1]+'-'+m[2]) === aNorm) opt.classList.add('checked');
+    });
+  }
   syncActiveFiltersFromDOM();
   updateActiveFilters();
 }

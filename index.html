@@ -990,7 +990,7 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
     </div>
     <div class="age-grid">
 
-      <a href="catalog.html" class="age-card reveal">
+      <a href="catalog.html?voltage=6V&age=1-3" class="age-card reveal">
         <div class="age-emoji-wrap" style="background:linear-gradient(135deg,#FFE4D6,#ffc9a8)">
           <svg viewBox="0 0 80 60" style="width:72px;height:54px">
             <rect x="8" y="18" width="64" height="22" rx="8" fill="#FF6B35" opacity=".3"/>
@@ -1011,11 +1011,11 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
           <span>Батьківська ручка</span>
           <span>Повільна швидкість</span>
         </div>
-        <div class="age-count">14 моделей</div>
+        <div class="age-count" id="age-count-6v">— моделей</div>
         <div class="age-link">Переглянути <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
       </a>
 
-      <a href="catalog.html" class="age-card reveal d1" style="border-color:rgba(27,42,74,.1)">
+      <a href="catalog.html?voltage=12V&age=3-6" class="age-card reveal d1" style="border-color:rgba(27,42,74,.1)">
         <div class="age-emoji-wrap" style="background:linear-gradient(135deg,#E8EEFF,#c8d4ff)">
           <svg viewBox="0 0 80 60" style="width:72px;height:54px">
             <rect x="5" y="20" width="70" height="24" rx="9" fill="#1B2A4A" opacity=".2"/>
@@ -1036,11 +1036,11 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
           <span>Пульт 2.4G</span>
           <span>EVA колеса</span>
         </div>
-        <div class="age-count" style="color:var(--navy-light)">28 моделей</div>
+        <div class="age-count" id="age-count-12v" style="color:var(--navy-light)">— моделей</div>
         <div class="age-link" style="color:var(--navy)">Переглянути <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
       </a>
 
-      <a href="catalog.html" class="age-card reveal d2" style="border-color:rgba(39,174,96,.12)">
+      <a href="catalog.html?voltage=24V&age=6-10" class="age-card reveal d2" style="border-color:rgba(39,174,96,.12)">
         <div class="age-emoji-wrap" style="background:linear-gradient(135deg,#E0F8EC,#b8f0d0)">
           <svg viewBox="0 0 80 60" style="width:72px;height:54px">
             <rect x="4" y="18" width="72" height="26" rx="10" fill="#1B5E20" opacity=".18"/>
@@ -1062,7 +1062,7 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
           <span>4 мотори 4WD</span>
           <span>До 8 км/год</span>
         </div>
-        <div class="age-count" style="color:var(--green)">12 моделей</div>
+        <div class="age-count" id="age-count-24v" style="color:var(--green)">— моделей</div>
         <div class="age-link" style="color:var(--green)">Переглянути <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
       </a>
 
@@ -2322,5 +2322,31 @@ else document.addEventListener('DOMContentLoaded', initInstaFab);
 })();
 </script>
 
+
+<script>
+(async function loadAgeCounts() {
+  try {
+    const res = await fetch(
+      'https://xczrzdbikkycgpnvolib.supabase.co/rest/v1/products?select=voltage,active&active=eq.true',
+      { headers: { 'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ' } }
+    );
+    if (!res.ok) return;
+    const data = await res.json();
+    const uk = n => n + '\xa0' + (n===1?'модель':n>=2&&n<=4?'моделі':'моделей');
+    const count = v => data.filter(p => String(p.voltage||'').toUpperCase().replace(/\s+/g,'') === v).length;
+    const c6  = count('6V');
+    const c12 = count('12V');
+    const c24 = count('24V');
+    const el6  = document.getElementById('age-count-6v');
+    const el12 = document.getElementById('age-count-12v');
+    const el24 = document.getElementById('age-count-24v');
+    if (el6)  el6.textContent  = c6  ? uk(c6)  : '—';
+    if (el12) el12.textContent = c12 ? uk(c12) : '—';
+    if (el24) el24.textContent = c24 ? uk(c24) : '—';
+  } catch(e) {
+    // Fallback: залишаємо прочерк, нічого не ламаємо
+  }
+})();
+</script>
 </body>
 </html>
