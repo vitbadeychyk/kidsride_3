@@ -1506,6 +1506,14 @@ CREATE POLICY "admin_seo" ON settings_seo USING (auth.role()='authenticated') WI
           <span id="pActiveLabel">Активний (відображається в каталозі)</span>
         </label>
       </div>
+      <div style="display:flex;align-items:center;gap:12px;margin-top:8px;padding:12px 14px;background:rgba(255,107,53,.06);border:1.5px solid rgba(255,107,53,.2);border-radius:var(--r-sm)">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;color:var(--navy)">
+          <div id="pFeaturedToggle" style="width:40px;height:22px;border-radius:11px;background:var(--border);position:relative;cursor:pointer;transition:background .2s;flex-shrink:0" onclick="toggleProductFeatured()">
+            <div style="position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:white;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.2)" id="pFeaturedKnob"></div>
+          </div>
+          <span id="pFeaturedLabel">🔥 Хіт сезону (показувати на головній)</span>
+        </label>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('productModal')">Скасувати</button>
@@ -1700,7 +1708,8 @@ async function sbSaveProduct(productData, editId = null) {
     features:   productData.features || [],
     images:     Array.isArray(productData.images) ? productData.images : [],
     video_url:  productData.video || null,
-    active:     productData.active,
+    active:      productData.active,
+    is_featured: productData.isFeatured === true,
     // Технічні характеристики (див. SUPABASE_PRODUCTS_COLUMNS.sql)
     short_desc:    _trim(productData.shortDesc),
     motor:         _trim(productData.motor),
@@ -3489,6 +3498,7 @@ function openProductModal(id = null) {
   // Toggle активний
   const isActive = p ? p.active !== false : true;
   setProductActiveToggle(isActive);
+  setProductFeaturedToggle(!!(p?.is_featured));
 
   document.getElementById('productModal').classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -3689,6 +3699,18 @@ function toggleProductActive() {
   setProductActiveToggle(!toggle._active);
 }
 
+function setProductFeaturedToggle(featured) {
+  const toggle = document.getElementById('pFeaturedToggle');
+  const knob = document.getElementById('pFeaturedKnob');
+  toggle.style.background = featured ? 'var(--orange)' : 'var(--border)';
+  knob.style.transform = featured ? 'translateX(18px)' : 'translateX(0)';
+  toggle._featured = featured;
+}
+function toggleProductFeatured() {
+  const toggle = document.getElementById('pFeaturedToggle');
+  setProductFeaturedToggle(!toggle._featured);
+}
+
 // Зберегти товар
 function saveProduct() {
   const name = document.getElementById('pName').value.trim();
@@ -3729,6 +3751,7 @@ function saveProduct() {
     images: Array.isArray(_pPhotos) ? _pPhotos.slice(0, PHOTO_MAX) : [],
     video: document.getElementById('pVideo').value.trim(),
     active: isActive,
+    isFeatured: document.getElementById('pFeaturedToggle')._featured === true,
     // Технічні характеристики
     shortDesc:    _val('pShortDesc'),
     motor:        _val('pMotor'),
