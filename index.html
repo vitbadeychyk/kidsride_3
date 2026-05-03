@@ -165,8 +165,14 @@ nav a.active{color:var(--orange)}
 .p-img .p-img-hover{position:absolute;inset:0;object-fit:cover;opacity:0;transition:opacity .4s ease}
 .p-card:hover .p-img img{transform:scale(1.04)}
 .p-card:hover .p-img-hover{opacity:1}
-.p-overlay{position:absolute;inset:0;background:rgba(27,42,74,.45);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .25s;backdrop-filter:blur(2px)}
+.p-overlay{position:absolute;inset:0;background:rgba(27,42,74,.45);display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;opacity:0;transition:opacity .25s;backdrop-filter:blur(2px)}
 .p-card:hover .p-overlay{opacity:1}
+.p-overlay-btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:8px;font-family:'Nunito',sans-serif;font-weight:700;font-size:12px;border:none;cursor:pointer;transition:all .2s;text-decoration:none}
+.ob-white{background:white;color:var(--navy)}
+.ob-white:hover{background:var(--bg-soft)}
+.ob-orange{background:var(--orange);color:white}
+.ob-orange:hover{background:var(--orange-dark)}
+.ob-white svg,.ob-orange svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .p-badge{position:absolute;top:12px;left:12px;padding:5px 11px;border-radius:7px;font-family:'Nunito',sans-serif;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;z-index:2}
 .badge-hot{background:var(--orange);color:white}
 .badge-new{background:var(--navy);color:white}
