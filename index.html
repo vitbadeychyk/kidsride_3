@@ -81,13 +81,13 @@ nav a.active{color:var(--orange)}
 .hero-glow{position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(255,107,53,.18) 0%,transparent 70%);top:-100px;right:-100px;pointer-events:none}
 .hero-content{position:relative;z-index:2;max-width:1280px;margin:0 auto;padding:0 64px;width:100%;display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:48px}
 .hero-text{color:white}
-.hero-chip{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:100px;padding:7px 16px;font-size:12px;font-weight:600;margin-bottom:22px;backdrop-filter:blur(10px);animation:fu .6s ease both}
+.hero-chip{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:100px;padding:7px 16px;font-size:12px;font-weight:600;margin-bottom:14px;backdrop-filter:blur(10px);animation:fu .6s ease both}
 .hero-chip-dot{width:7px;height:7px;border-radius:50%;background:var(--orange)}
-.hero-h1{font-size:clamp(38px,5vw,66px);line-height:1.08;margin-bottom:18px;animation:fu .6s .1s ease both}
+.hero-h1{font-size:clamp(38px,5vw,66px);line-height:1.08;margin-bottom:12px;animation:fu .6s .1s ease both}
 .hero-h1 em{font-style:normal;color:var(--orange)}
-.hero-p{font-size:17px;line-height:1.65;opacity:.8;margin-bottom:34px;max-width:460px;animation:fu .6s .2s ease both}
+.hero-p{font-size:17px;line-height:1.65;opacity:.8;margin-bottom:20px;max-width:460px;animation:fu .6s .2s ease both}
 .hero-btns{display:flex;gap:12px;animation:fu .6s .3s ease both}
-.hero-stats{display:flex;gap:36px;margin-top:44px;animation:fu .6s .4s ease both;padding-top:32px;border-top:1px solid rgba(255,255,255,.1)}
+.hero-stats{display:flex;gap:36px;margin-top:24px;animation:fu .6s .4s ease both;padding-top:16px;border-top:1px solid rgba(255,255,255,.1)}
 .stat-n{font-family:'Nunito',sans-serif;font-size:30px;font-weight:900;color:white;line-height:1}
 .stat-l{font-size:12px;opacity:.6;margin-top:4px;font-weight:500}
 .hero-img-wrap{position:relative;display:flex;align-items:center;justify-content:center;animation:fr .8s .2s ease both}
@@ -121,14 +121,14 @@ nav a.active{color:var(--orange)}
 .hp-dot.active{background:white;width:32px}
 
 /* ── MARQUEE ── */
-.marquee-bar{background:var(--navy);padding:14px 0;overflow:hidden}
+.marquee-bar{background:var(--navy);padding:10px 0;overflow:hidden}
 .m-track{display:flex;animation:marquee 28s linear infinite;white-space:nowrap}
 .m-item{display:inline-flex;align-items:center;gap:10px;padding:0 32px;color:rgba(255,255,255,.8);font-size:13px;font-weight:600}
 .m-sep{color:var(--orange);padding:0 4px;font-size:10px}
 
 /* ── LAYOUT ── */
-.section{padding:100px 48px}
-.section-sm{padding:64px 48px}
+.section{padding:56px 48px}
+.section-sm{padding:40px 48px}
 .container{max-width:1280px;margin:0 auto}
 .s-label{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--orange);margin-bottom:12px}
 .s-label::before{content:'';width:24px;height:2px;background:var(--orange);border-radius:2px}
@@ -137,7 +137,7 @@ nav a.active{color:var(--orange)}
 .s-desc{font-size:16px;color:var(--text-muted);line-height:1.7;max-width:560px}
 
 /* ── BENEFITS ── */
-.benefits-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;margin-top:56px}
+.benefits-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;margin-top:32px}
 .b-card{
   padding:28px;border-radius:var(--r);
   background:white;border:1.5px solid var(--border);
@@ -146,7 +146,7 @@ nav a.active{color:var(--orange)}
   display:flex;flex-direction:column;gap:0;
 }
 .b-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg)}
-.b-icon-wrap{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;margin-bottom:18px;flex-shrink:0}
+.b-icon-wrap{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;flex-shrink:0}
 .b-icon-wrap svg{width:56px;height:56px}
 .b-title{font-family:'Nunito',sans-serif;font-weight:800;font-size:17px;color:var(--navy);margin-bottom:8px}
 .b-text{font-size:13px;color:var(--text-muted);line-height:1.65;margin-bottom:14px;flex:1}
@@ -155,7 +155,7 @@ nav a.active{color:var(--orange)}
 
 /* ── PRODUCTS ── */
 .products-section{background:var(--bg-warm)}
-.products-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:48px}
+.products-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:24px}
 .products-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
 
 .p-card{background:white;border-radius:var(--r);overflow:hidden;border:1.5px solid var(--border);transition:all .3s cubic-bezier(.34,1.56,.64,1);cursor:pointer}
@@ -231,7 +231,7 @@ nav a.active{color:var(--orange)}
 .p-cart.added{background:var(--green)}
 
 /* ── AGE ── */
-.age-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:48px}
+.age-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:28px}
 .age-card{
   background:white;border-radius:var(--r-lg);padding:28px 24px;
   text-align:center;cursor:pointer;text-decoration:none;
@@ -240,7 +240,7 @@ nav a.active{color:var(--orange)}
   display:flex;flex-direction:column;align-items:center;
 }
 .age-card:hover{transform:translateY(-8px);box-shadow:var(--shadow-lg)}
-.age-emoji-wrap{width:96px;height:72px;border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;transition:transform .3s}
+.age-emoji-wrap{width:96px;height:72px;border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;transition:transform .3s}
 .age-card:hover .age-emoji-wrap{transform:scale(1.08) rotate(-2deg)}
 .age-range{font-family:'Nunito',sans-serif;font-size:26px;font-weight:900;color:var(--orange);margin-bottom:6px}
 .age-sub{font-size:13px;color:var(--text-muted);font-weight:500;margin-bottom:14px;line-height:1.5}
@@ -252,7 +252,7 @@ nav a.active{color:var(--orange)}
 
 /* ── REVIEWS ── */
 .reviews-section{background:var(--bg-soft)}
-.reviews-top{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:48px}
+.reviews-top{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:24px}
 .rating-big{font-family:'Nunito',sans-serif;font-size:52px;font-weight:900;color:var(--navy);line-height:1}
 .stars-row{display:flex;gap:3px;margin:6px 0 4px}
 .star svg{width:18px;height:18px;fill:#f59e0b;stroke:none}
@@ -283,7 +283,7 @@ nav a.active{color:var(--orange)}
 .d-label::before{content:'';width:24px;height:2px;background:var(--orange);border-radius:2px}
 .d-title{font-size:clamp(28px,3.5vw,44px);color:white;line-height:1.15;margin-bottom:14px}
 .d-title em{font-style:normal;color:var(--orange)}
-.d-desc{color:rgba(255,255,255,.6);font-size:16px;line-height:1.7;margin-bottom:36px}
+.d-desc{color:rgba(255,255,255,.6);font-size:16px;line-height:1.7;margin-bottom:20px}
 .d-chips{display:flex;gap:10px;flex-wrap:wrap}
 .d-chip{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;backdrop-filter:blur(10px)}
 .d-chip svg{width:16px;height:16px;stroke:var(--orange);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
@@ -301,7 +301,7 @@ nav a.active{color:var(--orange)}
 .warranty-grid{display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:center}
 .warranty-vis{
   background:linear-gradient(135deg,var(--navy) 0%,#2d4270 100%);
-  border-radius:var(--r-lg);padding:56px 48px;text-align:center;
+  border-radius:var(--r-lg);padding:36px 48px;text-align:center;
   position:relative;overflow:hidden;
 }
 .warranty-vis::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 70% 20%,rgba(255,107,53,.18) 0%,transparent 60%)}
@@ -309,9 +309,9 @@ nav a.active{color:var(--orange)}
 .w-big{font-family:'Nunito',sans-serif;font-size:100px;font-weight:900;color:white;line-height:1;position:relative;z-index:1}
 .w-big span{color:var(--orange)}
 .w-sub{color:rgba(255,255,255,.65);font-size:18px;font-weight:600;position:relative;z-index:1;margin-top:4px}
-.w-shield{position:relative;z-index:1;margin-top:28px;display:flex;justify-content:center}
+.w-shield{position:relative;z-index:1;margin-top:16px;display:flex;justify-content:center}
 .w-shield svg{width:64px;height:64px;stroke:rgba(255,255,255,.25);fill:none;stroke-width:1.5}
-.w-points{display:flex;flex-direction:column;gap:18px;margin-top:32px}
+.w-points{display:flex;flex-direction:column;gap:18px;margin-top:16px}
 .w-point{display:flex;align-items:flex-start;gap:16px}
 .w-pt-icon{width:46px;height:46px;background:rgba(255,107,53,.1);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .w-pt-icon svg{width:22px;height:22px;stroke:var(--orange);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
@@ -333,8 +333,8 @@ nav a.active{color:var(--orange)}
 
 /* ── INSTAGRAM ── */
 .ig-section{background:var(--bg-soft)}
-.ig-head{text-align:center;margin-bottom:44px}
-.ig-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:40px}
+.ig-head{text-align:center;margin-bottom:24px}
+.ig-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:20px}
 .ig-post{aspect-ratio:1;border-radius:var(--r-sm);overflow:hidden;position:relative;cursor:pointer}
 .ig-post img{width:100%;height:100%;object-fit:cover;transition:transform .4s}
 .ig-post:hover img{transform:scale(1.06)}
@@ -344,7 +344,7 @@ nav a.active{color:var(--orange)}
 .ig-cta{text-align:center}
 
 /* ── FOOTER ── */
-footer{background:var(--navy);color:white;padding:72px 48px 0}
+footer{background:var(--navy);color:white;padding:48px 48px 0}
 .f-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:48px;max-width:1280px;margin:0 auto;padding-bottom:56px;border-bottom:1px solid rgba(255,255,255,.08)}
 .f-brand-desc{font-size:14px;color:rgba(255,255,255,.5);line-height:1.65;margin:16px 0 24px}
 .f-socials{display:flex;gap:8px}
@@ -403,7 +403,7 @@ footer{background:var(--navy);color:white;padding:72px 48px 0}
   .faq-layout{grid-template-columns:1fr}
   .ig-grid{grid-template-columns:repeat(3,1fr)}
   .f-grid{grid-template-columns:1fr 1fr}
-  .section,.section-sm{padding:64px 24px}
+  .section,.section-sm{padding:40px 24px}
 }
 @media(max-width:640px){
   .benefits-grid,.products-grid{grid-template-columns:1fr}
@@ -725,7 +725,7 @@ footer{background:var(--navy);color:white;padding:72px 48px 0}
 <!-- BENEFITS -->
 <section class="section" style="background:var(--bg)">
   <div class="container">
-    <div style="text-align:center;max-width:600px;margin:0 auto 56px">
+    <div style="text-align:center;max-width:600px;margin:0 auto 28px">
       <div class="s-label">Чому обирають нас</div>
       <h2 class="s-title">Купуй з <em>впевненістю</em></h2>
       <p class="s-desc" style="margin:0 auto">Кожен електромобіль проходить перевірку якості перед відправкою. Ми відповідаємо за кожен товар.</p>
@@ -983,7 +983,7 @@ footer{background:var(--navy);color:white;padding:72px 48px 0}
 <!-- AGE -->
 <section class="section" style="background:var(--bg)">
   <div class="container">
-    <div style="text-align:center;max-width:580px;margin:0 auto 48px">
+    <div style="text-align:center;max-width:580px;margin:0 auto 24px">
       <div class="s-label">Підбір по віку</div>
       <h2 class="s-title">Знайди <em>ідеальний</em> варіант</h2>
       <p class="s-desc" style="margin:0 auto">Кожна вікова група — окремий підбір моделей з урахуванням ваги, швидкості та безпеки</p>
@@ -1282,7 +1282,7 @@ footer{background:var(--navy);color:white;padding:72px 48px 0}
       <div>
         <div class="s-label">Гарантія та сервіс</div>
         <h2 class="s-title">Купуй з <em>впевненістю</em></h2>
-        <p class="s-desc" style="margin-bottom:32px">Ми стоїмо за якість кожного товару і готові допомогти в будь-якій ситуації.</p>
+        <p class="s-desc" style="margin-bottom:16px">Ми стоїмо за якість кожного товару і готові допомогти в будь-якій ситуації.</p>
         <div class="w-points">
           <div class="w-point reveal"><div class="w-pt-icon"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div><div><div class="w-pt-title">Гарантійне обслуговування</div><p class="w-pt-text">12 місяців гарантії. Безкоштовний ремонт або заміна при виробничому дефекті.</p></div></div>
           <div class="w-point reveal d1"><div class="w-pt-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></div><div><div class="w-pt-title">Документи та сертифікати</div><p class="w-pt-text">Всі товари сертифіковані. Надаємо гарантійний талон та фіскальний чек.</p></div></div>
@@ -1301,7 +1301,7 @@ footer{background:var(--navy);color:white;padding:72px 48px 0}
       <div>
         <div class="s-label">Відповіді</div>
         <h2 class="s-title">Часті <em>запитання</em></h2>
-        <p class="s-desc" style="margin-bottom:32px">Не знайшли відповідь? Напишіть нам — відповімо швидко.</p>
+        <p class="s-desc" style="margin-bottom:16px">Не знайшли відповідь? Напишіть нам — відповімо швидко.</p>
         <a href="auth.html" class="btn btn-primary">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
           Написати нам
