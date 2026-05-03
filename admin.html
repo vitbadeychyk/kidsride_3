@@ -1030,6 +1030,14 @@ tr:hover td{background:rgba(240,242,248,.5)}
           </div>
           <label style="display:flex;align-items:center;gap:10px;margin-top:12px;font-size:13px;font-weight:600;cursor:pointer"><input type="checkbox" id="cfg_cod_include_in_total" style="width:15px;height:15px;accent-color:var(--orange)"> Враховувати комісію НП у сумі замовлення</label>
         </div>
+        <div class="import-card" style="margin-bottom:16px">
+          <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:14px;color:var(--navy)">📦 Безкоштовна доставка</h3>
+          <div class="f-group">
+            <label class="f-label">Мінімальна сума для безкоштовної доставки (₴)</label>
+            <input id="cfg_free_shipping_from" type="number" min="0" step="50" placeholder="Залиште порожнім щоб приховати на сайті">
+            <div style="font-size:11px;color:var(--text-muted);margin-top:5px">Якщо вказана — на головній відображається «📦 Безкоштовно від X ₴». Якщо порожньо — рядок прихований.</div>
+          </div>
+        </div>
         <div class="import-card">
           <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:14px;color:var(--navy)">🏠 Самовивіз</h3>
           <label style="display:flex;align-items:center;gap:10px;margin-bottom:12px;font-size:13px;font-weight:600;cursor:pointer"><input type="checkbox" id="cfg_pickup_enabled" style="width:15px;height:15px;accent-color:var(--orange)"> Дозволити самовивіз</label>
@@ -1635,7 +1643,7 @@ function adminLogout() {
 // Базові запити до Supabase
 async function sbFetch(path, options = {}) {
   // Використовуємо актуальний токен адміна
-  const token = _adminToken || (await _sb.auth.getSession())?.data?.session?.access_token;
+  const token = _adminToken || (typeof _sb !== 'undefined' ? (await _sb.auth.getSession())?.data?.session?.access_token : null) || SUPABASE_KEY;
 
   const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
     ...options,
@@ -4410,7 +4418,7 @@ async function _loadAllSettingsTables() {
 async function _upsertSettingsTable(table, data) {
   return sbFetch(table + '?on_conflict=id', {
     method: 'POST',
-    headers: { Prefer: 'resolution=merge-duplicates' },
+    headers: { Prefer: 'resolution=merge-duplicates,return=representation' },
     body: JSON.stringify([{ id: 1, ...data, updated_at: new Date().toISOString() }])
   });
 }
@@ -4418,8 +4426,13 @@ async function _upsertSettingsTable(table, data) {
 // Helper: set input/textarea value safely
 function _setField(id, val) {
   const el = document.getElementById(id);
-  if (!el || val == null) return;
-  el.value = val;
+  if (!el || val === null || val === undefined) return;
+  el.value = String(val);
+}
+function _setFieldIfNotEmpty(id, val) {
+  const el = document.getElementById(id);
+  if (!el || val == null || val === '') return;
+  el.value = String(val);
 }
 function _setCheck(id, val) {
   const el = document.getElementById(id);
@@ -4505,6 +4518,7 @@ async function renderSettings() {
   _setField('cfg_pickup_address',       del.pickup_address);
   _setCheck('cfg_cod_include_in_total', del.cod_include_in_total);
   _setCheck('cfg_pickup_enabled',       del.pickup_enabled);
+  _setField('cfg_free_shipping_from',   del.free_shipping_from || '');
 
   // ── Вигляд ──
   const a = d.appearance;
@@ -4532,6 +4546,11 @@ async function renderSettings() {
   _setField('cfg_ga_id',           seo.ga_id);
   _setField('cfg_fb_pixel',        seo.fb_pixel);
   _setField('cfg_site_url',        seo.site_url);
+
+  // Security tab — load from localStorage
+  const lcfg = loadSettings();
+  _setCheck('cfg_auto_logout', lcfg.cfg_auto_logout);
+  _setCheck('cfg_log_actions', lcfg.cfg_log_actions !== undefined ? lcfg.cfg_log_actions : 'true');
 
   // Browser notification status
   const permEl = document.getElementById('notifPermStatus');
@@ -4594,11 +4613,12 @@ async function saveAllSettings() {
         np_sender_phone:      document.getElementById('cfg_np_sender_phone')?.value || '',
         np_city:              document.getElementById('cfg_np_city')?.value          || '',
         np_warehouse:         document.getElementById('cfg_np_warehouse')?.value    || '',
-        np_weight:            parseFloat(document.getElementById('cfg_np_weight')?.value) || 1,
+        np_weight:            parseFloat(document.getElementById('cfg_np_weight')?.value) || null,
         np_size:              document.getElementById('cfg_np_size')?.value          || '',
         cod_fee_pct:          parseFloat(document.getElementById('cfg_cod_fee_pct')?.value) || 0,
         cod_fee_min:          parseFloat(document.getElementById('cfg_cod_fee_min')?.value) || 0,
         pickup_address:       document.getElementById('cfg_pickup_address')?.value  || '',
+        free_shipping_from:   parseFloat(document.getElementById('cfg_free_shipping_from')?.value) || null,
         cod_include_in_total: document.getElementById('cfg_cod_include_in_total')?.checked || false,
         pickup_enabled:       document.getElementById('cfg_pickup_enabled')?.checked       || false,
       }),
@@ -4633,11 +4653,13 @@ async function saveAllSettings() {
     if (op) window.ORDERS_PAGE_SIZE = parseInt(op) || 20;
     document.body.classList.toggle('compact-mode', document.getElementById('cfg_ui_compact')?.checked || false);
 
-    // Cache in localStorage for offline/fast apply
+    // Save security settings to localStorage (local preferences)
     _cacheSettings({
       cfg_color_primary: cp, cfg_color_nav: cn,
       cfg_orders_per_page: op,
-      cfg_ui_compact: document.getElementById('cfg_ui_compact')?.checked ? 'true':'false',
+      cfg_ui_compact:   document.getElementById('cfg_ui_compact')?.checked   ? 'true':'false',
+      cfg_auto_logout:  document.getElementById('cfg_auto_logout')?.checked  ? 'true':'false',
+      cfg_log_actions:  document.getElementById('cfg_log_actions')?.checked  ? 'true':'false',
     });
 
     showToast('✅ Налаштування збережено в базі даних', 'success');
