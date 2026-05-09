@@ -1091,7 +1091,7 @@ function renderPayMethods() {
   list.innerHTML = methods.map((m, i) => {
     const icon = CK_PAY_ICONS[m.id] || CK_PAY_ICONS._default;
     const bg   = CK_PAY_BG[m.id] || '';
-    return `<div class="pay-option${i === 0 ? ' selected' : ''}" onclick="selectPay(this,${JSON.stringify(m.id)})">
+    return `<div class="pay-option${i === 0 ? ' selected' : ''}" onclick="selectPay(this,'${m.id}')">
       <div class="pay-radio"><div class="pay-radio-dot"></div></div>
       <div class="pay-icon-wrap" ${bg ? 'style="background:' + bg + '"' : ''}>${icon}</div>
       <div style="flex:1">
@@ -1229,7 +1229,7 @@ function buildOrderPayload(){
     }
   }
 
-  const cart = (window.KR && KR.getCart) ? KR.getCart() : [];
+  const cart = (window.KR && KR.getCart) ? KR.getCart() : JSON.parse(localStorage.getItem('kr_cart') || '[]');
   const subtotal = cart.reduce((s,i) => s + Number(i.price||0) * Number(i.qty||1), 0);
   const total    = subtotal; // доставка/знижки можна додати тут
 
