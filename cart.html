@@ -88,7 +88,7 @@ nav a:hover{color:var(--navy);background:var(--bg-soft)}
 .ci-img svg{width:80%}
 
 .ci-info{min-width:0}
-.ci-brand{font-size:10px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px}
+.ci-brand{font-size:10px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px}.ci-sku{font-size:11px;color:var(--text-muted);font-weight:500;margin-bottom:3px}.ci-sku span{font-weight:700;color:var(--navy)}
 .ci-name{font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;color:var(--navy);line-height:1.3;margin-bottom:6px}
 .ci-name a:hover{color:var(--orange)}
 .ci-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
@@ -544,9 +544,9 @@ function renderCartItems() {
     const safeKey = escHtml(key);
     return `
       <div class="cart-item" data-key="${safeKey}">
-        <div class="ci-img">${p.img ? `<img src="${escHtml(String(p.img))}" alt="${escHtml(p.name||'')}" loading="lazy" style="width:100%;height:100%;object-fit:contain;background:#fff;border-radius:10px" onerror="this.outerHTML=${JSON.stringify(p.imgSvg || genericSvg())}">` : (p.imgSvg || genericSvg())}</div>
+        <div class="ci-img">${p.img ? `<img src="${escHtml(String(p.img))}" alt="${escHtml(p.name||'')}" loading="lazy" style="width:100%;height:100%;object-fit:contain;background:#fff;border-radius:10px" onerror="this.outerHTML=genericSvg()">` : (p.imgSvg || genericSvg())}</div>
         <div class="ci-info">
-          ${p.brand ? `<div class="ci-brand">${escHtml(p.brand)}${p.sku ? ` · <span style="font-weight:500;opacity:.7">${escHtml(p.sku)}</span>` : ""}</div>` : (p.sku ? `<div class="ci-brand">${escHtml(p.sku)}</div>` : "")}
+          ${p.brand ? `<div class="ci-brand">${escHtml(p.brand)}</div>` : ""}${p.sku ? `<div class="ci-sku">Артикул: <span>${escHtml(p.sku)}</span></div>` : ""}
           <div class="ci-name"><a href="${escHtml(productHref)}">${escHtml(p.name || 'Товар')}</a></div>
           ${tags.length ? `<div class="ci-meta">${tags.join('')}</div>` : ''}
           <div class="ci-price-mobile" style="display:none;font-family:'Nunito',sans-serif;font-weight:900;font-size:17px;color:var(--navy);margin-bottom:10px">${formatPrice(total)}</div>
@@ -640,7 +640,7 @@ function moveToWish(key) {
     try {
       let wish = JSON.parse(localStorage.getItem('kr_wishlist') || '[]');
       if (!wish.some(w => w.name === item.name)) {
-        wish.push({id: 'w-' + Date.now(), name: item.name, price: item.price, brand: item.brand, img: item.img, sku: item.sku, addedAt: Date.now()});
+        wish.push({id: 'w-' + Date.now(), name: item.name, price: item.price, brand: item.brand, img: item.img, sku: item.sku, color: item.color||'', addedAt: Date.now()});
         localStorage.setItem('kr_wishlist', JSON.stringify(wish));
       }
     } catch(e) {}
