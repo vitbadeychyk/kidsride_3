@@ -900,6 +900,7 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
           const products = r.ok ? await r.json() : [];
           if (products && products.length) {
             GRID.innerHTML = products.map((p,i) => renderFeaturedCard(p,i)).join('');
+            requestAnimationFrame(() => GRID.querySelectorAll('.reveal').forEach(el => el.classList.add('visible')));
             return;
           }
         } catch(e) {}
@@ -911,6 +912,7 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
           GRID.innerHTML = fallback.length
             ? fallback.map((p,i)=>renderFeaturedCard(p,i)).join('')
             : '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted)">Товари не знайдено</div>';
+          requestAnimationFrame(() => GRID.querySelectorAll('.reveal').forEach(el => el.classList.add('visible')));
         } catch(e) {
           GRID.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted)">Помилка завантаження</div>';
         }
