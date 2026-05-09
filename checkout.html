@@ -651,19 +651,34 @@ a{text-decoration:none;color:inherit}
 
 <script>
 // ── NP API ─────────────────────────────────────────────────────────────────
-// API ключ — замінити на реальний з np.ua
-const NP_API_KEY = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+// Ключ завантажується з Supabase settings_delivery; тут — запасне значення
+let NP_API_KEY = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
 const NP_API_URL = 'https://api.novaposhta.ua/v2.0/json/';
+
+// Підтягуємо реальний ключ з адмінських налаштувань (settings_delivery)
+(async () => {
+  try {
+    const r = await fetch(
+      'https://xczrzdbikkycgpnvolib.supabase.co/rest/v1/settings_delivery?select=np_api_key&id=eq.1&limit=1',
+      { headers: { 'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ',
+               'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ' } }
+    );
+    if (r.ok) {
+      const d = await r.json();
+      if (d && d[0] && d[0].np_api_key) NP_API_KEY = d[0].np_api_key;
+    }
+  } catch(e) {}
+})();
 
 const cityData = { selected: null, ref: null };
 const warehouseData = { selected: null };
 
 let cityTimer, warehouseTimer;
 
-// Search city via NP API
+// Search city/settlement via NP API — використовуємо getSettlements
+// щоб знаходити ВСІ населені пункти (не лише великі міста з відділеннями)
 async function searchCity(query, mode='main') {
   const dropId = mode === 'addr' ? 'addrCityDrop' : 'cityDrop';
-  const inputId = mode === 'addr' ? 'addrCityInput' : 'cityInput';
   const drop = document.getElementById(dropId);
 
   if (query.length < 2) { drop.classList.remove('open'); return; }
@@ -673,29 +688,38 @@ async function searchCity(query, mode='main') {
 
   cityTimer = setTimeout(async () => {
     try {
-      // Try real NP API first
       const res = await fetch(NP_API_URL, {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify({
           apiKey: NP_API_KEY,
-          modelName: 'Address',
-          calledMethod: 'getCities',
+          modelName: 'AddressGeneral',
+          calledMethod: 'getSettlements',
           methodProperties: {
             FindByString: query,
-            Limit: 12
+            Limit: 20
           }
         })
       });
       const data = await res.json();
       if (data.success && data.data?.length > 0) {
-        renderCities(data.data, drop, mode);
+        // Нормалізуємо поля (getSettlements → формат renderCities)
+        const normalized = data.data.map(s => ({
+          Ref:                    s.Ref,
+          Description:            s.Description,
+          AreaDescription:        s.AreaDescription,
+          SettlementTypeDescription: s.SettlementTypeDescription || '',
+          RegionsDescription:     s.RegionsDescription || '',
+        }));
+        renderCities(normalized, drop, mode);
         return;
       }
-    } catch(e) {}
-
-    // Fallback: mock data для демо
-    renderCities(getMockCities(query), drop, mode);
+      // API відповів, але нічого не знайшов
+      renderCities([], drop, mode);
+    } catch(e) {
+      // Мережева помилка або невалідний ключ — fallback mock
+      renderCities(getMockCities(query), drop, mode);
+    }
   }, 350);
 }
 
@@ -734,22 +758,29 @@ function translitMatch(uk, q) {
 
 function renderCities(cities, drop, mode) {
   if (!cities.length) {
-    drop.innerHTML = '<div class="np-empty">Місто не знайдено. Спробуйте інший запит.</div>';
+    drop.innerHTML = '<div class="np-empty">Населений пункт не знайдено. Спробуйте інший запит.</div>';
     positionDropdown(drop);
     drop.classList.add('open');
     return;
   }
   positionDropdown(drop);
-  drop.innerHTML = cities.map((c,i) => `
+  drop.innerHTML = cities.map((c) => {
+    // Формуємо підпис: тип + район + область
+    const type = c.SettlementTypeDescription ? c.SettlementTypeDescription + ', ' : '';
+    const region = c.RegionsDescription ? c.RegionsDescription + ' р-н, ' : '';
+    const area = c.AreaDescription ? c.AreaDescription + ' обл.' : '';
+    const sub = (type + region + area) || (c.AreaDescription ? c.AreaDescription + ' область' : '');
+    return `
     <div class="np-option" role="option" tabindex="-1" onclick="selectCity(${JSON.stringify(c).replace(/"/g,'&quot;')}, '${mode}')">
       <div class="np-option-icon">
         <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
       </div>
       <div>
         <div class="np-option-main">${c.Description}</div>
-        <div class="np-option-sub">${c.AreaDescription} область</div>
+        <div class="np-option-sub">${sub}</div>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
   drop.classList.add('open');
 }
 
@@ -760,13 +791,16 @@ function selectCity(city, mode='main') {
     return;
   }
   cityData.selected = city;
-  cityData.ref = city.Ref || city.DeliveryCity;
+  cityData.ref = city.Ref;   // Ref від getSettlements — буде переданий як SettlementRef
   document.getElementById('cityInput').value = '';
   document.getElementById('cityDrop').classList.remove('open');
 
   // Show selected
   document.getElementById('citySelectedName').textContent = city.Description;
-  document.getElementById('citySelectedSub').textContent = city.AreaDescription + ' область';
+  const typeLabel = city.SettlementTypeDescription ? city.SettlementTypeDescription + ', ' : '';
+  const regionLabel = city.RegionsDescription ? city.RegionsDescription + ' р-н, ' : '';
+  const areaLabel = city.AreaDescription ? city.AreaDescription + ' обл.' : '';
+  document.getElementById('citySelectedSub').textContent = typeLabel + regionLabel + areaLabel || (city.AreaDescription + ' область');
   document.getElementById('citySelected').classList.add('show');
   document.getElementById('cityInput').style.display = 'none';
 
@@ -798,14 +832,16 @@ async function searchWarehouse(query) {
 
   warehouseTimer = setTimeout(async () => {
     try {
+      // SettlementRef — правильний параметр для результатів getSettlements
+      // (охоплює і великі міста, і малі населені пункти)
       const body = {
         apiKey: NP_API_KEY,
         modelName: 'AddressGeneral',
         calledMethod: 'getWarehouses',
         methodProperties: {
-          CityRef: cityData.ref,
+          SettlementRef: cityData.ref,
           FindByString: query,
-          Limit: 20,
+          Limit: 50,
           Language: 'UA'
         }
       };
@@ -813,6 +849,13 @@ async function searchWarehouse(query) {
       const data = await res.json();
       if (data.success && data.data?.length > 0) {
         renderWarehouses(data.data, drop);
+        return;
+      }
+      // Якщо немає відділень у цьому населеному пункті — показуємо підказку
+      if (data.success && data.data?.length === 0) {
+        drop.innerHTML = '<div class="np-empty">У цьому населеному пункті немає відділень Нової Пошти. Оберіть інший населений пункт або зв\'яжіться з нами.</div>';
+        positionDropdown(drop);
+        drop.classList.add('open');
         return;
       }
     } catch(e) {}
