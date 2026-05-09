@@ -736,22 +736,26 @@ async function searchStreet(query) {
   if (!addrCityData.ref) return;
   const drop = document.getElementById('streetDrop');
   clearTimeout(streetTimer);
+  if (query.length < 2) { drop.classList.remove('open'); return; }
   showLoading(drop);
   streetTimer = setTimeout(async () => {
     try {
+      // searchSettlementStreets приймає SettlementRef з getSettlements і StreetName
       const res = await fetch(NP_API_URL, {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify({
           apiKey: NP_API_KEY,
           modelName: 'Address',
-          calledMethod: 'getStreet',
-          methodProperties: { SettlementRef: addrCityData.ref, FindByString: query, Limit: 30 }
+          calledMethod: 'searchSettlementStreets',
+          methodProperties: { SettlementRef: addrCityData.ref, StreetName: query, Limit: 30 }
         })
       });
       const data = await res.json();
-      if (data.success && data.data?.length > 0) {
-        renderStreets(data.data, drop); return;
+      // searchSettlementStreets повертає data[0].Addresses
+      const addresses = data.data?.[0]?.Addresses;
+      if (data.success && addresses?.length > 0) {
+        renderStreets(addresses, drop); return;
       }
       drop.innerHTML = '<div class="np-empty">Вулицю не знайдено. Введіть назву вручну.</div>';
       positionDropdown(drop); drop.classList.add('open');
@@ -762,11 +766,13 @@ async function searchStreet(query) {
   }, 350);
 }
 
-function renderStreets(streets, drop) {
+function renderStreets(addresses, drop) {
   positionDropdown(drop);
-  drop.innerHTML = streets.map(s => {
-    const full = (s.StreetsType ? s.StreetsType + ' ' : '') + s.Description;
-    return `<div class="np-option" role="option" tabindex="-1" onclick='selectStreet(${JSON.stringify({Description:s.Description,StreetsType:s.StreetsType||""}).replace(/'/g,"&#39;")})'>
+  drop.innerHTML = addresses.map(a => {
+    // Present містить повну назву: "вул. Хрещатик", або збираємо вручну
+    const full = a.Present || ((a.StreetTypeDescription ? a.StreetTypeDescription + ' ' : '') + (a.SettlementStreetDescription || ''));
+    const payload = JSON.stringify({ Present: full, SettlementStreetRef: a.SettlementStreetRef || '' }).replace(/'/g,"&#39;");
+    return `<div class="np-option" role="option" tabindex="-1" onclick='selectStreet(${payload})'>
       <div class="np-option-icon"><svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></div>
       <div><div class="np-option-main">${full}</div></div>
     </div>`;
@@ -776,8 +782,7 @@ function renderStreets(streets, drop) {
 
 function selectStreet(s) {
   streetData.selected = s;
-  const full = (s.StreetsType ? s.StreetsType + ' ' : '') + s.Description;
-  document.getElementById('streetInput').value = full;
+  document.getElementById('streetInput').value = s.Present || '';
   document.getElementById('streetDrop').classList.remove('open');
 }
 
