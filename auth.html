@@ -364,8 +364,17 @@ a{text-decoration:none;color:inherit}
 
 <script>
 // ── SUPABASE CONFIG ──────────────────────────────────────────────────────────
-const SUPABASE_URL = 'https://xczrzdbikkycgpnvolib.supabase.co';
+const SUPABASE_URL     = 'https://xczrzdbikkycgpnvolib.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
+
+// Розкодовує payload з JWT без мережевого запиту
+function decodeJWTPayload(token) {
+  try {
+    const b64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+    const pad  = b64.length % 4 === 0 ? '' : '='.repeat(4 - b64.length % 4);
+    return JSON.parse(atob(b64 + pad));
+  } catch(e) { return {}; }
+}
 
 let currentTab = 'login';
 
@@ -490,32 +499,34 @@ const _sb = {
 };
 
 // ── SAVE USER PROFILE TO TABLE ───────────────────────────────────────────────
-// Saves (or updates) a row in user_profiles after signup/oauth.
-// Uses upsert so duplicate calls are safe.
+// Upsert-вставка в user_profiles. on_conflict=user_id — оновлює якщо вже є.
 async function saveUserProfile(token, userId, profile) {
   try {
-    const res = await fetch(SUPABASE_URL + '/rest/v1/user_profiles', {
-      method: 'POST',
-      headers: {
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': 'Bearer ' + token,
-        'Content-Type': 'application/json',
-        'Prefer': 'resolution=merge-duplicates,return=minimal'
-      },
-      body: JSON.stringify({
-        user_id:    userId,
-        email:      profile.email      || '',
-        first_name: profile.first_name || '',
-        last_name:  profile.last_name  || '',
-        phone:      profile.phone      || ''
-      })
-    });
+    const res = await fetch(
+      SUPABASE_URL + '/rest/v1/user_profiles?on_conflict=user_id',
+      {
+        method: 'POST',
+        headers: {
+          'apikey':        SUPABASE_ANON_KEY,
+          'Authorization': 'Bearer ' + token,
+          'Content-Type':  'application/json',
+          'Prefer':        'resolution=merge-duplicates,return=minimal'
+        },
+        body: JSON.stringify({
+          user_id:    userId,
+          email:      profile.email      || '',
+          first_name: profile.first_name || '',
+          last_name:  profile.last_name  || '',
+          phone:      profile.phone      || ''
+        })
+      }
+    );
     if (!res.ok) {
       const err = await res.text();
-      console.warn('saveUserProfile error:', err);
+      console.warn('[KR] saveUserProfile error:', res.status, err);
     }
   } catch(e) {
-    console.warn('saveUserProfile exception:', e);
+    console.warn('[KR] saveUserProfile exception:', e);
   }
 }
 
@@ -772,65 +783,94 @@ async function submitLogin() {
 }
 
 // ── GOOGLE OAUTH CALLBACK ─────────────────────────────────────────────────────
-// Supabase redirects back to auth.html with #access_token=... in the URL hash
+// Supabase повертається на auth.html з #access_token=... у хеші URL.
+// КРИТИЧНО: спочатку декодуємо JWT і зберігаємо сесію БЕЗ мережевих запитів,
+// щоб index.html знайшов сесію навіть якщо редирект відбудеться миттєво.
 async function handleOAuthCallback() {
   const hash = window.location.hash;
   if (!hash || !hash.includes('access_token')) return;
 
-  const params = new URLSearchParams(hash.slice(1));
+  const params       = new URLSearchParams(hash.slice(1));
   const accessToken  = params.get('access_token');
   const refreshToken = params.get('refresh_token');
   const expiresIn    = parseInt(params.get('expires_in') || '3600', 10);
 
   if (!accessToken) return;
 
-  // Прибираємо токен з URL (безпека)
+  // 1. Прибираємо токен з URL (безпека)
   history.replaceState(null, '', window.location.pathname);
 
-  // Показуємо успіх одразу
-  showSuccess('google');
+  // 2. Декодуємо JWT payload локально — без мережевого запиту
+  const jwt = decodeJWTPayload(accessToken);
+  const userId   = jwt.sub  || '';
+  const email    = jwt.email || '';
+  const userMeta = jwt.user_metadata || {};
 
+  // 3. ОДРАЗУ зберігаємо сесію в localStorage (до будь-якого async)
+  //    Це гарантує що index.html знайде сесію навіть при швидкому редиректі
+  const immediateSession = {
+    access_token:  accessToken,
+    refresh_token: refreshToken,
+    user: {
+      id:            userId,
+      email:         email,
+      user_metadata: userMeta
+    },
+    expires_at: Math.floor(Date.now() / 1000) + expiresIn
+  };
+  localStorage.setItem('kr_admin_session', JSON.stringify(immediateSession));
+
+  // 4. Показуємо success screen (без auto-редиректу — ми керуємо самі)
+  document.getElementById('loginForm').style.display    = 'none';
+  document.getElementById('registerForm').style.display = 'none';
+  const successEl = document.getElementById('authSuccess');
+  successEl.style.display       = 'flex';
+  successEl.style.flexDirection = 'column';
+  document.getElementById('successTitle').textContent = 'Вхід через Google!';
+  document.getElementById('successDesc').textContent  = 'Акаунт підключено. Зберігаємо дані...';
+
+  // 5. Async: отримуємо повні дані користувача і зберігаємо профіль у таблицю
   try {
-    // Отримуємо дані користувача
     const res = await fetch(SUPABASE_URL + '/auth/v1/user', {
       headers: {
-        'apikey': SUPABASE_ANON_KEY,
+        'apikey':        SUPABASE_ANON_KEY,
         'Authorization': 'Bearer ' + accessToken
       }
     });
-    if (!res.ok) return;
-    const user = await res.json();
 
-    // Зберігаємо сесію
-    const session = {
-      access_token:  accessToken,
-      refresh_token: refreshToken,
-      user,
-      expires_at: Math.floor(Date.now() / 1000) + expiresIn
-    };
-    localStorage.setItem('kr_admin_session', JSON.stringify(session));
+    if (res.ok) {
+      const user = await res.json();
 
-    // Зберігаємо / оновлюємо профіль в таблиці
-    const meta = user.user_metadata || {};
-    const fullName = meta.full_name || meta.name || '';
-    const nameParts = fullName.trim().split(' ');
-    await saveUserProfile(accessToken, user.id, {
-      email:      user.email || '',
-      first_name: meta.given_name  || nameParts[0]                        || '',
-      last_name:  meta.family_name || nameParts.slice(1).join(' ')        || '',
-      phone:      user.phone       || meta.phone                          || ''
-    });
+      // Оновлюємо сесію з повними даними користувача
+      const fullSession = {
+        access_token:  accessToken,
+        refresh_token: refreshToken,
+        user,
+        expires_at: Math.floor(Date.now() / 1000) + expiresIn
+      };
+      localStorage.setItem('kr_admin_session', JSON.stringify(fullSession));
 
-    // Перевіряємо адмін
-    const isAdm = await checkIsAdmin(accessToken);
-    setTimeout(() => {
-      window.location.href = isAdm ? 'admin.html' : 'index.html';
-    }, 1800);
-
+      // Зберігаємо профіль у таблицю user_profiles
+      const meta     = user.user_metadata || {};
+      const fullName = meta.full_name || meta.name || '';
+      const parts    = fullName.trim().split(/\s+/);
+      await saveUserProfile(accessToken, user.id, {
+        email:      user.email || '',
+        first_name: meta.given_name  || parts[0]                || '',
+        last_name:  meta.family_name || parts.slice(1).join(' ') || '',
+        phone:      user.phone || meta.phone || ''
+      });
+    }
   } catch(e) {
-    console.error('OAuth callback error:', e);
-    window.location.href = 'index.html';
+    console.warn('[KR] OAuth callback async error:', e);
   }
+
+  // 6. Перевіряємо адміна і редиректимо
+  document.getElementById('successDesc').textContent = 'Переадресовуємо вас...';
+  let isAdm = false;
+  try { isAdm = await checkIsAdmin(accessToken); } catch(e) {}
+
+  window.location.href = isAdm ? 'admin.html' : 'index.html';
 }
 
 // ── EXISTING SESSION CHECK ────────────────────────────────────────────────────
