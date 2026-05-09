@@ -638,7 +638,11 @@ function moveToWish(key) {
   if (item) {
     try {
       let wish = JSON.parse(localStorage.getItem('kr_wishlist') || '[]');
-      if (wish.some(w => w.name === item.name)) {
+      const isSameCW = w =>
+        (item.id && !item.id.startsWith('idx-') && !item.id.startsWith('p-') && w.id === item.id) ||
+        (item.sku && w.sku === item.sku) ||
+        w.name === item.name;
+      if (wish.some(isSameCW)) {
         showToast('❤️ Вже є у списку бажань');
         return;
       }

@@ -870,7 +870,7 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
               </div>
             </div>
             ${badge}
-            <button class="p-wish" onclick="toggleWishIndexFull(this,window._krFeaturedMap&&window._krFeaturedMap['${_mapKey}'])">
+            <button class="p-wish" data-wish-id="${escH(String(p.id||''))}" data-wish-sku="${escH(String(p.sku||p.article||p.model||''))}" onclick="toggleWishIndexFull(this,window._krFeaturedMap&&window._krFeaturedMap['${_mapKey}'])">
               <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
             </button>
           </div>
@@ -902,7 +902,7 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
           const products = r.ok ? await r.json() : [];
           if (products && products.length) {
             GRID.innerHTML = products.map((p,i) => renderFeaturedCard(p,i)).join('');
-            requestAnimationFrame(() => GRID.querySelectorAll('.reveal').forEach(el => el.classList.add('visible')));
+            requestAnimationFrame(() => { GRID.querySelectorAll('.reveal').forEach(el => el.classList.add('visible')); syncWishlistButtonsState(); });
             return;
           }
         } catch(e) {}
@@ -1858,9 +1858,15 @@ function addToCartIndexFull(btn, p) {
   const sku   = p.sku || p.article || p.model || '';
   let cart = [];
   try { cart = JSON.parse(localStorage.getItem('kr_cart') || '[]'); } catch{}
-  const existing = cart.find(i => i.name === name);
+  const productId = p.id || '';
+  const color = p.color || 'Стандарт';
+  const existing = cart.find(i =>
+    (productId && !productId.startsWith('idx-') && i.id === productId) ||
+    (sku && i.sku === sku && i.color === color) ||
+    (!sku && i.name === name && i.color === color)
+  );
   if (existing) { existing.qty = (existing.qty||1) + 1; }
-  else { cart.push({id: p.id || ('idx-'+Date.now()), name, price, brand, img, sku, color:'Стандарт', qty:1}); }
+  else { cart.push({id: productId || ('idx-'+Date.now()), name, price, brand, img, sku, color, qty:1}); }
   localStorage.setItem('kr_cart', JSON.stringify(cart));
 
   const total = cart.reduce((s,i) => s + (i.qty||1), 0);
@@ -1913,9 +1919,17 @@ function updateWishBadge() {
 }
 function syncWishlistButtonsState() {
   const list = getWishlist();
-  document.querySelectorAll('.p-wish[data-wish-name]').forEach(btn => {
-    const name = btn.getAttribute('data-wish-name');
-    if (list.some(i => i.name === name)) btn.classList.add('liked');
+  document.querySelectorAll('.p-wish').forEach(btn => {
+    const name = btn.getAttribute('data-wish-name') || btn.getAttribute('data-name');
+    const sku  = btn.getAttribute('data-wish-sku') || btn.getAttribute('data-sku') || '';
+    const wid  = btn.getAttribute('data-wish-id')  || '';
+    if (!name && !sku && !wid) return;
+    const inList = list.some(i =>
+      (wid && !wid.startsWith('idx-') && i.id === wid) ||
+      (sku && i.sku === sku) ||
+      (name && i.name === name)
+    );
+    if (inList) btn.classList.add('liked');
     else btn.classList.remove('liked');
   });
 }
@@ -1948,13 +1962,15 @@ function toggleWishIndexFull(btn, p) {
   btn.style.transform = 'scale(1.3)';
   setTimeout(() => btn.style.transform = '', 200);
   let list = getWishlist();
+  const wId = p.id || '';
+  const isSame = i => (wId && !wId.startsWith('idx-') && i.id === wId) || (sku && i.sku === sku) || i.name === name;
   if (btn.classList.contains('liked')) {
-    if (!list.some(i => i.name === name)) {
-      list.push({id: p.id || ('idx-w-'+Date.now()), name, price, img, sku, brand: p.brand||'', color: p.color||'', addedAt: Date.now()});
+    if (!list.some(isSame)) {
+      list.push({id: wId || ('idx-w-'+Date.now()), name, price, img, sku, brand: p.brand||'', color: p.color||'', addedAt: Date.now()});
     }
     showToast('❤️ Додано до списку бажань');
   } else {
-    list = list.filter(i => i.name !== name);
+    list = list.filter(i => !isSame(i));
     showToast('🤍 Видалено зі списку бажань');
   }
   saveWishlist(list);
