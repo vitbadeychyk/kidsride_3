@@ -309,8 +309,8 @@ a{text-decoration:none;color:inherit}
   <h2 class="success-title">Замовлення прийнято!</h2>
   <p class="success-desc">Дякуємо за покупку! Наш менеджер зв'яжеться з вами протягом 15 хвилин для підтвердження.</p>
   <div class="success-order">
-    <div class="success-order-row"><span class="success-order-label">Номер замовлення</span><span class="success-order-val">#KR-2024-1847</span></div>
-    <div class="success-order-row"><span class="success-order-label">Сума до сплати</span><span class="success-order-val">29 434 ₴</span></div>
+    <div class="success-order-row"><span class="success-order-label">Номер замовлення</span><span class="success-order-val" id="successOrderNumber">#KR-260509</span></div>
+    <div class="success-order-row"><span class="success-order-label">Сума до сплати</span><span class="success-order-val" id="successTotal">—</span></div>
     <div class="success-order-row"><span class="success-order-label">Доставка</span><span class="success-order-val" id="successDelivery">Нова Пошта</span></div>
     <div class="success-order-row"><span class="success-order-label">Спосіб оплати</span><span class="success-order-val" id="successPayment">—</span></div>
   </div>
@@ -1238,7 +1238,7 @@ function buildOrderPayload(){
   const ymd = d.getFullYear().toString().slice(-2)
             + String(d.getMonth()+1).padStart(2,'0')
             + String(d.getDate()).padStart(2,'0');
-  const order_number = 'KR-' + ymd + '-' + String(Math.floor(Math.random()*9000)+1000);
+  const order_number = 'KR-' + ymd;
 
   const order = {
     order_number,
@@ -1266,6 +1266,7 @@ function buildOrderPayload(){
     product_name  : String(i.name || ''),
     product_brand : String(i.brand || ''),
     product_image : String(i.img || ''),
+    sku           : String(i.sku || ''),
     color         : String(i.color || ''),
     price         : Number(i.price || 0),
     quantity      : Number(i.qty || 1),
@@ -1336,8 +1337,10 @@ async function submitOrder() {
     document.getElementById('checkoutPage').style.display = 'none';
     document.getElementById('successPage').style.display = 'block';
     document.getElementById('successPayment').textContent = getPayName();
-    const numEl = document.querySelector('.success-order-row .success-order-val');
+    const numEl = document.getElementById('successOrderNumber');
     if (numEl) numEl.textContent = '#' + (created.order_number || order.order_number);
+    const totEl = document.getElementById('successTotal');
+    if (totEl) totEl.textContent = _fmtPriceCk(order.total);
     window.scrollTo({top:0,behavior:'smooth'});
   } catch (e) {
     console.error('submitOrder Supabase error:', e);
