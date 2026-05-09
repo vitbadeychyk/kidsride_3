@@ -376,14 +376,10 @@ function switchTab(tab) {
   document.getElementById('authSuccess').style.flexDirection = '';
 }
 
-// Google auth (simulate)
+// Google auth via Supabase OAuth redirect
 function googleAuth() {
-  _sb.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: window.location.origin + '/admin.html'
-    }
-  }).catch(e => console.error('Google auth error:', e));
+  const redirectTo = encodeURIComponent(window.location.origin + '/index.html');
+  window.location.href = SUPABASE_URL + '/auth/v1/authorize?provider=google&redirect_to=' + redirectTo;
 }
 
 
@@ -463,62 +459,17 @@ function toggleCheck(row) {
 
 function checkLoginReady() {}
 
-// Login submit
-function submitLogin() {
-  const email = document.getElementById('loginEmail').value.trim();
-  const pwd   = document.getElementById('loginPassword').value;
-  const btn   = document.getElementById('loginBtn');
-  const errEl = document.getElementById('loginError');
-
-  if (!email || !pwd) {
-    if (errEl) { errEl.textContent = 'Введіть email та пароль'; errEl.style.display = 'block'; }
-    return;
-  }
-
-  // Показати loader
-  btn.disabled = true;
-  btn.innerHTML = '<div style="width:18px;height:18px;border:2px solid rgba(255,255,255,.4);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;display:inline-block;margin-right:8px"></div>Вхід...';
-
-  _sb.auth.signInWithPassword({ email, password: pwd })
-    .then(async ({ data, error }) => {
-      if (error) {
-        btn.disabled = false;
-        btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> Увійти';
-        if (errEl) {
-          errEl.textContent = error.message.includes('Invalid') ? '❌ Невірний email або пароль' : '❌ ' + error.message;
-          errEl.style.display = 'block';
-        }
-        return;
-      }
-
-      // Перевірити чи адмін
-      const isAdm = await checkIsAdmin(data.session.access_token);
-
-      if (isAdm) {
-        // Адмін → в адмін панель
-        showSuccess('login');
-        setTimeout(() => window.location.href = 'admin.html', 1000);
-      } else {
-        // Звичайний користувач → на головну
-        showSuccess('login');
-        setTimeout(() => window.location.href = 'index.html', 1000);
-      }
-    })
-    .catch(e => {
-      btn.disabled = false;
-      btn.innerHTML = 'Увійти';
-      if (errEl) { errEl.textContent = '❌ Помилка: ' + e.message; errEl.style.display = 'block'; }
-    });
-}
 
 
 // Register submit
-function submitRegister() {
+async function submitRegister() {
   const firstName = document.getElementById('regFirstName').value.trim();
-  const email = document.getElementById('regEmail').value.trim();
-  const pwd = document.getElementById('regPassword').value;
-  const confirm = document.getElementById('regConfirm').value;
-  const terms = document.getElementById('termsRow').querySelector('.check-box').classList.contains('checked');
+  const lastName  = document.getElementById('regLastName').value.trim();
+  const email     = document.getElementById('regEmail').value.trim();
+  const phone     = document.getElementById('regPhone').value.trim();
+  const pwd       = document.getElementById('regPassword').value;
+  const confirm   = document.getElementById('regConfirm').value;
+  const terms     = document.getElementById('termsRow').querySelector('.check-box').classList.contains('checked');
 
   if (!firstName || !email || !pwd) { return; }
   if (pwd !== confirm) {
@@ -531,9 +482,46 @@ function submitRegister() {
   }
 
   const btn = document.getElementById('registerBtn');
+  const origHTML = btn.innerHTML;
   btn.disabled = true;
-  btn.innerHTML = '<div style="width:20px;height:20px;border:2px solid rgba(255,255,255,.4);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite"></div>Створення акаунту...';
-  setTimeout(() => showSuccess('register'), 1800);
+  btn.innerHTML = '<div style="width:20px;height:20px;border:2px solid rgba(255,255,255,.4);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;display:inline-block;vertical-align:middle;margin-right:8px"></div>Створення акаунту...';
+
+  try {
+    const res = await fetch(SUPABASE_URL + '/auth/v1/signup', {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        email,
+        password: pwd,
+        data: {
+          first_name: firstName,
+          last_name: lastName,
+          phone: phone
+        }
+      })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      const msg = data.error_description || data.msg || data.message || 'Помилка реєстрації';
+      throw new Error(msg);
+    }
+    showSuccess('register');
+  } catch(e) {
+    btn.disabled = false;
+    btn.innerHTML = origHTML;
+    let errEl = document.getElementById('regError');
+    if (!errEl) {
+      errEl = document.createElement('div');
+      errEl.id = 'regError';
+      errEl.style.cssText = 'color:#e53935;font-size:13px;font-weight:600;margin-bottom:12px;padding:10px 14px;background:rgba(229,57,53,.08);border-radius:8px;border:1px solid rgba(229,57,53,.2)';
+      btn.parentNode.insertBefore(errEl, btn);
+    }
+    errEl.textContent = '❌ ' + e.message;
+    errEl.style.display = 'block';
+  }
 }
 
 // Show success
@@ -562,16 +550,36 @@ function showSuccess(type) {
 }
 
 // Forgot password
-function openForgot() { document.getElementById('forgotModal').classList.add('open'); }
+function openForgot() {
+  const loginEmail = document.getElementById('loginEmail').value.trim();
+  if (loginEmail) document.getElementById('forgotEmail').value = loginEmail;
+  document.getElementById('forgotModal').classList.add('open');
+}
 function closeForgot() { document.getElementById('forgotModal').classList.remove('open'); }
-function submitForgot() {
+async function submitForgot() {
+  const email = document.getElementById('forgotEmail').value.trim();
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    document.getElementById('forgotEmail').classList.add('error');
+    return;
+  }
+  const sendBtn = document.querySelector('#forgotModal .btn-primary');
+  sendBtn.disabled = true;
+  sendBtn.textContent = 'Надсилаємо...';
+  try {
+    await fetch(SUPABASE_URL + '/auth/v1/recover', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+  } catch(e) {}
   closeForgot();
-  // Show toast-like message
+  sendBtn.disabled = false;
+  sendBtn.textContent = 'Надіслати';
   const toast = document.createElement('div');
   toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green);color:white;padding:12px 24px;border-radius:100px;font-family:Nunito,sans-serif;font-weight:700;font-size:13px;z-index:3000;box-shadow:0 8px 24px rgba(0,0,0,.2);white-space:nowrap';
-  toast.textContent = '✓ Посилання надіслано на email';
+  toast.textContent = '✓ Посилання для відновлення надіслано на ' + email;
   document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 3000);
+  setTimeout(() => toast.remove(), 4000);
 }
 
 // Close modal on overlay click
@@ -676,6 +684,7 @@ async function submitLogin() {
   const pwd   = document.getElementById('loginPassword').value;
   const btn   = document.getElementById('loginBtn');
   const errEl = document.getElementById('loginError');
+  const rememberMe = document.querySelector('#loginForm .check-box.checked') !== null;
 
   if (errEl) errEl.style.display = 'none';
 
@@ -693,8 +702,15 @@ async function submitLogin() {
     // 1. Увійти через Supabase Auth
     const data = await _sb.signIn(email, pwd);
 
-    // 2. Зберегти сесію
-    const session = _sb.saveSession(data);
+    // 2. Зберегти сесію — якщо "Запам'ятати мене" — 30 днів, інакше 1 година
+    const expiresIn = rememberMe ? 30 * 24 * 3600 : (data.expires_in || 3600);
+    const session = {
+      access_token: data.access_token,
+      user: data.user,
+      expires_at: Math.floor(Date.now() / 1000) + expiresIn,
+      remember_me: rememberMe
+    };
+    localStorage.setItem('kr_admin_session', JSON.stringify(session));
 
     // 3. Перевірити чи адмін
     const isAdm = await checkIsAdmin(session.access_token);
