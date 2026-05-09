@@ -88,8 +88,14 @@ nav a:hover{color:var(--navy);background:var(--bg-soft)}
 .ci-img svg{width:80%}
 
 .ci-info{min-width:0}
-.ci-brand{font-size:10px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px}.ci-sku{font-size:11px;color:var(--text-muted);font-weight:500;margin-bottom:3px}.ci-sku span{font-weight:700;color:var(--navy)}
-.ci-name{font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;color:var(--navy);line-height:1.3;margin-bottom:6px}
+.ci-brand{font-size:10px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px}
+.ci-sku{display:inline-flex;align-items:center;gap:5px;margin-bottom:5px}
+.ci-sku-label{font-size:10px;font-weight:700;color:white;background:var(--navy);border-radius:4px;padding:1px 6px;letter-spacing:.04em;text-transform:uppercase;flex-shrink:0}
+.ci-sku-val{font-size:12px;font-weight:700;color:var(--navy)}
+.ci-color{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:6px}
+.ci-color-dot{width:12px;height:12px;border-radius:50%;border:1.5px solid rgba(0,0,0,.15);flex-shrink:0}
+.ci-color strong{color:var(--navy);font-weight:700}
+.ci-name{font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;color:var(--navy);line-height:1.3;margin-bottom:4px}
 .ci-name a:hover{color:var(--orange)}
 .ci-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
 .ci-tag{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--text-muted);background:var(--bg-soft);border-radius:5px;padding:2px 8px;font-weight:500}
@@ -502,7 +508,11 @@ function plural(n, one, few, many) {
   if ([2,3,4].includes(n % 10) && ![12,13,14].includes(n % 100)) return few;
   return many;
 }
-function itemKey(it){ return String(it.id || '') + '|' + String(it.color || ''); }
+// Унікальний ключ: артикул (sku) + колір; якщо sku немає — id + колір
+function itemKey(it){
+  if (it.sku) return 'sku:' + String(it.sku) + '|' + String(it.color || '');
+  return 'id:' + String(it.id || '') + '|' + String(it.color || '');
+}
 function findIdx(key){ return cartData.findIndex(it => itemKey(it) === key); }
 function genericSvg(){
   return `<svg viewBox="0 0 120 90">
@@ -528,6 +538,27 @@ function saveCart() {
 }
 
 // ── RENDER ────────────────────────────────────────────────────────────────
+// Вгадати колір крапки для кольору товару
+function colorDot(colorName) {
+  if (!colorName) return '#ccc';
+  const n = colorName.toLowerCase();
+  if (/біл|white/.test(n))   return '#f5f5f5';
+  if (/чорн|black/.test(n))  return '#1a1a1a';
+  if (/черв|red/.test(n))    return '#e53935';
+  if (/синь|blue/.test(n))   return '#1e88e5';
+  if (/зелен|green/.test(n)) return '#43a047';
+  if (/жовт|yellow/.test(n)) return '#fdd835';
+  if (/роже|pink/.test(n))   return '#ec407a';
+  if (/оранж|orange/.test(n))return '#fb8c00';
+  if (/фіолет|purple/.test(n))return '#8e24aa';
+  if (/сір|grey|gray/.test(n))return '#90a4ae';
+  if (/бежев|beige/.test(n)) return '#d7c4a3';
+  if (/корич|brown/.test(n)) return '#6d4c41';
+  if (/золот|gold/.test(n))  return '#ffc107';
+  if (/срібл|silver/.test(n))return '#bdbdbd';
+  return '#FF6B35';
+}
+
 function renderCartItems() {
   const list = document.getElementById('cartItemsList');
   if (!list) return;
@@ -537,17 +568,21 @@ function renderCartItems() {
     const qty = Number(p.qty) || 1;
     const total = (Number(p.price)||0) * qty;
     const tags = [];
-    if (p.color)   tags.push(`<span class="ci-tag">Колір: ${escHtml(p.color)}</span>`);
     if (p.voltage) tags.push(`<span class="ci-tag"><svg viewBox="0 0 24 24" style="width:10px;height:10px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>${escHtml(p.voltage)}</span>`);
     if (p.age)     tags.push(`<span class="ci-tag">${escHtml(p.age)} р.</span>`);
-    const productHref = 'product.html' + (p.model ? ('?model=' + encodeURIComponent(p.model)) : '');
+    const productHref = 'product.html' + (p.sku ? ('?sku=' + encodeURIComponent(p.sku)) : (p.model ? ('?model=' + encodeURIComponent(p.model)) : ''));
     const safeKey = escHtml(key);
+    const imgHtml = p.img
+      ? `<img src="${escHtml(String(p.img))}" alt="${escHtml(p.name||'')}" loading="lazy" data-sku="${escHtml(p.sku||'')}" style="width:100%;height:100%;object-fit:contain;background:#fff;border-radius:10px" onerror="this.style.display='none';this.parentNode.innerHTML+=genericSvg()">`
+      : `<span class="ci-img-placeholder" data-sku="${escHtml(p.sku||'')}" data-name="${escHtml(p.name||'')}">${genericSvg()}</span>`;
     return `
       <div class="cart-item" data-key="${safeKey}">
-        <div class="ci-img">${p.img ? `<img src="${escHtml(String(p.img))}" alt="${escHtml(p.name||'')}" loading="lazy" style="width:100%;height:100%;object-fit:contain;background:#fff;border-radius:10px" onerror="this.outerHTML=genericSvg()">` : (p.imgSvg || genericSvg())}</div>
+        <div class="ci-img">${imgHtml}</div>
         <div class="ci-info">
-          ${p.brand ? `<div class="ci-brand">${escHtml(p.brand)}</div>` : ""}${p.sku ? `<div class="ci-sku">Артикул: <span>${escHtml(p.sku)}</span></div>` : ""}
+          ${p.brand ? `<div class="ci-brand">${escHtml(p.brand)}</div>` : ''}
+          ${p.sku ? `<div class="ci-sku"><span class="ci-sku-label">Арт.</span><span class="ci-sku-val">${escHtml(p.sku)}</span></div>` : ''}
           <div class="ci-name"><a href="${escHtml(productHref)}">${escHtml(p.name || 'Товар')}</a></div>
+          ${p.color ? `<div class="ci-color"><span class="ci-color-dot" style="background:${colorDot(p.color)}"></span>Колір: <strong>${escHtml(p.color)}</strong></div>` : ''}
           ${tags.length ? `<div class="ci-meta">${tags.join('')}</div>` : ''}
           <div class="ci-price-mobile" style="display:none;font-family:'Nunito',sans-serif;font-weight:900;font-size:17px;color:var(--navy);margin-bottom:10px">${formatPrice(total)}</div>
           <div class="ci-actions">
@@ -574,6 +609,55 @@ function renderCartItems() {
       </div>`;
   }).join('');
   checkMobilePrices();
+  // Асинхронно підтягуємо фото для товарів без зображення
+  asyncLoadCartImages();
+}
+
+// ── ASYNC ЗАВАНТАЖЕННЯ ФОТО З SUPABASE ────────────────────────────────────
+const _SUPA_URL_CART = 'https://xczrzdbikkycgpnvolib.supabase.co';
+const _SUPA_KEY_CART = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
+
+async function asyncLoadCartImages() {
+  // Знаходимо всі placeholder-и без фото
+  const placeholders = document.querySelectorAll('.ci-img-placeholder[data-sku]');
+  if (!placeholders.length) return;
+
+  // Збираємо унікальні артикули
+  const skus = [...new Set([...placeholders].map(el => el.dataset.sku).filter(Boolean))];
+  if (!skus.length) return;
+
+  try {
+    const q = skus.map(s => encodeURIComponent('"' + s + '"')).join(',');
+    const res = await fetch(
+      `${_SUPA_URL_CART}/rest/v1/products?select=sku,images&sku=in.(${skus.map(s=>'"'+s+'"').join(',')})`,
+      { headers: { 'apikey': _SUPA_KEY_CART, 'Authorization': 'Bearer ' + _SUPA_KEY_CART } }
+    );
+    if (!res.ok) return;
+    const data = await res.json();
+    if (!Array.isArray(data)) return;
+
+    // Карта sku → перше зображення
+    const imgMap = {};
+    data.forEach(p => {
+      const imgs = Array.isArray(p.images) ? p.images : (typeof p.images === 'string' ? (() => { try { return JSON.parse(p.images); } catch{ return []; } })() : []);
+      if (imgs[0]) imgMap[p.sku] = imgs[0];
+    });
+
+    // Вставляємо зображення у DOM і оновлюємо localStorage
+    let cartUpdated = false;
+    placeholders.forEach(el => {
+      const sku = el.dataset.sku;
+      const imgUrl = imgMap[sku];
+      if (!imgUrl) return;
+      const wrapper = el.parentNode; // .ci-img
+      wrapper.innerHTML = `<img src="${imgUrl}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:contain;background:#fff;border-radius:10px" onerror="this.style.opacity=0">`;
+      // Зберігаємо у cart
+      const item = cartData.find(i => i.sku === sku);
+      if (item && !item.img) { item.img = imgUrl; cartUpdated = true; }
+    });
+
+    if (cartUpdated) localStorage.setItem('kr_cart', JSON.stringify(cartData));
+  } catch(e) {}
 }
 
 function recalc() {

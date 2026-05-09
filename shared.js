@@ -28,11 +28,17 @@ const KR = {
 
   // Додати товар
   addToCart(product) {
-    // product = { id, name, brand, price, color, voltage, age, img }
+    // product = { id, name, brand, price, color, voltage, age, img, sku }
     const cart = this.getCart();
-    const existing = cart.find(i => i.id === product.id && i.color === product.color);
+    // Ключ унікальності: артикул (sku) + колір; якщо немає sku — id + колір
+    const existing = cart.find(i => {
+      if (product.sku && i.sku) return i.sku === product.sku && i.color === product.color;
+      return i.id === product.id && i.color === product.color;
+    });
     if (existing) {
       existing.qty = Math.min((existing.qty || 1) + 1, 10);
+      // Оновлюємо фото якщо раніше не було
+      if (!existing.img && product.img) existing.img = product.img;
     } else {
       cart.push({ ...product, qty: 1, addedAt: Date.now() });
     }
