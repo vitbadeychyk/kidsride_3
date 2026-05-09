@@ -1495,23 +1495,37 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 // Завантажити товари з Supabase (з fallback на localStorage/дефолтні)
 async function loadProductsFromSupabase() {
   try {
-    const res = await fetch(
-      SUPABASE_URL + '/rest/v1/products?select=*&active=eq.true&order=created_at.desc',
-      {
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': 'Bearer ' + SUPABASE_KEY,
-          'Content-Type': 'application/json'
+    // Завантажуємо всі товари посторінково (Supabase ліміт 1000 на запит)
+    const PAGE = 1000;
+    let all = [];
+    let from = 0;
+    while (true) {
+      const res = await fetch(
+        SUPABASE_URL + '/rest/v1/products?select=*&active=eq.true&order=created_at.desc',
+        {
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_KEY,
+            'Content-Type': 'application/json',
+            'Range': from + '-' + (from + PAGE - 1),
+            'Range-Unit': 'items',
+            'Prefer': 'count=none'
+          }
         }
-      }
-    );
+      );
 
-    if (!res.ok) throw new Error('Supabase error: ' + res.status);
+      if (!res.ok && res.status !== 206) throw new Error('Supabase error: ' + res.status);
 
-    const data = await res.json();
-    if (data && data.length > 0) {
+      const data = await res.json();
+      if (!data || data.length === 0) break;
+      all = all.concat(data);
+      if (data.length < PAGE) break;
+      from += PAGE;
+    }
+
+    if (all.length > 0) {
       // Конвертувати формат Supabase → формат сайту
-      return data.map(p => ({
+      return all.map(p => ({
         id: p.id,
         sku: p.sku,
         model_code: p.model_code || null,
@@ -1965,6 +1979,7 @@ function toggleCheck(label, group) {
 }
 
 function applyFilters() {
+  syncActiveFiltersFromDOM();
   const min = parseInt(document.getElementById('priceMin')?.value || 0);
   const max = parseInt(document.getElementById('priceMax')?.value || 999999);
   activeFilters.priceMin = min;
