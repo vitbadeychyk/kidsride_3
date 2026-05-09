@@ -278,7 +278,7 @@ a{text-decoration:none;color:inherit}
       </form>
 
       <div class="auth-success" id="authSuccess">
-        <div class="success-icon">
+        <div class="success-icon" id="successIcon">
           <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
         </div>
         <h3 style="font-size:22px;color:var(--navy);margin-bottom:8px" id="successTitle">Вхід успішний!</h3>
@@ -325,11 +325,17 @@ const KR_PENDING_REG    = 'kr_pending_reg';
 const { createClient } = window.supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
-    persistSession:    true,
-    autoRefreshToken:  true,
-    detectSessionInUrl: true   // ← SDK сам розпізнає токен у URL (і hash, і code)
+    persistSession:     true,
+    autoRefreshToken:   true,
+    detectSessionInUrl: true,
+    flowType: 'implicit'   // ← Implicit flow: токен одразу в URL hash, без PKCE
   }
 });
+
+// Чи це повернення після OAuth? (access_token буде в URL hash)
+const IS_OAUTH_CALLBACK = window.location.hash.includes('access_token')
+  || window.location.search.includes('code=')
+  || window.location.search.includes('error=');
 
 let currentTab = 'login';
 
@@ -381,75 +387,104 @@ async function saveUserProfile(token, userId, profile) {
 }
 
 // ════════════════════════════════════════════════════════════════════════════
-// ОБРОБКА ЗМІНИ СТАНУ АВТОРИЗАЦІЇ (SDK Event)
-// Викликається автоматично SDK: при завантаженні сторінки, після OAuth redirect,
-// після email/password логіну, після виходу.
+// ОБРОБКА АВТОРИЗАЦІЇ — центральна функція
 // ════════════════════════════════════════════════════════════════════════════
-let _redirecting = false;
+let _handled = false;
 
+async function handleSignedIn(session) {
+  if (_handled) return;
+  if (!session || !session.user) return;
+  _handled = true;
+
+  console.log('[KR] handleSignedIn:', session.user.email);
+
+  // 1. Зберігаємо сесію для shared.js (KR_SESSION_KEY = 'kr_admin_session')
+  saveKrSession(session);
+
+  // 2. Показуємо success screen одразу
+  showSuccessScreen('Вхід успішний!', 'Зберігаємо дані...');
+
+  // 3. Отримуємо дані профілю
+  const user     = session.user;
+  const meta     = user.user_metadata || {};
+  const fullName = meta.full_name || meta.name || '';
+  const parts    = fullName.trim().split(/\s+/);
+
+  let pendingReg = null;
+  try {
+    const raw = sessionStorage.getItem(KR_PENDING_REG);
+    if (raw) { pendingReg = JSON.parse(raw); sessionStorage.removeItem(KR_PENDING_REG); }
+  } catch(e) {}
+
+  const profileData = {
+    email:      user.email || '',
+    first_name: pendingReg?.first_name || meta.given_name  || meta.first_name || parts[0]                || '',
+    last_name:  pendingReg?.last_name  || meta.family_name || meta.last_name  || parts.slice(1).join(' ') || '',
+    phone:      pendingReg?.phone      || user.phone       || meta.phone      || ''
+  };
+
+  // 4. Зберігаємо профіль у таблицю user_profiles
+  await saveUserProfile(session.access_token, user.id, profileData);
+
+  // 5. Перевіряємо адміна
+  let isAdm = false;
+  try {
+    const r = await fetch(
+      SUPABASE_URL + '/rest/v1/user_roles?select=role&user_id=eq.' + user.id + '&limit=1',
+      { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + session.access_token } }
+    );
+    if (r.ok) {
+      const d = await r.json();
+      isAdm = Array.isArray(d) && d.some(row => row.role === 'admin');
+    }
+  } catch(e) {}
+
+  // 6. Редирект
+  document.getElementById('successDesc').textContent = 'Переадресовуємо вас...';
+  setTimeout(() => { window.location.href = isAdm ? 'admin.html' : 'index.html'; }, 800);
+}
+
+// ─── SDK event listener ───────────────────────────────────────────────────
+// Supabase може стріляти SIGNED_IN або INITIAL_SESSION після OAuth redirect.
+// Обробляємо обидва, якщо це callback (IS_OAUTH_CALLBACK = true).
 sb.auth.onAuthStateChange(async (event, session) => {
-  console.log('[KR] auth event:', event, session ? session.user?.email : 'no session');
-
-  if (_redirecting) return;
+  console.log('[KR] onAuthStateChange:', event, session?.user?.email ?? 'no-session');
 
   if (event === 'SIGNED_IN' && session) {
-    // 1. Зберігаємо сесію для shared.js
-    saveKrSession(session);
+    await handleSignedIn(session);
+    return;
+  }
 
-    // 2. Визначаємо дані профілю
-    const user     = session.user;
-    const meta     = user.user_metadata || {};
-    const fullName = meta.full_name || meta.name || '';
-    const parts    = fullName.trim().split(/\s+/);
-
-    // Якщо є дані форми реєстрації (Google auth після форми — малоймовірно,
-    // але якщо є — використовуємо їх)
-    let pendingReg = null;
-    try {
-      const raw = sessionStorage.getItem(KR_PENDING_REG);
-      if (raw) { pendingReg = JSON.parse(raw); sessionStorage.removeItem(KR_PENDING_REG); }
-    } catch(e) {}
-
-    const profileData = {
-      email:      user.email || '',
-      first_name: pendingReg?.first_name || meta.given_name  || meta.first_name || parts[0]                || '',
-      last_name:  pendingReg?.last_name  || meta.family_name || meta.last_name  || parts.slice(1).join(' ') || '',
-      phone:      pendingReg?.phone      || user.phone       || meta.phone      || ''
-    };
-
-    // 3. Зберігаємо профіль у таблицю
-    await saveUserProfile(session.access_token, user.id, profileData);
-
-    // 4. Перевіряємо адміна
-    let isAdm = false;
-    try {
-      const r = await fetch(SUPABASE_URL + '/rest/v1/user_roles?select=role&limit=1', {
-        headers: {
-          'apikey':        SUPABASE_ANON_KEY,
-          'Authorization': 'Bearer ' + session.access_token
-        }
-      });
-      if (r.ok) {
-        const d = await r.json();
-        isAdm = Array.isArray(d) && d.length > 0 && d[0].role === 'admin';
-      }
-    } catch(e) {}
-
-    // 5. Показуємо success і редиректимо
-    _redirecting = true;
-    showSuccessScreen(
-      isAdm ? 'Вхід як адміністратор!' : 'Вхід успішний!',
-      'Переадресовуємо вас...'
-    );
-    setTimeout(() => {
-      window.location.href = isAdm ? 'admin.html' : 'index.html';
-    }, 1200);
+  // INITIAL_SESSION з сесією після OAuth callback
+  if (event === 'INITIAL_SESSION' && session && IS_OAUTH_CALLBACK) {
+    await handleSignedIn(session);
+    return;
   }
 
   if (event === 'SIGNED_OUT') {
     localStorage.removeItem(KR_SESSION_KEY);
   }
 });
+
+// ─── Fallback: getSession() після 2.5с якщо SDK не стрільнув ─────────────
+// Страховка на випадок якщо жоден event не спрацював (буває в деяких браузерах)
+if (IS_OAUTH_CALLBACK) {
+  setTimeout(async () => {
+    if (_handled) return;
+    console.warn('[KR] fallback getSession triggered');
+    const { data } = await sb.auth.getSession();
+    if (data?.session) {
+      await handleSignedIn(data.session);
+    } else {
+      // Нічого не вдалося — показуємо помилку
+      showSuccessScreen('Помилка входу', 'Будь ласка, спробуйте ще раз.');
+      document.getElementById('successDesc').style.color = 'var(--red)';
+      document.getElementById('successIcon').style.background = 'rgba(229,57,53,.1)';
+      document.getElementById('successIcon').querySelector('svg').style.stroke = 'var(--red)';
+      setTimeout(() => { _handled = false; switchTab('login'); }, 3000);
+    }
+  }, 2500);
+}
 
 // ════════════════════════════════════════════════════════════════════════════
 // UI HELPERS
