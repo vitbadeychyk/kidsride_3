@@ -778,13 +778,18 @@ function selectColor(btn, name, bg, idx) {
 
 // Cart — РЕАЛЬНЕ збереження в localStorage через KR.addToCart
 function _readCurrentProduct() {
-  // Зчитуємо назву/бренд/ціну/колір прямо з DOM
   const name  = (document.querySelector('.product-title')?.textContent || 'Товар').trim();
   const brand = (document.querySelector('.meta-brand')?.textContent || '').trim();
   const priceEl = document.querySelector('.price-main');
   const price = priceEl ? (parseInt(priceEl.textContent.replace(/\D/g,'')) || 0) : 0;
   const color = (document.getElementById('colorName')?.textContent || '').trim();
-  return { name, brand, price, color };
+  // Read SKU from .meta-sku ("Арт: M4259...") or from global product cache
+  const skuEl = document.querySelector('.meta-sku');
+  const skuRaw = skuEl ? skuEl.textContent.trim() : '';
+  const sku = skuRaw.replace(/^[^:]+:\s*/, '').trim() || (window.__krCurrentProduct && window.__krCurrentProduct.sku) || '';
+  // Read first image from global product cache
+  const img = (window.__krCurrentProduct && Array.isArray(window.__krCurrentProduct.images) && window.__krCurrentProduct.images[0]) || '';
+  return { name, brand, price, color, sku, img };
 }
 
 function addToCart() {
@@ -1375,6 +1380,7 @@ console.log('[KidsRide] product.html v3.9 — працюють: копіюван
     if (!p) { console.warn('[KidsRide] product not found in DB:', id); return; }
     console.log('[KidsRide] product loaded:', { sku: p.sku, model_code: p.model_code, name: p.name, images: Array.isArray(p.images) ? p.images.length : 0 });
 
+    window.__krCurrentProduct = p;
     applyProductData(p);
     renderProductDescription(p);
     renderProductSpecs(p);
