@@ -1509,9 +1509,10 @@ function renderOrderSummary(){
     const price = Number(it.price || 0);
     subtotal += price * qty;
     totalQty += qty;
-    // img може бути: https://... URL або ключ типу 'jeep','quad' тощо
-    const img = it.img && /^https?:\/\//.test(it.img)
-      ? `<img src="${_escHtmlCk(it.img)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:8px" onerror="this.replaceWith(document.createRange().createContextualFragment('${_fallbackImg(it.img)}'))">`
+    // img може бути: https://... URL, data:image/... base64, або ключ типу 'jeep','quad'
+    const _isRealImg = src => src && (/^https?:\/\//.test(src) || /^data:image\//.test(src));
+    const img = _isRealImg(it.img)
+      ? `<img src="${_escHtmlCk(it.img)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:8px" onerror="this.style.display='none'">`
       : _fallbackImg(it.img);
     const metaParts = [
       it.sku  && ('Арт: ' + it.sku),
@@ -1625,7 +1626,8 @@ async function _loadCartImages() {
     } catch(e) { return; }
 
     // Беремо лише ті товари, у яких img не є справжнім URL (каталогові 'jeep','quad' тощо)
-    const needImg = cart.filter(i => i.sku && (!i.img || !/^https?:\/\//.test(i.img)));
+    const _hasRealImg = src => src && (/^https?:\/\//.test(src) || /^data:image\//.test(src));
+    const needImg = cart.filter(i => i.sku && !_hasRealImg(i.img));
     if (!needImg.length) return;
 
     const skus = [...new Set(needImg.map(i => i.sku))];
@@ -1646,7 +1648,7 @@ async function _loadCartImages() {
 
     let updated = false;
     cart.forEach(item => {
-      if (item.sku && imgMap[item.sku] && (!item.img || !/^https?:\/\//.test(item.img))) {
+      if (item.sku && imgMap[item.sku] && !_hasRealImg(item.img)) {
         item.img = imgMap[item.sku];
         updated = true;
       }
