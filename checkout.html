@@ -1467,12 +1467,17 @@ function _escHtmlCk(s){
 function _fmtPriceCk(n){
   return Math.round(Number(n)||0).toLocaleString('uk-UA').replace(/,/g,' ') + ' ₴';
 }
-function _fallbackImg(){
-  return `<svg viewBox="0 0 60 45">
-    <rect x="5" y="17" width="50" height="17" rx="5" fill="#c8d0ea"/>
-    <rect x="12" y="7" width="32" height="15" rx="3" fill="#d0d8f0"/>
-    <circle cx="15" cy="39" r="6" fill="#2d3748"/><circle cx="45" cy="39" r="6" fill="#2d3748"/>
-  </svg>`;
+// SVG-іконки для типів товарів з каталогу (img зберігається як ключ, не URL)
+const _CK_SVG = {
+  jeep: `<svg viewBox="0 0 60 45"><rect x="5" y="17" width="50" height="17" rx="5" fill="#c8d0ea"/><rect x="12" y="7" width="32" height="15" rx="3" fill="#d0d8f0"/><circle cx="15" cy="37" r="6" fill="#2d3748"/><circle cx="45" cy="37" r="6" fill="#2d3748"/></svg>`,
+  quad: `<svg viewBox="0 0 60 45"><ellipse cx="30" cy="26" rx="22" ry="12" fill="#d0d8f0"/><rect x="16" y="14" width="28" height="14" rx="4" fill="#c8d0ea"/><circle cx="12" cy="34" r="7" fill="#2d3748"/><circle cx="48" cy="34" r="7" fill="#2d3748"/></svg>`,
+  moto: `<svg viewBox="0 0 60 45"><ellipse cx="14" cy="32" rx="9" ry="9" fill="none" stroke="#2d3748" stroke-width="3"/><ellipse cx="46" cy="32" rx="9" ry="9" fill="none" stroke="#2d3748" stroke-width="3"/><path d="M14 32 L22 18 L38 18 L46 32" fill="#c8d0ea"/><rect x="24" y="10" width="12" height="8" rx="2" fill="#d0d8f0"/></svg>`,
+  car:  `<svg viewBox="0 0 60 45"><rect x="5" y="18" width="50" height="16" rx="5" fill="#c8d0ea"/><rect x="14" y="10" width="32" height="12" rx="3" fill="#d0d8f0"/><circle cx="15" cy="37" r="6" fill="#2d3748"/><circle cx="45" cy="37" r="6" fill="#2d3748"/></svg>`,
+  tractor:`<svg viewBox="0 0 60 45"><rect x="5" y="20" width="35" height="14" rx="4" fill="#c8d0ea"/><rect x="10" y="12" width="18" height="10" rx="2" fill="#d0d8f0"/><circle cx="14" cy="36" r="7" fill="#2d3748"/><circle cx="46" cy="34" r="9" fill="#2d3748"/></svg>`,
+};
+function _fallbackImg(type){
+  const svg = _CK_SVG[type] || `<svg viewBox="0 0 60 45"><rect x="5" y="17" width="50" height="17" rx="5" fill="#c8d0ea"/><rect x="12" y="7" width="32" height="15" rx="3" fill="#d0d8f0"/><circle cx="15" cy="39" r="6" fill="#2d3748"/><circle cx="45" cy="39" r="6" fill="#2d3748"/></svg>`;
+  return svg;
 }
 
 function renderOrderSummary(){
@@ -1504,15 +1509,20 @@ function renderOrderSummary(){
     const price = Number(it.price || 0);
     subtotal += price * qty;
     totalQty += qty;
+    // img може бути: https://... URL або ключ типу 'jeep','quad' тощо
     const img = it.img && /^https?:\/\//.test(it.img)
-      ? `<img src="${_escHtmlCk(it.img)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:8px">`
-      : _fallbackImg();
-    const meta = [it.color && ('Колір: ' + it.color), qty + ' шт.'].filter(Boolean).join(' · ');
+      ? `<img src="${_escHtmlCk(it.img)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:8px" onerror="this.replaceWith(document.createRange().createContextualFragment('${_fallbackImg(it.img)}'))">`
+      : _fallbackImg(it.img);
+    const metaParts = [
+      it.sku  && ('Арт: ' + it.sku),
+      it.color && ('Колір: ' + it.color),
+      qty + ' шт.'
+    ].filter(Boolean);
     return `<div class="os-item">
       <div class="os-img">${img}</div>
       <div style="flex:1;min-width:0">
         <div class="os-item-name">${_escHtmlCk(it.name || 'Товар')}</div>
-        <div class="os-item-meta">${_escHtmlCk(meta)}</div>
+        <div class="os-item-meta">${metaParts.map(_escHtmlCk).join(' · ')}</div>
       </div>
       <div class="os-item-price">${_fmtPriceCk(price * qty)}</div>
     </div>`;
