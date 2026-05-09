@@ -1304,9 +1304,93 @@ function renderOrderSummary(){
   if (totEl) totEl.textContent = _fmtPriceCk(subtotal);
 }
 
+// ── АВТОЗАПОВНЕННЯ ДАНИХ КОРИСТУВАЧА ───────────────────────────────────────
+async function autofillFromProfile() {
+  try {
+    const raw = localStorage.getItem('kr_admin_session');
+    if (!raw) return;
+    const session = JSON.parse(raw);
+    if (!session || !session.user) return;
+    if (session.expires_at && Date.now() / 1000 > session.expires_at) return;
+
+    const user  = session.user;
+    const meta  = user.user_metadata || {};
+
+    // Базові дані з сесії
+    let firstName = meta.given_name  || meta.first_name || '';
+    let lastName  = meta.family_name || meta.last_name  || '';
+    let phone     = user.phone       || meta.phone      || '';
+    let email     = user.email       || '';
+
+    // Якщо ім'я одним рядком (Google OAuth) — розбиваємо
+    if (!firstName && (meta.full_name || meta.name)) {
+      const parts = (meta.full_name || meta.name).trim().split(/\s+/);
+      firstName = parts[0] || '';
+      lastName  = parts.slice(1).join(' ') || '';
+    }
+
+    // Намагаємось отримати повний профіль з Supabase (там є телефон тощо)
+    try {
+      const r = await fetch(
+        SUPA_URL + '/rest/v1/user_profiles?select=first_name,last_name,phone,email&user_id=eq.' + user.id + '&limit=1',
+        { headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + session.access_token } }
+      );
+      if (r.ok) {
+        const d = await r.json();
+        if (Array.isArray(d) && d.length > 0) {
+          const p = d[0];
+          if (p.first_name) firstName = p.first_name;
+          if (p.last_name)  lastName  = p.last_name;
+          if (p.phone)      phone     = p.phone;
+          if (p.email)      email     = p.email || email;
+        }
+      }
+    } catch(e) {}
+
+    // Заповнюємо тільки порожні поля (не перезаписуємо те, що вже ввів юзер)
+    let filled = 0;
+    const fill = (id, val) => {
+      if (!val) return;
+      const el = document.getElementById(id);
+      if (el && !el.value.trim()) { el.value = val; el.classList.add('valid'); filled++; }
+    };
+
+    fill('firstName', firstName);
+    fill('lastName',  lastName);
+    fill('phone',     phone);
+    fill('email',     email);
+
+    // Показуємо підказку якщо хоча б одне поле заповнено
+    if (filled > 0) {
+      const notice = document.createElement('div');
+      notice.style.cssText = `
+        display:flex;align-items:center;gap:10px;
+        background:#f0fdf4;border:1px solid #bbf7d0;
+        border-radius:10px;padding:10px 14px;margin-bottom:16px;
+        font-size:13px;color:#166534;font-weight:600;
+        animation:krFadeIn .3s ease both;
+      `;
+      notice.innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Дані підтягнуто з вашого профілю. Перевірте і за потреби відредагуйте.
+        <button onclick="this.parentNode.remove()" style="margin-left:auto;background:none;border:none;cursor:pointer;color:#166534;font-size:16px;line-height:1;padding:0">✕</button>
+      `;
+      if (!document.getElementById('kr-autofill-style')) {
+        const s = document.createElement('style');
+        s.id = 'kr-autofill-style';
+        s.textContent = '@keyframes krFadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}';
+        document.head.appendChild(s);
+      }
+      const sectionHead = document.querySelector('#formStep1 .form-section:first-child .section-head');
+      if (sectionHead) sectionHead.parentNode.insertBefore(notice, sectionHead.nextSibling);
+    }
+  } catch(e) {}
+}
+
 // Запустити після того, як shared.js додасть KR
 function _initCheckoutSummary(){
   renderOrderSummary();
+  autofillFromProfile();
   const cart = (window.KR && KR.getCart) ? KR.getCart() : [];
   if (!cart.length) {
     // Якщо кошик порожній — показуємо повідомлення і блокуємо submit

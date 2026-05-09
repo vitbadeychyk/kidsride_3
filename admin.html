@@ -2809,7 +2809,7 @@ function slideUploadAsk(idx){
 async function slideHandleFile(idx, file){
   if (!file) return;
   if (!file.type.startsWith('image/')) { showToast('Файл має бути зображенням', 'error'); return; }
-  if (file.size > 1024 * 1024) { showToast('Розмір фото має бути до 1 МБ (для синхронізації з Supabase)', 'error'); return; }
+  if (file.size > 10 * 1024 * 1024) { showToast('Розмір фото має бути до 10 МБ', 'error'); return; }
   const reader = new FileReader();
   reader.onload = async function(e){
     if (!_slides[idx]) return;
@@ -3658,7 +3658,7 @@ function productPhotoProcessOne(file, cb) {
   if (!file || !file.type || !file.type.startsWith('image/')) {
     showToast('Файл «' + (file && file.name) + '» не зображення', 'error'); cb(null); return;
   }
-  if (file.size > 1024 * 1024) { showToast('«' + file.name + '» більше 1 МБ — пропущено', 'error'); cb(null); return; }
+  if (file.size > 10 * 1024 * 1024) { showToast('«' + file.name + '» більше 10 МБ — пропущено', 'error'); cb(null); return; }
   const reader = new FileReader();
   reader.onload = function(e) {
     const img = new Image();
