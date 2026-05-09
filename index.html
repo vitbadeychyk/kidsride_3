@@ -2044,8 +2044,9 @@ function renderWishlistDrawer() {
     const thumbHtml = it.img
       ? `<img src="${it.img.replace(/"/g,'&quot;')}" alt="" style="width:100%;height:100%;object-fit:contain" onerror="this.style.display='none'">`
       : `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;
+    const safeId = String(it.id || '').replace(/'/g,"\\'");
     return `
-      <div class="wd-item" data-name="${safeName}">
+      <div class="wd-item" data-id="${String(it.id || '').replace(/"/g,'&quot;')}" data-name="${safeName}">
         <div class="wd-thumb">${thumbHtml}</div>
         <div class="wd-info">
           ${it.brand ? `<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:2px">${it.brand}</div>` : ''}
@@ -2054,7 +2055,7 @@ function renderWishlistDrawer() {
           ${it.color ? `<div style="font-size:11px;color:var(--text-muted);margin-top:1px">Колір: <b style="color:var(--navy)">${it.color}</b></div>` : ''}
           ${price ? `<div class="wd-price">${price}</div>` : ''}
         </div>
-        <button class="wd-remove" onclick="removeWishlistItem('${safeName.replace(/'/g,"\\'")}')" aria-label="Видалити">
+        <button class="wd-remove" onclick="removeWishlistItem('${safeId}','${safeName.replace(/'/g,"\\'")}')" aria-label="Видалити">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
         </button>
       </div>
@@ -2068,8 +2069,16 @@ function renderWishlistDrawer() {
     <a href="catalog.html" class="btn btn-primary" style="width:100%;justify-content:center">Переглянути каталог</a>
   `;
 }
-function removeWishlistItem(name) {
-  const list = getWishlist().filter(i => i.name !== name);
+function removeWishlistItem(id, name) {
+  let list = getWishlist();
+  // Remove exactly one item: prefer match by unique id, fallback to first name match
+  if (id) {
+    const pos = list.findIndex(i => String(i.id) === String(id));
+    if (pos !== -1) { list.splice(pos, 1); }
+  } else if (name) {
+    const pos = list.findIndex(i => i.name === name);
+    if (pos !== -1) { list.splice(pos, 1); }
+  }
   saveWishlist(list);
   renderWishlistDrawer();
   syncWishlistButtonsState();
