@@ -165,6 +165,7 @@ const KR = {
 
   logout() {
     localStorage.removeItem('kr_admin_session');
+    localStorage.setItem('kr_signed_out', '1');
     this.showToast('Ви вийшли з акаунту');
     setTimeout(() => location.reload(), 600);
   },

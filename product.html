@@ -2007,6 +2007,8 @@ function _ytEmbedFromUrl(url){
     if (!session.access_token) return;
     // Перевірити термін дії
     if (session.expires_at && Date.now() / 1000 > session.expires_at) return;
+    // Показувати кнопку ТІЛЬКИ адмінам
+    if (!session.is_admin) return;
 
     // Додати кнопку адміна в header
     const hRight = document.querySelector('.h-right, .header .h-actions, .header-right');
