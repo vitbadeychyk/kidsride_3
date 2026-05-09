@@ -588,17 +588,35 @@ a{text-decoration:none;color:inherit}
 let NP_API_KEY = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
 const NP_API_URL = 'https://api.novaposhta.ua/v2.0/json/';
 
-// Підтягуємо реальний ключ з адмінських налаштувань (settings_delivery)
+// Telegram-налаштування (завантажуються з settings_notifications)
+let TG_TOKEN = '';
+let TG_CHAT  = '';
+let TG_NEW_ORDER = false;
+
+// Завантажуємо NP-ключ і TG-налаштування паралельно
 (async () => {
+  const H = {
+    'apikey': SUPA_KEY,
+    'Authorization': 'Bearer ' + SUPA_KEY
+  };
+  const [rDel, rNotif] = await Promise.allSettled([
+    fetch(SUPA_URL + '/rest/v1/settings_delivery?select=np_api_key&id=eq.1&limit=1', { headers: H }),
+    fetch(SUPA_URL + '/rest/v1/settings_notifications?select=tg_token,tg_chat,tg_new_order&id=eq.1&limit=1', { headers: H })
+  ]);
   try {
-    const r = await fetch(
-      'https://xczrzdbikkycgpnvolib.supabase.co/rest/v1/settings_delivery?select=np_api_key&id=eq.1&limit=1',
-      { headers: { 'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ',
-               'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ' } }
-    );
-    if (r.ok) {
-      const d = await r.json();
-      if (d && d[0] && d[0].np_api_key) NP_API_KEY = d[0].np_api_key;
+    if (rDel.status === 'fulfilled' && rDel.value.ok) {
+      const d = await rDel.value.json();
+      if (d?.[0]?.np_api_key) NP_API_KEY = d[0].np_api_key;
+    }
+  } catch(e) {}
+  try {
+    if (rNotif.status === 'fulfilled' && rNotif.value.ok) {
+      const d = await rNotif.value.json();
+      if (d?.[0]) {
+        TG_TOKEN     = d[0].tg_token  || '';
+        TG_CHAT      = d[0].tg_chat   || '';
+        TG_NEW_ORDER = !!d[0].tg_new_order;
+      }
     }
   } catch(e) {}
 })();
@@ -1229,7 +1247,8 @@ function buildOrderPayload(){
     }
   }
 
-  const cart = (window.KR && KR.getCart) ? KR.getCart() : [];
+  let cart = [];
+  try { cart = (window.KR && KR.getCart) ? KR.getCart() : JSON.parse(localStorage.getItem('kr_cart')||'[]'); } catch(e) { cart = []; }
   const subtotal = cart.reduce((s,i) => s + Number(i.price||0) * Number(i.qty||1), 0);
   const total    = subtotal; // доставка/знижки можна додати тут
 
@@ -1266,6 +1285,7 @@ function buildOrderPayload(){
     product_name  : String(i.name || ''),
     product_brand : String(i.brand || ''),
     product_image : String(i.img || ''),
+    sku           : String(i.sku || ''),
     color         : String(i.color || ''),
     price         : Number(i.price || 0),
     quantity      : Number(i.qty || 1),
@@ -1273,6 +1293,47 @@ function buildOrderPayload(){
   }));
 
   return { order, items, cart };
+}
+
+// ── TELEGRAM NOTIFICATION ──────────────────────────────────────────────────
+async function sendTelegramNotification(order, items, created) {
+  if (!TG_NEW_ORDER || !TG_TOKEN || !TG_CHAT) return;
+
+  const fmt = n => Math.round(Number(n)||0).toLocaleString('uk-UA') + ' ₴';
+  const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  const deliveryLine = order.delivery_type === 'address'
+    ? `🏠 Курʼєр: ${esc(order.delivery_city)}, ${esc(order.delivery_address)}`
+    : `📦 НП: ${esc(order.delivery_city)}, відд. ${esc(order.delivery_warehouse_number)} ${esc(order.delivery_warehouse)}`;
+
+  const itemLines = items.map(i => {
+    const skuPart  = i.sku   ? ` | Арт: <code>${esc(i.sku)}</code>` : '';
+    const colorPart= i.color ? ` | ${esc(i.color)}` : '';
+    return `• <b>${esc(i.product_name)}</b> ×${i.quantity} — <b>${fmt(i.subtotal)}</b>${skuPart}${colorPart}`;
+  }).join('\n');
+
+  const msg = [
+    `🛒 <b>Нове замовлення #${esc(created.order_number || order.order_number)}</b>`,
+    '',
+    `👤 ${esc(order.customer_last_name)} ${esc(order.customer_first_name)}`,
+    `📞 ${esc(order.customer_phone)}`,
+    order.customer_email ? `📧 ${esc(order.customer_email)}` : '',
+    '',
+    deliveryLine,
+    `💳 Оплата: ${esc(order.payment_method_label || order.payment_method)}`,
+    order.comment ? `💬 ${esc(order.comment)}` : '',
+    '',
+    '🛍 <b>Товари:</b>',
+    itemLines,
+    '',
+    `💰 <b>Разом: ${fmt(order.total)}</b>`
+  ].filter(l => l !== null && l !== undefined && l !== false).join('\n');
+
+  await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ chat_id: TG_CHAT, text: msg, parse_mode: 'HTML' })
+  });
 }
 
 async function _supaInsert(table, body, returnRepresentation=false){
@@ -1330,7 +1391,10 @@ async function submitOrder() {
       await _supaInsert('order_items', withOrderId, false);
     }
 
-    // 3) Очистити кошик і показати успіх
+    // 3) Telegram-повідомлення (не блокуємо успіх якщо не вдалось)
+    sendTelegramNotification(order, items, created).catch(() => {});
+
+    // 4) Очистити кошик і показати успіх
     try { localStorage.setItem('kr_cart', '[]'); window.KR && KR.updateCartBadge && KR.updateCartBadge(); } catch(e) {}
 
     document.getElementById('checkoutPage').style.display = 'none';

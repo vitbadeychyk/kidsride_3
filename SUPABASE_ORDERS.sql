@@ -46,12 +46,16 @@ create table if not exists public.order_items (
   product_name    text        not null default '',
   product_brand   text        not null default '',
   product_image   text        not null default '',
+  sku             text        not null default '',
   color           text        not null default '',
   price           numeric     not null default 0,
   quantity        integer     not null default 1,
   subtotal        numeric     not null default 0,
   created_at      timestamptz not null default now()
 );
+
+-- Якщо таблиця вже існує — додаємо колонку sku якщо її немає
+alter table public.order_items add column if not exists sku text not null default '';
 
 create index if not exists order_items_order_id_idx on public.order_items (order_id);
 
@@ -104,3 +108,11 @@ create policy "order_items_select_auth" on public.order_items
   for select
   to authenticated
   using (true);
+
+-- ── Дозволити анонімним читати налаштування Telegram (лише select, лише рядок id=1) ──
+-- Потрібно щоб checkout.html міг завантажити tg_token/tg_chat для відправки сповіщень
+drop policy if exists "settings_notifications_select_anon" on public.settings_notifications;
+create policy "settings_notifications_select_anon" on public.settings_notifications
+  for select
+  to anon, authenticated
+  using (id = 1);
