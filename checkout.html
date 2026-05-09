@@ -1296,6 +1296,84 @@ async function _supaInsert(table, body, returnRepresentation=false){
   return null;
 }
 
+// ── TELEGRAM NOTIFICATION ──────────────────────────────────────────────────
+async function _sendOrderTelegram(created, order, items) {
+  try {
+    // Зчитуємо tg_token і tg_chat з settings_notifications (anon може читати рядок id=1)
+    const r = await fetch(SUPA_URL + '/rest/v1/settings_notifications?id=eq.1&select=tg_token,tg_chat,tg_new_order&limit=1', {
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
+    });
+    if (!r.ok) return;
+    const rows = await r.json();
+    const cfg = Array.isArray(rows) ? rows[0] : rows;
+    if (!cfg || !cfg.tg_token || !cfg.tg_chat || !cfg.tg_new_order) return;
+
+    const esc = s => String(s == null ? '' : s).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+    const fmt = n => Math.round(Number(n)||0).toLocaleString('uk-UA') + ' ₴';
+
+    const deliveryLabel = {
+      warehouse: 'Відділення НП',
+      postomat:  'Поштомат НП',
+      address:   'Адресна доставка'
+    }[order.delivery_type] || order.delivery_type;
+
+    const lines = [
+      '🛍 <b>НОВЕ ЗАМОВЛЕННЯ</b>',
+      `<b>#${esc(created.order_number || order.order_number)}</b>`,
+      '',
+      `👤 <b>${esc(order.customer_first_name)} ${esc(order.customer_last_name)}</b>`,
+      `📞 <code>${esc(order.customer_phone)}</code>`,
+    ];
+    if (order.customer_email) lines.push(`📧 ${esc(order.customer_email)}`);
+    lines.push('');
+
+    // Доставка
+    lines.push(`🚚 <b>Доставка:</b> ${esc(deliveryLabel)}`);
+    if (order.delivery_city) lines.push(`📍 ${esc(order.delivery_city)}`);
+    if (order.delivery_warehouse) lines.push(`🏪 ${esc(order.delivery_warehouse)}`);
+    if (order.delivery_address) lines.push(`🏠 ${esc(order.delivery_address)}`);
+
+    // Оплата
+    lines.push('');
+    lines.push(`💳 <b>Оплата:</b> ${esc(order.payment_method_label || order.payment_method)}`);
+
+    // Товари
+    if (items && items.length) {
+      lines.push('');
+      lines.push(`🧾 <b>Товари (${items.length}):</b>`);
+      items.slice(0, 20).forEach((it, i) => {
+        const qty = Number(it.quantity || it.qty || 1);
+        const price = Number(it.price || 0);
+        const skuPart = it.sku ? ` [${esc(it.sku)}]` : '';
+        lines.push(`  ${i+1}. ${esc(it.product_name || it.name || 'товар')}${skuPart} × ${qty} — ${fmt(price * qty)}`);
+      });
+    }
+
+    // Сума
+    lines.push('');
+    lines.push(`💰 <b>Сума:</b> ${fmt(order.total)}`);
+
+    if (order.comment) {
+      lines.push('');
+      lines.push(`💬 ${esc(order.comment)}`);
+    }
+
+    lines.push('');
+    lines.push(`🕒 ${new Date().toLocaleString('uk-UA', {timeZone:'Europe/Kyiv',hour12:false})} (Київ)`);
+
+    await fetch(`https://api.telegram.org/bot${cfg.tg_token}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: cfg.tg_chat,
+        text: lines.join('\n'),
+        parse_mode: 'HTML',
+        disable_web_page_preview: true
+      })
+    });
+  } catch(e) {}
+}
+
 // ── SUBMIT ─────────────────────────────────────────────────────────────────
 async function submitOrder() {
   const firstName = document.getElementById('firstName').value.trim();
@@ -1330,6 +1408,9 @@ async function submitOrder() {
       const withOrderId = items.map(it => ({ ...it, order_id: created.id }));
       await _supaInsert('order_items', withOrderId, false);
     }
+
+    // 2.5) Telegram-сповіщення (fire-and-forget, не блокуємо успіх)
+    _sendOrderTelegram(created, order, items).catch(() => {});
 
     // 3) Очистити кошик і показати успіх
     try { localStorage.setItem('kr_cart', '[]'); window.KR && KR.updateCartBadge && KR.updateCartBadge(); } catch(e) {}
