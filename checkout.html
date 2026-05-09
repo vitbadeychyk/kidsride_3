@@ -364,10 +364,10 @@ a{text-decoration:none;color:inherit}
           </div>
         </div>
 
-        <!-- Guest or login -->
-        <div style="background:var(--bg-soft);border-radius:var(--r-sm);padding:14px;margin-top:6px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <!-- Guest or login — hidden when user is already logged in -->
+        <div id="guestLoginHint" style="background:var(--bg-soft);border-radius:var(--r-sm);padding:14px;margin-top:6px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
           <div style="font-size:13px;color:var(--text-muted)">Вже маєте акаунт? Увійдіть щоб відстежувати замовлення</div>
-          <a href="#" style="font-size:13px;font-weight:700;color:var(--orange)">Увійти →</a>
+          <a href="auth.html" style="font-size:13px;font-weight:700;color:var(--orange)">Увійти →</a>
         </div>
       </div>
     </div>
@@ -458,14 +458,35 @@ a{text-decoration:none;color:inherit}
               <input type="text" id="addrCityInput"
                 placeholder="Місто доставки..."
                 autocomplete="off"
-                oninput="searchCity(this.value,'addr')">
+                oninput="searchCity(this.value,'addr')"
+                onkeydown="handleDropdownKey(event,'addrCityDrop')">
               <div class="np-dropdown" id="addrCityDrop" role="listbox"></div>
+              <div class="np-selected" id="addrCitySelected">
+                <div class="np-selected-top">
+                  <div>
+                    <div class="np-selected-name" id="addrCitySelectedName"></div>
+                    <div class="np-selected-sub" id="addrCitySelectedSub"></div>
+                  </div>
+                  <button class="np-selected-clear" onclick="clearAddrCity()">
+                    <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    Змінити
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
           <div class="field-row">
             <div class="field">
               <label>Вулиця <span class="req">*</span></label>
-              <input type="text" id="street" placeholder="вул. Хрещатик">
+              <div class="np-wrap" id="streetWrap" style="display:none">
+                <input type="text" id="streetInput"
+                  placeholder="Почніть вводити назву вулиці..."
+                  autocomplete="off"
+                  oninput="searchStreet(this.value)"
+                  onkeydown="handleDropdownKey(event,'streetDrop')">
+                <div class="np-dropdown" id="streetDrop" role="listbox"></div>
+              </div>
+              <input type="text" id="street" placeholder="вул. Хрещатик" style="display:none">
             </div>
             <div class="field">
               <label>Будинок <span class="req">*</span></label>
@@ -501,96 +522,8 @@ a{text-decoration:none;color:inherit}
           <div class="section-num">3</div>
           <h2 class="section-title">Спосіб оплати</h2>
         </div>
-        <div class="pay-list">
-
-          <div class="pay-option selected" onclick="selectPay(this,'fop')">
-            <div class="pay-radio"><div class="pay-radio-dot"></div></div>
-            <div class="pay-icon-wrap"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg></div>
-            <div>
-              <div class="pay-name">Оплата на рахунок ФОП</div>
-              <div class="pay-desc">Безготівковий розрахунок. Реквізити надішлемо після підтвердження замовлення.</div>
-              <div class="pay-expand">
-                <div style="font-size:12px;color:var(--text-muted);line-height:1.7">
-                  <strong style="color:var(--navy)">Як це працює:</strong><br>
-                  1. Менеджер підтверджує замовлення<br>
-                  2. Надсилаємо реквізити ФОП на ваш телефон<br>
-                  3. Ви здійснюєте оплату через застосунок банку<br>
-                  4. Відправляємо товар після надходження оплати
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="pay-option" onclick="selectPay(this,'partial')">
-            <div class="pay-radio"><div class="pay-radio-dot"></div></div>
-            <div class="pay-icon-wrap"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
-            <div>
-              <div class="pay-name">Часткова передоплата</div>
-              <div class="pay-desc">Передплата частини суми, решта — при отриманні. Умови узгоджуються з менеджером.</div>
-              <div class="pay-expand">
-                <div style="font-size:12px;color:var(--text-muted);line-height:1.7">
-                  Мінімальна передоплата — 30% від вартості товару.<br>
-                  Залишок сплачується при отриманні посилки в НП.
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="pay-option" onclick="selectPay(this,'privat')">
-            <div class="pay-radio"><div class="pay-radio-dot"></div></div>
-            <div class="pay-icon-wrap" style="background:#1DB954;"><svg viewBox="0 0 24 24" style="stroke:white"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
-            <div style="flex:1">
-              <div class="pay-name">Частинами від ПриватБанк</div>
-              <div class="pay-desc">До 4 платежів без переплат. Потрібна картка ПриватБанку.</div>
-              <div class="pay-badge">Від 4 306 ₴ × 4 платежі</div>
-              <div class="pay-expand">
-                <div style="font-size:12px;color:var(--text-muted);line-height:1.7">
-                  <strong style="color:var(--navy)">Як оформити:</strong><br>
-                  1. Менеджер надішле посилання<br>
-                  2. Відкриваєте у застосунку ПриватБанк<br>
-                  3. Підтверджуєте розстрочку<br>
-                  4. Товар відправляємо одразу
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="pay-option" onclick="selectPay(this,'packet')">
-            <div class="pay-radio"><div class="pay-radio-dot"></div></div>
-            <div class="pay-icon-wrap" style="background:linear-gradient(135deg,#5b6af7,#7c3aed)"><svg viewBox="0 0 24 24" style="stroke:white"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div>
-            <div>
-              <div class="pay-name">Пакунок малюка</div>
-              <div class="pay-desc">Державна допомога при народженні дитини. Приймаємо як повну або часткову оплату.</div>
-              <div class="pay-badge green">Держпідтримка</div>
-              <div class="pay-expand">
-                <div style="font-size:12px;color:var(--text-muted);line-height:1.7">
-                  <strong style="color:var(--navy)">Необхідні документи:</strong><br>
-                  • Свідоцтво про народження дитини<br>
-                  • Сертифікат «Пакунок малюка»<br>
-                  Наш менеджер допоможе оформити покупку покроково.
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="pay-option" onclick="selectPay(this,'state7k')">
-            <div class="pay-radio"><div class="pay-radio-dot"></div></div>
-            <div class="pay-icon-wrap" style="background:linear-gradient(135deg,#0ea5e9,#0284c7)"><svg viewBox="0 0 24 24" style="stroke:white"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
-            <div>
-              <div class="pay-name">Держпідтримка 7000 грн</div>
-              <div class="pay-desc">Для дітей до 1 року. Сертифікат видається через застосунок «Дія».</div>
-              <div class="pay-badge green">До 1 року</div>
-              <div class="pay-expand">
-                <div style="font-size:12px;color:var(--text-muted);line-height:1.7">
-                  Сума 7000 грн спрямовується на оплату товару.<br>
-                  Залишок (якщо є) оплачується іншим способом.<br>
-                  Менеджер пояснить процедуру оформлення.
-                </div>
-              </div>
-            </div>
-          </div>
-
-        </div>
+        <!-- Dynamic payment methods rendered by renderPayMethods() -->
+        <div class="pay-list" id="payList"></div>
       </div>
 
       <!-- COMMENT -->
@@ -784,10 +717,86 @@ function renderCities(cities, drop, mode) {
   drop.classList.add('open');
 }
 
+const addrCityData = { selected: null, ref: null };
+const streetData = { selected: null };
+let streetTimer;
+
+function clearAddrCity() {
+  addrCityData.selected = null; addrCityData.ref = null;
+  streetData.selected = null;
+  document.getElementById('addrCityInput').value = '';
+  document.getElementById('addrCityInput').style.display = 'block';
+  document.getElementById('addrCitySelected').classList.remove('show');
+  document.getElementById('streetWrap').style.display = 'none';
+  document.getElementById('streetInput').value = '';
+  document.getElementById('streetDrop').classList.remove('open');
+}
+
+async function searchStreet(query) {
+  if (!addrCityData.ref) return;
+  const drop = document.getElementById('streetDrop');
+  clearTimeout(streetTimer);
+  showLoading(drop);
+  streetTimer = setTimeout(async () => {
+    try {
+      const res = await fetch(NP_API_URL, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          apiKey: NP_API_KEY,
+          modelName: 'Address',
+          calledMethod: 'getStreet',
+          methodProperties: { SettlementRef: addrCityData.ref, FindByString: query, Limit: 30 }
+        })
+      });
+      const data = await res.json();
+      if (data.success && data.data?.length > 0) {
+        renderStreets(data.data, drop); return;
+      }
+      drop.innerHTML = '<div class="np-empty">Вулицю не знайдено. Введіть назву вручну.</div>';
+      positionDropdown(drop); drop.classList.add('open');
+    } catch(e) {
+      drop.innerHTML = '<div class="np-empty">Введіть назву вулиці вручну.</div>';
+      positionDropdown(drop); drop.classList.add('open');
+    }
+  }, 350);
+}
+
+function renderStreets(streets, drop) {
+  positionDropdown(drop);
+  drop.innerHTML = streets.map(s => {
+    const full = (s.StreetsType ? s.StreetsType + ' ' : '') + s.Description;
+    return `<div class="np-option" role="option" tabindex="-1" onclick='selectStreet(${JSON.stringify({Description:s.Description,StreetsType:s.StreetsType||""}).replace(/'/g,"&#39;")})'>
+      <div class="np-option-icon"><svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></div>
+      <div><div class="np-option-main">${full}</div></div>
+    </div>`;
+  }).join('');
+  drop.classList.add('open');
+}
+
+function selectStreet(s) {
+  streetData.selected = s;
+  const full = (s.StreetsType ? s.StreetsType + ' ' : '') + s.Description;
+  document.getElementById('streetInput').value = full;
+  document.getElementById('streetDrop').classList.remove('open');
+}
+
 function selectCity(city, mode='main') {
   if (mode !== 'main') {
-    document.getElementById('addrCityInput').value = city.Description;
+    addrCityData.selected = city;
+    addrCityData.ref = city.Ref;
+    streetData.selected = null;
+    document.getElementById('addrCityInput').value = '';
+    document.getElementById('addrCityInput').style.display = 'none';
     document.getElementById('addrCityDrop').classList.remove('open');
+    document.getElementById('addrCitySelectedName').textContent = city.Description;
+    const sub = (city.SettlementTypeDescription ? city.SettlementTypeDescription + ', ' : '') +
+                (city.RegionsDescription ? city.RegionsDescription + ' р-н, ' : '') +
+                (city.AreaDescription ? city.AreaDescription + ' обл.' : '');
+    document.getElementById('addrCitySelectedSub').textContent = sub;
+    document.getElementById('addrCitySelected').classList.add('show');
+    document.getElementById('streetWrap').style.display = 'flex';
+    document.getElementById('streetInput').value = '';
     return;
   }
   cityData.selected = city;
@@ -832,18 +841,19 @@ async function searchWarehouse(query) {
 
   warehouseTimer = setTimeout(async () => {
     try {
-      // SettlementRef — правильний параметр для результатів getSettlements
-      // (охоплює і великі міста, і малі населені пункти)
+      const isPostomat = activeDeliveryMode === 'postomat';
+      const methodProps = {
+        SettlementRef: cityData.ref,
+        FindByString: query,
+        Limit: 50,
+        Language: 'UA'
+      };
+      if (isPostomat) methodProps.TypeOfWarehouse = '95dc212d-479c-4ffb-a8ab-8c1b9073d0bc';
       const body = {
         apiKey: NP_API_KEY,
         modelName: 'AddressGeneral',
         calledMethod: 'getWarehouses',
-        methodProperties: {
-          SettlementRef: cityData.ref,
-          FindByString: query,
-          Limit: 50,
-          Language: 'UA'
-        }
+        methodProperties: methodProps
       };
       const res = await fetch(NP_API_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
       const data = await res.json();
@@ -859,7 +869,10 @@ async function searchWarehouse(query) {
         return;
       }
     } catch(e) {}
-    renderWarehouses(getMockWarehouses(cityData.selected?.Description || '', query), drop);
+    const isPostomat = activeDeliveryMode === 'postomat';
+    let mocks = getMockWarehouses(cityData.selected?.Description || '', query);
+    if (isPostomat) mocks = mocks.filter(w => w.TypeOfWarehouse === 'Postomat');
+    renderWarehouses(mocks, drop);
   }, 300);
 }
 
@@ -1003,21 +1016,88 @@ function positionDropdown(drop) {
 }
 
 // ── DELIVERY TYPES ─────────────────────────────────────────────────────────
+let activeDeliveryMode = 'warehouse';
+
 function setDeliveryType(type, btn) {
+  const prev = activeDeliveryMode;
+  activeDeliveryMode = type;
+
   document.querySelectorAll('.dt-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   document.querySelectorAll('.dt-panel').forEach(p => p.classList.remove('active'));
   const targetId = type === 'warehouse' || type === 'postomat' ? 'dt-warehouse' : 'dt-address';
   document.getElementById(targetId).classList.add('active');
-  // Update warehouse search placeholder
+
   if (type === 'postomat') {
     document.getElementById('warehouseInput').placeholder = 'Номер або адреса поштомату...';
-  } else {
+  } else if (type === 'warehouse') {
     document.getElementById('warehouseInput').placeholder = 'Номер або адреса відділення...';
+  }
+
+  // Clear warehouse/city data when switching between НП tabs or to address
+  if ((prev === 'warehouse' || prev === 'postomat') && (type === 'warehouse' || type === 'postomat') && prev !== type) {
+    // Switching between warehouse ↔ postomat: keep city but clear warehouse
+    clearWarehouse();
+  } else if (prev !== type) {
+    // Switching to/from address: clear everything
+    if (type === 'address') {
+      clearCity();
+    } else {
+      clearAddrCity();
+    }
   }
 }
 
-// ── PAYMENT ──────────────────────────────────────────────────────────────
+// ── PAYMENT METHODS (dynamic from localStorage, set by admin) ─────────────
+const CK_PAY_METHODS_DEFAULT = [
+  { id: 'fop',     name: 'Оплата на рахунок ФОП',   desc: 'Безготівковий розрахунок. Реквізити надішлемо після підтвердження замовлення.', enabled: true },
+  { id: 'partial', name: 'Часткова передоплата',      desc: 'Передплата частини суми, решта — при отриманні. Умови узгоджуються з менеджером.', enabled: true },
+  { id: 'privat',  name: 'Частинами від ПриватБанк', desc: 'До 4 платежів без переплат. Потрібна картка ПриватБанку.', enabled: true },
+  { id: 'packet',  name: 'Пакунок малюка',            desc: 'Державна допомога при народженні дитини. Приймаємо як повну або часткову оплату.', enabled: true },
+  { id: 'state7k', name: 'Держпідтримка 7000 грн',   desc: 'Для дітей до 1 року. Сертифікат видається через застосунок «Дія».', enabled: true },
+];
+const CK_PAY_ICONS = {
+  fop:     '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>',
+  partial: '<svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
+  privat:  '<svg viewBox="0 0 24 24" style="stroke:white"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>',
+  packet:  '<svg viewBox="0 0 24 24" style="stroke:white"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>',
+  state7k: '<svg viewBox="0 0 24 24" style="stroke:white"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+  _default:'<svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>',
+};
+const CK_PAY_BG = { privat:'#1DB954', packet:'linear-gradient(135deg,#5b6af7,#7c3aed)', state7k:'linear-gradient(135deg,#0ea5e9,#0284c7)' };
+
+function getCkPayMethods() {
+  try {
+    const s = localStorage.getItem('kr_payment_methods');
+    if (s) return JSON.parse(s);
+  } catch(e) {}
+  return CK_PAY_METHODS_DEFAULT.map(m => ({...m}));
+}
+
+function renderPayMethods() {
+  const list = document.getElementById('payList');
+  if (!list) return;
+  const methods = getCkPayMethods().filter(m => m.enabled !== false);
+  if (!methods.length) {
+    list.innerHTML = '<div style="padding:16px;color:var(--text-muted);font-size:13px">Способи оплати не налаштовані.</div>';
+    selectedPay = '';
+    return;
+  }
+  list.innerHTML = methods.map((m, i) => {
+    const icon = CK_PAY_ICONS[m.id] || CK_PAY_ICONS._default;
+    const bg   = CK_PAY_BG[m.id] || '';
+    return `<div class="pay-option${i === 0 ? ' selected' : ''}" onclick="selectPay(this,${JSON.stringify(m.id)})">
+      <div class="pay-radio"><div class="pay-radio-dot"></div></div>
+      <div class="pay-icon-wrap" ${bg ? 'style="background:' + bg + '"' : ''}>${icon}</div>
+      <div style="flex:1">
+        <div class="pay-name">${m.name}</div>
+        <div class="pay-desc">${m.desc || ''}</div>
+      </div>
+    </div>`;
+  }).join('');
+  selectedPay = methods[0]?.id || '';
+}
+
 let selectedPay = 'fop';
 function selectPay(el, type) {
   document.querySelectorAll('.pay-option').forEach(o => o.classList.remove('selected'));
@@ -1103,11 +1183,7 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 
 // Який варіант доставки активний (warehouse / postomat / address)
 function getActiveDeliveryType() {
-  const active = document.querySelector('.delivery-tabs .dt-btn.active');
-  if (!active) return 'warehouse';
-  const onclick = active.getAttribute('onclick') || '';
-  const m = onclick.match(/setDeliveryType\('([^']+)'/);
-  return m ? m[1] : 'warehouse';
+  return activeDeliveryMode || 'warehouse';
 }
 
 function buildOrderPayload(){
@@ -1122,15 +1198,15 @@ function buildOrderPayload(){
       delivery_warehouse_number = '', delivery_address = '';
 
   if (deliveryType === 'address') {
-    delivery_city = (document.getElementById('addrCityInput')?.value || '').trim();
-    const street    = (document.getElementById('street')?.value || '').trim();
+    delivery_city = addrCityData?.selected?.Description || (document.getElementById('addrCityInput')?.value || '').trim();
+    const street    = (document.getElementById('streetInput')?.value || document.getElementById('street')?.value || '').trim();
     const house     = (document.getElementById('house')?.value || '').trim();
     const flat      = (document.getElementById('flat')?.value || '').trim();
     const floor     = (document.getElementById('floor')?.value || '').trim();
     const intercom  = (document.getElementById('intercom')?.value || '').trim();
     const addrCmt   = (document.getElementById('addrComment')?.value || '').trim();
     delivery_address = [
-      street && ('вул. ' + street),
+      street,
       house  && ('буд. ' + house),
       flat   && ('кв. '  + flat),
       floor  && ('пов. ' + floor),
@@ -1224,7 +1300,8 @@ async function submitOrder() {
   if (phone.replace(/\D/g,'').length !== 12) { document.getElementById('phone').focus(); showShake('phone'); return; }
   if (!termsAccepted) { showToast('Будь ласка, погодьтесь з умовами'); return; }
 
-  const cartCheck = (window.KR && KR.getCart) ? KR.getCart() : [];
+  let cartCheck = [];
+  try { cartCheck = (window.KR && KR.getCart) ? KR.getCart() : JSON.parse(localStorage.getItem('kr_cart')||'[]'); } catch(e) { cartCheck = []; }
   if (!cartCheck.length) { showToast('Кошик порожній'); return; }
 
   const btn = document.getElementById('submitBtn');
@@ -1266,8 +1343,11 @@ async function submitOrder() {
 }
 
 function getPayName() {
-  const names = {fop:'Рахунок ФОП',partial:'Часткова передоплата',privat:'Частинами ПриватБанк',packet:'Пакунок малюка',state7k:'Держпідтримка 7000 грн'};
-  return names[selectedPay] || '—';
+  const methods = getCkPayMethods();
+  const m = methods.find(x => x.id === selectedPay);
+  if (m) return m.name;
+  const fallback = {fop:'Рахунок ФОП',partial:'Часткова передоплата',privat:'Частинами ПриватБанк',packet:'Пакунок малюка',state7k:'Держпідтримка 7000 грн'};
+  return fallback[selectedPay] || selectedPay || '—';
 }
 
 function showShake(id) {
@@ -1307,7 +1387,14 @@ function _fallbackImg(){
 }
 
 function renderOrderSummary(){
-  const cart = (window.KR && KR.getCart) ? KR.getCart() : [];
+  let cart = [];
+  try {
+    if (window.KR && KR.getCart) {
+      cart = KR.getCart();
+    } else {
+      cart = JSON.parse(localStorage.getItem('kr_cart') || '[]');
+    }
+  } catch(e) { cart = []; }
   const itemsEl = document.getElementById('osItems');
   const titleEl = document.getElementById('osTitle');
   const subEl   = document.getElementById('osSubtotal');
@@ -1432,11 +1519,31 @@ async function autofillFromProfile() {
 
 // Запустити після того, як shared.js додасть KR
 function _initCheckoutSummary(){
+  renderPayMethods();
   renderOrderSummary();
   autofillFromProfile();
-  const cart = (window.KR && KR.getCart) ? KR.getCart() : [];
+
+  // Fix 1: hide/show "Вже маєте акаунт?" block
+  try {
+    const raw = localStorage.getItem('kr_admin_session');
+    const hint = document.getElementById('guestLoginHint');
+    if (hint) {
+      const isLoggedIn = !!(raw && JSON.parse(raw)?.user);
+      hint.style.display = isLoggedIn ? 'none' : '';
+    }
+  } catch(e) {}
+
+  // Fix 2: check cart directly from localStorage too
+  let cart = [];
+  try {
+    if (window.KR && KR.getCart) {
+      cart = KR.getCart();
+    } else {
+      cart = JSON.parse(localStorage.getItem('kr_cart') || '[]');
+    }
+  } catch(e) { cart = []; }
+
   if (!cart.length) {
-    // Якщо кошик порожній — показуємо повідомлення і блокуємо submit
     const btn = document.getElementById('submitBtn');
     if (btn) { btn.disabled = true; btn.style.opacity = '0.6'; btn.title = 'Кошик порожній'; }
     showToast('Кошик порожній — спочатку додайте товари');

@@ -954,13 +954,31 @@ tr:hover td{background:rgba(240,242,248,.5)}
             <div class="f-group"><label class="f-label">Текст підтвердження (SMS/email)</label><input id="cfg_confirm_text" type="text" placeholder="Дякуємо! Ваше замовлення прийнято."></div>
           </div>
         </div>
-        <div class="import-card" style="margin-bottom:16px">
-          <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:14px;color:var(--navy)">Способи оплати (відображати на сайті)</h3>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-            <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);cursor:pointer;font-size:13px;font-weight:600"><input type="checkbox" id="cfg_pay_cod" style="width:16px;height:16px;accent-color:var(--orange)"> Накладений платіж</label>
-            <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);cursor:pointer;font-size:13px;font-weight:600"><input type="checkbox" id="cfg_pay_card" style="width:16px;height:16px;accent-color:var(--orange)"> Оплата карткою онлайн</label>
-            <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);cursor:pointer;font-size:13px;font-weight:600"><input type="checkbox" id="cfg_pay_bank" style="width:16px;height:16px;accent-color:var(--orange)"> Банківський переказ</label>
-            <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);cursor:pointer;font-size:13px;font-weight:600"><input type="checkbox" id="cfg_pay_crypto" style="width:16px;height:16px;accent-color:var(--orange)"> Криптовалюта</label>
+        <div class="import-card" style="margin-bottom:16px" id="payMethodsCard">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+            <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;color:var(--navy);margin:0">Способи оплати</h3>
+            <button class="btn btn-primary btn-sm" onclick="openAddPayMethod()">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Додати спосіб
+            </button>
+          </div>
+          <div id="payMethodsList"></div>
+          <!-- Inline add/edit form -->
+          <div id="payMethodForm" style="display:none;margin-top:14px;background:var(--bg-soft);border-radius:var(--r-sm);padding:14px;border:1.5px solid var(--orange)">
+            <div style="font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;color:var(--navy);margin-bottom:12px" id="payMethodFormTitle">Новий спосіб оплати</div>
+            <input type="hidden" id="pmEditId">
+            <div class="f-group" style="margin-bottom:10px">
+              <label class="f-label">Назва <span style="color:var(--red)">*</span></label>
+              <input type="text" id="pmName" placeholder="Оплата карткою онлайн" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:'Manrope',sans-serif;font-size:13px;color:var(--navy);outline:none;box-sizing:border-box">
+            </div>
+            <div class="f-group" style="margin-bottom:14px">
+              <label class="f-label">Опис</label>
+              <input type="text" id="pmDesc" placeholder="Короткий опис для покупця..." style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:'Manrope',sans-serif;font-size:13px;color:var(--navy);outline:none;box-sizing:border-box">
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-primary btn-sm" onclick="savePayMethod()">Зберегти</button>
+              <button class="btn btn-outline btn-sm" onclick="closePayMethodForm()">Скасувати</button>
+            </div>
           </div>
         </div>
         <div class="import-card">
@@ -4418,6 +4436,116 @@ function _cacheSettings(obj) {
   localStorage.setItem(SETTINGS_KEY, JSON.stringify({ ...loadSettings(), ...obj }));
 }
 
+// ── PAYMENT METHODS CRUD ──────────────────────────────────────
+const PAY_METHODS_KEY = 'kr_payment_methods';
+const PAY_METHODS_DEFAULT = [
+  { id: 'fop',     name: 'Оплата на рахунок ФОП',     desc: 'Безготівковий розрахунок. Реквізити надішлемо після підтвердження замовлення.', enabled: true },
+  { id: 'partial', name: 'Часткова передоплата',        desc: 'Передплата частини суми, решта — при отриманні. Умови узгоджуються з менеджером.', enabled: true },
+  { id: 'privat',  name: 'Частинами від ПриватБанк',   desc: 'До 4 платежів без переплат. Потрібна картка ПриватБанку.', enabled: true },
+  { id: 'packet',  name: 'Пакунок малюка',              desc: 'Державна допомога при народженні дитини. Приймаємо як повну або часткову оплату.', enabled: true },
+  { id: 'state7k', name: 'Держпідтримка 7000 грн',     desc: 'Для дітей до 1 року. Сертифікат видається через застосунок «Дія».', enabled: true },
+];
+
+function getPayMethods() {
+  try {
+    const stored = localStorage.getItem(PAY_METHODS_KEY);
+    if (stored) return JSON.parse(stored);
+  } catch(e) {}
+  return PAY_METHODS_DEFAULT.map(m => ({...m}));
+}
+function savePayMethods(methods) {
+  localStorage.setItem(PAY_METHODS_KEY, JSON.stringify(methods));
+}
+
+function renderPayMethodsList() {
+  const list = document.getElementById('payMethodsList');
+  if (!list) return;
+  const methods = getPayMethods();
+  if (!methods.length) {
+    list.innerHTML = '<div style="text-align:center;padding:18px;color:var(--text-muted);font-size:13px">Немає способів оплати. Натисніть «Додати спосіб».</div>';
+    return;
+  }
+  list.innerHTML = methods.map((m, i) => `
+    <div style="display:flex;align-items:flex-start;gap:12px;padding:11px 0;${i < methods.length - 1 ? 'border-bottom:1px solid var(--border)' : ''}">
+      <button onclick="togglePayMethod('${_escHtml(m.id)}')" title="${m.enabled ? 'Вимкнути' : 'Увімкнути'}"
+        style="flex-shrink:0;width:34px;height:20px;border-radius:10px;border:none;cursor:pointer;position:relative;transition:background .2s;background:${m.enabled ? 'var(--orange)' : '#cbd5e0'}">
+        <span style="position:absolute;top:2px;left:${m.enabled ? '16px' : '2px'};width:16px;height:16px;background:white;border-radius:50%;transition:left .2s;display:block"></span>
+      </button>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;color:${m.enabled ? 'var(--navy)' : 'var(--text-muted)'}">
+          ${_escHtml(m.name)}
+          ${!m.enabled ? '<span style="font-size:11px;font-weight:600;color:var(--text-muted);margin-left:6px">(вимкнено)</span>' : ''}
+        </div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%">${_escHtml(m.desc || '—')}</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0">
+        <button class="ta-btn" title="Редагувати" onclick="openEditPayMethod('${_escHtml(m.id)}')">
+          <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="ta-btn danger" title="Видалити" onclick="deletePayMethod('${_escHtml(m.id)}')">
+          <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function togglePayMethod(id) {
+  const methods = getPayMethods();
+  const m = methods.find(x => x.id === id);
+  if (m) { m.enabled = !m.enabled; savePayMethods(methods); renderPayMethodsList(); }
+}
+
+function deletePayMethod(id) {
+  if (!confirm('Видалити цей спосіб оплати?')) return;
+  const methods = getPayMethods().filter(m => m.id !== id);
+  savePayMethods(methods);
+  renderPayMethodsList();
+  closePayMethodForm();
+}
+
+function openAddPayMethod() {
+  document.getElementById('pmEditId').value = '';
+  document.getElementById('pmName').value = '';
+  document.getElementById('pmDesc').value = '';
+  document.getElementById('payMethodFormTitle').textContent = 'Новий спосіб оплати';
+  document.getElementById('payMethodForm').style.display = 'block';
+  document.getElementById('pmName').focus();
+}
+
+function openEditPayMethod(id) {
+  const m = getPayMethods().find(x => x.id === id);
+  if (!m) return;
+  document.getElementById('pmEditId').value = m.id;
+  document.getElementById('pmName').value = m.name;
+  document.getElementById('pmDesc').value = m.desc || '';
+  document.getElementById('payMethodFormTitle').textContent = 'Редагувати спосіб оплати';
+  document.getElementById('payMethodForm').style.display = 'block';
+  document.getElementById('pmName').focus();
+}
+
+function closePayMethodForm() {
+  document.getElementById('payMethodForm').style.display = 'none';
+}
+
+function savePayMethod() {
+  const name = document.getElementById('pmName').value.trim();
+  if (!name) { document.getElementById('pmName').focus(); return; }
+  const desc  = document.getElementById('pmDesc').value.trim();
+  const editId = document.getElementById('pmEditId').value;
+  const methods = getPayMethods();
+  if (editId) {
+    const m = methods.find(x => x.id === editId);
+    if (m) { m.name = name; m.desc = desc; }
+  } else {
+    const newId = 'pay_' + Date.now();
+    methods.push({ id: newId, name, desc, enabled: true });
+  }
+  savePayMethods(methods);
+  renderPayMethodsList();
+  closePayMethodForm();
+}
+
 // ── PER-TABLE DB LOAD / SAVE ──────────────────────────────────
 async function _loadAllSettingsTables() {
   const [store, orders, notify, delivery, appearance, seo] = await Promise.all([
@@ -4512,10 +4640,7 @@ async function renderSettings() {
   _setField('cfg_auto_close_days',  o.auto_close_days);
   _setField('cfg_confirm_text',     o.confirm_text);
   _setField('cfg_manager_notes',    o.manager_notes);
-  _setCheck('cfg_pay_cod',   o.pay_cod);
-  _setCheck('cfg_pay_card',  o.pay_card);
-  _setCheck('cfg_pay_bank',  o.pay_bank);
-  _setCheck('cfg_pay_crypto',o.pay_crypto);
+  renderPayMethodsList();
 
   // ── Сповіщення ──
   const n = d.notify;
@@ -4612,10 +4737,7 @@ async function saveAllSettings() {
         auto_close_days: parseInt(document.getElementById('cfg_auto_close_days')?.value) || 0,
         confirm_text:    document.getElementById('cfg_confirm_text')?.value || '',
         manager_notes:   document.getElementById('cfg_manager_notes')?.value || '',
-        pay_cod:    document.getElementById('cfg_pay_cod')?.checked    || false,
-        pay_card:   document.getElementById('cfg_pay_card')?.checked   || false,
-        pay_bank:   document.getElementById('cfg_pay_bank')?.checked   || false,
-        pay_crypto: document.getElementById('cfg_pay_crypto')?.checked || false,
+        pay_cod: false, pay_card: false, pay_bank: false, pay_crypto: false,
       }),
 
       // settings_notifications
