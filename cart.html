@@ -546,7 +546,7 @@ function renderCartItems() {
       <div class="cart-item" data-key="${safeKey}">
         <div class="ci-img">${p.img ? `<img src="${escHtml(String(p.img))}" alt="${escHtml(p.name||'')}" loading="lazy" style="width:100%;height:100%;object-fit:contain;background:#fff;border-radius:10px" onerror="this.outerHTML=${JSON.stringify(p.imgSvg || genericSvg())}">` : (p.imgSvg || genericSvg())}</div>
         <div class="ci-info">
-          ${p.brand ? `<div class="ci-brand">${escHtml(p.brand)}</div>` : ''}
+          ${p.brand ? `<div class="ci-brand">${escHtml(p.brand)}${p.sku ? ` · <span style="font-weight:500;opacity:.7">${escHtml(p.sku)}</span>` : ""}</div>` : (p.sku ? `<div class="ci-brand">${escHtml(p.sku)}</div>` : "")}
           <div class="ci-name"><a href="${escHtml(productHref)}">${escHtml(p.name || 'Товар')}</a></div>
           ${tags.length ? `<div class="ci-meta">${tags.join('')}</div>` : ''}
           <div class="ci-price-mobile" style="display:none;font-family:'Nunito',sans-serif;font-weight:900;font-size:17px;color:var(--navy);margin-bottom:10px">${formatPrice(total)}</div>
@@ -633,6 +633,18 @@ function removeItem(key) {
 }
 
 function moveToWish(key) {
+  // Знайти товар у кошику і додати до wishlist перед видаленням
+  const idx = cartData.findIndex(i => (i.id||i.name+i.color) === key || (i.name + (i.color||'')) === key || i.id === key || (i.name+i.price) === key);
+  const item = cartData[idx >= 0 ? idx : cartData.findIndex(i => itemKey(i) === key)];
+  if (item) {
+    try {
+      let wish = JSON.parse(localStorage.getItem('kr_wishlist') || '[]');
+      if (!wish.some(w => w.name === item.name)) {
+        wish.push({id: 'w-' + Date.now(), name: item.name, price: item.price, brand: item.brand, img: item.img, sku: item.sku, addedAt: Date.now()});
+        localStorage.setItem('kr_wishlist', JSON.stringify(wish));
+      }
+    } catch(e) {}
+  }
   removeItem(key);
   showToast('❤️ Переміщено до списку бажань');
 }
