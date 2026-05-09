@@ -363,9 +363,13 @@ a{text-decoration:none;color:inherit}
 </div>
 
 <script>
+// ── SUPABASE CONFIG ──────────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://xczrzdbikkycgpnvolib.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
+
 let currentTab = 'login';
 
-// Switch login/register
+// ── UI HELPERS ───────────────────────────────────────────────────────────────
 function switchTab(tab) {
   currentTab = tab;
   document.getElementById('tabLogin').classList.toggle('active', tab === 'login');
@@ -376,14 +380,12 @@ function switchTab(tab) {
   document.getElementById('authSuccess').style.flexDirection = '';
 }
 
-// Google auth via Supabase OAuth redirect
+// Google OAuth — redirect back to auth.html to handle the callback
 function googleAuth() {
-  const redirectTo = encodeURIComponent(window.location.origin + '/index.html');
+  const redirectTo = encodeURIComponent(window.location.origin + '/auth.html');
   window.location.href = SUPABASE_URL + '/auth/v1/authorize?provider=google&redirect_to=' + redirectTo;
 }
 
-
-// Toggle password visibility
 function togglePassword(id, btn) {
   const inp = document.getElementById(id);
   const isText = inp.type === 'text';
@@ -393,7 +395,7 @@ function togglePassword(id, btn) {
     : '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
 }
 
-// Validation
+// ── VALIDATION ───────────────────────────────────────────────────────────────
 function validateEmail(inp) {
   const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inp.value);
   inp.classList.toggle('valid', valid && inp.value.length > 0);
@@ -404,7 +406,6 @@ function validateName(inp) {
   inp.classList.toggle('valid', valid);
 }
 
-// Password strength
 function checkPassword(inp) {
   const v = inp.value;
   const strength = document.getElementById('pwdStrength');
@@ -434,7 +435,6 @@ function checkConfirm(inp) {
   document.getElementById('confirmError').classList.toggle('show', !match && inp.value.length > 0);
 }
 
-// Phone format
 function formatPhone(inp) {
   let v = inp.value.replace(/[^\d+]/g,'');
   if (v.startsWith('0')) v = '+38' + v;
@@ -451,7 +451,6 @@ function formatPhone(inp) {
   }
 }
 
-// Checkbox toggle
 function toggleCheck(row) {
   const box = row.querySelector('.check-box');
   box.classList.toggle('checked');
@@ -459,9 +458,129 @@ function toggleCheck(row) {
 
 function checkLoginReady() {}
 
+// ── SESSION ───────────────────────────────────────────────────────────────────
+const _sb = {
+  getSession() {
+    try {
+      const s = localStorage.getItem('kr_admin_session');
+      if (!s) return null;
+      const session = JSON.parse(s);
+      if (session.expires_at && Date.now() / 1000 > session.expires_at) {
+        localStorage.removeItem('kr_admin_session');
+        return null;
+      }
+      return session;
+    } catch(e) { return null; }
+  },
 
+  saveSession(data, extraSeconds) {
+    const exp = extraSeconds || (data.expires_in || 3600);
+    const session = {
+      access_token: data.access_token,
+      user: data.user,
+      expires_at: Math.floor(Date.now() / 1000) + exp
+    };
+    localStorage.setItem('kr_admin_session', JSON.stringify(session));
+    return session;
+  },
 
-// Register submit
+  signOut() {
+    localStorage.removeItem('kr_admin_session');
+  }
+};
+
+// ── SAVE USER PROFILE TO TABLE ───────────────────────────────────────────────
+// Saves (or updates) a row in user_profiles after signup/oauth.
+// Uses upsert so duplicate calls are safe.
+async function saveUserProfile(token, userId, profile) {
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/user_profiles', {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json',
+        'Prefer': 'resolution=merge-duplicates,return=minimal'
+      },
+      body: JSON.stringify({
+        user_id:    userId,
+        email:      profile.email      || '',
+        first_name: profile.first_name || '',
+        last_name:  profile.last_name  || '',
+        phone:      profile.phone      || ''
+      })
+    });
+    if (!res.ok) {
+      const err = await res.text();
+      console.warn('saveUserProfile error:', err);
+    }
+  } catch(e) {
+    console.warn('saveUserProfile exception:', e);
+  }
+}
+
+// ── FETCH USER PROFILE FROM TABLE ────────────────────────────────────────────
+// Called on login to verify and attach profile data to the session.
+async function fetchUserProfile(token, userId) {
+  try {
+    const res = await fetch(
+      SUPABASE_URL + '/rest/v1/user_profiles?user_id=eq.' + userId + '&limit=1',
+      {
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': 'Bearer ' + token
+        }
+      }
+    );
+    if (!res.ok) return null;
+    const rows = await res.json();
+    return Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
+  } catch(e) {
+    console.warn('fetchUserProfile error:', e);
+    return null;
+  }
+}
+
+// ── ADMIN CHECK ───────────────────────────────────────────────────────────────
+async function checkIsAdmin(token) {
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/user_roles?select=role&limit=1', {
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + token
+      }
+    });
+    if (!res.ok) return false;
+    const data = await res.json();
+    return Array.isArray(data) && data.length > 0 && data[0].role === 'admin';
+  } catch(e) { return false; }
+}
+
+// ── SUCCESS SCREEN ────────────────────────────────────────────────────────────
+function showSuccess(type) {
+  document.getElementById('loginForm').style.display = 'none';
+  document.getElementById('registerForm').style.display = 'none';
+  const success = document.getElementById('authSuccess');
+  success.style.display = 'flex';
+  success.style.flexDirection = 'column';
+
+  if (type === 'google') {
+    document.getElementById('successTitle').textContent = 'Вхід через Google!';
+    document.getElementById('successDesc').textContent = 'Акаунт підключено. Переадресовуємо...';
+  } else if (type === 'register') {
+    document.getElementById('successTitle').textContent = 'Акаунт створено!';
+    document.getElementById('successDesc').textContent = 'Ласкаво просимо! Переходимо до магазину...';
+  } else {
+    document.getElementById('successTitle').textContent = 'Вхід успішний!';
+    document.getElementById('successDesc').textContent = 'Переадресовуємо вас до магазину...';
+  }
+
+  setTimeout(() => {
+    window.location.href = 'index.html';
+  }, 1800);
+}
+
+// ── REGISTER ──────────────────────────────────────────────────────────────────
 async function submitRegister() {
   const firstName = document.getElementById('regFirstName').value.trim();
   const lastName  = document.getElementById('regLastName').value.trim();
@@ -487,6 +606,7 @@ async function submitRegister() {
   btn.innerHTML = '<div style="width:20px;height:20px;border:2px solid rgba(255,255,255,.4);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;display:inline-block;vertical-align:middle;margin-right:8px"></div>Створення акаунту...';
 
   try {
+    // 1. Реєстрація через Supabase Auth
     const res = await fetch(SUPABASE_URL + '/auth/v1/signup', {
       method: 'POST',
       headers: {
@@ -503,12 +623,53 @@ async function submitRegister() {
         }
       })
     });
+
     const data = await res.json();
+
     if (!res.ok) {
       const msg = data.error_description || data.msg || data.message || 'Помилка реєстрації';
       throw new Error(msg);
     }
+
+    // 2. Якщо отримали access_token — підтвердження email вимкнено, відразу залогінені
+    if (data.access_token && data.user) {
+      _sb.saveSession(data);
+
+      // 3. Зберігаємо профіль у таблицю user_profiles
+      await saveUserProfile(data.access_token, data.user.id, {
+        email,
+        first_name: firstName,
+        last_name:  lastName,
+        phone
+      });
+
+      showSuccess('register');
+      return;
+    }
+
+    // 4. Якщо access_token відсутній — email підтвердження увімкнено на сервері
+    // (потрібно вимкнути в Supabase: Authentication → Settings → Confirm email → OFF)
+    // Намагаємось одразу залогінитись після реєстрації
+    try {
+      const loginRes = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', {
+        method: 'POST',
+        headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password: pwd })
+      });
+      const loginData = await loginRes.json();
+      if (loginRes.ok && loginData.access_token) {
+        _sb.saveSession(loginData);
+        await saveUserProfile(loginData.access_token, loginData.user.id, {
+          email, first_name: firstName, last_name: lastName, phone
+        });
+        showSuccess('register');
+        return;
+      }
+    } catch(e2) {}
+
+    // Якщо всі спроби не вдались — показуємо повідомлення
     showSuccess('register');
+
   } catch(e) {
     btn.disabled = false;
     btn.innerHTML = origHTML;
@@ -524,32 +685,163 @@ async function submitRegister() {
   }
 }
 
-// Show success
-function showSuccess(type) {
-  document.getElementById('loginForm').style.display = 'none';
-  document.getElementById('registerForm').style.display = 'none';
-  const success = document.getElementById('authSuccess');
-  success.style.display = 'flex';
-  success.style.flexDirection = 'column';
+// ── LOGIN ─────────────────────────────────────────────────────────────────────
+async function submitLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pwd   = document.getElementById('loginPassword').value;
+  const btn   = document.getElementById('loginBtn');
+  const errEl = document.getElementById('loginError');
+  const rememberMe = document.querySelector('#loginForm .check-box.checked') !== null;
 
-  if (type === 'google') {
-    document.getElementById('successTitle').textContent = 'Вхід через Google!';
-    document.getElementById('successDesc').textContent = 'Акаунт підключено. Переадресовуємо...';
-  } else if (type === 'register') {
-    document.getElementById('successTitle').textContent = 'Акаунт створено!';
-    document.getElementById('successDesc').textContent = 'Перевірте email для підтвердження. Переадресовуємо...';
-  } else {
-    document.getElementById('successTitle').textContent = 'Вхід успішний!';
-    document.getElementById('successDesc').textContent = 'Переадресовуємо вас до магазину...';
+  if (errEl) errEl.style.display = 'none';
+
+  if (!email || !pwd) {
+    if (errEl) { errEl.textContent = 'Введіть email та пароль'; errEl.style.display = 'block'; }
+    return;
   }
 
-  // Redirect after 2s
-  setTimeout(() => {
-    window.location.href = 'index.html';
-  }, 2200);
+  const origHTML = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<div style="width:18px;height:18px;border:2px solid rgba(255,255,255,.4);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;display:inline-block;vertical-align:middle;margin-right:8px"></div>Вхід...';
+
+  try {
+    // 1. Вхід через Supabase Auth
+    const res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pwd })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error_description || data.msg || 'Помилка входу');
+
+    // 2. Завантажуємо профіль з таблиці user_profiles та перевіряємо
+    const profile = await fetchUserProfile(data.access_token, data.user.id);
+
+    // 3. Зберігаємо сесію з профілем
+    const expiresIn = rememberMe ? 30 * 24 * 3600 : (data.expires_in || 3600);
+    const session = {
+      access_token: data.access_token,
+      user: {
+        ...data.user,
+        // Прикріплюємо профіль, перевіряємо що email в таблиці співпадає
+        profile: profile || null,
+        email_verified: profile ? profile.email === data.user.email : false
+      },
+      expires_at: Math.floor(Date.now() / 1000) + expiresIn,
+      remember_me: rememberMe
+    };
+    localStorage.setItem('kr_admin_session', JSON.stringify(session));
+
+    // 4. Якщо профілю немає — створюємо (для старих акаунтів до впровадження таблиці)
+    if (!profile) {
+      const meta = data.user.user_metadata || {};
+      await saveUserProfile(data.access_token, data.user.id, {
+        email: data.user.email,
+        first_name: meta.first_name || '',
+        last_name:  meta.last_name  || '',
+        phone:      meta.phone      || ''
+      });
+    }
+
+    // 5. Перевіряємо чи адмін
+    const isAdm = await checkIsAdmin(data.access_token);
+
+    if (isAdm) {
+      btn.innerHTML = '✅ Вхід успішний! Переходимо...';
+      btn.style.background = 'var(--green)';
+      setTimeout(() => window.location.href = 'admin.html', 800);
+    } else {
+      btn.innerHTML = '✅ Ласкаво просимо!';
+      btn.style.background = 'var(--green)';
+      setTimeout(() => window.location.href = 'index.html', 800);
+    }
+
+  } catch(e) {
+    btn.disabled = false;
+    btn.innerHTML = origHTML;
+    if (errEl) {
+      const msg = e.message.includes('Invalid') || e.message.includes('invalid')
+        ? '❌ Невірний email або пароль'
+        : e.message.includes('Email not confirmed')
+          ? '❌ Email не підтверджено. Перевірте пошту або зверніться до підтримки.'
+          : '❌ ' + e.message;
+      errEl.textContent = msg;
+      errEl.style.display = 'block';
+    }
+  }
 }
 
-// Forgot password
+// ── GOOGLE OAUTH CALLBACK ─────────────────────────────────────────────────────
+// Supabase redirects back to auth.html with #access_token=... in the URL hash
+async function handleOAuthCallback() {
+  const hash = window.location.hash;
+  if (!hash || !hash.includes('access_token')) return;
+
+  const params = new URLSearchParams(hash.slice(1));
+  const accessToken  = params.get('access_token');
+  const refreshToken = params.get('refresh_token');
+  const expiresIn    = parseInt(params.get('expires_in') || '3600', 10);
+
+  if (!accessToken) return;
+
+  // Прибираємо токен з URL (безпека)
+  history.replaceState(null, '', window.location.pathname);
+
+  // Показуємо успіх одразу
+  showSuccess('google');
+
+  try {
+    // Отримуємо дані користувача
+    const res = await fetch(SUPABASE_URL + '/auth/v1/user', {
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + accessToken
+      }
+    });
+    if (!res.ok) return;
+    const user = await res.json();
+
+    // Зберігаємо сесію
+    const session = {
+      access_token:  accessToken,
+      refresh_token: refreshToken,
+      user,
+      expires_at: Math.floor(Date.now() / 1000) + expiresIn
+    };
+    localStorage.setItem('kr_admin_session', JSON.stringify(session));
+
+    // Зберігаємо / оновлюємо профіль в таблиці
+    const meta = user.user_metadata || {};
+    const fullName = meta.full_name || meta.name || '';
+    const nameParts = fullName.trim().split(' ');
+    await saveUserProfile(accessToken, user.id, {
+      email:      user.email || '',
+      first_name: meta.given_name  || nameParts[0]                        || '',
+      last_name:  meta.family_name || nameParts.slice(1).join(' ')        || '',
+      phone:      user.phone       || meta.phone                          || ''
+    });
+
+    // Перевіряємо адмін
+    const isAdm = await checkIsAdmin(accessToken);
+    setTimeout(() => {
+      window.location.href = isAdm ? 'admin.html' : 'index.html';
+    }, 1800);
+
+  } catch(e) {
+    console.error('OAuth callback error:', e);
+    window.location.href = 'index.html';
+  }
+}
+
+// ── EXISTING SESSION CHECK ────────────────────────────────────────────────────
+async function checkExistingSession() {
+  const session = _sb.getSession();
+  if (!session) return;
+  const isAdm = await checkIsAdmin(session.access_token);
+  if (isAdm) window.location.href = 'admin.html';
+}
+
+// ── FORGOT PASSWORD ───────────────────────────────────────────────────────────
 function openForgot() {
   const loginEmail = document.getElementById('loginEmail').value.trim();
   if (loginEmail) document.getElementById('forgotEmail').value = loginEmail;
@@ -582,166 +874,20 @@ async function submitForgot() {
   setTimeout(() => toast.remove(), 4000);
 }
 
-// Close modal on overlay click
 document.getElementById('forgotModal').addEventListener('click', e => {
   if (e.target === e.currentTarget) closeForgot();
 });
 
-// Check for redirect param
 const urlParams = new URLSearchParams(window.location.search);
 if (urlParams.get('tab') === 'register') switchTab('register');
-</script>
 
-<script>
-// ── SUPABASE AUTH ──────────────────────────────────────────────────────────
-const SUPABASE_URL = 'https://xczrzdbikkycgpnvolib.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
-
-// Ініціалізація Supabase через REST API (без SDK — щоб працювало скрізь)
-const _sb = {
-
-  // Вхід через email/пароль
-  async signIn(email, password) {
-    const res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', {
-      method: 'POST',
-      headers: {
-        'apikey': SUPABASE_ANON_KEY,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ email, password })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error_description || data.msg || 'Помилка входу');
-    return data; // { access_token, user, ... }
-  },
-
-  // Перевірити сесію з localStorage
-  getSession() {
-    try {
-      const s = localStorage.getItem('kr_admin_session');
-      if (!s) return null;
-      const session = JSON.parse(s);
-      // Перевірити чи не протермінована
-      if (session.expires_at && Date.now() / 1000 > session.expires_at) {
-        localStorage.removeItem('kr_admin_session');
-        return null;
-      }
-      return session;
-    } catch(e) { return null; }
-  },
-
-  // Зберегти сесію
-  saveSession(data) {
-    const session = {
-      access_token: data.access_token,
-      user: data.user,
-      expires_at: Math.floor(Date.now() / 1000) + (data.expires_in || 3600)
-    };
-    localStorage.setItem('kr_admin_session', JSON.stringify(session));
-    return session;
-  },
-
-  // Вихід
-  signOut() {
-    localStorage.removeItem('kr_admin_session');
-  }
-};
-
-// Перевірити чи є роль адміна в Supabase
-async function checkIsAdmin(token) {
-  try {
-    const res = await fetch(SUPABASE_URL + '/rest/v1/user_roles?select=role&limit=1', {
-      headers: {
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': 'Bearer ' + token
-      }
-    });
-    if (!res.ok) return false;
-    const data = await res.json();
-    return Array.isArray(data) && data.length > 0 && data[0].role === 'admin';
-  } catch(e) {
-    console.warn('checkIsAdmin error:', e);
-    return false;
-  }
-}
-
-// Перевірити існуючу сесію при завантаженні
-async function checkExistingSession() {
-  const session = _sb.getSession();
-  if (!session) return; // Не залогінений — залишитись на auth.html
-
-  // Є сесія — перевірити чи адмін
-  const isAdm = await checkIsAdmin(session.access_token);
-  if (isAdm) {
-    window.location.href = 'admin.html';
-  }
-  // Якщо не адмін — залишитись на auth.html (для звичайних покупців)
-}
-
-// Логін
-async function submitLogin() {
-  const email = document.getElementById('loginEmail').value.trim();
-  const pwd   = document.getElementById('loginPassword').value;
-  const btn   = document.getElementById('loginBtn');
-  const errEl = document.getElementById('loginError');
-  const rememberMe = document.querySelector('#loginForm .check-box.checked') !== null;
-
-  if (errEl) errEl.style.display = 'none';
-
-  if (!email || !pwd) {
-    if (errEl) { errEl.textContent = 'Введіть email та пароль'; errEl.style.display = 'block'; }
-    return;
-  }
-
-  // Показати loader
-  const origHTML = btn.innerHTML;
-  btn.disabled = true;
-  btn.innerHTML = '<div style="width:18px;height:18px;border:2px solid rgba(255,255,255,.4);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;display:inline-block;vertical-align:middle;margin-right:8px"></div>Вхід...';
-
-  try {
-    // 1. Увійти через Supabase Auth
-    const data = await _sb.signIn(email, pwd);
-
-    // 2. Зберегти сесію — якщо "Запам'ятати мене" — 30 днів, інакше 1 година
-    const expiresIn = rememberMe ? 30 * 24 * 3600 : (data.expires_in || 3600);
-    const session = {
-      access_token: data.access_token,
-      user: data.user,
-      expires_at: Math.floor(Date.now() / 1000) + expiresIn,
-      remember_me: rememberMe
-    };
-    localStorage.setItem('kr_admin_session', JSON.stringify(session));
-
-    // 3. Перевірити чи адмін
-    const isAdm = await checkIsAdmin(session.access_token);
-
-    if (isAdm) {
-      // Адмін → в адмін панель
-      btn.innerHTML = '✅ Вхід успішний! Переходимо...';
-      btn.style.background = 'var(--green)';
-      setTimeout(() => window.location.href = 'admin.html', 800);
-    } else {
-      // Звичайний користувач → на головну
-      btn.innerHTML = '✅ Ласкаво просимо!';
-      btn.style.background = 'var(--green)';
-      setTimeout(() => window.location.href = 'index.html', 800);
-    }
-
-  } catch(e) {
-    btn.disabled = false;
-    btn.innerHTML = origHTML;
-    if (errEl) {
-      const msg = e.message.includes('Invalid') || e.message.includes('invalid')
-        ? '❌ Невірний email або пароль'
-        : '❌ ' + e.message;
-      errEl.textContent = msg;
-      errEl.style.display = 'block';
-    }
-  }
-}
-
-// Перевірити сесію при завантаженні
-window.addEventListener('DOMContentLoaded', checkExistingSession);
+// ── INIT ──────────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', async () => {
+  // Спочатку перевіряємо Google OAuth callback (повернення після Google login)
+  await handleOAuthCallback();
+  // Потім перевіряємо існуючу сесію
+  await checkExistingSession();
+});
 </script>
 
 </body>
