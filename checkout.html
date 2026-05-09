@@ -1616,10 +1616,54 @@ async function autofillFromProfile() {
   } catch(e) {}
 }
 
+// ── ЗАВАНТАЖЕННЯ РЕАЛЬНИХ ФОТО З SUPABASE (як у cart.html) ────────────────
+async function _loadCartImages() {
+  try {
+    let cart = [];
+    try {
+      cart = window.KR && KR.getCart ? KR.getCart() : JSON.parse(localStorage.getItem('kr_cart') || '[]');
+    } catch(e) { return; }
+
+    // Беремо лише ті товари, у яких img не є справжнім URL (каталогові 'jeep','quad' тощо)
+    const needImg = cart.filter(i => i.sku && (!i.img || !/^https?:\/\//.test(i.img)));
+    if (!needImg.length) return;
+
+    const skus = [...new Set(needImg.map(i => i.sku))];
+    const skuList = skus.map(s => '"' + s + '"').join(',');
+    const res = await fetch(
+      SUPA_URL + '/rest/v1/products?select=sku,images&sku=in.(' + skuList + ')',
+      { headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY } }
+    );
+    if (!res.ok) return;
+    const data = await res.json();
+
+    const imgMap = {};
+    data.forEach(p => {
+      let imgs = p.images;
+      if (typeof imgs === 'string') { try { imgs = JSON.parse(imgs); } catch{ imgs = []; } }
+      if (Array.isArray(imgs) && imgs[0]) imgMap[p.sku] = imgs[0];
+    });
+
+    let updated = false;
+    cart.forEach(item => {
+      if (item.sku && imgMap[item.sku] && (!item.img || !/^https?:\/\//.test(item.img))) {
+        item.img = imgMap[item.sku];
+        updated = true;
+      }
+    });
+
+    if (updated) {
+      localStorage.setItem('kr_cart', JSON.stringify(cart));
+      renderOrderSummary(); // перемалювати з реальними фото
+    }
+  } catch(e) {}
+}
+
 // Запустити після того, як shared.js додасть KR
 function _initCheckoutSummary(){
   renderPayMethods();
   renderOrderSummary();
+  _loadCartImages(); // підтягуємо реальні фото асинхронно
   autofillFromProfile();
 
   // Fix 1: hide/show "Вже маєте акаунт?" block
