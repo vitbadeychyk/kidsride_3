@@ -297,11 +297,8 @@ nav a:hover{color:var(--navy);background:var(--bg-soft)}
             <div class="ci-name"><a href="product.html">Джип M 3804EBLR-1 — 4 мотори 45W, пульт 2.4G</a></div>
             <div class="ci-meta">
               <span class="ci-tag">Колір: Білий</span>
-              <span class="ci-tag">
-                <svg viewBox="0 0 24 24" style="width:10px;height:10px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                12V
-              </span>
-              <span class="ci-tag">3–8 р.</span>
+              
+
             </div>
             <!-- Price visible on mobile -->
             <div class="ci-price-mobile" style="display:none;font-family:'Nunito',sans-serif;font-weight:900;font-size:17px;color:var(--navy);margin-bottom:10px" id="price1-mobile">17 224 ₴</div>
@@ -353,11 +350,8 @@ nav a:hover{color:var(--navy);background:var(--bg-soft)}
             <div class="ci-name"><a href="product.html">Квадроцикл M 4795EBLR — EVA колеса</a></div>
             <div class="ci-meta">
               <span class="ci-tag">Колір: Синій</span>
-              <span class="ci-tag">
-                <svg viewBox="0 0 24 24" style="width:10px;height:10px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                12V
-              </span>
-              <span class="ci-tag">3–8 р.</span>
+              
+              
             </div>
             <div class="ci-price-mobile" style="display:none;font-family:'Nunito',sans-serif;font-weight:900;font-size:17px;color:var(--navy);margin-bottom:10px" id="price2-mobile">12 210 ₴</div>
             <div class="ci-actions">
@@ -568,8 +562,8 @@ function renderCartItems() {
     const qty = Number(p.qty) || 1;
     const total = (Number(p.price)||0) * qty;
     const tags = [];
-    if (p.voltage) tags.push(`<span class="ci-tag"><svg viewBox="0 0 24 24" style="width:10px;height:10px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>${escHtml(p.voltage)}</span>`);
-    if (p.age)     tags.push(`<span class="ci-tag">${escHtml(p.age)} р.</span>`);
+
+
     const productHref = 'product.html' + (p.sku ? ('?sku=' + encodeURIComponent(p.sku)) : (p.model ? ('?model=' + encodeURIComponent(p.model)) : ''));
     const safeKey = escHtml(key);
     const imgHtml = p.img
