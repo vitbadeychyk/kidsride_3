@@ -1599,8 +1599,10 @@ async function loadCategoryTree() {
   const parents  = _mainCategories;
   const children = _allCategories.filter(c => c.main_category_id);
 
+  // Рахуємо тільки доступні товари (в наявності або під замовлення) — щоб цифри збігались з сіткою
+  const _availableProds = (allProducts || []).filter(p => !(p.stock != null && p.stock <= 0 && !(Number(p.preorderDays) > 0)));
   const prodCountMap = {};
-  (allProducts || []).forEach(p => {
+  _availableProds.forEach(p => {
     if (p.category_id != null) prodCountMap[p.category_id] = (prodCountMap[p.category_id] || 0) + 1;
   });
 
@@ -1614,19 +1616,19 @@ async function loadCategoryTree() {
   html += `
     <div class="cat-tree-all${!_activeCatId && !_activeParentId && !_activeCatIdFilter ? ' active' : ''}" onclick="selectCategory(0,0)">
       <span class="ctree-label" style="font-weight:700">Всі товари</span>
-      <span class="ctree-cnt">${(allProducts || []).length}</span>
+      <span class="ctree-cnt">${_availableProds.length}</span>
     </div>`;
 
   if (!parents.length) {
-    const flat = _allCategories.slice(0, 15);
-    flat.forEach(c => {
+    _allCategories.forEach(c => {
       const cnt = prodCountMap[c.id] || 0;
+      if (!cnt) return; // не показуємо порожні підкатегорії
       const isActive = _activeCatIdFilter === c.id;
       html += `
         <div class="ctree-sub-row${isActive?' active':''}" onclick="selectCategory(${c.id},0)">
           <span class="ctree-dot"></span>
           <span class="ctree-label">${c.name}</span>
-          ${cnt ? `<span class="ctree-cnt">${cnt}</span>` : ''}
+          <span class="ctree-cnt">${cnt}</span>
         </div>`;
     });
     treeEl.innerHTML = html;
@@ -1645,7 +1647,7 @@ async function loadCategoryTree() {
 
     // Продукти поточної основної категорії
     const subIds = subs.map(c => c.id);
-    const parentProds = (allProducts || []).filter(p => subIds.includes(p.category_id));
+    const parentProds = _availableProds.filter(p => subIds.includes(p.category_id));
 
     // Типи транспорту у цій категорії
     const vehicleTypes = [...new Set(parentProds.map(p => p.category).filter(c => c && TYPE_UA_TREE[c]))]
