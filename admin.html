@@ -899,7 +899,7 @@ tr:hover td{background:rgba(240,242,248,.5)}
               </tr>
             </thead>
             <tbody id="osTbody">
-              <tr><td colspan="8" style="text-align:center;padding:40px"><div class="spinner" style="margin:0 auto"></div></td></tr>
+              <tr><td colspan="7" style="text-align:center;padding:40px"><div class="spinner" style="margin:0 auto"></div></td></tr>
             </tbody>
           </table>
         </div>
@@ -5269,7 +5269,7 @@ let _osRows = [];
 async function loadOstatokPanel() {
   const tbody = document.getElementById('osTbody');
   if(!tbody) return;
-  tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px"><div class="spinner" style="margin:0 auto"></div></td></tr>';
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px"><div class="spinner" style="margin:0 auto"></div></td></tr>';
   try {
     const PAGE = 1000;
     let all = [], from = 0;
@@ -5315,28 +5315,22 @@ function ostatokRenderTable() {
   const tbody = document.getElementById('osTbody');
   if(!tbody) return;
   if(!rows.length){
-    tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:40px">Нічого не знайдено</td></tr>';
+    tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:40px">Нічого не знайдено</td></tr>';
     return;
   }
   tbody.innerHTML = rows.map(r=>{
     const qty   = parseInt(r.quantity)||0;
     const qtyColor = qty<=0?'var(--red)':'var(--green)';
-    const sellPrice = r.sell_price!=null ? Number(r.sell_price).toLocaleString('uk-UA')+' ₴' : '—';
-      const buyPrice  = r.buy_price!=null  ? Number(r.buy_price).toLocaleString('uk-UA')+' ₴'  : '—';
-      const upd       = r.updated_at ? new Date(r.updated_at).toLocaleDateString('uk-UA',{day:'2-digit',month:'2-digit',year:'numeric'}) : '—';
-      const activeTag = r.active===false
-        ? '<span style="background:#fee2e2;color:#dc2626;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700">Прихований</span>'
-        : '<span style="background:#dcfce7;color:#16a34a;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700">Активний</span>';
-      const firstPhoto = Array.isArray(r.images)&&r.images[0] ? '<img src="'+r.images[0]+'" style="width:36px;height:36px;object-fit:cover;border-radius:6px;vertical-align:middle;margin-right:6px" onerror="this.style.display='none'">' : '';
-      return `<tr>
-        <td>${firstPhoto}<span style="font-family:monospace;font-weight:700;font-size:12px">${_esc(r.sku)}</span></td>
-        <td>${r.color?`<span style="background:var(--bg);border-radius:20px;padding:2px 10px;font-size:12px">${_esc(r.color)}</span>`:'<span style="color:var(--text-light)">—</span>'}</td>
-        <td><strong style="color:${qtyColor};font-size:15px">${qty}</strong></td>
-        <td>${sellPrice}</td>
-        <td>${buyPrice}</td>
-        <td style="font-size:12px;color:var(--text-muted)">${r.note?_esc(r.note):'—'}</td>
-        <td>${activeTag}</td>
-        <td>
+    const price = r.buy_price!=null ? Number(r.buy_price).toLocaleString('uk-UA')+' ₴' : '—';
+    const upd   = r.updated_at ? new Date(r.updated_at).toLocaleDateString('uk-UA',{day:'2-digit',month:'2-digit',year:'numeric'}) : '—';
+    return `<tr>
+      <td><span style="font-family:monospace;font-weight:700;font-size:12px">${_esc(r.sku)}</span></td>
+      <td>${r.color?`<span style="background:var(--bg);border-radius:20px;padding:2px 10px;font-size:12px">${_esc(r.color)}</span>`:'<span style="color:var(--text-light)">—</span>'}</td>
+      <td><strong style="color:${qtyColor};font-size:15px">${qty}</strong></td>
+      <td>${price}</td>
+      <td style="font-size:12px;color:var(--text-muted)">${r.note?_esc(r.note):'—'}</td>
+      <td style="font-size:12px;color:var(--text-light)">${upd}</td>
+      <td>
         <div class="td-actions">
           <button class="ta-btn" title="Редагувати" onclick="ostatokOpenModal(${r.id})">
             <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -5362,97 +5356,61 @@ function ostatokOpenModal(id) {
     ov.id = 'osModal';
     ov.className = 'modal-overlay';
     ov.innerHTML = `
-        <div class="modal" style="max-width:560px">
-          <div class="modal-head">
-            <h3 class="modal-title" id="osModalTitle">Новий товар</h3>
-            <button class="modal-close" onclick="document.getElementById('osModal').classList.remove('open')">
-              <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            </button>
-          </div>
-          <div class="modal-body">
-            <input type="hidden" id="osModalId">
-            <div class="f-row">
-              <div class="f-group">
-                <label>Артикул (SKU) *</label>
-                <input type="text" id="osF_sku" placeholder="M 4259EBLR-1">
-              </div>
-              <div class="f-group">
-                <label>Колір</label>
-                <input type="text" id="osF_color" placeholder="Чорний">
-              </div>
+      <div class="modal" style="max-width:480px">
+        <div class="modal-head">
+          <h3 class="modal-title" id="osModalTitle">Новий товар</h3>
+          <button class="modal-close" onclick="document.getElementById('osModal').classList.remove('open')">
+            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="osModalId">
+          <div class="f-row">
+            <div class="f-group">
+              <label>Артикул (SKU) *</label>
+              <input type="text" id="osF_sku" placeholder="M 4259EBLR-1">
             </div>
-            <div class="f-row">
-              <div class="f-group">
-                <label>Кількість *</label>
-                <input type="number" id="osF_qty" placeholder="0" min="0">
-              </div>
-              <div class="f-group">
-                <label>Статус на сайті</label>
-                <select id="osF_active" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:inherit;font-size:14px;color:var(--navy);background:white">
-                  <option value="true">✅ Активний (показується)</option>
-                  <option value="false">🚫 Прихований</option>
-                </select>
-              </div>
-            </div>
-            <div class="f-row">
-              <div class="f-group">
-                <label>Ціна продажу (₴)</label>
-                <input type="number" id="osF_sell_price" placeholder="0" step="1" min="0">
-              </div>
-              <div class="f-group">
-                <label>Стара ціна / РРЦ (₴)</label>
-                <input type="number" id="osF_old_price" placeholder="0" step="1" min="0">
-              </div>
-            </div>
-            <div class="f-row">
-              <div class="f-group">
-                <label>Ціна закупки (₴)</label>
-                <input type="number" id="osF_price" placeholder="0.00" step="0.01" min="0">
-              </div>
-              <div class="f-group">
-                <label>Нотатка</label>
-                <input type="text" id="osF_note" placeholder="Довільний коментар">
-              </div>
-            </div>
-            <div class="f-row single">
-              <div class="f-group">
-                <label>Фото (до 15 посилань — кожне з нового рядка)</label>
-                <textarea id="osF_images" rows="4" placeholder="https://example.com/photo1.jpg&#10;https://example.com/photo2.jpg" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:monospace;font-size:12px;resize:vertical;box-sizing:border-box;color:var(--navy)"></textarea>
-                <div id="osF_imagesPreviews" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>
-              </div>
+            <div class="f-group">
+              <label>Колір</label>
+              <input type="text" id="osF_color" placeholder="Чорний">
             </div>
           </div>
-          <div class="modal-footer">
-            <button class="btn btn-outline" onclick="document.getElementById('osModal').classList.remove('open')">Скасувати</button>
-            <button class="btn btn-primary" id="osModalSave" onclick="ostatokSave()">Зберегти</button>
+          <div class="f-row">
+            <div class="f-group">
+              <label>Кількість *</label>
+              <input type="number" id="osF_qty" placeholder="0" min="0">
+            </div>
+            <div class="f-group">
+              <label>Ціна закупки (₴)</label>
+              <input type="number" id="osF_price" placeholder="0.00" step="0.01" min="0">
+            </div>
           </div>
-        </div>`;
-        document.getElementById('osF_images').addEventListener('input', function() {
-          const prev = document.getElementById('osF_imagesPreviews');
-          if (!prev) return;
-          const urls = this.value.split('\n').map(s=>s.trim()).filter(Boolean).slice(0,15);
-          prev.innerHTML = urls.map(u=>'<img src="'+u+'" style="width:52px;height:52px;object-fit:cover;border-radius:6px;border:1.5px solid var(--border)" onerror="this.style.display='none'">').join('');
-        });
+          <div class="f-row single">
+            <div class="f-group">
+              <label>Нотатка</label>
+              <input type="text" id="osF_note" placeholder="Довільний коментар">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="document.getElementById('osModal').classList.remove('open')">Скасувати</button>
+          <button class="btn btn-primary" id="osModalSave" onclick="ostatokSave()">Зберегти</button>
+        </div>
+      </div>`;
     document.body.appendChild(ov);
   }
   document.getElementById('osModalTitle').textContent = row ? 'Редагувати позицію' : 'Новий товар';
-    document.getElementById('osModalId').value         = row ? row.id : '';
-    document.getElementById('osF_sku').value           = row ? (row.sku||'')        : '';
-    document.getElementById('osF_color').value         = row ? (row.color||'')      : '';
-    document.getElementById('osF_qty').value           = row ? (row.quantity??'')   : '';
-    document.getElementById('osF_active').value        = row ? String(row.active !== false) : 'true';
-    document.getElementById('osF_sell_price').value    = row ? (row.sell_price??'') : '';
-    document.getElementById('osF_old_price').value     = row ? (row.old_price??'')  : '';
-    document.getElementById('osF_price').value         = row ? (row.buy_price??'')  : '';
-    document.getElementById('osF_note').value          = row ? (row.note||'')       : '';
-    const _imagesArr = (row && Array.isArray(row.images)) ? row.images : [];
-    document.getElementById('osF_images').value        = _imagesArr.join('\n');
-    document.getElementById('osF_imagesPreviews').innerHTML = _imagesArr.map(u=>'<img src="'+u+'" style="width:52px;height:52px;object-fit:cover;border-radius:6px;border:1.5px solid var(--border)" onerror="this.style.display='none'">').join('');
-    document.getElementById('osModalSave').disabled = false;
-    document.getElementById('osModalSave').textContent = 'Зберегти';
-    ov.classList.add('open');
-    setTimeout(()=>document.getElementById('osF_sku').focus(), 80);
-  }
+  document.getElementById('osModalId').value    = row ? row.id : '';
+  document.getElementById('osF_sku').value      = row ? (row.sku||'')   : '';
+  document.getElementById('osF_color').value    = row ? (row.color||'') : '';
+  document.getElementById('osF_qty').value      = row ? (row.quantity??'') : '';
+  document.getElementById('osF_price').value    = row ? (row.buy_price??'') : '';
+  document.getElementById('osF_note').value     = row ? (row.note||'')  : '';
+  document.getElementById('osModalSave').disabled = false;
+  document.getElementById('osModalSave').textContent = 'Зберегти';
+  ov.classList.add('open');
+  setTimeout(()=>document.getElementById('osF_sku').focus(), 80);
+}
 
 async function ostatokSave() {
   const id    = document.getElementById('osModalId').value;
@@ -5465,11 +5423,7 @@ async function ostatokSave() {
 
   const btn = document.getElementById('osModalSave');
   btn.disabled = true; btn.textContent = 'Збереження…';
-  const sellPrice = parseFloat(document.getElementById('osF_sell_price').value)||null;
-    const oldPrice  = parseFloat(document.getElementById('osF_old_price').value)||null;
-    const activeVal = document.getElementById('osF_active').value === 'true';
-    const imagesRaw = (document.getElementById('osF_images').value||'').split('\n').map(s=>s.trim()).filter(Boolean).slice(0,15);
-    const payload = { sku, color, quantity:qty, buy_price:price, note, sell_price:sellPrice, old_price:oldPrice, active:activeVal, images:imagesRaw.length?imagesRaw:null };
+  const payload = { sku, color, quantity:qty, buy_price:price, note };
   try {
     if(id) {
       await sbFetch('ostatok?id=eq.'+id, { method:'PATCH', headers:{ Prefer:'return=minimal' }, body:JSON.stringify(payload) });
