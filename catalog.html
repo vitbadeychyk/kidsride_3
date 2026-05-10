@@ -2322,14 +2322,12 @@ function updateDynamicFilters() {
   // Показуємо ТІЛЬКИ якщо товари в категорії мають електричні типи транспорту
   // (джип, квадроцикл, мото, машина, трактор, вантажівка, баггі)
   // і є 2+ різних значень voltage (не просто один дефолтний '12V')
-  const ELECTRIC_TYPES = new Set(['jeep','quad','moto','car','tractor','truck','buggy']);
-  const hasElectricType = catProds.some(p => ELECTRIC_TYPES.has(p.category));
-  const voltageSet = hasElectricType
-    ? [...new Set(catProds.map(p => String(p.voltage||'').toUpperCase().replace(/\s+/g,'')).filter(v => v && /^\d+V$/i.test(v)))].sort()
-    : [];
-  // Якщо всі товари мають ОДИН і той самий voltage — скоріш за все дефолт, не показуємо
-  const showVoltage = hasCatSelection && (voltageSet.length >= 2 || (voltageSet.length === 1 && catProds.some(p => p.voltage)));
-  const voltBody = document.querySelector('#filterBlockVoltage .filter-body');
+  // Показуємо фільтр акумулятора лише якщо: 1) обрана категорія, 2) є товари з даними voltage
+    const voltageSet = [...new Set(
+      catProds.map(p => String(p.voltage||'').toUpperCase().replace(/\s+/g,'')).filter(v => v && /^\d+V$/i.test(v))
+    )].sort();
+    const showVoltage = hasCatSelection && voltageSet.length >= 1;
+    const voltBody = document.querySelector('#filterBlockVoltage .filter-body');
   if (voltBody && showVoltage) {
     const prevChecked = _getCheckedLabels('voltage');
     voltBody.innerHTML = voltageSet.map(v => {
