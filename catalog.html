@@ -1539,25 +1539,7 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 let _allCategories  = [];
 let _mainCategories = [];
 
-function _getCatIcon(name) {
-  const n = (name || '').toLowerCase();
-  if (/електромобіл/.test(n))       return '⚡';
-  if (/дитячий транспорт/.test(n))  return '🚲';
-  if (/велосипед/.test(n))          return '🚲';
-  if (/самокат/.test(n))            return '🛴';
-  if (/біговел/.test(n))            return '🚴';
-  if (/мотоцикл/.test(n))           return '🏍️';
-  if (/квадроцикл/.test(n))         return '🏎️';
-  if (/трактор/.test(n))            return '🚜';
-  if (/джип|позашляхов/.test(n))    return '🚙';
-  if (/машин|авто/.test(n))         return '🚘';
-  if (/вантаж/.test(n))             return '🚛';
-  if (/баггі/.test(n))              return '🏁';
-  if (/каталка|толокар/.test(n))    return '🧸';
-  if (/санк/.test(n))               return '⛄';
-  if (/транспорт/.test(n))          return '🚗';
-  return '📦';
-}
+function _getCatIcon(name) { return ''; }
 
 async function loadCategoryTree() {
   const treeEl = document.getElementById('catTree');
@@ -1632,7 +1614,6 @@ async function loadCategoryTree() {
       <div class="ctree-parent">
         <div class="ctree-parent-row${isParentActive || hasActiveSub ? ' active' : ''}" onclick="toggleParent(this,${parent.id})">
           <svg class="ctree-chevron${isOpen?' open':''}" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-          <span class="ctree-parent-icon">${_getCatIcon(parent.name)}</span>
           <span class="ctree-label">${parent.name}</span>
           ${parentCnt ? `<span class="ctree-cnt">${parentCnt}</span>` : ''}
         </div>
@@ -1680,15 +1661,28 @@ async function loadCategoryTree() {
   treeEl.innerHTML = html;
 }
 
-// Відкрити/закрити розгортання батьківської категорії + фільтрувати
+// Відкрити/закрити підкатегорії + встановити фільтр
 function toggleParent(rowEl, parentId) {
   const subsEl = rowEl.nextElementSibling;
   const chevron = rowEl.querySelector('.ctree-chevron');
-  const isOpen = subsEl.classList.contains('open');
-  // Якщо вже відкрито — вибрати всю батьківську категорію
+  const isOpen  = subsEl.classList.contains('open');
+
+  // Закрити всі інші відкриті списки
+  document.querySelectorAll('.ctree-subs.open').forEach(el => {
+    if (el !== subsEl) {
+      el.classList.remove('open');
+      const ch = el.previousElementSibling?.querySelector('.ctree-chevron');
+      if (ch) ch.classList.remove('open');
+    }
+  });
+
   if (isOpen) {
-    selectCategory(0, parentId);
+    // Клік по вже відкритому — закрити і скинути фільтр
+    subsEl.classList.remove('open');
+    chevron && chevron.classList.remove('open');
+    selectCategory(0, 0);
   } else {
+    // Відкрити і застосувати фільтр по основній категорії
     subsEl.classList.add('open');
     chevron && chevron.classList.add('open');
     selectCategory(0, parentId);
@@ -1700,13 +1694,21 @@ let _activeCatIdFilter = 0;
 let _activeParentIdFilter = 0;
 
 function selectCategory(catId, parentId) {
-  _activeCatIdFilter   = catId;
+  _activeCatIdFilter    = catId;
   _activeParentIdFilter = parentId;
 
-  // Оновити дерево (активний елемент)
+  // Оновити активний стан елементів дерева без повного перемалювання
   document.querySelectorAll('.cat-tree-all, .ctree-parent-row, .ctree-sub-row').forEach(el => el.classList.remove('active'));
   if (!catId && !parentId) {
     document.querySelector('.cat-tree-all')?.classList.add('active');
+  } else if (catId) {
+    // Знайти рядок підкатегорії за onclick="selectCategory(catId,0)"
+    document.querySelectorAll(`.ctree-sub-row[onclick="selectCategory(${catId},0)"]`).forEach(el => el.classList.add('active'));
+  } else if (parentId) {
+    // Знайти рядок основної категорії
+    document.querySelectorAll(`.ctree-parent-row[onclick="toggleParent(this,${parentId})"]`).forEach(el => el.classList.add('active'));
+    // Також підрядок "Всі в категорії"
+    document.querySelectorAll(`.ctree-sub-row[onclick="selectCategory(0,${parentId})"]`).forEach(el => el.classList.add('active'));
   }
 
   // Оновити breadcrumb і заголовок
@@ -1742,8 +1744,7 @@ function selectCategory(catId, parentId) {
 
   currentPage = 1;
   applyFiltersAndRender();
-  // Перерендеруємо дерево для оновлення активних класів
-  loadCategoryTree();
+  // НЕ викликаємо loadCategoryTree() — щоб не стерти відкриті пункти
 }
 
 // Завантажити товари з Supabase (з fallback на localStorage/дефолтні)
