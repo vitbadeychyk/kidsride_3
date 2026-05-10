@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KidsRide — Адмін-панель</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+         background: #f0f2f5; color: #1a1a2e; min-height: 100vh; }
+
+  /* ── Login ── */
+  #login-screen {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh;
+  }
+  .login-box {
+    background: #fff; border-radius: 16px; padding: 48px 40px;
+    box-shadow: 0 4px 24px rgba(0,0,0,.1); width: 360px; text-align: center;
+  }
+  .login-box h2 { font-size: 22px; margin-bottom: 8px; }
+  .login-box p  { color: #888; font-size: 14px; margin-bottom: 28px; }
+  .login-box input {
+    width: 100%; padding: 12px 16px; border: 1.5px solid #e0e0e0;
+    border-radius: 10px; font-size: 15px; margin-bottom: 14px; outline: none;
+    transition: border-color .2s;
+  }
+  .login-box input:focus { border-color: #4f46e5; }
+  .login-box .error { color: #e53e3e; font-size: 13px; margin-bottom: 10px; }
+  .btn-primary {
+    background: #4f46e5; color: #fff; border: none; padding: 12px 28px;
+    border-radius: 10px; font-size: 15px; cursor: pointer; width: 100%;
+    transition: background .2s;
+  }
+  .btn-primary:hover { background: #4338ca; }
+
+  /* ── App ── */
+  #app { display: none; }
+  header {
+    background: #fff; border-bottom: 1px solid #e8e8e8;
+    padding: 14px 32px; display: flex; align-items: center; gap: 16px;
+  }
+  header h1 { font-size: 18px; font-weight: 700; flex: 1; }
+  header .badge {
+    background: #eef2ff; color: #4f46e5; font-size: 13px;
+    padding: 4px 12px; border-radius: 20px; font-weight: 600;
+  }
+  header .btn-logout {
+    background: none; border: 1.5px solid #e0e0e0; padding: 6px 16px;
+    border-radius: 8px; cursor: pointer; font-size: 13px; color: #666;
+    transition: all .2s;
+  }
+  header .btn-logout:hover { border-color: #e53e3e; color: #e53e3e; }
+
+  /* ── Tabs ── */
+  .tabs {
+    background: #fff; border-bottom: 1px solid #e8e8e8;
+    padding: 0 32px; display: flex; gap: 0;
+  }
+  .tab-btn {
+    background: none; border: none; padding: 14px 24px;
+    font-size: 14px; font-weight: 600; color: #888; cursor: pointer;
+    border-bottom: 3px solid transparent; margin-bottom: -1px;
+    transition: color .2s, border-color .2s;
+  }
+  .tab-btn:hover { color: #4f46e5; }
+  .tab-btn.active { color: #4f46e5; border-bottom-color: #4f46e5; }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  main { max-width: 1100px; margin: 0 auto; padding: 28px 24px; }
+
+  /* ── Top bar ── */
+  .topbar {
+    display: flex; gap: 12px; align-items: center; margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .topbar input[type=search] {
+    flex: 1; min-width: 200px; padding: 10px 16px;
+    border: 1.5px solid #e0e0e0; border-radius: 10px; font-size: 14px;
+    outline: none; transition: border-color .2s;
+  }
+  .topbar input[type=search]:focus { border-color: #4f46e5; }
+  .btn-add {
+    background: #4f46e5; color: #fff; border: none; padding: 10px 20px;
+    border-radius: 10px; font-size: 14px; cursor: pointer;
+    display: flex; align-items: center; gap: 6px; white-space: nowrap;
+    transition: background .2s;
+  }
+  .btn-add:hover { background: #4338ca; }
+
+  /* ── Stats ── */
+  .stats { display: flex; gap: 14px; margin-bottom: 20px; flex-wrap: wrap; }
+  .stat-card {
+    background: #fff; border-radius: 12px; padding: 16px 22px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06); min-width: 140px;
+  }
+  .stat-card .val { font-size: 26px; font-weight: 700; color: #4f46e5; }
+  .stat-card .lbl { font-size: 12px; color: #888; margin-top: 2px; }
+
+  /* ── Table ── */
+  .table-wrap {
+    background: #fff; border-radius: 14px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06); overflow: hidden;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  thead th {
+    background: #fafafa; padding: 12px 16px; text-align: left;
+    font-size: 12px; font-weight: 600; color: #888; text-transform: uppercase;
+    letter-spacing: .5px; border-bottom: 1px solid #f0f0f0; white-space: nowrap;
+  }
+  tbody tr { border-bottom: 1px solid #f5f5f5; transition: background .15s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: #fafbff; }
+  td { padding: 13px 16px; }
+  td.sku { font-family: monospace; font-size: 13px; color: #444; font-weight: 600; }
+  td.qty { font-weight: 700; color: #16a34a; font-size: 15px; }
+  td.qty.zero { color: #dc2626; }
+  td.price { color: #1a1a2e; }
+  td.color-dot { }
+  .color-chip {
+    display: inline-block; padding: 3px 10px; border-radius: 20px;
+    background: #f0f0f0; font-size: 12px;
+  }
+  td.actions { white-space: nowrap; }
+  .btn-edit, .btn-del {
+    border: none; padding: 6px 14px; border-radius: 7px; cursor: pointer;
+    font-size: 12px; font-weight: 600; transition: all .15s;
+  }
+  .btn-edit { background: #eef2ff; color: #4f46e5; margin-right: 6px; }
+  .btn-edit:hover { background: #e0e7ff; }
+  .btn-del  { background: #fff1f1; color: #e53e3e; }
+  .btn-del:hover { background: #fde8e8; }
+
+  .empty-row td {
+    text-align: center; padding: 48px; color: #bbb; font-size: 15px;
+  }
+
+  /* ── Modal ── */
+  .overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.45); z-index: 100;
+    align-items: center; justify-content: center;
+  }
+  .overlay.show { display: flex; }
+  .modal {
+    background: #fff; border-radius: 18px; padding: 36px 32px;
+    width: 440px; max-width: 95vw; box-shadow: 0 12px 48px rgba(0,0,0,.18);
+  }
+  .modal h3 { font-size: 19px; margin-bottom: 24px; }
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 13px; font-weight: 600;
+                 color: #555; margin-bottom: 6px; }
+  .field input, .field textarea {
+    width: 100%; padding: 10px 14px; border: 1.5px solid #e0e0e0;
+    border-radius: 10px; font-size: 14px; outline: none; transition: border-color .2s;
+  }
+  .field input:focus, .field textarea:focus { border-color: #4f46e5; }
+  .field .hint { font-size: 12px; color: #aaa; margin-top: 4px; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 24px; justify-content: flex-end; }
+  .btn-cancel {
+    background: none; border: 1.5px solid #e0e0e0; padding: 10px 22px;
+    border-radius: 10px; cursor: pointer; font-size: 14px; transition: all .2s;
+  }
+  .btn-cancel:hover { border-color: #aaa; }
+  .btn-save {
+    background: #4f46e5; color: #fff; border: none; padding: 10px 26px;
+    border-radius: 10px; font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: background .2s;
+  }
+  .btn-save:hover { background: #4338ca; }
+  .btn-save:disabled { background: #a5b4fc; cursor: not-allowed; }
+
+  /* ── Confirm dialog ── */
+  .confirm-box {
+    background: #fff; border-radius: 14px; padding: 28px 28px;
+    width: 340px; max-width: 95vw; text-align: center;
+  }
+  .confirm-box h3 { font-size: 17px; margin-bottom: 10px; }
+  .confirm-box p  { font-size: 14px; color: #666; margin-bottom: 22px; }
+  .confirm-actions { display: flex; gap: 10px; justify-content: center; }
+  .btn-confirm-del {
+    background: #e53e3e; color: #fff; border: none; padding: 9px 24px;
+    border-radius: 9px; cursor: pointer; font-size: 14px; font-weight: 600;
+    transition: background .2s;
+  }
+  .btn-confirm-del:hover { background: #c53030; }
+
+  /* ── Toast ── */
+  #toast {
+    position: fixed; bottom: 28px; right: 28px; z-index: 200;
+    background: #1a1a2e; color: #fff; padding: 12px 22px;
+    border-radius: 10px; font-size: 14px; font-weight: 500;
+    opacity: 0; transition: opacity .3s; pointer-events: none;
+  }
+  #toast.show { opacity: 1; }
+  #toast.err  { background: #e53e3e; }
+
+  /* ── Spinner ── */
+  .spinner {
+    width: 20px; height: 20px; border: 3px solid #e0e0e0;
+    border-top-color: #4f46e5; border-radius: 50%;
+    animation: spin .7s linear infinite; margin: 40px auto;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Price tab ── */
+  .price-card {
+    background: #fff; border-radius: 16px; padding: 32px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06); max-width: 560px;
+  }
+  .price-card h2 { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+  .price-card .sub { font-size: 13px; color: #888; margin-bottom: 28px; }
+
+  .discount-row {
+    display: flex; align-items: center; gap: 14px; margin-bottom: 24px;
+  }
+  .discount-row label { font-size: 14px; font-weight: 600; color: #555; white-space: nowrap; }
+  .discount-input-wrap { position: relative; }
+  .discount-input-wrap input {
+    width: 120px; padding: 11px 36px 11px 16px;
+    border: 1.5px solid #e0e0e0; border-radius: 10px;
+    font-size: 22px; font-weight: 700; outline: none;
+    transition: border-color .2s; text-align: center;
+  }
+  .discount-input-wrap input:focus { border-color: #4f46e5; }
+  .discount-input-wrap .pct-sign {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    font-size: 18px; color: #aaa; pointer-events: none;
+  }
+
+  .formula-box {
+    background: #f8f9ff; border: 1px solid #e0e7ff; border-radius: 12px;
+    padding: 18px 20px; margin-bottom: 24px; font-size: 13px; color: #555;
+  }
+  .formula-box .formula-title { font-weight: 600; color: #4f46e5; margin-bottom: 10px; font-size: 12px; text-transform: uppercase; letter-spacing: .5px; }
+  .formula-line { margin-bottom: 6px; }
+  .formula-line:last-child { margin-bottom: 0; }
+  .formula-example {
+    background: #fff; border-radius: 8px; padding: 12px 14px;
+    margin-top: 12px; font-family: monospace; font-size: 13px;
+    border: 1px solid #e0e7ff;
+  }
+  .formula-example span { color: #4f46e5; font-weight: 700; }
+
+  .btn-recalc {
+    background: #4f46e5; color: #fff; border: none;
+    padding: 13px 32px; border-radius: 11px; font-size: 15px;
+    font-weight: 700; cursor: pointer; transition: background .2s;
+    width: 100%;
+  }
+  .btn-recalc:hover { background: #4338ca; }
+  .btn-recalc:disabled { background: #a5b4fc; cursor: not-allowed; }
+
+  .recalc-result {
+    margin-top: 16px; padding: 14px 18px; border-radius: 10px;
+    font-size: 14px; font-weight: 600; display: none; text-align: center;
+  }
+  .recalc-result.ok  { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+  .recalc-result.err { background: #fff1f1; color: #e53e3e; border: 1px solid #fecaca; }
+
+  .current-discount-info {
+    font-size: 13px; color: #888; margin-bottom: 20px;
+    padding: 10px 14px; background: #fafafa; border-radius: 8px;
+  }
+  .current-discount-info strong { color: #4f46e5; }
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN ─────────────────────────────────────────────────────────── -->
+<div id="login-screen">
+  <div class="login-box">
+    <h2>🏪 KidsRide Адмін</h2>
+    <p>Введи пароль для входу</p>
+    <input type="password" id="pwd-input" placeholder="Пароль"
+           onkeydown="if(event.key==='Enter') doLogin()">
+    <div class="error" id="login-err"></div>
+    <button class="btn-primary" onclick="doLogin()">Увійти</button>
+  </div>
+</div>
+
+<!-- ── APP ───────────────────────────────────────────────────────────── -->
+<div id="app">
+  <header>
+    <h1>🏪 KidsRide — Адмін</h1>
+    <span class="badge" id="total-badge">0 позицій</span>
+    <button class="btn-logout" onclick="doLogout()">Вийти</button>
+  </header>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('stock')">📦 Власний склад</button>
+    <button class="tab-btn" onclick="switchTab('prices')">💰 Перерахунок цін</button>
+  </div>
+
+  <!-- ── TAB: СКЛАД ── -->
+  <div class="tab-panel active" id="tab-stock">
+    <main>
+      <div class="topbar">
+        <input type="search" id="search-input" placeholder="Пошук за артикулом або кольором…"
+               oninput="renderTable()">
+        <button class="btn-add" onclick="openModal()">+ Додати товар</button>
+      </div>
+
+      <div class="stats">
+        <div class="stat-card">
+          <div class="val" id="stat-total">—</div>
+          <div class="lbl">Всього позицій</div>
+        </div>
+        <div class="stat-card">
+          <div class="val" id="stat-qty">—</div>
+          <div class="lbl">Одиниць на складі</div>
+        </div>
+        <div class="stat-card">
+          <div class="val" id="stat-zero">—</div>
+          <div class="lbl">Нульові залишки</div>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Артикул (SKU)</th>
+              <th>Колір</th>
+              <th>Кількість</th>
+              <th>Ціна закупки</th>
+              <th>Нотатка</th>
+              <th>Оновлено</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tbl-body">
+            <tr><td colspan="7"><div class="spinner"></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <!-- ── TAB: ЦІНИ ── -->
+  <div class="tab-panel" id="tab-prices">
+    <main>
+      <div class="price-card">
+        <h2>Перерахунок цін</h2>
+        <p class="sub">Вкажи знижку від ціни постачальника — скрипт перерахує всі ціни в базі.</p>
+
+        <div class="current-discount-info" id="current-discount-info">
+          Завантаження поточної знижки…
+        </div>
+
+        <div class="discount-row">
+          <label>Знижка від прайсу постачальника</label>
+          <div class="discount-input-wrap">
+            <input type="number" id="discount-input" min="0" max="99" step="1" value="0">
+            <span class="pct-sign">%</span>
+          </div>
+        </div>
+
+        <div class="formula-box">
+          <div class="formula-title">Формула розрахунку</div>
+          <div class="formula-line">📌 <strong>Наша ціна</strong> = прайс постачальника − знижка%, заокруглено до 100</div>
+          <div class="formula-line">🏷️ <strong>Стара ціна</strong> = прайс постачальника + 30%, заокруглено до 100</div>
+          <div class="formula-example" id="formula-preview">
+            Введи знижку щоб побачити приклад
+          </div>
+        </div>
+
+        <button class="btn-recalc" id="btn-recalc" onclick="doRecalculate()">
+          Перерахувати всі ціни
+        </button>
+
+        <div class="recalc-result" id="recalc-result"></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- ── MODAL (add / edit) ─────────────────────────────────────────────── -->
+<div class="overlay" id="modal-overlay">
+  <div class="modal">
+    <h3 id="modal-title">Новий товар</h3>
+    <input type="hidden" id="modal-id">
+    <div class="field">
+      <label>Артикул (SKU) *</label>
+      <input type="text" id="f-sku" placeholder="M 4259EBLR-1">
+      <div class="hint">Повинен збігатись з артикулом у таблиці products</div>
+    </div>
+    <div class="field">
+      <label>Колір</label>
+      <input type="text" id="f-color" placeholder="Червоний (необов'язково)">
+    </div>
+    <div class="field">
+      <label>Кількість *</label>
+      <input type="number" id="f-qty" placeholder="0" min="0">
+    </div>
+    <div class="field">
+      <label>Ціна закупки (грн)</label>
+      <input type="number" id="f-price" placeholder="0.00" step="0.01" min="0">
+    </div>
+    <div class="field">
+      <label>Нотатка</label>
+      <input type="text" id="f-note" placeholder="Довільний коментар">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Скасувати</button>
+      <button class="btn-save" id="btn-save" onclick="saveRow()">Зберегти</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── CONFIRM DELETE ─────────────────────────────────────────────────── -->
+<div class="overlay" id="confirm-overlay">
+  <div class="confirm-box">
+    <h3>Видалити позицію?</h3>
+    <p id="confirm-text">Артикул буде видалено зі складу.</p>
+    <div class="confirm-actions">
+      <button class="btn-cancel" onclick="closeConfirm()">Скасувати</button>
+      <button class="btn-confirm-del" id="btn-confirm-del">Видалити</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── TOAST ──────────────────────────────────────────────────────────── -->
+<div id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://xczrzdbikkycgpnvolib.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
+const ADMIN_PASSWORD = 'kidsride2024';
+
+let rows = [];
+
+// ── LOGIN ─────────────────────────────────────────────────────────────────
+function doLogin() {
+  const val = document.getElementById('pwd-input').value;
+  if (val === ADMIN_PASSWORD) {
+    sessionStorage.setItem('ostatok_auth', '1');
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    loadData();
+    loadCurrentDiscount();
+  } else {
+    document.getElementById('login-err').textContent = 'Невірний пароль';
+  }
+}
+function doLogout() {
+  sessionStorage.removeItem('ostatok_auth');
+  location.reload();
+}
+if (sessionStorage.getItem('ostatok_auth') === '1') {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+}
+
+// ── TABS ──────────────────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach((b, i) => {
+    b.classList.toggle('active', ['stock','prices'][i] === name);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+// ── SUPABASE ──────────────────────────────────────────────────────────────
+async function sbFetch(path, opts = {}) {
+  const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
+    ...opts,
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      ...(opts.headers || {}),
+    },
+  });
+  const text = await res.text();
+  if (!res.ok) throw new Error(text.slice(0, 300));
+  return text ? JSON.parse(text) : null;
+}
+
+// ── STOCK TAB ─────────────────────────────────────────────────────────────
+async function loadData() {
+  try {
+    const PAGE = 1000;
+    let all = [], from = 0;
+    while (true) {
+      const data = await sbFetch('ostatok?select=*&order=sku.asc,color.asc', {
+        headers: { Range: `${from}-${from + PAGE - 1}`, 'Range-Unit': 'items', Prefer: 'count=none' },
+      });
+      if (!data || !data.length) break;
+      all = all.concat(data);
+      if (data.length < PAGE) break;
+      from += PAGE;
+    }
+    rows = all;
+    renderStats();
+    renderTable();
+  } catch (e) {
+    showToast('Помилка завантаження: ' + e.message, true);
+    document.getElementById('tbl-body').innerHTML =
+      '<tr><td colspan="7" style="text-align:center;color:#e53e3e;padding:32px">Не вдалось підключитись до Supabase</td></tr>';
+  }
+}
+
+function renderStats() {
+  const total = rows.length;
+  const qty   = rows.reduce((s, r) => s + (parseInt(r.quantity) || 0), 0);
+  const zero  = rows.filter(r => !r.quantity || r.quantity <= 0).length;
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('stat-qty').textContent   = qty;
+  document.getElementById('stat-zero').textContent  = zero;
+  document.getElementById('total-badge').textContent = total + ' позицій';
+}
+
+function renderTable() {
+  const q = (document.getElementById('search-input').value || '').toLowerCase().trim();
+  const filtered = q
+    ? rows.filter(r =>
+        (r.sku || '').toLowerCase().includes(q) ||
+        (r.color || '').toLowerCase().includes(q) ||
+        (r.note || '').toLowerCase().includes(q))
+    : rows;
+
+  const tbody = document.getElementById('tbl-body');
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Нічого не знайдено</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(r => {
+    const qty    = parseInt(r.quantity) || 0;
+    const price  = r.buy_price != null ? Number(r.buy_price).toLocaleString('uk-UA') + ' ₴' : '—';
+    const updated = r.updated_at
+      ? new Date(r.updated_at).toLocaleDateString('uk-UA', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' })
+      : '—';
+    return `<tr>
+      <td class="sku">${esc(r.sku)}</td>
+      <td class="color-dot">${r.color ? `<span class="color-chip">${esc(r.color)}</span>` : '<span style="color:#ccc">—</span>'}</td>
+      <td class="qty ${qty <= 0 ? 'zero' : ''}">${qty}</td>
+      <td class="price">${price}</td>
+      <td>${r.note ? esc(r.note) : '<span style="color:#ccc">—</span>'}</td>
+      <td style="font-size:12px;color:#aaa">${updated}</td>
+      <td class="actions">
+        <button class="btn-edit" onclick="openModal(${r.id})">Редагувати</button>
+        <button class="btn-del"  onclick="askDelete(${r.id}, '${esc(r.sku)}')">Видалити</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── MODAL ─────────────────────────────────────────────────────────────────
+function openModal(id) {
+  const row = id !== undefined ? rows.find(r => r.id === id) : null;
+  document.getElementById('modal-title').textContent = row ? 'Редагувати позицію' : 'Новий товар';
+  document.getElementById('modal-id').value   = row ? row.id : '';
+  document.getElementById('f-sku').value      = row ? (row.sku   || '') : '';
+  document.getElementById('f-color').value    = row ? (row.color || '') : '';
+  document.getElementById('f-qty').value      = row ? (row.quantity  ?? '') : '';
+  document.getElementById('f-price').value    = row ? (row.buy_price ?? '') : '';
+  document.getElementById('f-note').value     = row ? (row.note  || '') : '';
+  document.getElementById('btn-save').disabled = false;
+  document.getElementById('modal-overlay').classList.add('show');
+  setTimeout(() => document.getElementById('f-sku').focus(), 80);
+}
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('show');
+}
+
+async function saveRow() {
+  const id    = document.getElementById('modal-id').value;
+  const sku   = document.getElementById('f-sku').value.trim();
+  const color = document.getElementById('f-color').value.trim() || null;
+  const qty   = parseInt(document.getElementById('f-qty').value) || 0;
+  const price = parseFloat(document.getElementById('f-price').value) || null;
+  const note  = document.getElementById('f-note').value.trim() || null;
+
+  if (!sku) { showToast('Вкажи артикул (SKU)', true); return; }
+
+  const btn = document.getElementById('btn-save');
+  btn.disabled = true;
+  btn.textContent = 'Зберігаю…';
+
+  const payload = { sku, color, quantity: qty, buy_price: price, note };
+
+  try {
+    if (id) {
+      await sbFetch(`ostatok?id=eq.${id}`, {
+        method: 'PATCH',
+        headers: { Prefer: 'return=minimal' },
+        body: JSON.stringify(payload),
+      });
+      const idx = rows.findIndex(r => r.id === parseInt(id));
+      if (idx !== -1) rows[idx] = { ...rows[idx], ...payload, updated_at: new Date().toISOString() };
+    } else {
+      const res = await sbFetch('ostatok', {
+        method: 'POST',
+        headers: { Prefer: 'return=representation' },
+        body: JSON.stringify(payload),
+      });
+      if (res && res[0]) rows.push(res[0]);
+    }
+    rows.sort((a, b) => (a.sku || '').localeCompare(b.sku || '') || (a.color || '').localeCompare(b.color || ''));
+    renderStats();
+    renderTable();
+    closeModal();
+    showToast(id ? 'Збережено ✓' : 'Додано ✓');
+  } catch (e) {
+    showToast('Помилка: ' + e.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Зберегти';
+  }
+}
+
+// ── DELETE ────────────────────────────────────────────────────────────────
+let pendingDeleteId = null;
+function askDelete(id, sku) {
+  pendingDeleteId = id;
+  document.getElementById('confirm-text').textContent = `Артикул «${sku}» буде видалено зі складу.`;
+  document.getElementById('confirm-overlay').classList.add('show');
+  document.getElementById('btn-confirm-del').onclick = confirmDelete;
+}
+function closeConfirm() {
+  document.getElementById('confirm-overlay').classList.remove('show');
+  pendingDeleteId = null;
+}
+async function confirmDelete() {
+  if (!pendingDeleteId) return;
+  try {
+    await sbFetch(`ostatok?id=eq.${pendingDeleteId}`, { method: 'DELETE' });
+    rows = rows.filter(r => r.id !== pendingDeleteId);
+    renderStats();
+    renderTable();
+    closeConfirm();
+    showToast('Видалено');
+  } catch (e) {
+    showToast('Помилка видалення: ' + e.message, true);
+  }
+}
+
+// ── PRICE TAB ─────────────────────────────────────────────────────────────
+async function loadCurrentDiscount() {
+  try {
+    const data = await sbFetch('settings?key=eq.discount_pct&select=value,updated_at');
+    if (data && data[0]) {
+      const pct = parseFloat(data[0].value) || 0;
+      document.getElementById('discount-input').value = pct;
+      const date = data[0].updated_at
+        ? new Date(data[0].updated_at).toLocaleDateString('uk-UA', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' })
+        : '—';
+      document.getElementById('current-discount-info').innerHTML =
+        `Поточна збережена знижка: <strong>${pct}%</strong> (оновлено ${date})`;
+      updatePreview();
+    } else {
+      document.getElementById('current-discount-info').textContent = 'Знижка ще не встановлена (0%)';
+    }
+  } catch (e) {
+    document.getElementById('current-discount-info').textContent =
+      'Не вдалось завантажити налаштування. Виконай SUPABASE_ADD_SUPPLIER_PRICE.sql';
+  }
+}
+
+function updatePreview() {
+  const pct = parseFloat(document.getElementById('discount-input').value) || 0;
+  const example = 3500;
+  const ourPrice  = Math.round(example * (1 - pct / 100) / 100) * 100;
+  const oldPrice  = Math.round(example * 1.3 / 100) * 100;
+  document.getElementById('formula-preview').innerHTML =
+    `Приклад: прайс постачальника <span>${example.toLocaleString('uk-UA')} ₴</span><br>` +
+    `→ Наша ціна: <span>${ourPrice.toLocaleString('uk-UA')} ₴</span> &nbsp;|&nbsp; ` +
+    `Стара ціна: <span>${oldPrice.toLocaleString('uk-UA')} ₴</span>`;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const input = document.getElementById('discount-input');
+  if (input) input.addEventListener('input', updatePreview);
+});
+
+async function doRecalculate() {
+  const pct = parseFloat(document.getElementById('discount-input').value);
+  if (isNaN(pct) || pct < 0 || pct >= 100) {
+    showToast('Введи знижку від 0 до 99%', true);
+    return;
+  }
+
+  const btn = document.getElementById('btn-recalc');
+  const result = document.getElementById('recalc-result');
+  btn.disabled = true;
+  btn.textContent = 'Перераховую…';
+  result.style.display = 'none';
+
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/rpc/recalculate_prices', {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ discount_pct: pct }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(JSON.stringify(data).slice(0, 200));
+
+    const count = data.updated ?? data;
+    result.className = 'recalc-result ok';
+    result.textContent = `✅ Готово! Перераховано ${count} товарів зі знижкою ${pct}%`;
+    result.style.display = 'block';
+
+    document.getElementById('current-discount-info').innerHTML =
+      `Поточна збережена знижка: <strong>${pct}%</strong>`;
+    showToast(`Ціни оновлено: ${count} товарів ✓`);
+  } catch (e) {
+    result.className = 'recalc-result err';
+    result.textContent = '❌ Помилка: ' + e.message;
+    result.style.display = 'block';
+    showToast('Помилка перерахунку', true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Перерахувати всі ціни';
+  }
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg, isErr = false) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className   = 'show' + (isErr ? ' err' : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = ''; }, 2800);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeModal(); closeConfirm(); }
+});
+
+if (sessionStorage.getItem('ostatok_auth') === '1') {
+  loadData();
+  loadCurrentDiscount();
+}
+</script>
+</body>
+</html>
