@@ -1536,7 +1536,8 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 
 // ── CATEGORY TREE ────────────────────────────────────────────
 // Кеш категорій для дерева
-let _allCategories = [];
+let _allCategories  = [];
+let _mainCategories = [];
 
 function _getCatIcon(name) {
   const n = (name || '').toLowerCase();
@@ -1563,20 +1564,22 @@ async function loadCategoryTree() {
   if (!treeEl) return;
 
   try {
-    const res = await fetch(
-      SUPABASE_URL + '/rest/v1/categories?select=id,name,parent_id&active=eq.true&order=name.asc',
-      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
-    );
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    _allCategories = await res.json() || [];
+    const headers = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY };
+    const [mcRes, catRes] = await Promise.all([
+      fetch(SUPABASE_URL + '/rest/v1/main_categories?select=id,name&active=eq.true&order=sort_order.asc,name.asc', { headers }),
+      fetch(SUPABASE_URL + '/rest/v1/categories?select=id,name,main_category_id&active=eq.true&order=name.asc', { headers })
+    ]);
+    if (!mcRes.ok || !catRes.ok) throw new Error('HTTP error');
+    _mainCategories = await mcRes.json() || [];
+    _allCategories  = await catRes.json() || [];
   } catch(e) {
     treeEl.innerHTML = '<div class="cat-tree-loading" style="color:var(--text-muted)">—</div>';
     return;
   }
 
-  // Розділяємо батьківські та підкатегорії
-  const parents  = _allCategories.filter(c => !c.parent_id);
-  const children = _allCategories.filter(c =>  c.parent_id);
+  // Розділяємо основні та підкатегорії
+  const parents  = _mainCategories;
+  const children = _allCategories.filter(c => c.main_category_id);
 
   // Підраховуємо товари по category_id
   const prodCountMap = {};
@@ -1617,7 +1620,7 @@ async function loadCategoryTree() {
 
   // Є батьківські категорії — показуємо дерево
   parents.forEach(parent => {
-    const subs = children.filter(c => c.parent_id === parent.id);
+    const subs = children.filter(c => c.main_category_id === parent.id);
     const isParentActive = _activeParentId === parent.id;
     const hasActiveSub   = subs.some(c => c.id === _activeCatIdFilter);
     const isOpen = isParentActive || hasActiveSub;
@@ -1658,8 +1661,8 @@ async function loadCategoryTree() {
       </div>`;
   });
 
-  // Підкатегорії без батьківської (не призначені)
-  const orphans = _allCategories.filter(c => !c.parent_id && c.id < 9000);
+  // Підкатегорії без основної (не призначені)
+  const orphans = _allCategories.filter(c => !c.main_category_id);
   if (orphans.length) {
     html += `<div style="margin:8px 0 4px;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);font-weight:700">Інші</div>`;
     orphans.forEach(c => {
@@ -1722,7 +1725,7 @@ function selectCategory(catId, parentId) {
       _applyCategoryFilters(cat.name);
     }
   } else if (parentId) {
-    const parent = _allCategories.find(c => c.id === parentId);
+    const parent = _mainCategories.find(c => c.id === parentId);
     if (parent) {
       if (titleEl) titleEl.textContent = parent.name;
       if (bcCur)   bcCur.textContent   = parent.name;
@@ -1991,10 +1994,8 @@ async function renderCatalog() {
 function _getActiveCategoryIds() {
   if (_activeCatIdFilter) return [_activeCatIdFilter];
   if (_activeParentIdFilter) {
-    // Всі підкатегорії батьківської категорії
-    const subs = _allCategories.filter(c => c.parent_id === _activeParentIdFilter).map(c => c.id);
-    // Плюс сама батьківська (якщо до неї прив'язані товари)
-    subs.push(_activeParentIdFilter);
+    // Всі підкатегорії основної категорії
+    const subs = _allCategories.filter(c => c.main_category_id === _activeParentIdFilter).map(c => c.id);
     return subs;
   }
   return [];
@@ -2163,15 +2164,16 @@ function updateFilterCounts() {
 }
 
 // ── URL FILTER PRE-SELECT ──────────────────────────────────────────────────
-// Підтримуємо ?catId=77&catName=…  (підкатегорія), ?parentId=9001&parentName=… (батьківська)
-// Також зворотна сумісність: ?cat=jeep,car, ?type=, ?category=
+// Підтримуємо ?catId=77&catName=…  (підкатегорія), ?mainCatId=1&parentName=… (основна)
+// Також зворотна сумісність: ?parentId= (старі посилання), ?cat=jeep,car тощо
 // + ?search=… для пошуку, + ?brand=… для бренду
 function applyUrlFilters() {
   const params = new URLSearchParams(location.search);
 
   const catId      = params.get('catId')      || '';
   const catName    = params.get('catName')    || '';
-  const parentId   = params.get('parentId')   || '';
+  // підтримуємо і новий mainCatId, і старий parentId для зворотної сумісності
+  const parentId   = params.get('mainCatId') || params.get('parentId') || '';
   const parentName = params.get('parentName') || '';
 
   const bcCats = document.getElementById('bcCategories');
@@ -2190,7 +2192,7 @@ function applyUrlFilters() {
     if (titleEl) titleEl.textContent = name;
     _applyCategoryFilters(name);
   }
-  // ── Фільтр по батьківській категорії (parentId)
+  // ── Фільтр по основній категорії (mainCatId / parentId)
   else if (parentId && !isNaN(parseInt(parentId))) {
     _activeCatIdFilter    = 0;
     _activeParentIdFilter = parseInt(parentId);
