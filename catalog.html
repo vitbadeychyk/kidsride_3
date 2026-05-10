@@ -2010,7 +2010,7 @@ async function renderCatalog() {
   }
 
   // ── Крок 1: Показати кешовані товари ОДРАЗУ (якщо є в localStorage) ─────
-  const PRODUCTS_CACHE_KEY = 'kidsride_products_v1';
+  const PRODUCTS_CACHE_KEY = 'kidsride_products_v2'; // v2: voltage/age null defaults
   let cached = null;
   try {
     const raw = localStorage.getItem(PRODUCTS_CACHE_KEY);
@@ -2018,38 +2018,40 @@ async function renderCatalog() {
   } catch(_) {}
 
   if (cached && cached.length > 0) {
+    // ── Є кеш: показуємо одразу ──────────────────────────────────────────────
     allProducts = cached;
     const countEl = document.getElementById('catalogCount');
     if (countEl) countEl.textContent = allProducts.length + ' товарів';
     updateDynamicFilters();
     applyUrlFilters();
+    // Дерево будуємо вже з allProducts заповненим
+    loadCategoryTree();
     applyFiltersAndRender();
-    // Завантажуємо категорії і свіжі товари паралельно у фоні
-    Promise.all([loadCategoryTree(), loadProductsFromSupabase()]).then(([, freshProds]) => {
+    // У фоні оновлюємо товари (без блокування)
+    loadProductsFromSupabase().then(freshProds => {
       if (freshProds && freshProds.length > 0) {
         allProducts = freshProds.filter(p => p.active !== false);
         try { localStorage.setItem(PRODUCTS_CACHE_KEY, JSON.stringify(allProducts)); } catch(_) {}
         const el = document.getElementById('catalogCount');
         if (el) el.textContent = allProducts.length + ' товарів';
         updateDynamicFilters();
+        // Оновити дерево зі свіжими даними (кількості можуть змінитись)
+        loadCategoryTree();
         applyFiltersAndRender();
       }
     }).catch(() => {});
     return;
   }
 
-  // ── Крок 2: Немає кешу — завантажуємо товари і категорії паралельно ──────
+  // ── Немає кешу: показуємо лоадер, чекаємо товари, тоді будуємо дерево ────
   grid.innerHTML = `
     <div style="grid-column:1/-1;text-align:center;padding:60px 24px;color:var(--text-muted)">
       <div style="width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--orange);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 16px"></div>
       <div style="font-size:14px">Завантаження товарів...</div>
     </div>`;
 
-  const [products] = await Promise.all([
-    loadProductsFromSupabase(),
-    loadCategoryTree()
-  ]);
-
+  // ВАЖЛИВО: спочатку товари, потім дерево — щоб кількості і типи були правильні
+  const products = await loadProductsFromSupabase();
   allProducts = (products || []).filter(p => p.active !== false);
   try { localStorage.setItem(PRODUCTS_CACHE_KEY, JSON.stringify(allProducts)); } catch(_) {}
 
@@ -2058,6 +2060,8 @@ async function renderCatalog() {
 
   updateDynamicFilters();
   applyUrlFilters();
+  // Дерево ПІСЛЯ того як allProducts заповнений
+  loadCategoryTree();
   applyFiltersAndRender();
 }
 
@@ -2262,10 +2266,19 @@ function updateDynamicFilters() {
   const brandBlock = document.querySelector('.filter-block:has([data-group="brand"])');
   if (brandBlock) brandBlock.style.display = brandSet.length ? '' : 'none';
 
-  // ── Напруга акумулятора — тільки якщо є товари з voltage ─────────────────
-  const voltageSet = [...new Set(catProds.map(p => String(p.voltage||'').toUpperCase().replace(/\s+/g,'')).filter(v => v && /^\d+V$/i.test(v)))].sort();
-  const voltBody   = document.querySelector('#filterBlockVoltage .filter-body');
-  if (voltBody && voltageSet.length) {
+  // ── Напруга акумулятора ───────────────────────────────────────────────────
+  // Показуємо ТІЛЬКИ якщо товари в категорії мають електричні типи транспорту
+  // (джип, квадроцикл, мото, машина, трактор, вантажівка, баггі)
+  // і є 2+ різних значень voltage (не просто один дефолтний '12V')
+  const ELECTRIC_TYPES = new Set(['jeep','quad','moto','car','tractor','truck','buggy']);
+  const hasElectricType = catProds.some(p => ELECTRIC_TYPES.has(p.category));
+  const voltageSet = hasElectricType
+    ? [...new Set(catProds.map(p => String(p.voltage||'').toUpperCase().replace(/\s+/g,'')).filter(v => v && /^\d+V$/i.test(v)))].sort()
+    : [];
+  // Якщо всі товари мають ОДИН і той самий voltage — скоріш за все дефолт, не показуємо
+  const showVoltage = voltageSet.length >= 2 || (voltageSet.length === 1 && catProds.some(p => p.voltage));
+  const voltBody = document.querySelector('#filterBlockVoltage .filter-body');
+  if (voltBody && showVoltage) {
     const prevChecked = _getCheckedLabels('voltage');
     voltBody.innerHTML = voltageSet.map(v => {
       const cnt     = catProds.filter(p => String(p.voltage||'').toUpperCase().replace(/\s+/g,'') === v).length;
@@ -2278,12 +2291,14 @@ function updateDynamicFilters() {
     }).join('');
   }
   const voltBlock = document.getElementById('filterBlockVoltage');
-  if (voltBlock) voltBlock.style.display = voltageSet.length ? '' : 'none';
+  if (voltBlock) voltBlock.style.display = (showVoltage && voltageSet.length) ? '' : 'none';
 
-  // ── Вік — показуємо тільки якщо є товари з заповненим age ────────────────
-  const hasAge  = catProds.some(p => p.age && String(p.age).match(/\d/));
+  // ── Вік — показуємо тільки якщо є 2+ різних значень age ─────────────────
+  // (якщо всі мають те саме '3-8' — це дефолт з XML, не реальні дані)
+  const ageValues = [...new Set(catProds.map(p => p.age).filter(Boolean))];
+  const showAge = ageValues.length >= 2;
   const ageBlock = document.querySelector('.filter-block:has([data-group="age"])');
-  if (ageBlock) ageBlock.style.display = hasAge ? '' : 'none';
+  if (ageBlock) ageBlock.style.display = showAge ? '' : 'none';
 
   // ── Тип транспорту — прихований, бо вибір типу йде через дерево категорій ──
   const typeBlock = document.getElementById('filterBlockType');
