@@ -2328,7 +2328,7 @@ function updateDynamicFilters() {
     ? [...new Set(catProds.map(p => String(p.voltage||'').toUpperCase().replace(/\s+/g,'')).filter(v => v && /^\d+V$/i.test(v)))].sort()
     : [];
   // Якщо всі товари мають ОДИН і той самий voltage — скоріш за все дефолт, не показуємо
-  const showVoltage = voltageSet.length >= 2 || (voltageSet.length === 1 && catProds.some(p => p.voltage));
+  const showVoltage = hasCatSelection && (voltageSet.length >= 2 || (voltageSet.length === 1 && catProds.some(p => p.voltage)));
   const voltBody = document.querySelector('#filterBlockVoltage .filter-body');
   if (voltBody && showVoltage) {
     const prevChecked = _getCheckedLabels('voltage');
