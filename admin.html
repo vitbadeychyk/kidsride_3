@@ -435,6 +435,10 @@ tr:hover td{background:rgba(240,242,248,.5)}
       Залишок (склад)
       <span class="nav-badge" id="navBadgeOstatok" style="display:none;background:var(--blue)">0</span>
     </div>
+    <div class="nav-item" onclick="showPanel('prices',this)">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      Перерахунок цін
+    </div>
   </div>
 
   <div class="sidebar-section">
@@ -895,6 +899,95 @@ tr:hover td{background:rgba(240,242,248,.5)}
             </tbody>
           </table>
         </div>
+      </div>
+    </div>
+
+    <!-- ═══ PRICES (Перерахунок цін) ═══ -->
+    <div class="panel" id="panel-prices">
+      <div class="section-header">
+        <h2 class="section-title">Перерахунок <span>цін</span></h2>
+      </div>
+
+      <!-- Info block -->
+      <div style="background:rgba(255,107,53,.08);border:1px solid rgba(255,107,53,.25);border-radius:var(--r);padding:16px 20px;margin-bottom:24px;display:flex;align-items:flex-start;gap:12px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <div style="font-size:13px;color:var(--navy);line-height:1.7">
+          <strong>Як працює перерахунок:</strong><br>
+          Ціна продажу: <code style="background:var(--bg);padding:1px 6px;border-radius:4px;font-size:12px">ROUND(supplier_price × (1 − знижка%) / 100) × 100</code><br>
+          Стара ціна: <code style="background:var(--bg);padding:1px 6px;border-radius:4px;font-size:12px">ROUND(supplier_price × 1.3 / 100) × 100</code><br>
+          <span style="color:var(--text-muted);font-size:12px">Перераховуються лише товари з заповненим <em>supplier_price</em>. Після синхронізації XML знижка застосовується автоматично.</span>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
+
+        <!-- Left: controls -->
+        <div class="import-card">
+          <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:18px;color:var(--navy)">⚙️ Параметри знижки</h3>
+
+          <!-- Current discount display -->
+          <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r);padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between">
+            <div>
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:4px">Поточна знижка в базі</div>
+              <div style="font-size:28px;font-weight:800;color:var(--orange);font-family:'Nunito',sans-serif" id="pricesCurrentDiscount">—</div>
+            </div>
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:.4"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+
+          <!-- Input -->
+          <div class="f-group" style="margin-bottom:16px">
+            <label class="f-label">Нова знижка від ціни постачальника (%)</label>
+            <div style="display:flex;align-items:center;gap:10px">
+              <input type="number" id="pricesDiscountInput" min="0" max="80" step="1" placeholder="0"
+                style="flex:1;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:16px;font-weight:700;font-family:'Manrope',sans-serif;color:var(--navy);outline:none;transition:.2s"
+                oninput="updatePricePreview()"
+                onfocus="this.style.borderColor='var(--orange)'"
+                onblur="this.style.borderColor='var(--border)'">
+              <span style="font-size:20px;font-weight:800;color:var(--navy)">%</span>
+            </div>
+          </div>
+
+          <!-- Range slider -->
+          <input type="range" id="pricesDiscountRange" min="0" max="80" step="1" value="0"
+            style="width:100%;accent-color:var(--orange);margin-bottom:20px;cursor:pointer"
+            oninput="document.getElementById('pricesDiscountInput').value=this.value;updatePricePreview()">
+
+          <!-- Action button -->
+          <button class="btn btn-primary" style="width:100%;padding:13px;font-size:15px;font-weight:700" onclick="doRecalculatePrices()">
+            <svg viewBox="0 0 24 24" style="width:18px;height:18px"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.57"/></svg>
+            Перерахувати всі ціни
+          </button>
+          <div id="pricesStatus" style="margin-top:10px;font-size:12px;color:var(--text-muted);text-align:center;min-height:18px"></div>
+        </div>
+
+        <!-- Right: preview -->
+        <div class="import-card">
+          <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:18px;color:var(--navy)">👁 Попередній перегляд</h3>
+
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px">Приклад розрахунку при різних цінах постачальника:</div>
+
+          <div style="overflow-x:auto">
+            <table id="pricesPreviewTable" style="width:100%;border-collapse:collapse;font-size:13px">
+              <thead>
+                <tr style="border-bottom:2px solid var(--border)">
+                  <th style="padding:8px 12px;text-align:left;color:var(--text-muted);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.04em">Ціна поставки</th>
+                  <th style="padding:8px 12px;text-align:left;color:var(--orange);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.04em">Ціна продажу</th>
+                  <th style="padding:8px 12px;text-align:left;color:var(--text-muted);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.04em">Стара ціна</th>
+                  <th style="padding:8px 12px;text-align:left;color:var(--green);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.04em">Маржа</th>
+                </tr>
+              </thead>
+              <tbody id="pricesPreviewBody">
+                <tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text-muted)">Введіть знижку →</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div style="margin-top:16px;padding:12px 14px;background:var(--bg);border-radius:var(--r-sm);font-size:12px;color:var(--text-muted);line-height:1.6">
+            <strong style="color:var(--navy)">Маржа</strong> = ціна продажу − ціна постачальника.<br>
+            Ціни округлюються до 100 ₴ для зручності покупця.
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -1901,7 +1994,7 @@ async function sbUpdateOrderStatus(id, status, ttn = null) {
 // Date init moved to initAdmin()
 
 // ── NAVIGATION ────────────────────────────────────────────────────────────
-const pageTitles={dashboard:'Dashboard',analytics:'Аналітика відвідувань',orders:'Замовлення',products:'Товари',carousel:'Карусель сайту',import:'Імпорт товарів',reviews:'Відгуки',ostatok:'Залишок (власний склад)',settings:'Налаштування',reports:'Звіти та аналітика'};
+const pageTitles={dashboard:'Dashboard',analytics:'Аналітика відвідувань',orders:'Замовлення',products:'Товари',carousel:'Карусель сайту',import:'Імпорт товарів',reviews:'Відгуки',ostatok:'Залишок (власний склад)',settings:'Налаштування',reports:'Звіти та аналітика',prices:'Перерахунок цін'};
 
 function showPanel(id, navEl) {
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
@@ -1915,6 +2008,7 @@ function showPanel(id, navEl) {
   if(id==='settings')  renderSettings();
   if(id==='reports')   renderReports();
   if(id==='ostatok')   loadOstatokPanel();
+  if(id==='prices')    loadPricesPanel();
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   if(navEl) navEl.classList.add('active');
   document.getElementById('pageTitle').textContent = pageTitles[id]||id;
@@ -5226,6 +5320,93 @@ async function ostatokDelete(id, sku) {
 document.addEventListener('keydown', e=>{
   if(e.key==='Escape'){ const m=document.getElementById('osModal'); if(m) m.classList.remove('open'); }
 });
+
+
+// ── PRICES PANEL (Перерахунок цін) ────────────────────────────────────────
+
+async function loadPricesPanel() {
+  const el = document.getElementById('pricesCurrentDiscount');
+  if (!el) return;
+  el.textContent = '…';
+  try {
+    const rows = await sbFetch('settings?select=value&key=eq.discount_pct&limit=1');
+    const pct = rows && rows[0] ? parseFloat(rows[0].value) : 0;
+    el.textContent = (isNaN(pct) ? 0 : pct) + '%';
+    const inp = document.getElementById('pricesDiscountInput');
+    const rng = document.getElementById('pricesDiscountRange');
+    if (inp) inp.value = isNaN(pct) ? 0 : pct;
+    if (rng) rng.value = isNaN(pct) ? 0 : pct;
+    updatePricePreview();
+  } catch(e) {
+    el.textContent = 'Помилка';
+  }
+}
+
+function updatePricePreview() {
+  const inp = document.getElementById('pricesDiscountInput');
+  const rng = document.getElementById('pricesDiscountRange');
+  const pct = parseFloat(inp && inp.value) || 0;
+  if (rng && rng.value !== String(pct)) rng.value = pct;
+
+  const samples = [500, 800, 1200, 2000, 3500, 6000];
+  const tbody = document.getElementById('pricesPreviewBody');
+  if (!tbody) return;
+
+  tbody.innerHTML = samples.map(sp => {
+    const price    = Math.round(sp * (1 - pct / 100) / 100) * 100;
+    const oldPrice = Math.round(sp * 1.3 / 100) * 100;
+    const margin   = price - sp;
+    const marginColor = margin >= 0 ? 'var(--green)' : 'var(--red)';
+    const fmt = v => v.toLocaleString('uk-UA') + '\u00a0₴';
+    return `<tr style="border-bottom:1px solid var(--border)">
+      <td style="padding:9px 12px;color:var(--text-muted)">${fmt(sp)}</td>
+      <td style="padding:9px 12px;font-weight:700;color:var(--navy)">${fmt(price)}</td>
+      <td style="padding:9px 12px;text-decoration:line-through;color:var(--text-light)">${fmt(oldPrice)}</td>
+      <td style="padding:9px 12px;font-weight:700;color:${marginColor}">${margin >= 0 ? '+' : ''}${fmt(margin)}</td>
+    </tr>`;
+  }).join('');
+}
+
+async function doRecalculatePrices() {
+  const inp = document.getElementById('pricesDiscountInput');
+  const pct = parseFloat(inp && inp.value);
+  if (isNaN(pct) || pct < 0 || pct > 80) {
+    showToast('Введіть знижку від 0 до 80%', 'error'); return;
+  }
+
+  const btn = document.querySelector('#panel-prices .btn-primary');
+  const statusEl = document.getElementById('pricesStatus');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<div class="spinner" style="width:16px;height:16px;border-width:2px;margin:0 auto"></div>'; }
+  if (statusEl) statusEl.textContent = 'Збереження знижки…';
+
+  try {
+    await sbFetch('settings', {
+      method: 'POST',
+      headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify({ key: 'discount_pct', value: String(pct) })
+    });
+
+    if (statusEl) statusEl.textContent = 'Виклик функції перерахунку…';
+
+    const result = await sbFetch('rpc/recalculate_prices', {
+      method: 'POST',
+      body: JSON.stringify({ discount_pct: pct })
+    });
+
+    const updated = Array.isArray(result) ? result.length : (result && result.updated != null ? result.updated : '?');
+    document.getElementById('pricesCurrentDiscount').textContent = pct + '%';
+    if (statusEl) statusEl.textContent = '';
+    showToast('✅ Ціни перераховано! Оновлено товарів: ' + updated, 'success');
+  } catch(e) {
+    if (statusEl) statusEl.textContent = 'Помилка: ' + e.message;
+    showToast('❌ Помилка: ' + e.message, 'error');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<svg viewBox="0 0 24 24" style="width:18px;height:18px"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.57"/></svg> Перерахувати всі ціни';
+    }
+  }
+}
 
 
 window.addEventListener('load', () => {
