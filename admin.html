@@ -990,10 +990,16 @@ tr:hover td{background:rgba(240,242,248,.5)}
             style="width:100%;accent-color:var(--green);margin-bottom:20px;cursor:pointer"
             oninput="document.getElementById('pricesOldMarkupInput').value=this.value;updatePricePreview()">
 
+          <!-- Save percentages only (without recalculation) -->
+          <button class="btn btn-outline" style="width:100%;padding:11px;font-size:14px;font-weight:700;margin-bottom:10px" onclick="doSavePriceSettings()">
+            <svg viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Зберегти відсотки (без перерахунку)
+          </button>
+
           <!-- Action button -->
           <button class="btn btn-primary" style="width:100%;padding:13px;font-size:15px;font-weight:700" onclick="doRecalculatePrices()">
             <svg viewBox="0 0 24 24" style="width:18px;height:18px"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.57"/></svg>
-            Перерахувати всі ціни
+            Зберегти відсотки і перерахувати всі ціни
           </button>
           <div id="pricesStatus" style="margin-top:10px;font-size:12px;color:var(--text-muted);text-align:center;min-height:18px"></div>
         </div>
@@ -5429,6 +5435,52 @@ function updatePricePreview() {
   }).join('');
 }
 
+/**
+ * Зберегти відсотки у таблицю settings БЕЗ перерахунку цін.
+ * GitHub-sync зчитає їх при наступному запуску.
+ */
+async function doSavePriceSettings() {
+  const suppDisc  = parseFloat(document.getElementById('pricesSupplierDiscInput')?.value);
+  const sellDisc  = parseFloat(document.getElementById('pricesSellDiscInput')?.value);
+  const oldMarkup = parseFloat(document.getElementById('pricesOldMarkupInput')?.value);
+
+  if (isNaN(suppDisc)  || suppDisc  < 0 || suppDisc  > 90)  { showToast('Знижка постачальника: 0–90%', 'error'); return; }
+  if (isNaN(sellDisc)  || sellDisc  < 0 || sellDisc  > 80)  { showToast('Знижка продажу: 0–80%', 'error'); return; }
+  if (isNaN(oldMarkup) || oldMarkup < 0 || oldMarkup > 200) { showToast('Надбавка старої ціни: 0–200%', 'error'); return; }
+
+  const saveBtn = document.querySelector('#panel-prices .btn-outline');
+  const statusEl = document.getElementById('pricesStatus');
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Збереження…'; }
+  if (statusEl) statusEl.textContent = 'Збереження відсотків…';
+
+  try {
+    await sbFetch('settings', {
+      method: 'POST',
+      headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify([
+        { key: 'supplier_discount_pct', value: String(suppDisc) },
+        { key: 'sell_discount_pct',     value: String(sellDisc) },
+        { key: 'old_price_markup_pct',  value: String(oldMarkup) },
+      ])
+    });
+
+    document.getElementById('pricesCurrentSupplierDisc').textContent = suppDisc + '%';
+    document.getElementById('pricesCurrentSellDisc').textContent     = sellDisc + '%';
+    const elM = document.getElementById('pricesCurrentOldMarkup');
+    if (elM) elM.textContent = oldMarkup + '%';
+    if (statusEl) statusEl.textContent = '';
+    showToast('✅ Відсотки збережено! GitHub-sync використає їх при наступному запуску.', 'success');
+  } catch(e) {
+    if (statusEl) statusEl.textContent = 'Помилка: ' + e.message;
+    showToast('❌ Помилка збереження: ' + e.message, 'error');
+  } finally {
+    if (saveBtn) {
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = '<svg viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Зберегти відсотки (без перерахунку)';
+    }
+  }
+}
+
 async function doRecalculatePrices() {
   const suppDisc  = parseFloat(document.getElementById('pricesSupplierDiscInput')?.value);
   const sellDisc  = parseFloat(document.getElementById('pricesSellDiscInput')?.value);
@@ -5441,9 +5493,21 @@ async function doRecalculatePrices() {
   const btn = document.querySelector('#panel-prices .btn-primary');
   const statusEl = document.getElementById('pricesStatus');
   if (btn) { btn.disabled = true; btn.innerHTML = '<div class="spinner" style="width:16px;height:16px;border-width:2px;margin:0 auto"></div>'; }
-  if (statusEl) statusEl.textContent = 'Перерахунок…';
+  if (statusEl) statusEl.textContent = 'Збереження відсотків і перерахунок…';
 
   try {
+    // Спочатку зберегти відсотки в таблицю settings
+    await sbFetch('settings', {
+      method: 'POST',
+      headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify([
+        { key: 'supplier_discount_pct', value: String(suppDisc) },
+        { key: 'sell_discount_pct',     value: String(sellDisc) },
+        { key: 'old_price_markup_pct',  value: String(oldMarkup) },
+      ])
+    });
+
+    // Потім викликати RPC для перерахунку цін
     const result = await sbFetch('rpc/recalculate_prices', {
       method: 'POST',
       body: JSON.stringify({ p_supplier_discount: suppDisc, p_sell_discount: sellDisc, p_old_markup: oldMarkup })
@@ -5455,14 +5519,14 @@ async function doRecalculatePrices() {
     const elM = document.getElementById('pricesCurrentOldMarkup');
     if (elM) elM.textContent = oldMarkup + '%';
     if (statusEl) statusEl.textContent = '';
-    showToast('✅ Ціни перераховано! Оновлено товарів: ' + updated, 'success');
+    showToast('✅ Відсотки збережено. Ціни перераховано! Оновлено товарів: ' + updated, 'success');
   } catch(e) {
     if (statusEl) statusEl.textContent = 'Помилка: ' + e.message;
     showToast('❌ Помилка: ' + e.message, 'error');
   } finally {
     if (btn) {
       btn.disabled = false;
-      btn.innerHTML = '<svg viewBox="0 0 24 24" style="width:18px;height:18px"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.57"/></svg> Перерахувати всі ціни';
+      btn.innerHTML = '<svg viewBox="0 0 24 24" style="width:18px;height:18px"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.57"/></svg> Зберегти відсотки і перерахувати всі ціни';
     }
   }
 }
