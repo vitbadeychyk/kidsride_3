@@ -413,6 +413,12 @@ nav a.active{color:var(--orange)}
       </button>
     </div>
 
+    <!-- Search (moved to top) -->
+    <div class="sidebar-search" style="margin-bottom:16px">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" placeholder="Назва, артикул, бренд..." id="searchInput" oninput="applyFilters()" autocomplete="off">
+    </div>
+
     <!-- Category tree -->
     <div class="filter-block" id="catTreeBlock" style="margin-bottom:20px">
       <div class="filter-title" onclick="toggleFilter(this)">
@@ -425,12 +431,6 @@ nav a.active{color:var(--orange)}
     </div>
 
     <div class="ctree-divider"></div>
-
-    <!-- Search -->
-    <div class="sidebar-search">
-      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-      <input type="text" placeholder="Пошук по назві..." id="searchInput" oninput="applyFilters()">
-    </div>
 
     <!-- Availability -->
     <div class="filter-block">
@@ -1536,8 +1536,9 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 
 // ── CATEGORY TREE ────────────────────────────────────────────
 // Кеш категорій для дерева
-let _allCategories  = [];
-let _mainCategories = [];
+let _allCategories    = [];
+let _mainCategories   = [];
+let _activeVehicleType = ''; // код типу транспорту: 'jeep','quad','moto' тощо
 
 function _getCatIcon(name) {
   const n = (name || '').toLowerCase();
@@ -1614,13 +1615,35 @@ async function loadCategoryTree() {
     return;
   }
 
+  // Маппінг кодів → українські назви
+  const TYPE_UA_TREE = {
+    'jeep':'Джипи','quad':'Квадроцикли','moto':'Мотоцикли','car':'Машини',
+    'tractor':'Трактори','walker':'Каталки-толокари','truck':'Вантажівки','buggy':'Баггі'
+  };
+
   // Дерево з основними категоріями
   parents.forEach(parent => {
-    const subs        = children.filter(c => c.main_category_id === parent.id);
-    const isParentActive = _activeParentIdFilter === parent.id;
-    const hasActiveSub   = subs.some(c => c.id === _activeCatIdFilter);
-    const isOpen         = isParentActive || hasActiveSub;
-    const parentCnt      = subs.reduce((s, c) => s + (prodCountMap[c.id] || 0), 0);
+    const subs = children.filter(c => c.main_category_id === parent.id);
+
+    // Продукти поточної основної категорії
+    const subIds = subs.map(c => c.id);
+    const parentProds = (allProducts || []).filter(p => subIds.includes(p.category_id));
+
+    // Типи транспорту у цій категорії
+    const vehicleTypes = [...new Set(parentProds.map(p => p.category).filter(c => c && TYPE_UA_TREE[c]))]
+      .sort((a,b) => (TYPE_UA_TREE[a]||a).localeCompare(TYPE_UA_TREE[b]||b,'uk'));
+
+    // Використовувати типи замість підкатегорій якщо:
+    // — 2+ різних типи І (підкатегорій <= 1 АБО всі підкатегорії мають таку саму назву як батько)
+    const subNamesRedundant = subs.every(s => s.name.toLowerCase().includes(parent.name.toLowerCase()) || parent.name.toLowerCase().includes(s.name.toLowerCase()));
+    const useVehicleTypes   = vehicleTypes.length >= 2 && (subs.length <= 1 || subNamesRedundant);
+
+    const isParentActive    = _activeParentIdFilter === parent.id;
+    const hasActiveSub      = subs.some(c => c.id === _activeCatIdFilter);
+    const hasActiveVehicle  = isParentActive && _activeVehicleType !== '';
+    const isOpen            = isParentActive || hasActiveSub;
+    const parentCnt         = parentProds.length ||
+                              subs.reduce((s,c) => s + (prodCountMap[c.id] || 0), 0);
 
     html += `
       <div class="ctree-parent">
@@ -1630,21 +1653,37 @@ async function loadCategoryTree() {
           ${parentCnt ? `<span class="ctree-cnt">${parentCnt}</span>` : ''}
         </div>
         <div class="ctree-subs${isOpen?' open':''}">
-          <div class="ctree-sub-row${isParentActive && !hasActiveSub ? ' active' : ''}" onclick="selectCategory(0,${parent.id})">
+          <div class="ctree-sub-row${isParentActive && !hasActiveSub && !hasActiveVehicle ? ' active' : ''}" onclick="selectCategory(0,${parent.id})">
             <span class="ctree-dot"></span>
             <span class="ctree-label" style="color:var(--text-muted)">Всі в категорії</span>
           </div>`;
 
-    subs.forEach(sub => {
-      const cnt      = prodCountMap[sub.id] || 0;
-      const isActive = _activeCatIdFilter === sub.id;
-      html += `
+    if (useVehicleTypes) {
+      // Показуємо типи транспорту як віртуальні підкатегорії
+      vehicleTypes.forEach(code => {
+        const label    = TYPE_UA_TREE[code] || code;
+        const cnt      = parentProds.filter(p => p.category === code).length;
+        const isActive = isParentActive && _activeVehicleType === code;
+        html += `
+          <div class="ctree-sub-row${isActive?' active':''}" onclick="selectVehicleType('${code}',${parent.id})">
+            <span class="ctree-dot"></span>
+            <span class="ctree-label">${label}</span>
+            ${cnt ? `<span class="ctree-cnt">${cnt}</span>` : ''}
+          </div>`;
+      });
+    } else {
+      // Звичайні підкатегорії з БД
+      subs.forEach(sub => {
+        const cnt      = prodCountMap[sub.id] || 0;
+        const isActive = _activeCatIdFilter === sub.id;
+        html += `
           <div class="ctree-sub-row${isActive?' active':''}" onclick="selectCategory(${sub.id},0)">
             <span class="ctree-dot"></span>
             <span class="ctree-label">${sub.name}</span>
             ${cnt ? `<span class="ctree-cnt">${cnt}</span>` : ''}
           </div>`;
-    });
+      });
+    }
 
     html += `
         </div>
@@ -1688,6 +1727,7 @@ let _activeParentIdFilter = 0;
 function selectCategory(catId, parentId) {
   _activeCatIdFilter    = catId;
   _activeParentIdFilter = parentId;
+  _activeVehicleType    = ''; // скидаємо тип при виборі категорії
 
   // Оновити активні класи без повного перемалювання дерева
   document.querySelectorAll('.cat-tree-all, .ctree-parent-row, .ctree-sub-row').forEach(el => el.classList.remove('active'));
@@ -1731,6 +1771,38 @@ function selectCategory(catId, parentId) {
 
   currentPage = 1;
   applyFiltersAndRender(); // оновить товари + updateDynamicFilters всередині
+}
+
+// Клік на тип транспорту в дереві (Джипи, Квадроцикли тощо)
+function selectVehicleType(code, parentId) {
+  _activeCatIdFilter    = 0;
+  _activeParentIdFilter = parentId;
+  _activeVehicleType    = code;
+
+  // Оновити активні класи в дереві
+  document.querySelectorAll('.cat-tree-all, .ctree-parent-row, .ctree-sub-row').forEach(el => el.classList.remove('active'));
+  document.querySelector(`.ctree-sub-row[onclick="selectVehicleType('${code}',${parentId})"]`)?.classList.add('active');
+
+  // Breadcrumb і заголовок
+  const TYPE_UA_SEL = {
+    'jeep':'Джипи','quad':'Квадроцикли','moto':'Мотоцикли','car':'Машини',
+    'tractor':'Трактори','walker':'Каталки-толокари','truck':'Вантажівки','buggy':'Баггі'
+  };
+  const parent  = _mainCategories.find(c => c.id === parentId);
+  const typeName = TYPE_UA_SEL[code] || code;
+  const fullName = parent ? parent.name + ' → ' + typeName : typeName;
+
+  const titleEl = document.getElementById('catalogTitle');
+  const bcCur   = document.getElementById('bcCurrent');
+  const bcCats  = document.getElementById('bcCategories');
+  const bcSep2  = document.getElementById('bcSep2');
+  if (titleEl) titleEl.textContent = fullName;
+  if (bcCur)   bcCur.textContent   = fullName;
+  if (bcCats)  bcCats.style.display = '';
+  if (bcSep2)  bcSep2.style.display = '';
+
+  currentPage = 1;
+  applyFiltersAndRender();
 }
 
 
@@ -1998,7 +2070,9 @@ function applyFiltersAndRender() {
     // Фільтр по категорії з дерева (category_id)
     const activeCatIds = _getActiveCategoryIds();
     if (activeCatIds.length && !activeCatIds.includes(p.category_id)) return false;
-    if (activeFilters.types.length && !activeFilters.types.includes(p.category)) return false;
+    // Фільтр по типу транспорту (з дерева або окремого блоку)
+    if (_activeVehicleType && p.category !== _activeVehicleType) return false;
+    if (!_activeVehicleType && activeFilters.types.length && !activeFilters.types.includes(p.category)) return false;
     if (activeFilters.ages.length) {
       const ageRanges = { '1-3': [1,3], '3-6': [3,6], '6-10': [6,10] };
       const pAges = String(p.age || '').split('-').map(Number);
@@ -2016,7 +2090,11 @@ function applyFiltersAndRender() {
     if (p.price < activeFilters.priceMin || p.price > activeFilters.priceMax) return false;
     if (activeFilters.search) {
       const q = activeFilters.search.toLowerCase();
-      if (!p.name.toLowerCase().includes(q) && !p.brand.toLowerCase().includes(q)) return false;
+      const nameMatch   = p.name.toLowerCase().includes(q);
+      const brandMatch  = (p.brand || '').toLowerCase().includes(q);
+      const priceMatch  = String(p.price || '').includes(q);
+      const skuMatch    = String(p.sku || p.id || '').toLowerCase().includes(q);
+      if (!nameMatch && !brandMatch && !priceMatch && !skuMatch) return false;
     }
     return true;
   });
@@ -2112,10 +2190,11 @@ function renderPagination(totalPages) {
 // ── FILTER COUNTS ──────────────────────────────────────────────────────────
 // Рахуємо кількість товарів у кожній групі фільтрів та оновлюємо .filter-cnt
 function _getCategoryProducts() {
-  // Товари у поточному виборі категорії/підкатегорії (лише ті що є в наявності або під замовлення)
   const base = (allProducts || []).filter(p => !(p.stock != null && p.stock <= 0 && !(Number(p.preorderDays) > 0)));
-  const ids = _getActiveCategoryIds();
-  return ids.length ? base.filter(p => ids.includes(p.category_id)) : base;
+  const ids  = _getActiveCategoryIds();
+  let prods  = ids.length ? base.filter(p => ids.includes(p.category_id)) : base;
+  if (_activeVehicleType) prods = prods.filter(p => p.category === _activeVehicleType);
+  return prods;
 }
 
 function updateFilterCounts() {
@@ -2195,39 +2274,9 @@ function updateDynamicFilters() {
   const ageBlock = document.querySelector('.filter-block:has([data-group="age"])');
   if (ageBlock) ageBlock.style.display = hasAge ? '' : 'none';
 
-  // ── Тип транспорту — динамічно з даних товарів обраної категорії ─────────
-  const TYPE_UA = {
-    'jeep':'Джип', 'quad':'Квадроцикл', 'moto':'Мотоцикл', 'car':'Машина',
-    'tractor':'Трактор', 'walker':'Каталка-толокар', 'truck':'Вантажівка', 'buggy':'Баггі'
-  };
-  const TYPE_EN = {};
-  Object.entries(TYPE_UA).forEach(([en,ua]) => TYPE_EN[ua] = en);
-
-  const typeCodesInCat = [...new Set(catProds.map(p => p.category).filter(c => c && TYPE_UA[c]))];
+  // ── Тип транспорту — прихований, бо вибір типу йде через дерево категорій ──
   const typeBlock = document.getElementById('filterBlockType');
-  if (typeBlock) {
-    if (typeCodesInCat.length > 0) {
-      const prevChecked = _getCheckedLabels('type').map(l => TYPE_EN[l]).filter(Boolean);
-      const typeBody = typeBlock.querySelector('.filter-body');
-      if (typeBody) {
-        typeBody.innerHTML = typeCodesInCat
-          .sort((a, b) => (TYPE_UA[a] || a).localeCompare(TYPE_UA[b] || b, 'uk'))
-          .map(code => {
-            const label   = TYPE_UA[code] || code;
-            const cnt     = catProds.filter(p => p.category === code).length;
-            const checked = prevChecked.includes(code) ? ' checked' : '';
-            return `<label class="filter-option${checked}" data-group="type" onclick="toggleCheck(this,'type')">
-              <div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-              <span class="filter-label">${label}</span>
-              <span class="filter-cnt">${cnt}</span>
-            </label>`;
-          }).join('');
-      }
-      typeBlock.style.display = '';
-    } else {
-      typeBlock.style.display = 'none';
-    }
-  }
+  if (typeBlock) typeBlock.style.display = 'none';
 
   updateFilterCounts();
 }
@@ -2399,6 +2448,7 @@ function resetFilters() {
   activeFilters = { types: [], ages: [], brands: [], voltages: [], priceMin: 0, priceMax: 999999, search: '' };
   _activeCatIdFilter    = 0;
   _activeParentIdFilter = 0;
+  _activeVehicleType    = '';
   document.querySelectorAll('.filter-option.checked').forEach(o => o.classList.remove('checked'));
   const searchInput = document.getElementById('searchInput');
   if (searchInput) searchInput.value = '';
