@@ -316,6 +316,19 @@ nav a.active{color:var(--orange)}
   .sidebar{width:240px}
   .catalog-layout{grid-template-columns:240px 1fr}
 }
+
+/* Sidebar moved into mobile drawer */
+#sidebar.in-drawer{
+  display:block !important;
+  position:static !important;
+  height:auto !important;
+  overflow-y:visible !important;
+  width:100% !important;
+  border:none !important;
+  border-radius:0 !important;
+  padding:0 4px !important;
+  top:auto !important;
+}
 </style>
 </head>
 <body>
@@ -436,7 +449,7 @@ nav a.active{color:var(--orange)}
     <!-- В наявності block removed per user request -->
 
     <!-- Type -->
-    <div class="filter-block" id="filterBlockType">
+    <div class="filter-block" id="filterBlockType" style="display:none">
       <div class="filter-title" onclick="toggleFilter(this)">
         Тип транспорту
         <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
@@ -492,7 +505,7 @@ nav a.active{color:var(--orange)}
     </div>
 
     <!-- Brand -->
-    <div class="filter-block" id="filterBlockBrand">
+    <div class="filter-block" id="filterBlockBrand" style="display:none">
       <div class="filter-title" onclick="toggleFilter(this)">
         Бренд
         <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
@@ -802,7 +815,7 @@ nav a.active{color:var(--orange)}
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     </button>
   </div>
-  <p style="font-size:13px;color:var(--text-muted);text-align:center;margin-top:40px">Мобільні фільтри будуть дублювати сайдбар.<br>Реалізуємо при фінальній збірці.</p>
+  <!-- sidebar content is moved here dynamically via openDrawer() -->
 </div>
 
 <!-- QUICK ORDER MODAL -->
@@ -1328,13 +1341,30 @@ if (typeof showToast === 'undefined') {
   };
 }
 
-// Mobile drawer
+// Mobile drawer — sidebar фізично переміщається всередину drawer
 function openDrawer() {
-  document.getElementById('drawer').classList.add('open');
+  const sidebar = document.getElementById('sidebar');
+  const drawer  = document.getElementById('drawer');
+  if (sidebar && !sidebar._inDrawer) {
+    sidebar._origParent  = sidebar.parentNode;
+    sidebar._origNextSib = sidebar.nextElementSibling;
+    drawer.appendChild(sidebar);
+    sidebar.classList.add('in-drawer');
+    sidebar._inDrawer = true;
+  }
+  drawer.classList.add('open');
   document.getElementById('drawerOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
 function closeDrawer() {
+  const sidebar = document.getElementById('sidebar');
+  if (sidebar && sidebar._inDrawer) {
+    if (sidebar._origParent) {
+      sidebar._origParent.insertBefore(sidebar, sidebar._origNextSib || null);
+    }
+    sidebar.classList.remove('in-drawer');
+    sidebar._inDrawer = false;
+  }
   document.getElementById('drawer').classList.remove('open');
   document.getElementById('drawerOverlay').classList.remove('open');
   document.body.style.overflow = '';
@@ -2264,7 +2294,8 @@ function updateDynamicFilters() {
     }).join('');
   }
   const brandBlock = document.querySelector('.filter-block:has([data-group="brand"])');
-  if (brandBlock) brandBlock.style.display = brandSet.length ? '' : 'none';
+  const hasCatSelection = _activeCatIdFilter || _activeParentIdFilter || _activeVehicleType;
+  if (brandBlock) brandBlock.style.display = (brandSet.length && hasCatSelection) ? '' : 'none';
 
   // ── Напруга акумулятора ───────────────────────────────────────────────────
   // Показуємо ТІЛЬКИ якщо товари в категорії мають електричні типи транспорту
@@ -2412,13 +2443,9 @@ function _applyCategoryFilters(catName) {
   const isVehicleType = isElectric;
   const isVoltage   = /електромобіл|машин|джип|квадроцикл|мотоцикл|трактор|баггі/.test(n);
 
-  const blockType    = document.getElementById('filterBlockType');
   const blockVoltage = document.getElementById('filterBlockVoltage');
 
-  // Типи транспорту — лише для категорій де це має сенс
-  if (blockType) {
-    blockType.style.display = isVehicleType ? '' : 'none';
-  }
+  // Тип транспорту завжди прихований — вибір іде через дерево категорій
   // Акумулятор — лише для електротранспорту
   if (blockVoltage) {
     blockVoltage.style.display = isVoltage ? '' : 'none';
