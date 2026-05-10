@@ -334,12 +334,16 @@ nav a.active{color:var(--orange)}
 </header>
 
 <!-- BREADCRUMB -->
-<div class="breadcrumb">
+<div class="breadcrumb" id="breadcrumb">
   <a href="index.html">Головна</a>
   <span class="breadcrumb-sep">
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
   </span>
-  <span class="breadcrumb-current">Каталог електромобілів</span>
+  <a href="categories.html" id="bcCategories" style="display:none;color:var(--text-muted);transition:color .2s">Категорії</a>
+  <span class="breadcrumb-sep" id="bcSep2" style="display:none">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+  </span>
+  <span class="breadcrumb-current" id="bcCurrent">Каталог</span>
 </div>
 
 <!-- ACTIVE FILTERS -->
@@ -350,7 +354,7 @@ nav a.active{color:var(--orange)}
 <!-- CATALOG HEAD -->
 <div class="catalog-head">
   <div class="catalog-title-row">
-    <h1 class="catalog-title">Каталог електромобілів</h1>
+    <h1 class="catalog-title" id="catalogTitle">Каталог товарів</h1>
     <span class="catalog-count" id="catalogCount">Завантаження…</span>
   </div>
   <div class="catalog-controls">
@@ -406,7 +410,7 @@ nav a.active{color:var(--orange)}
     </div>
 
     <!-- Type -->
-    <div class="filter-block">
+    <div class="filter-block" id="filterBlockType">
       <div class="filter-title" onclick="toggleFilter(this)">
         Тип транспорту
         <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
@@ -476,7 +480,7 @@ nav a.active{color:var(--orange)}
     </div>
 
     <!-- Voltage -->
-    <div class="filter-block">
+    <div class="filter-block" id="filterBlockVoltage">
       <div class="filter-title" onclick="toggleFilter(this)">
         Акумулятор
         <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
@@ -1495,13 +1499,18 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 // Завантажити товари з Supabase (з fallback на localStorage/дефолтні)
 async function loadProductsFromSupabase() {
   try {
+    // Визначити чи є фільтр по категорії
+    const _params = new URLSearchParams(location.search);
+    const _catId = _params.get('catId');
+    const _catFilter = (_catId && !isNaN(parseInt(_catId))) ? '&category_id=eq.' + parseInt(_catId) : '';
+
     // Завантажуємо всі товари посторінково (Supabase ліміт 1000 на запит)
     const PAGE = 1000;
     let all = [];
     let from = 0;
     while (true) {
       const res = await fetch(
-        SUPABASE_URL + '/rest/v1/products?select=*&active=eq.true&order=created_at.desc',
+        SUPABASE_URL + '/rest/v1/products?select=*&active=eq.true' + _catFilter + '&order=created_at.desc',
         {
           headers: {
             'apikey': SUPABASE_KEY,
@@ -1890,10 +1899,39 @@ function updateFilterCounts() {
 }
 
 // ── URL FILTER PRE-SELECT ──────────────────────────────────────────────────
-// Підтримуємо ?cat=jeep,car  (також ?type= і ?category= для зворотної сумісності)
+// Підтримуємо ?catId=77&catName=Електромобілі  (фільтр по category_id з Supabase)
+// Також зворотна сумісність: ?cat=jeep,car, ?type=, ?category=
 // + ?search=… для пошуку, + ?brand=… для бренду
 function applyUrlFilters() {
   const params = new URLSearchParams(location.search);
+
+  // ── Нова логіка: фільтр по category_id з categories.html
+  const catId   = params.get('catId')   || '';
+  const catName = params.get('catName') || '';
+  if (catId && catName) {
+    // Оновити breadcrumb
+    const bcCats = document.getElementById('bcCategories');
+    const bcSep2 = document.getElementById('bcSep2');
+    const bcCur  = document.getElementById('bcCurrent');
+    if (bcCats) bcCats.style.display = '';
+    if (bcSep2) bcSep2.style.display = '';
+    if (bcCur)  bcCur.textContent = catName;
+
+    // Оновити заголовок
+    const titleEl = document.getElementById('catalogTitle');
+    if (titleEl) titleEl.textContent = catName;
+
+    // Налаштувати видимість фільтрів залежно від категорії
+    _applyCategoryFilters(catName);
+  } else {
+    // Без категорії — breadcrumb = "Каталог"
+    const bcCur = document.getElementById('bcCurrent');
+    if (bcCur) bcCur.textContent = 'Каталог';
+    const titleEl = document.getElementById('catalogTitle');
+    if (titleEl) titleEl.textContent = 'Каталог товарів';
+  }
+
+  // ── Стара логіка: ?cat=jeep,car (для зворотної сумісності)
   const catRaw = params.get('cat') || params.get('type') || params.get('category') || '';
   const TYPE_LABELS = { jeep:'Джип', quad:'Квадроцикл', moto:'Мотоцикл', car:'Машина', tractor:'Трактор', walker:'Каталка-толокар', truck:'Вантажівка', buggy:'Баггі' };
   if (catRaw) {
@@ -1935,13 +1973,33 @@ function applyUrlFilters() {
     const aNorm = ageRaw.trim().replace(/\s/g,'');
     document.querySelectorAll('.filter-option[data-group="age"]').forEach(opt => {
       const label = (opt.querySelector('.filter-label')?.textContent || '').trim();
-      // Порівнюємо числа: "1 – 3 роки" → "1-3"
       const m = label.match(/(\d+)[\s–-]+(\d+)/);
       if (m && (m[1]+'-'+m[2]) === aNorm) opt.classList.add('checked');
     });
   }
   syncActiveFiltersFromDOM();
   updateActiveFilters();
+}
+
+// ── CATEGORY-SPECIFIC FILTERS ──────────────────────────────────────────────
+// Показуємо / ховаємо фільтрові блоки залежно від типу категорії
+function _applyCategoryFilters(catName) {
+  const n = (catName || '').toLowerCase();
+  const isElectric  = /електромобіл|машин|джип|квадроцикл|мотоцикл|трактор|баггі|вантаж|каталка|транспорт/.test(n);
+  const isVehicleType = isElectric;
+  const isVoltage   = /електромобіл|машин|джип|квадроцикл|мотоцикл|трактор|баггі/.test(n);
+
+  const blockType    = document.getElementById('filterBlockType');
+  const blockVoltage = document.getElementById('filterBlockVoltage');
+
+  // Типи транспорту — лише для категорій де це має сенс
+  if (blockType) {
+    blockType.style.display = isVehicleType ? '' : 'none';
+  }
+  // Акумулятор — лише для електротранспорту
+  if (blockVoltage) {
+    blockVoltage.style.display = isVoltage ? '' : 'none';
+  }
 }
 
 // ── FILTER FUNCTIONS ────────────────────────────────────────────────────────
