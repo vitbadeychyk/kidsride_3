@@ -910,12 +910,13 @@ tr:hover td{background:rgba(240,242,248,.5)}
 
       <!-- Info block -->
       <div style="background:rgba(255,107,53,.08);border:1px solid rgba(255,107,53,.25);border-radius:var(--r);padding:16px 20px;margin-bottom:24px;display:flex;align-items:flex-start;gap:12px">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        <div style="font-size:13px;color:var(--navy);line-height:1.7">
-          <strong>Як працює перерахунок:</strong><br>
-          Ціна продажу: <code style="background:var(--bg);padding:1px 6px;border-radius:4px;font-size:12px">ROUND(supplier_price × (1 − знижка%) / 100) × 100</code><br>
-          Стара ціна: <code style="background:var(--bg);padding:1px 6px;border-radius:4px;font-size:12px">ROUND(supplier_price × 1.3 / 100) × 100</code><br>
-          <span style="color:var(--text-muted);font-size:12px">Перераховуються лише товари з заповненим <em>supplier_price</em>. Після синхронізації XML знижка застосовується автоматично.</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <div style="font-size:13px;color:var(--navy);line-height:1.8">
+          <strong>Як працює перерахунок (приклад: РРЦ = 10 000 ₴, знижка пост. 22%, знижка продажу 1%):</strong><br>
+          Ціна закупки: <code style="background:var(--bg);padding:1px 6px;border-radius:4px;font-size:12px">10 000 × (1 − 22%) = 7 800 ₴</code> — ваша реальна собівартість<br>
+          Ціна продажу: <code style="background:var(--bg);padding:1px 6px;border-radius:4px;font-size:12px">ROUND(10 000 × (1 − 1%) / 100) × 100 = 9 900 ₴</code> — що бачить покупець<br>
+          Стара ціна: <code style="background:var(--bg);padding:1px 6px;border-radius:4px;font-size:12px">10 000 ₴</code> — РРЦ постачальника (закреслюється на сайті)<br>
+          <span style="color:var(--text-muted);font-size:12px">Маржа = 9 900 − 7 800 = <strong style="color:var(--green)">2 100 ₴</strong>. Перераховуються лише товари з заповненим supplier_price.</span>
         </div>
       </div>
 
@@ -923,34 +924,51 @@ tr:hover td{background:rgba(240,242,248,.5)}
 
         <!-- Left: controls -->
         <div class="import-card">
-          <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:18px;color:var(--navy)">⚙️ Параметри знижки</h3>
+          <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:18px;color:var(--navy)">⚙️ Параметри знижок</h3>
 
-          <!-- Current discount display -->
-          <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r);padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between">
-            <div>
-              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:4px">Поточна знижка в базі</div>
-              <div style="font-size:28px;font-weight:800;color:var(--orange);font-family:'Nunito',sans-serif" id="pricesCurrentDiscount">—</div>
+          <!-- Current values display -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+            <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r);padding:12px 14px;text-align:center">
+              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:4px">Знижка пост.</div>
+              <div style="font-size:24px;font-weight:800;color:var(--blue);font-family:'Nunito',sans-serif" id="pricesCurrentSupplierDisc">—</div>
             </div>
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:.4"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r);padding:12px 14px;text-align:center">
+              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:4px">Знижка продажу</div>
+              <div style="font-size:24px;font-weight:800;color:var(--orange);font-family:'Nunito',sans-serif" id="pricesCurrentSellDisc">—</div>
+            </div>
           </div>
 
-          <!-- Input -->
-          <div class="f-group" style="margin-bottom:16px">
-            <label class="f-label">Нова знижка від ціни постачальника (%)</label>
+          <!-- Supplier discount input -->
+          <div class="f-group" style="margin-bottom:6px">
+            <label class="f-label">Знижка постачальника — ваша ціна закупки (%)</label>
             <div style="display:flex;align-items:center;gap:10px">
-              <input type="number" id="pricesDiscountInput" min="0" max="80" step="1" placeholder="0"
-                style="flex:1;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:16px;font-weight:700;font-family:'Manrope',sans-serif;color:var(--navy);outline:none;transition:.2s"
-                oninput="updatePricePreview()"
+              <input type="number" id="pricesSupplierDiscInput" min="0" max="90" step="0.5" placeholder="22"
+                style="flex:1;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:15px;font-weight:700;font-family:'Manrope',sans-serif;color:var(--navy);outline:none;transition:.2s"
+                oninput="this.style.borderColor='var(--blue)';updatePricePreview()"
+                onfocus="this.style.borderColor='var(--blue)'"
+                onblur="this.style.borderColor='var(--border)'">
+              <span style="font-size:18px;font-weight:800;color:var(--blue)">%</span>
+            </div>
+          </div>
+          <input type="range" id="pricesSupplierDiscRange" min="0" max="90" step="0.5" value="22"
+            style="width:100%;accent-color:var(--blue);margin-bottom:16px;cursor:pointer"
+            oninput="document.getElementById('pricesSupplierDiscInput').value=this.value;updatePricePreview()">
+
+          <!-- Sell discount input -->
+          <div class="f-group" style="margin-bottom:6px">
+            <label class="f-label">Знижка від РРЦ для ціни продажу — що бачить покупець (%)</label>
+            <div style="display:flex;align-items:center;gap:10px">
+              <input type="number" id="pricesSellDiscInput" min="0" max="80" step="0.5" placeholder="1"
+                style="flex:1;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:15px;font-weight:700;font-family:'Manrope',sans-serif;color:var(--navy);outline:none;transition:.2s"
+                oninput="this.style.borderColor='var(--orange)';updatePricePreview()"
                 onfocus="this.style.borderColor='var(--orange)'"
                 onblur="this.style.borderColor='var(--border)'">
-              <span style="font-size:20px;font-weight:800;color:var(--navy)">%</span>
+              <span style="font-size:18px;font-weight:800;color:var(--orange)">%</span>
             </div>
           </div>
-
-          <!-- Range slider -->
-          <input type="range" id="pricesDiscountRange" min="0" max="80" step="1" value="0"
+          <input type="range" id="pricesSellDiscRange" min="0" max="80" step="0.5" value="1"
             style="width:100%;accent-color:var(--orange);margin-bottom:20px;cursor:pointer"
-            oninput="document.getElementById('pricesDiscountInput').value=this.value;updatePricePreview()">
+            oninput="document.getElementById('pricesSellDiscInput').value=this.value;updatePricePreview()">
 
           <!-- Action button -->
           <button class="btn btn-primary" style="width:100%;padding:13px;font-size:15px;font-weight:700" onclick="doRecalculatePrices()">
@@ -962,29 +980,32 @@ tr:hover td{background:rgba(240,242,248,.5)}
 
         <!-- Right: preview -->
         <div class="import-card">
-          <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:18px;color:var(--navy)">👁 Попередній перегляд</h3>
-
-          <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px">Приклад розрахунку при різних цінах постачальника:</div>
+          <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:6px;color:var(--navy)">👁 Попередній перегляд</h3>
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px">Оновлюється в реальному часі при зміні знижок</div>
 
           <div style="overflow-x:auto">
-            <table id="pricesPreviewTable" style="width:100%;border-collapse:collapse;font-size:13px">
+            <table style="width:100%;border-collapse:collapse;font-size:12px">
               <thead>
                 <tr style="border-bottom:2px solid var(--border)">
-                  <th style="padding:8px 12px;text-align:left;color:var(--text-muted);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.04em">Ціна поставки</th>
-                  <th style="padding:8px 12px;text-align:left;color:var(--orange);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.04em">Ціна продажу</th>
-                  <th style="padding:8px 12px;text-align:left;color:var(--text-muted);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.04em">Стара ціна</th>
-                  <th style="padding:8px 12px;text-align:left;color:var(--green);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.04em">Маржа</th>
+                  <th style="padding:7px 10px;text-align:left;color:var(--text-muted);font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap">РРЦ (пост.)</th>
+                  <th style="padding:7px 10px;text-align:left;color:var(--blue);font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap">Закупка</th>
+                  <th style="padding:7px 10px;text-align:left;color:var(--orange);font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap">Ціна продажу</th>
+                  <th style="padding:7px 10px;text-align:left;color:var(--text-muted);font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap">Стара ціна</th>
+                  <th style="padding:7px 10px;text-align:left;color:var(--green);font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap">Маржа</th>
+                  <th style="padding:7px 10px;text-align:left;color:var(--green);font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap">Маржа%</th>
                 </tr>
               </thead>
               <tbody id="pricesPreviewBody">
-                <tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text-muted)">Введіть знижку →</td></tr>
+                <tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-muted)">Введіть знижки ←</td></tr>
               </tbody>
             </table>
           </div>
 
-          <div style="margin-top:16px;padding:12px 14px;background:var(--bg);border-radius:var(--r-sm);font-size:12px;color:var(--text-muted);line-height:1.6">
-            <strong style="color:var(--navy)">Маржа</strong> = ціна продажу − ціна постачальника.<br>
-            Ціни округлюються до 100 ₴ для зручності покупця.
+          <div style="margin-top:14px;padding:12px 14px;background:var(--bg);border-radius:var(--r-sm);font-size:12px;color:var(--text-muted);line-height:1.7">
+            <strong style="color:var(--navy)">Закупка</strong> = РРЦ × (1 − знижка пост.) — ваша собівартість<br>
+            <strong style="color:var(--navy)">Ціна продажу</strong> = ROUND(РРЦ × (1 − знижка прод.) / 100) × 100<br>
+            <strong style="color:var(--navy)">Стара ціна</strong> = РРЦ постачальника (закреслена на сайті)<br>
+            <strong style="color:var(--navy)">Маржа%</strong> = маржа / закупка × 100
           </div>
         </div>
 
@@ -5325,76 +5346,94 @@ document.addEventListener('keydown', e=>{
 // ── PRICES PANEL (Перерахунок цін) ────────────────────────────────────────
 
 async function loadPricesPanel() {
-  const el = document.getElementById('pricesCurrentDiscount');
-  if (!el) return;
-  el.textContent = '…';
+  const elS = document.getElementById('pricesCurrentSupplierDisc');
+  const elP = document.getElementById('pricesCurrentSellDisc');
+  if (!elS) return;
+  elS.textContent = '…'; elP.textContent = '…';
   try {
-    const rows = await sbFetch('settings?select=value&key=eq.discount_pct&limit=1');
-    const pct = rows && rows[0] ? parseFloat(rows[0].value) : 0;
-    el.textContent = (isNaN(pct) ? 0 : pct) + '%';
-    const inp = document.getElementById('pricesDiscountInput');
-    const rng = document.getElementById('pricesDiscountRange');
-    if (inp) inp.value = isNaN(pct) ? 0 : pct;
-    if (rng) rng.value = isNaN(pct) ? 0 : pct;
+    const rows = await sbFetch('settings?select=key,value&key=in.(supplier_discount_pct,sell_discount_pct)');
+    const byKey = {};
+    (rows||[]).forEach(r => { byKey[r.key] = parseFloat(r.value) || 0; });
+    const suppDisc = byKey['supplier_discount_pct'] ?? 22;
+    const sellDisc = byKey['sell_discount_pct'] ?? 1;
+
+    elS.textContent = suppDisc + '%';
+    elP.textContent = sellDisc + '%';
+
+    const si = document.getElementById('pricesSupplierDiscInput');
+    const sr = document.getElementById('pricesSupplierDiscRange');
+    const pi = document.getElementById('pricesSellDiscInput');
+    const pr = document.getElementById('pricesSellDiscRange');
+    if (si) si.value = suppDisc;
+    if (sr) sr.value = suppDisc;
+    if (pi) pi.value = sellDisc;
+    if (pr) pr.value = sellDisc;
     updatePricePreview();
   } catch(e) {
-    el.textContent = 'Помилка';
+    elS.textContent = '?'; elP.textContent = '?';
+    showToast('Помилка завантаження знижок: ' + e.message, 'error');
   }
 }
 
 function updatePricePreview() {
-  const inp = document.getElementById('pricesDiscountInput');
-  const rng = document.getElementById('pricesDiscountRange');
-  const pct = parseFloat(inp && inp.value) || 0;
-  if (rng && rng.value !== String(pct)) rng.value = pct;
+  const suppDisc = parseFloat(document.getElementById('pricesSupplierDiscInput')?.value) || 0;
+  const sellDisc = parseFloat(document.getElementById('pricesSellDiscInput')?.value) || 0;
 
-  const samples = [500, 800, 1200, 2000, 3500, 6000];
+  const sr = document.getElementById('pricesSupplierDiscRange');
+  const pr = document.getElementById('pricesSellDiscRange');
+  if (sr && parseFloat(sr.value) !== suppDisc) sr.value = suppDisc;
+  if (pr && parseFloat(pr.value) !== sellDisc) pr.value = sellDisc;
+
+  const samples = [1000, 2000, 3500, 5000, 8000, 10000, 15000];
   const tbody = document.getElementById('pricesPreviewBody');
   if (!tbody) return;
 
-  tbody.innerHTML = samples.map(sp => {
-    const price    = Math.round(sp * (1 - pct / 100) / 100) * 100;
-    const oldPrice = Math.round(sp * 1.3 / 100) * 100;
-    const margin   = price - sp;
-    const marginColor = margin >= 0 ? 'var(--green)' : 'var(--red)';
-    const fmt = v => v.toLocaleString('uk-UA') + '\u00a0₴';
+  const fmt = v => Math.round(v).toLocaleString('uk-UA') + '\u00a0₴';
+  const fmtPct = v => v.toFixed(1) + '%';
+
+  tbody.innerHTML = samples.map(rrc => {
+    const buyPrice  = rrc * (1 - suppDisc / 100);
+    const sellPrice = Math.round(rrc * (1 - sellDisc / 100) / 100) * 100;
+    const oldPrice  = rrc;
+    const margin    = sellPrice - buyPrice;
+    const marginPct = buyPrice > 0 ? (margin / buyPrice * 100) : 0;
+    const mColor    = margin >= 0 ? 'var(--green)' : 'var(--red)';
     return `<tr style="border-bottom:1px solid var(--border)">
-      <td style="padding:9px 12px;color:var(--text-muted)">${fmt(sp)}</td>
-      <td style="padding:9px 12px;font-weight:700;color:var(--navy)">${fmt(price)}</td>
-      <td style="padding:9px 12px;text-decoration:line-through;color:var(--text-light)">${fmt(oldPrice)}</td>
-      <td style="padding:9px 12px;font-weight:700;color:${marginColor}">${margin >= 0 ? '+' : ''}${fmt(margin)}</td>
+      <td style="padding:7px 10px;color:var(--text-muted)">${fmt(rrc)}</td>
+      <td style="padding:7px 10px;color:var(--blue);font-weight:600">${fmt(buyPrice)}</td>
+      <td style="padding:7px 10px;font-weight:700;color:var(--navy)">${fmt(sellPrice)}</td>
+      <td style="padding:7px 10px;text-decoration:line-through;color:var(--text-light)">${fmt(oldPrice)}</td>
+      <td style="padding:7px 10px;font-weight:700;color:${mColor}">${margin>=0?'+':''}${fmt(margin)}</td>
+      <td style="padding:7px 10px;font-weight:700;color:${mColor}">${margin>=0?'+':''}${fmtPct(marginPct)}</td>
     </tr>`;
   }).join('');
 }
 
 async function doRecalculatePrices() {
-  const inp = document.getElementById('pricesDiscountInput');
-  const pct = parseFloat(inp && inp.value);
-  if (isNaN(pct) || pct < 0 || pct > 80) {
-    showToast('Введіть знижку від 0 до 80%', 'error'); return;
+  const suppDisc = parseFloat(document.getElementById('pricesSupplierDiscInput')?.value);
+  const sellDisc = parseFloat(document.getElementById('pricesSellDiscInput')?.value);
+
+  if (isNaN(suppDisc) || suppDisc < 0 || suppDisc > 90) {
+    showToast('Введіть знижку постачальника від 0 до 90%', 'error'); return;
+  }
+  if (isNaN(sellDisc) || sellDisc < 0 || sellDisc > 80) {
+    showToast('Введіть знижку продажу від 0 до 80%', 'error'); return;
   }
 
   const btn = document.querySelector('#panel-prices .btn-primary');
   const statusEl = document.getElementById('pricesStatus');
   if (btn) { btn.disabled = true; btn.innerHTML = '<div class="spinner" style="width:16px;height:16px;border-width:2px;margin:0 auto"></div>'; }
-  if (statusEl) statusEl.textContent = 'Збереження знижки…';
+  if (statusEl) statusEl.textContent = 'Виклик функції перерахунку…';
 
   try {
-    await sbFetch('settings', {
-      method: 'POST',
-      headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
-      body: JSON.stringify({ key: 'discount_pct', value: String(pct) })
-    });
-
-    if (statusEl) statusEl.textContent = 'Виклик функції перерахунку…';
-
     const result = await sbFetch('rpc/recalculate_prices', {
       method: 'POST',
-      body: JSON.stringify({ discount_pct: pct })
+      body: JSON.stringify({ p_supplier_discount: suppDisc, p_sell_discount: sellDisc })
     });
 
-    const updated = Array.isArray(result) ? result.length : (result && result.updated != null ? result.updated : '?');
-    document.getElementById('pricesCurrentDiscount').textContent = pct + '%';
+    const updated = result && result.updated != null ? result.updated : '?';
+    document.getElementById('pricesCurrentSupplierDisc').textContent = suppDisc + '%';
+    document.getElementById('pricesCurrentSellDisc').textContent     = sellDisc + '%';
     if (statusEl) statusEl.textContent = '';
     showToast('✅ Ціни перераховано! Оновлено товарів: ' + updated, 'success');
   } catch(e) {
