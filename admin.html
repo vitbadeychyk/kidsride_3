@@ -919,7 +919,33 @@ tr:hover td{background:rgba(240,242,248,.5)}
       </div>
 
       <div style="background:rgba(33,150,243,.07);border:1px solid rgba(33,150,243,.2);border-radius:var(--r);padding:14px 18px;margin-bottom:22px;font-size:13px;color:var(--navy);line-height:1.8">
-        <strong>Категорії</strong> синхронізуються з XML-каталогу постачальника через GitHub Action. Тут можна вмикати/вимикати відображення категорій на сторінці <a href="categories.html" target="_blank" style="color:var(--blue);text-decoration:underline">categories.html</a>. Неактивні категорії не показуються покупцям.
+        <strong>Категорії</strong> синхронізуються з XML-каталогу постачальника через GitHub Action. Підкатегорії можна призначати до <strong>головних категорій</strong> за допомогою випадаючого списку в стовпці "Головна категорія". Неактивні категорії не показуються покупцям.
+      </div>
+
+      <!-- Блок управління головними категоріями -->
+      <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r);padding:18px 20px;margin-bottom:22px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div style="font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;color:var(--navy)">🗂 Головні категорії</div>
+          <button onclick="showAddParentModal()" class="btn btn-primary" style="font-size:12px;padding:7px 14px">+ Додати</button>
+        </div>
+        <div id="parentCatsList" style="display:flex;flex-wrap:wrap;gap:8px">
+          <div style="font-size:12px;color:var(--text-muted)">Завантаження…</div>
+        </div>
+      </div>
+
+      <!-- Модалка додавання головної категорії -->
+      <div id="addParentModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2000;align-items:center;justify-content:center">
+        <div style="background:white;border-radius:var(--r);padding:28px;width:420px;max-width:90vw;box-shadow:var(--shadow-lg)">
+          <h3 style="font-family:'Nunito',sans-serif;font-size:17px;color:var(--navy);margin-bottom:18px">Нова головна категорія</h3>
+          <div class="f-group" style="margin-bottom:16px">
+            <label class="f-label">Назва</label>
+            <input type="text" id="newParentName" placeholder="Наприклад: Електромобілі" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:14px;font-family:'Manrope',sans-serif;outline:none" onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'">
+          </div>
+          <div style="display:flex;gap:10px;justify-content:flex-end">
+            <button onclick="document.getElementById('addParentModal').style.display='none'" style="padding:9px 18px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:none;cursor:pointer;font-family:'Manrope',sans-serif;font-weight:600;font-size:13px">Скасувати</button>
+            <button onclick="createParentCategory()" class="btn btn-primary" style="font-size:13px">Створити</button>
+          </div>
+        </div>
       </div>
 
       <div id="categoriesStatus" style="margin-bottom:14px;font-size:13px;color:var(--text-muted)">Завантаження…</div>
@@ -930,6 +956,7 @@ tr:hover td{background:rgba(240,242,248,.5)}
             <tr style="background:var(--bg)">
               <th style="padding:10px 16px;text-align:left;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);white-space:nowrap">ID</th>
               <th style="padding:10px 16px;text-align:left;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">Назва категорії</th>
+              <th style="padding:10px 16px;text-align:left;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">Головна категорія</th>
               <th style="padding:10px 16px;text-align:center;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">Товарів</th>
               <th style="padding:10px 16px;text-align:center;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">Статус</th>
               <th style="padding:10px 16px;text-align:center;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">Дія</th>
@@ -937,7 +964,7 @@ tr:hover td{background:rgba(240,242,248,.5)}
           </thead>
           <tbody id="categoriesTbody">
             <tr>
-              <td colspan="5" style="text-align:center;padding:40px">
+              <td colspan="6" style="text-align:center;padding:40px">
                 <div class="spinner" style="margin:0 auto"></div>
               </td>
             </tr>
@@ -5595,43 +5622,162 @@ window.addEventListener('load', () => {
 
 <script>
 // ── CATEGORIES PANEL ──────────────────────────────────────────────────────────
-let _catsCache = [];
+let _catsCache   = [];
+let _parentCats  = [];
 
+// ── Завантаження головних категорій (parent_id IS NULL, id >= 9000) ───────────
+async function loadParentCategories() {
+  try {
+    const all = await sbFetch('categories?select=id,name,active&order=name.asc');
+    _parentCats = (all || []).filter(c => !c.parent_id && c.id >= 9000);
+    renderParentCatsList();
+  } catch(e) {
+    document.getElementById('parentCatsList').innerHTML =
+      `<span style="font-size:12px;color:var(--red)">Помилка: ${e.message}</span>`;
+  }
+}
+
+function renderParentCatsList() {
+  const el = document.getElementById('parentCatsList');
+  if (!el) return;
+  if (!_parentCats.length) {
+    el.innerHTML = `<span style="font-size:12px;color:var(--text-muted)">Головних категорій немає. Спочатку виконайте SQL-міграцію SUPABASE_PARENT_CATEGORIES.sql</span>`;
+    return;
+  }
+  el.innerHTML = _parentCats.map(p => `
+    <div style="display:inline-flex;align-items:center;gap:6px;background:var(--bg-soft);border:1.5px solid var(--border);border-radius:20px;padding:5px 12px">
+      <span style="font-size:13px;font-weight:700;color:var(--navy)">${_esc(p.name)}</span>
+      <span style="font-size:10px;color:var(--text-muted)">ID: ${p.id}</span>
+      <button onclick="deleteParentCategory(${p.id},'${_esc(p.name)}')" title="Видалити" style="background:none;border:none;cursor:pointer;color:var(--red);padding:0;line-height:1;font-size:14px">×</button>
+    </div>`).join('');
+}
+
+function showAddParentModal() {
+  document.getElementById('newParentName').value = '';
+  document.getElementById('addParentModal').style.display = 'flex';
+  setTimeout(() => document.getElementById('newParentName').focus(), 100);
+}
+
+async function createParentCategory() {
+  const name = (document.getElementById('newParentName').value || '').trim();
+  if (!name) { showToast('Введіть назву категорії', 'error'); return; }
+
+  // Знайти вільний ID >= 9000
+  const usedIds = _parentCats.map(p => p.id);
+  let newId = 9000;
+  while (usedIds.includes(++newId)) {}
+
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/categories', {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ id: newId, name, active: true })
+    });
+    if (!res.ok) {
+      const t = await res.text();
+      throw new Error('HTTP ' + res.status + ': ' + t);
+    }
+    document.getElementById('addParentModal').style.display = 'none';
+    showToast('✅ Головну категорію «' + name + '» створено (ID ' + newId + ')', 'success');
+    await loadCategories();
+  } catch(e) {
+    showToast('Помилка: ' + e.message, 'error');
+  }
+}
+
+async function deleteParentCategory(id, name) {
+  if (!confirm(`Видалити головну категорію «${name}»?\nПідкатегорії НЕ видаляться — вони стануть непризначеними.`)) return;
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/categories?id=eq.' + id, {
+      method: 'DELETE',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Prefer': 'return=minimal'
+      }
+    });
+    if (!res.ok) { const t = await res.text(); throw new Error('HTTP ' + res.status + ': ' + t); }
+    showToast('✅ Головну категорію видалено', 'success');
+    await loadCategories();
+  } catch(e) {
+    showToast('Помилка: ' + e.message, 'error');
+  }
+}
+
+// ── Призначити підкатегорію до головної (або зняти) ──────────────────────────
+async function setParentCategory(subId, parentId) {
+  const val = parentId === '' ? null : parseInt(parentId);
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/categories?id=eq.' + subId, {
+      method: 'PATCH',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ parent_id: val })
+    });
+    if (!res.ok) { const t = await res.text(); throw new Error('HTTP ' + res.status + ': ' + t); }
+    showToast('✅ Збережено', 'success');
+    // Не перезавантажуємо всю таблицю — лише оновлюємо кеш локально
+    const c = _catsCache.find(c => c.id === subId);
+    if (c) c.parent_id = val;
+  } catch(e) {
+    showToast('Помилка: ' + e.message, 'error');
+    // Відновити попереднє значення у select
+    await loadCategories();
+  }
+}
+
+// ── Основна функція завантаження таблиці категорій ───────────────────────────
 async function loadCategories() {
   const tbody  = document.getElementById('categoriesTbody');
   const status = document.getElementById('categoriesStatus');
   if (!tbody) return;
 
-  tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px"><div class="spinner" style="margin:0 auto"></div></td></tr>';
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px"><div class="spinner" style="margin:0 auto"></div></td></tr>';
   if (status) status.textContent = 'Завантаження…';
 
   try {
-    // Завантажити категорії
+    // Завантажити всі категорії (включаючи parent_id)
     const cats = await sbFetch('categories?select=*&order=name.asc');
     _catsCache = cats || [];
+
+    // Виділити головні категорії (id >= 9000, parent_id = null)
+    _parentCats = _catsCache.filter(c => !c.parent_id && c.id >= 9000);
+    renderParentCatsList();
+
+    // Підкатегорії — всі категорії з id < 9000 (прийшли з XML)
+    const subCats = _catsCache.filter(c => c.id < 9000);
 
     // Завантажити кількість товарів per category
     let counts = {};
     try {
-      // Запит агрегації через group-by (потребує RPC або ручного підрахунку)
-      // Використовуємо простий select category_id та рахуємо вручну
       const prods = await sbFetch('products?select=category_id&active=eq.true&limit=10000');
       (prods || []).forEach(p => {
-        if (p.category_id != null) {
-          counts[p.category_id] = (counts[p.category_id] || 0) + 1;
-        }
+        if (p.category_id != null) counts[p.category_id] = (counts[p.category_id] || 0) + 1;
       });
-    } catch(_) { /* якщо не вдалося — ігноруємо */ }
+    } catch(_) {}
 
-    if (!_catsCache.length) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:40px">Категорій не знайдено. Запустіть GitHub Action для синхронізації.</td></tr>';
+    if (!subCats.length) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:40px">Категорій не знайдено. Запустіть GitHub Action для синхронізації.</td></tr>';
       if (status) status.textContent = '';
       return;
     }
 
-    if (status) status.textContent = `Всього: ${_catsCache.length} категорій`;
+    if (status) status.textContent = `Всього: ${subCats.length} підкатегорій`;
 
-    tbody.innerHTML = _catsCache.map(cat => {
+    // Опції для select батьківської категорії
+    const parentOptions = `<option value="">— не призначено —</option>` +
+      _parentCats.map(p => `<option value="${p.id}">${_esc(p.name)}</option>`).join('');
+
+    tbody.innerHTML = subCats.map(cat => {
       const cnt = counts[cat.id] || 0;
       const isActive = cat.active !== false;
       const statusBadge = isActive
@@ -5641,9 +5787,19 @@ async function loadCategories() {
       const toggleStyle = isActive
         ? 'background:var(--red-soft);color:var(--red);border:1px solid rgba(229,57,53,.25)'
         : 'background:var(--green-soft);color:var(--green);border:1px solid rgba(39,174,96,.25)';
+
+      const currentParentId = cat.parent_id ?? '';
+      const parentSelect = _parentCats.length
+        ? `<select onchange="setParentCategory(${cat.id}, this.value)"
+            style="width:100%;padding:5px 8px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;font-family:'Manrope',sans-serif;background:var(--bg-soft);color:var(--navy);cursor:pointer;outline:none">
+            ${parentOptions.replace(`value="${currentParentId}"`, `value="${currentParentId}" selected`)}
+          </select>`
+        : `<span style="color:var(--text-muted);font-size:11px">Немає головних категорій</span>`;
+
       return `<tr style="border-top:1px solid var(--border-light);transition:background .15s" onmouseenter="this.style.background='var(--bg)'" onmouseleave="this.style.background=''">
         <td style="padding:10px 16px;font-family:monospace;font-size:12px;color:var(--text-muted)">${cat.id}</td>
         <td style="padding:10px 16px;font-weight:600;color:var(--navy)">${_esc(cat.name || '—')}</td>
+        <td style="padding:10px 16px;min-width:180px">${parentSelect}</td>
         <td style="padding:10px 16px;text-align:center">
           ${cnt > 0
             ? `<a href="catalog.html?catId=${cat.id}&catName=${encodeURIComponent(cat.name||'')}" target="_blank" style="color:var(--blue);font-weight:700;text-decoration:none">${cnt} шт.</a>`
@@ -5660,7 +5816,7 @@ async function loadCategories() {
     }).join('');
 
   } catch(e) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--red);padding:32px">Помилка: ${e.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--red);padding:32px">Помилка: ${e.message}</td></tr>`;
     if (status) status.textContent = '';
     showToast('Помилка завантаження категорій: ' + e.message, 'error');
   }
