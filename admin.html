@@ -5884,13 +5884,29 @@ async function loadCategories() {
     // Підкатегорії — всі категорії з id < 9000 (прийшли з XML)
     const subCats = _catsCache.filter(c => c.id < 9000);
 
-    // Завантажити кількість товарів per category
+    // Завантажити кількість товарів per category (з пагінацією — Supabase max 1000/запит)
     let counts = {};
     try {
-      const prods = await sbFetch('products?select=category_id&active=eq.true&limit=10000');
-      (prods || []).forEach(p => {
-        if (p.category_id != null) counts[p.category_id] = (counts[p.category_id] || 0) + 1;
-      });
+      const PAGE = 1000;
+      let from = 0;
+      while (true) {
+        const r = await fetch(SUPABASE_URL + '/rest/v1/products?select=category_id&active=eq.true', {
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': 'Bearer ' + (_adminToken || SUPABASE_KEY),
+            'Prefer': 'count=none',
+            'Range': from + '-' + (from + PAGE - 1),
+            'Range-Unit': 'items'
+          }
+        });
+        if (!r.ok) break;
+        const prods = await r.json();
+        (prods || []).forEach(p => {
+          if (p.category_id != null) counts[p.category_id] = (counts[p.category_id] || 0) + 1;
+        });
+        if (!prods || prods.length < PAGE) break;
+        from += PAGE;
+      }
     } catch(_) {}
 
     if (!subCats.length) {

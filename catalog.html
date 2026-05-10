@@ -1891,7 +1891,7 @@ async function loadProductsFromSupabase() {
         category_id: p.category_id ?? null,
         voltage: p.voltage || null,
         age: p.age_range || null,
-        stock: p.stock || 0,
+        stock: p.stock ?? null,
         preorderDays: p.preorder_days || 0,
         badge: p.badge,
         img: p.img_type || 'jeep',
@@ -2059,7 +2059,7 @@ async function renderCatalog() {
   }
 
   // ── Крок 1: Показати кешовані товари ОДРАЗУ (якщо є в localStorage) ─────
-  const PRODUCTS_CACHE_KEY = 'kidsride_products_v2'; // v2: voltage/age null defaults
+  const PRODUCTS_CACHE_KEY = 'kidsride_products_v3'; // v3: stock null fix (was p.stock||0)
   let cached = null;
   try {
     const raw = localStorage.getItem(PRODUCTS_CACHE_KEY);
