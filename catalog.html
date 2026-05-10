@@ -1658,6 +1658,23 @@ async function loadCategoryTree() {
     const subNamesRedundant = subs.every(s => s.name.toLowerCase().includes(parent.name.toLowerCase()) || parent.name.toLowerCase().includes(s.name.toLowerCase()));
     const useVehicleTypes   = vehicleTypes.length >= 2 && (subs.length <= 1 || subNamesRedundant);
 
+    // ── Якщо єдина підкатегорія має ту саму назву що й батько — рендеримо як
+    //    пряме посилання (без розкривного списку і стрілки) ─────────────────
+    const isSingleSameName = subs.length === 1 && subNamesRedundant;
+    if (isSingleSameName) {
+      const sub      = subs[0];
+      const cnt      = prodCountMap[sub.id] || 0;
+      const isActive = _activeCatIdFilter === sub.id;
+      html += `
+      <div class="ctree-parent">
+        <div class="ctree-parent-row${isActive ? ' active' : ''}" onclick="selectCategory(${sub.id},0)" style="cursor:pointer">
+          <span class="ctree-label">${parent.name}</span>
+          ${cnt ? `<span class="ctree-cnt">${cnt}</span>` : ''}
+        </div>
+      </div>`;
+      return; // перейти до наступного батька
+    }
+
     const isParentActive    = _activeParentIdFilter === parent.id;
     const hasActiveSub      = subs.some(c => c.id === _activeCatIdFilter);
     const hasActiveVehicle  = isParentActive && _activeVehicleType !== '';
