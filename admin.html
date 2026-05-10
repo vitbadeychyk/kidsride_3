@@ -948,7 +948,25 @@ tr:hover td{background:rgba(240,242,248,.5)}
         </div>
       </div>
 
-      <div id="categoriesStatus" style="margin-bottom:14px;font-size:13px;color:var(--text-muted)">Завантаження…</div>
+      <!-- Фільтр/сортування підкатегорій -->
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+        <div id="categoriesStatus" style="font-size:13px;color:var(--text-muted);flex:1;min-width:120px">Завантаження…</div>
+        <select id="catSortSelect" onchange="renderFilteredCategories()"
+          style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:'Manrope',sans-serif;background:var(--bg-soft);color:var(--navy);cursor:pointer;outline:none">
+          <option value="name_asc">A → Я (назва)</option>
+          <option value="count_desc">Більше товарів спочатку</option>
+          <option value="count_asc">Менше товарів спочатку</option>
+          <option value="active_first">Спочатку активні</option>
+          <option value="inactive_first">Спочатку приховані</option>
+        </select>
+        <select id="catStatusFilter" onchange="renderFilteredCategories()"
+          style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:'Manrope',sans-serif;background:var(--bg-soft);color:var(--navy);cursor:pointer;outline:none">
+          <option value="all">Всі статуси</option>
+          <option value="active">Тільки активні</option>
+          <option value="inactive">Тільки приховані</option>
+          <option value="unassigned">Без категорії</option>
+        </select>
+      </div>
 
       <div style="overflow-x:auto;border-radius:var(--r);border:1px solid var(--border)">
         <table style="width:100%;border-collapse:collapse;font-size:13px">
@@ -5628,8 +5646,8 @@ let _parentCats  = [];
 // ── Завантаження головних категорій (parent_id IS NULL, id >= 9000) ───────────
 async function loadParentCategories() {
   try {
-    const all = await sbFetch('categories?select=id,name,active&order=name.asc');
-    _parentCats = (all || []).filter(c => !c.parent_id && c.id >= 9000);
+    const all = await sbFetch('main_categories?select=id,name,active&order=sort_order.asc,name.asc');
+    _parentCats = (all || []);
     renderParentCatsList();
   } catch(e) {
     document.getElementById('parentCatsList').innerHTML =
@@ -5662,26 +5680,24 @@ async function createParentCategory() {
   const name = (document.getElementById('newParentName').value || '').trim();
   if (!name) { showToast('Введіть назву категорії', 'error'); return; }
 
-  // Знайти вільний ID >= 9000
-  const usedIds = _parentCats.map(p => p.id);
-  let newId = 9000;
-  while (usedIds.includes(++newId)) {}
-
   try {
-    const res = await fetch(SUPABASE_URL + '/rest/v1/categories', {
+    const sortOrder = _parentCats.length > 0 ? Math.max(..._parentCats.map(p => p.sort_order||0)) + 1 : 1;
+    const res = await fetch(SUPABASE_URL + '/rest/v1/main_categories', {
       method: 'POST',
       headers: {
         'apikey': SUPABASE_KEY,
         'Authorization': 'Bearer ' + SUPABASE_KEY,
         'Content-Type': 'application/json',
-        'Prefer': 'return=minimal'
+        'Prefer': 'return=representation'
       },
-      body: JSON.stringify({ id: newId, name, active: true })
+      body: JSON.stringify({ name, active: true, sort_order: sortOrder })
     });
     if (!res.ok) {
       const t = await res.text();
       throw new Error('HTTP ' + res.status + ': ' + t);
     }
+    const created = await res.json();
+    const newId = created[0]?.id || '?';
     document.getElementById('addParentModal').style.display = 'none';
     showToast('✅ Головну категорію «' + name + '» створено (ID ' + newId + ')', 'success');
     await loadCategories();
@@ -5693,7 +5709,7 @@ async function createParentCategory() {
 async function deleteParentCategory(id, name) {
   if (!confirm(`Видалити головну категорію «${name}»?\nПідкатегорії НЕ видаляться — вони стануть непризначеними.`)) return;
   try {
-    const res = await fetch(SUPABASE_URL + '/rest/v1/categories?id=eq.' + id, {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/main_categories?id=eq.' + id, {
       method: 'DELETE',
       headers: {
         'apikey': SUPABASE_KEY,
@@ -5721,7 +5737,7 @@ async function setParentCategory(subId, parentId) {
         'Content-Type': 'application/json',
         'Prefer': 'return=minimal'
       },
-      body: JSON.stringify({ parent_id: val })
+      body: JSON.stringify({ main_category_id: val })
     });
     if (!res.ok) { const t = await res.text(); throw new Error('HTTP ' + res.status + ': ' + t); }
     showToast('✅ Збережено', 'success');
@@ -5736,6 +5752,76 @@ async function setParentCategory(subId, parentId) {
 }
 
 // ── Основна функція завантаження таблиці категорій ───────────────────────────
+function renderFilteredCategories() {
+  const tbody  = document.getElementById('categoriesTbody');
+  const status = document.getElementById('categoriesStatus');
+  if (!tbody || !window._subCatsData) return;
+
+  const sortVal   = document.getElementById('catSortSelect')?.value   || 'name_asc';
+  const statusVal = document.getElementById('catStatusFilter')?.value || 'all';
+  const counts    = window._catCountsMap || {};
+
+  let data = [...window._subCatsData];
+
+  // Фільтр по статусу
+  if (statusVal === 'active')     data = data.filter(c => c.active !== false);
+  else if (statusVal === 'inactive')  data = data.filter(c => c.active === false);
+  else if (statusVal === 'unassigned') data = data.filter(c => !c.main_category_id);
+
+  // Сортування
+  if (sortVal === 'name_asc')       data.sort((a,b) => (a.name||'').localeCompare(b.name||'','uk'));
+  else if (sortVal === 'count_desc') data.sort((a,b) => (counts[b.id]||0) - (counts[a.id]||0));
+  else if (sortVal === 'count_asc')  data.sort((a,b) => (counts[a.id]||0) - (counts[b.id]||0));
+  else if (sortVal === 'active_first')   data.sort((a,b) => (b.active===false?0:1) - (a.active===false?0:1));
+  else if (sortVal === 'inactive_first') data.sort((a,b) => (a.active===false?0:1) - (b.active===false?0:1));
+
+  if (status) status.textContent = `Показано: ${data.length} / ${window._subCatsData.length} підкатегорій`;
+
+  const parentOptions = `<option value="">— не призначено —</option>` +
+    (_parentCats||[]).map(p => `<option value="${p.id}">${_esc(p.name)}</option>`).join('');
+
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:32px">Нічого не знайдено за обраними фільтрами</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = data.map(cat => {
+    const cnt      = counts[cat.id] || 0;
+    const isActive = cat.active !== false;
+    const statusBadge = isActive
+      ? `<span style="background:var(--green-soft);color:var(--green);border-radius:20px;padding:3px 12px;font-size:11px;font-weight:700">Активна</span>`
+      : `<span style="background:var(--bg);color:var(--text-light);border-radius:20px;padding:3px 12px;font-size:11px;font-weight:700">Прихована</span>`;
+    const toggleLabel = isActive ? 'Приховати' : 'Показати';
+    const toggleStyle = isActive
+      ? 'background:var(--red-soft);color:var(--red);border:1px solid rgba(229,57,53,.25)'
+      : 'background:var(--green-soft);color:var(--green);border:1px solid rgba(39,174,96,.25)';
+    const currentParentId = cat.main_category_id ?? '';
+    const parentSelect = (_parentCats||[]).length
+      ? `<select onchange="setParentCategory(${cat.id}, this.value)"
+          style="width:100%;padding:5px 8px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;font-family:'Manrope',sans-serif;background:var(--bg-soft);color:var(--navy);cursor:pointer;outline:none">
+          ${parentOptions.replace(`value="${currentParentId}"`, `value="${currentParentId}" selected`)}
+        </select>`
+      : `<span style="color:var(--text-muted);font-size:11px">Немає головних категорій</span>`;
+    return `<tr style="border-top:1px solid var(--border-light);transition:background .15s" onmouseenter="this.style.background='var(--bg)'" onmouseleave="this.style.background=''">
+      <td style="padding:10px 16px;font-family:monospace;font-size:12px;color:var(--text-muted)">${cat.id}</td>
+      <td style="padding:10px 16px;font-weight:600;color:var(--navy)">${_esc(cat.name || '—')}</td>
+      <td style="padding:10px 16px;min-width:180px">${parentSelect}</td>
+      <td style="padding:10px 16px;text-align:center">
+        ${cnt > 0
+          ? `<a href="catalog.html?catId=${cat.id}&catName=${encodeURIComponent(cat.name||'')}" target="_blank" style="color:var(--blue);font-weight:700;text-decoration:none">${cnt} шт.</a>`
+          : `<span style="color:var(--text-light)">0</span>`}
+      </td>
+      <td style="padding:10px 16px;text-align:center">${statusBadge}</td>
+      <td style="padding:10px 16px;text-align:center">
+        <button onclick="toggleCategoryActive(${cat.id}, ${!isActive})"
+          style="padding:5px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;${toggleStyle}">
+          ${toggleLabel}
+        </button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
 async function loadCategories() {
   const tbody  = document.getElementById('categoriesTbody');
   const status = document.getElementById('categoriesStatus');
@@ -5749,8 +5835,13 @@ async function loadCategories() {
     const cats = await sbFetch('categories?select=*&order=name.asc');
     _catsCache = cats || [];
 
-    // Виділити головні категорії (id >= 9000, parent_id = null)
-    _parentCats = _catsCache.filter(c => !c.parent_id && c.id >= 9000);
+    // Головні категорії завантажуємо окремо з main_categories
+    try {
+      const mainCats = await sbFetch('main_categories?select=id,name,active&order=sort_order.asc,name.asc');
+      _parentCats = mainCats || [];
+    } catch(_) {
+      _parentCats = [];
+    }
     renderParentCatsList();
 
     // Підкатегорії — всі категорії з id < 9000 (прийшли з XML)
@@ -5771,49 +5862,10 @@ async function loadCategories() {
       return;
     }
 
-    if (status) status.textContent = `Всього: ${subCats.length} підкатегорій`;
-
-    // Опції для select батьківської категорії
-    const parentOptions = `<option value="">— не призначено —</option>` +
-      _parentCats.map(p => `<option value="${p.id}">${_esc(p.name)}</option>`).join('');
-
-    tbody.innerHTML = subCats.map(cat => {
-      const cnt = counts[cat.id] || 0;
-      const isActive = cat.active !== false;
-      const statusBadge = isActive
-        ? `<span style="background:var(--green-soft);color:var(--green);border-radius:20px;padding:3px 12px;font-size:11px;font-weight:700">Активна</span>`
-        : `<span style="background:var(--bg);color:var(--text-light);border-radius:20px;padding:3px 12px;font-size:11px;font-weight:700">Прихована</span>`;
-      const toggleLabel = isActive ? 'Приховати' : 'Показати';
-      const toggleStyle = isActive
-        ? 'background:var(--red-soft);color:var(--red);border:1px solid rgba(229,57,53,.25)'
-        : 'background:var(--green-soft);color:var(--green);border:1px solid rgba(39,174,96,.25)';
-
-      const currentParentId = cat.parent_id ?? '';
-      const parentSelect = _parentCats.length
-        ? `<select onchange="setParentCategory(${cat.id}, this.value)"
-            style="width:100%;padding:5px 8px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;font-family:'Manrope',sans-serif;background:var(--bg-soft);color:var(--navy);cursor:pointer;outline:none">
-            ${parentOptions.replace(`value="${currentParentId}"`, `value="${currentParentId}" selected`)}
-          </select>`
-        : `<span style="color:var(--text-muted);font-size:11px">Немає головних категорій</span>`;
-
-      return `<tr style="border-top:1px solid var(--border-light);transition:background .15s" onmouseenter="this.style.background='var(--bg)'" onmouseleave="this.style.background=''">
-        <td style="padding:10px 16px;font-family:monospace;font-size:12px;color:var(--text-muted)">${cat.id}</td>
-        <td style="padding:10px 16px;font-weight:600;color:var(--navy)">${_esc(cat.name || '—')}</td>
-        <td style="padding:10px 16px;min-width:180px">${parentSelect}</td>
-        <td style="padding:10px 16px;text-align:center">
-          ${cnt > 0
-            ? `<a href="catalog.html?catId=${cat.id}&catName=${encodeURIComponent(cat.name||'')}" target="_blank" style="color:var(--blue);font-weight:700;text-decoration:none">${cnt} шт.</a>`
-            : `<span style="color:var(--text-light)">0</span>`}
-        </td>
-        <td style="padding:10px 16px;text-align:center">${statusBadge}</td>
-        <td style="padding:10px 16px;text-align:center">
-          <button onclick="toggleCategoryActive(${cat.id}, ${!isActive})"
-            style="padding:5px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;${toggleStyle}">
-            ${toggleLabel}
-          </button>
-        </td>
-      </tr>`;
-    }).join('');
+    // Зберігаємо для фільтрації/сортування
+    window._subCatsData  = subCats;
+    window._catCountsMap = counts;
+    renderFilteredCategories();
 
   } catch(e) {
     tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--red);padding:32px">Помилка: ${e.message}</td></tr>`;

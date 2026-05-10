@@ -433,19 +433,7 @@ nav a.active{color:var(--orange)}
     <div class="ctree-divider"></div>
 
     <!-- Availability -->
-    <div class="filter-block">
-      <div class="filter-title" onclick="toggleFilter(this)">
-        Наявність
-        <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-      </div>
-      <div class="filter-body">
-        <label class="filter-option checked" data-group="available" onclick="toggleCheck(this,'available')">
-          <div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-          <span class="filter-label">В наявності</span>
-          <span class="filter-cnt">—</span>
-        </label>
-      </div>
-    </div>
+    <!-- В наявності block removed per user request -->
 
     <!-- Type -->
     <div class="filter-block" id="filterBlockType">
@@ -1852,8 +1840,8 @@ async function loadProductsFromSupabase() {
         oldPrice: p.old_price ? parseFloat(p.old_price) : null,
         category: p.category,
         category_id: p.category_id ?? null,
-        voltage: p.voltage || '12V',
-        age: p.age_range || '3-8',
+        voltage: p.voltage || null,
+        age: p.age_range || null,
         stock: p.stock || 0,
         preorderDays: p.preorder_days || 0,
         badge: p.badge,
@@ -2013,14 +2001,7 @@ async function renderCatalog() {
   const grid = document.getElementById('productsGrid');
   if (!grid) return;
 
-  // Показати loader
-  grid.innerHTML = `
-    <div style="grid-column:1/-1;text-align:center;padding:60px 24px;color:var(--text-muted)">
-      <div style="width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--orange);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 16px"></div>
-      <div style="font-size:14px">Завантаження товарів...</div>
-    </div>`;
-
-  // Додати spin анімацію
+  // Spin CSS
   if (!document.getElementById('_spinStyle')) {
     const s = document.createElement('style');
     s.id = '_spinStyle';
@@ -2028,25 +2009,55 @@ async function renderCatalog() {
     document.head.appendChild(s);
   }
 
-  // Завантажити з Supabase (або fallback)
-  const products = await loadProductsFromSupabase();
-  allProducts = products.filter(p => p.active !== false);
+  // ── Крок 1: Показати кешовані товари ОДРАЗУ (якщо є в localStorage) ─────
+  const PRODUCTS_CACHE_KEY = 'kidsride_products_v1';
+  let cached = null;
+  try {
+    const raw = localStorage.getItem(PRODUCTS_CACHE_KEY);
+    if (raw) cached = JSON.parse(raw);
+  } catch(_) {}
 
-  // Зберегти в localStorage як кеш
-  try { localStorage.setItem(PRODUCTS_KEY, JSON.stringify(allProducts)); } catch(e) {}
+  if (cached && cached.length > 0) {
+    allProducts = cached;
+    const countEl = document.getElementById('catalogCount');
+    if (countEl) countEl.textContent = allProducts.length + ' товарів';
+    updateDynamicFilters();
+    applyUrlFilters();
+    applyFiltersAndRender();
+    // Завантажуємо категорії і свіжі товари паралельно у фоні
+    Promise.all([loadCategoryTree(), loadProductsFromSupabase()]).then(([, freshProds]) => {
+      if (freshProds && freshProds.length > 0) {
+        allProducts = freshProds.filter(p => p.active !== false);
+        try { localStorage.setItem(PRODUCTS_CACHE_KEY, JSON.stringify(allProducts)); } catch(_) {}
+        const el = document.getElementById('catalogCount');
+        if (el) el.textContent = allProducts.length + ' товарів';
+        updateDynamicFilters();
+        applyFiltersAndRender();
+      }
+    }).catch(() => {});
+    return;
+  }
 
-  // Показати лічильник
+  // ── Крок 2: Немає кешу — завантажуємо товари і категорії паралельно ──────
+  grid.innerHTML = `
+    <div style="grid-column:1/-1;text-align:center;padding:60px 24px;color:var(--text-muted)">
+      <div style="width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--orange);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 16px"></div>
+      <div style="font-size:14px">Завантаження товарів...</div>
+    </div>`;
+
+  const [products] = await Promise.all([
+    loadProductsFromSupabase(),
+    loadCategoryTree()
+  ]);
+
+  allProducts = (products || []).filter(p => p.active !== false);
+  try { localStorage.setItem(PRODUCTS_CACHE_KEY, JSON.stringify(allProducts)); } catch(_) {}
+
   const countEl = document.getElementById('catalogCount');
   if (countEl) countEl.textContent = allProducts.length + ' товарів';
 
-  // Заповнити лічильники у фільтрах справжніми числами з бази
   updateDynamicFilters();
-  // Підтягнути попередній фільтр з URL (?cat=jeep, ?catId=, ?parentId= тощо)
   applyUrlFilters();
-
-  // Завантажити дерево категорій (паралельно, бо не блокує рендер товарів)
-  loadCategoryTree();
-
   applyFiltersAndRender();
 }
 
