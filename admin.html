@@ -1675,7 +1675,7 @@ CREATE POLICY "admin_seo" ON settings_seo USING (auth.role()='authenticated') WI
           <label>Акумулятор</label>
           <select id="pVoltage">
             <option value="6V">6V</option>
-            <option value="12V" selected>12V</option>
+            <option value="12V">12V</option>
             <option value="24V">24V</option>
           </select>
         </div>
@@ -1688,7 +1688,7 @@ CREATE POLICY "admin_seo" ON settings_seo USING (auth.role()='authenticated') WI
             <option value="1-3">1–3 роки</option>
             <option value="2-7">2–7 років</option>
             <option value="3-6">3–6 років</option>
-            <option value="3-8" selected>3–8 років</option>
+            <option value="3-8">3–8 років</option>
             <option value="6-10">6–10 років</option>
           </select>
         </div>
@@ -3426,7 +3426,7 @@ function _xmlGuessVoltage(name, params) {
   const txt = (name || '') + ' ' + Object.values(params || {}).join(' ');
   const m = txt.match(/\b(6|12|24|36|48)\s*[Vв]\b/i);
   if (m) return m[1] + 'V';
-  return '12V';
+  return null;
 }
 // Витягує "model_code" з артикула: "M 4259EBLR-1" → "4259"
 function _xmlGuessModelCode(sku) {
@@ -3471,7 +3471,7 @@ function _xmlParseItem(item) {
     category,
     img: _xmlGuessImg(category),
     voltage: _xmlGuessVoltage(name, params),
-    age: '3-8',
+    age: null,
     stock: parseInt(stockRaw, 10) || 0,
     preorderDays: 0,
     badge: '',
@@ -3790,8 +3790,8 @@ function openProductModal(id = null) {
   document.getElementById('pPrice').value = p?.price || '';
   document.getElementById('pOldPrice').value = (p?.old_price ?? p?.oldPrice) || '';
   document.getElementById('pCategory').value = p?.category || 'jeep';
-  document.getElementById('pVoltage').value = p?.voltage || '12V';
-  document.getElementById('pAge').value = (p?.age_range ?? p?.age) || '3-8';
+  document.getElementById('pVoltage').value = p?.voltage || '';
+  document.getElementById('pAge').value = (p?.age_range ?? p?.age) || '';
   document.getElementById('pStock').value = (p?.stock ?? 1);
   document.getElementById('pPreorderDays').value = (p?.preorder_days ?? p?.preorderDays ?? 0);
   document.getElementById('pBadge').value = p?.badge || '';
