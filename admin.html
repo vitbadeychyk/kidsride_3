@@ -435,6 +435,10 @@ tr:hover td{background:rgba(240,242,248,.5)}
       Залишок (склад)
       <span class="nav-badge" id="navBadgeOstatok" style="display:none;background:var(--blue)">0</span>
     </div>
+    <div class="nav-item" onclick="showPanel('categories',this)">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Категорії
+    </div>
     <div class="nav-item" onclick="showPanel('prices',this)">
       <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
       Перерахунок цін
@@ -899,6 +903,46 @@ tr:hover td{background:rgba(240,242,248,.5)}
             </tbody>
           </table>
         </div>
+      </div>
+    </div>
+
+    <!-- ═══ CATEGORIES (Категорії) ═══ -->
+    <div class="panel" id="panel-categories">
+      <div class="section-header">
+        <h2 class="section-title">Категорії <span>товарів</span></h2>
+        <div class="section-actions">
+          <button class="btn btn-primary" onclick="loadCategories()" style="gap:6px;display:flex;align-items:center">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+            Оновити
+          </button>
+        </div>
+      </div>
+
+      <div style="background:rgba(33,150,243,.07);border:1px solid rgba(33,150,243,.2);border-radius:var(--r);padding:14px 18px;margin-bottom:22px;font-size:13px;color:var(--navy);line-height:1.8">
+        <strong>Категорії</strong> синхронізуються з XML-каталогу постачальника через GitHub Action. Тут можна вмикати/вимикати відображення категорій на сторінці <a href="categories.html" target="_blank" style="color:var(--blue);text-decoration:underline">categories.html</a>. Неактивні категорії не показуються покупцям.
+      </div>
+
+      <div id="categoriesStatus" style="margin-bottom:14px;font-size:13px;color:var(--text-muted)">Завантаження…</div>
+
+      <div style="overflow-x:auto;border-radius:var(--r);border:1px solid var(--border)">
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+          <thead>
+            <tr style="background:var(--bg)">
+              <th style="padding:10px 16px;text-align:left;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);white-space:nowrap">ID</th>
+              <th style="padding:10px 16px;text-align:left;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">Назва категорії</th>
+              <th style="padding:10px 16px;text-align:center;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">Товарів</th>
+              <th style="padding:10px 16px;text-align:center;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">Статус</th>
+              <th style="padding:10px 16px;text-align:center;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">Дія</th>
+            </tr>
+          </thead>
+          <tbody id="categoriesTbody">
+            <tr>
+              <td colspan="5" style="text-align:center;padding:40px">
+                <div class="spinner" style="margin:0 auto"></div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
@@ -2041,7 +2085,7 @@ async function sbUpdateOrderStatus(id, status, ttn = null) {
 // Date init moved to initAdmin()
 
 // ── NAVIGATION ────────────────────────────────────────────────────────────
-const pageTitles={dashboard:'Dashboard',analytics:'Аналітика відвідувань',orders:'Замовлення',products:'Товари',carousel:'Карусель сайту',import:'Імпорт товарів',reviews:'Відгуки',ostatok:'Залишок (власний склад)',settings:'Налаштування',reports:'Звіти та аналітика',prices:'Перерахунок цін'};
+const pageTitles={dashboard:'Dashboard',analytics:'Аналітика відвідувань',orders:'Замовлення',products:'Товари',carousel:'Карусель сайту',import:'Імпорт товарів',reviews:'Відгуки',ostatok:'Залишок (власний склад)',categories:'Категорії товарів',settings:'Налаштування',reports:'Звіти та аналітика',prices:'Перерахунок цін'};
 
 function showPanel(id, navEl) {
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
@@ -2054,8 +2098,9 @@ function showPanel(id, navEl) {
   if(id==='analytics') renderAnalytics();
   if(id==='settings')  renderSettings();
   if(id==='reports')   renderReports();
-  if(id==='ostatok')   loadOstatokPanel();
-  if(id==='prices')    loadPricesPanel();
+  if(id==='ostatok')     loadOstatokPanel();
+  if(id==='categories')  loadCategories();
+  if(id==='prices')      loadPricesPanel();
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   if(navEl) navEl.classList.add('active');
   document.getElementById('pageTitle').textContent = pageTitles[id]||id;
@@ -5546,6 +5591,103 @@ window.addEventListener('load', () => {
       window.location.href = 'auth.html';
     });
 });
+</script>
+
+<script>
+// ── CATEGORIES PANEL ──────────────────────────────────────────────────────────
+let _catsCache = [];
+
+async function loadCategories() {
+  const tbody  = document.getElementById('categoriesTbody');
+  const status = document.getElementById('categoriesStatus');
+  if (!tbody) return;
+
+  tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px"><div class="spinner" style="margin:0 auto"></div></td></tr>';
+  if (status) status.textContent = 'Завантаження…';
+
+  try {
+    // Завантажити категорії
+    const cats = await sbFetch('categories?select=*&order=name.asc');
+    _catsCache = cats || [];
+
+    // Завантажити кількість товарів per category
+    let counts = {};
+    try {
+      // Запит агрегації через group-by (потребує RPC або ручного підрахунку)
+      // Використовуємо простий select category_id та рахуємо вручну
+      const prods = await sbFetch('products?select=category_id&active=eq.true&limit=10000');
+      (prods || []).forEach(p => {
+        if (p.category_id != null) {
+          counts[p.category_id] = (counts[p.category_id] || 0) + 1;
+        }
+      });
+    } catch(_) { /* якщо не вдалося — ігноруємо */ }
+
+    if (!_catsCache.length) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:40px">Категорій не знайдено. Запустіть GitHub Action для синхронізації.</td></tr>';
+      if (status) status.textContent = '';
+      return;
+    }
+
+    if (status) status.textContent = `Всього: ${_catsCache.length} категорій`;
+
+    tbody.innerHTML = _catsCache.map(cat => {
+      const cnt = counts[cat.id] || 0;
+      const isActive = cat.active !== false;
+      const statusBadge = isActive
+        ? `<span style="background:var(--green-soft);color:var(--green);border-radius:20px;padding:3px 12px;font-size:11px;font-weight:700">Активна</span>`
+        : `<span style="background:var(--bg);color:var(--text-light);border-radius:20px;padding:3px 12px;font-size:11px;font-weight:700">Прихована</span>`;
+      const toggleLabel = isActive ? 'Приховати' : 'Показати';
+      const toggleStyle = isActive
+        ? 'background:var(--red-soft);color:var(--red);border:1px solid rgba(229,57,53,.25)'
+        : 'background:var(--green-soft);color:var(--green);border:1px solid rgba(39,174,96,.25)';
+      return `<tr style="border-top:1px solid var(--border-light);transition:background .15s" onmouseenter="this.style.background='var(--bg)'" onmouseleave="this.style.background=''">
+        <td style="padding:10px 16px;font-family:monospace;font-size:12px;color:var(--text-muted)">${cat.id}</td>
+        <td style="padding:10px 16px;font-weight:600;color:var(--navy)">${_esc(cat.name || '—')}</td>
+        <td style="padding:10px 16px;text-align:center">
+          ${cnt > 0
+            ? `<a href="catalog.html?catId=${cat.id}&catName=${encodeURIComponent(cat.name||'')}" target="_blank" style="color:var(--blue);font-weight:700;text-decoration:none">${cnt} шт.</a>`
+            : `<span style="color:var(--text-light)">0</span>`}
+        </td>
+        <td style="padding:10px 16px;text-align:center">${statusBadge}</td>
+        <td style="padding:10px 16px;text-align:center">
+          <button onclick="toggleCategoryActive(${cat.id}, ${!isActive})"
+            style="padding:5px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;${toggleStyle}">
+            ${toggleLabel}
+          </button>
+        </td>
+      </tr>`;
+    }).join('');
+
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--red);padding:32px">Помилка: ${e.message}</td></tr>`;
+    if (status) status.textContent = '';
+    showToast('Помилка завантаження категорій: ' + e.message, 'error');
+  }
+}
+
+async function toggleCategoryActive(id, newActive) {
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/categories?id=eq.' + id, {
+      method: 'PATCH',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ active: newActive })
+    });
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error('HTTP ' + res.status + ': ' + err);
+    }
+    showToast(newActive ? '✅ Категорію активовано' : '✅ Категорію приховано', 'success');
+    await loadCategories();
+  } catch(e) {
+    showToast('Помилка: ' + e.message, 'error');
+  }
+}
 </script>
 </body>
 </html>
