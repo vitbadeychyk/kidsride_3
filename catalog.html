@@ -1659,8 +1659,10 @@ async function loadCategoryTree() {
     const useVehicleTypes   = vehicleTypes.length >= 2 && (subs.length <= 1 || subNamesRedundant);
 
     // ── Якщо єдина підкатегорія має ту саму назву що й батько — рендеримо як
-    //    пряме посилання (без розкривного списку і стрілки) ─────────────────
-    const isSingleSameName = subs.length === 1 && subNamesRedundant;
+    //    пряме посилання (без розкривного списку і стрілки).
+    //    Виняток: якщо є типи транспорту для показу (напр. Електромобілі) —
+    //    тоді залишаємо стандартний розкривний список з типами.
+    const isSingleSameName = subs.length === 1 && subNamesRedundant && !useVehicleTypes;
     if (isSingleSameName) {
       const sub      = subs[0];
       const cnt      = prodCountMap[sub.id] || 0;
