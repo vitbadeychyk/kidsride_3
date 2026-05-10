@@ -1929,7 +1929,7 @@ async function buildColorVariants(currentSku, currentId, supaUrl, supaKey, model
       tile.innerHTML = '<span style="font-family:Nunito,sans-serif;font-weight:800;color:var(--text-muted);font-size:22px">' + sfx + '</span>';
     }
 
-    
+    el.appendChild(tile);
 
     if (!isCur){
       el.addEventListener('mouseenter', () => { tile.style.transform = 'scale(1.06)'; tile.style.borderColor = 'var(--orange)'; });
