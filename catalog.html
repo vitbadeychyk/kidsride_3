@@ -504,7 +504,7 @@ nav a.active{color:var(--orange)}
     </div>
 
     <!-- Brand -->
-    <div class="filter-block">
+    <div class="filter-block" id="filterBlockBrand">
       <div class="filter-title" onclick="toggleFilter(this)">
         Бренд
         <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
@@ -1539,7 +1539,25 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 let _allCategories  = [];
 let _mainCategories = [];
 
-function _getCatIcon(name) { return ''; }
+function _getCatIcon(name) {
+  const n = (name || '').toLowerCase();
+  if (/електромобіл/.test(n))       return '⚡';
+  if (/дитячий транспорт/.test(n))  return '🚲';
+  if (/велосипед/.test(n))          return '🚲';
+  if (/самокат/.test(n))            return '🛴';
+  if (/біговел/.test(n))            return '🚴';
+  if (/мотоцикл/.test(n))           return '🏍️';
+  if (/квадроцикл/.test(n))         return '🏎️';
+  if (/трактор/.test(n))            return '🚜';
+  if (/джип|позашляхов/.test(n))    return '🚙';
+  if (/машин|авто/.test(n))         return '🚘';
+  if (/вантаж/.test(n))             return '🚛';
+  if (/баггі/.test(n))              return '🏁';
+  if (/каталка|толокар/.test(n))    return '🧸';
+  if (/санк/.test(n))               return '⛄';
+  if (/транспорт/.test(n))          return '🚗';
+  return '📦';
+}
 
 async function loadCategoryTree() {
   const treeEl = document.getElementById('catTree');
@@ -1559,24 +1577,21 @@ async function loadCategoryTree() {
     return;
   }
 
-  // Розділяємо основні та підкатегорії
   const parents  = _mainCategories;
   const children = _allCategories.filter(c => c.main_category_id);
 
-  // Підраховуємо товари по category_id
   const prodCountMap = {};
   (allProducts || []).forEach(p => {
     if (p.category_id != null) prodCountMap[p.category_id] = (prodCountMap[p.category_id] || 0) + 1;
   });
 
-  // Визначаємо поточний активний фільтр з URL
-  const _urlParams = new URLSearchParams(location.search);
+  const _urlParams      = new URLSearchParams(location.search);
   const _activeCatId    = parseInt(_urlParams.get('catId')    || '0') || 0;
-  const _activeParentId = parseInt(_urlParams.get('parentId') || '0') || 0;
+  const _activeParentId = parseInt((_urlParams.get('mainCatId') || _urlParams.get('parentId')) || '0') || 0;
 
   let html = '';
 
-  // "Всі товари" рядок
+  // "Всі товари"
   html += `
     <div class="cat-tree-all${!_activeCatId && !_activeParentId && !_activeCatIdFilter ? ' active' : ''}" onclick="selectCategory(0,0)">
       <span class="ctree-label" style="font-weight:700">Всі товари</span>
@@ -1584,8 +1599,7 @@ async function loadCategoryTree() {
     </div>`;
 
   if (!parents.length) {
-    // Немає батьківських категорій — показуємо плоский список
-    const flat = _allCategories.slice(0,15);
+    const flat = _allCategories.slice(0, 15);
     flat.forEach(c => {
       const cnt = prodCountMap[c.id] || 0;
       const isActive = _activeCatIdFilter === c.id;
@@ -1600,15 +1614,13 @@ async function loadCategoryTree() {
     return;
   }
 
-  // Є батьківські категорії — показуємо дерево
+  // Дерево з основними категоріями
   parents.forEach(parent => {
-    const subs = children.filter(c => c.main_category_id === parent.id);
-    const isParentActive = _activeParentId === parent.id;
+    const subs        = children.filter(c => c.main_category_id === parent.id);
+    const isParentActive = _activeParentIdFilter === parent.id;
     const hasActiveSub   = subs.some(c => c.id === _activeCatIdFilter);
-    const isOpen = isParentActive || hasActiveSub;
-
-    // Кількість товарів у батьківській категорії = сума підкатегорій
-    const parentCnt = subs.reduce((s, c) => s + (prodCountMap[c.id] || 0), prodCountMap[parent.id] || 0);
+    const isOpen         = isParentActive || hasActiveSub;
+    const parentCnt      = subs.reduce((s, c) => s + (prodCountMap[c.id] || 0), 0);
 
     html += `
       <div class="ctree-parent">
@@ -1617,17 +1629,14 @@ async function loadCategoryTree() {
           <span class="ctree-label">${parent.name}</span>
           ${parentCnt ? `<span class="ctree-cnt">${parentCnt}</span>` : ''}
         </div>
-        <div class="ctree-subs${isOpen?' open':''}">`;
-
-    // "Всі в категорії" підрядок
-    html += `
+        <div class="ctree-subs${isOpen?' open':''}">
           <div class="ctree-sub-row${isParentActive && !hasActiveSub ? ' active' : ''}" onclick="selectCategory(0,${parent.id})">
             <span class="ctree-dot"></span>
             <span class="ctree-label" style="color:var(--text-muted)">Всі в категорії</span>
           </div>`;
 
     subs.forEach(sub => {
-      const cnt = prodCountMap[sub.id] || 0;
+      const cnt      = prodCountMap[sub.id] || 0;
       const isActive = _activeCatIdFilter === sub.id;
       html += `
           <div class="ctree-sub-row${isActive?' active':''}" onclick="selectCategory(${sub.id},0)">
@@ -1642,47 +1651,30 @@ async function loadCategoryTree() {
       </div>`;
   });
 
-  // Підкатегорії без основної (не призначені)
-  const orphans = _allCategories.filter(c => !c.main_category_id);
-  if (orphans.length) {
-    html += `<div style="margin:8px 0 4px;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);font-weight:700">Інші</div>`;
-    orphans.forEach(c => {
-      const cnt = prodCountMap[c.id] || 0;
-      const isActive = _activeCatIdFilter === c.id;
-      html += `
-        <div class="ctree-sub-row${isActive?' active':''}" onclick="selectCategory(${c.id},0)">
-          <span class="ctree-dot"></span>
-          <span class="ctree-label">${c.name}</span>
-          ${cnt ? `<span class="ctree-cnt">${cnt}</span>` : ''}
-        </div>`;
-    });
-  }
+  // Непризначені — НЕ показуємо ("Інші" прибрані)
 
   treeEl.innerHTML = html;
 }
 
-// Відкрити/закрити підкатегорії + встановити фільтр
+// Відкрити/закрити підкатегорії
 function toggleParent(rowEl, parentId) {
   const subsEl = rowEl.nextElementSibling;
   const chevron = rowEl.querySelector('.ctree-chevron');
   const isOpen  = subsEl.classList.contains('open');
 
-  // Закрити всі інші відкриті списки
+  // Закрити всі інші відкриті
   document.querySelectorAll('.ctree-subs.open').forEach(el => {
     if (el !== subsEl) {
       el.classList.remove('open');
-      const ch = el.previousElementSibling?.querySelector('.ctree-chevron');
-      if (ch) ch.classList.remove('open');
+      el.previousElementSibling?.querySelector('.ctree-chevron')?.classList.remove('open');
     }
   });
 
   if (isOpen) {
-    // Клік по вже відкритому — закрити і скинути фільтр
     subsEl.classList.remove('open');
     chevron && chevron.classList.remove('open');
     selectCategory(0, 0);
   } else {
-    // Відкрити і застосувати фільтр по основній категорії
     subsEl.classList.add('open');
     chevron && chevron.classList.add('open');
     selectCategory(0, parentId);
@@ -1697,18 +1689,15 @@ function selectCategory(catId, parentId) {
   _activeCatIdFilter    = catId;
   _activeParentIdFilter = parentId;
 
-  // Оновити активний стан елементів дерева без повного перемалювання
+  // Оновити активні класи без повного перемалювання дерева
   document.querySelectorAll('.cat-tree-all, .ctree-parent-row, .ctree-sub-row').forEach(el => el.classList.remove('active'));
   if (!catId && !parentId) {
     document.querySelector('.cat-tree-all')?.classList.add('active');
   } else if (catId) {
-    // Знайти рядок підкатегорії за onclick="selectCategory(catId,0)"
-    document.querySelectorAll(`.ctree-sub-row[onclick="selectCategory(${catId},0)"]`).forEach(el => el.classList.add('active'));
+    document.querySelector(`.ctree-sub-row[onclick="selectCategory(${catId},0)"]`)?.classList.add('active');
   } else if (parentId) {
-    // Знайти рядок основної категорії
-    document.querySelectorAll(`.ctree-parent-row[onclick="toggleParent(this,${parentId})"]`).forEach(el => el.classList.add('active'));
-    // Також підрядок "Всі в категорії"
-    document.querySelectorAll(`.ctree-sub-row[onclick="selectCategory(0,${parentId})"]`).forEach(el => el.classList.add('active'));
+    document.querySelector(`.ctree-parent-row[onclick="toggleParent(this,${parentId})"]`)?.classList.add('active');
+    document.querySelector(`.ctree-sub-row[onclick="selectCategory(0,${parentId})"]`)?.classList.add('active');
   }
 
   // Оновити breadcrumb і заголовок
@@ -1724,7 +1713,6 @@ function selectCategory(catId, parentId) {
       if (bcCur)   bcCur.textContent   = cat.name;
       if (bcCats)  bcCats.style.display = '';
       if (bcSep2)  bcSep2.style.display = '';
-      _applyCategoryFilters(cat.name);
     }
   } else if (parentId) {
     const parent = _mainCategories.find(c => c.id === parentId);
@@ -1733,7 +1721,6 @@ function selectCategory(catId, parentId) {
       if (bcCur)   bcCur.textContent   = parent.name;
       if (bcCats)  bcCats.style.display = '';
       if (bcSep2)  bcSep2.style.display = '';
-      _applyCategoryFilters(parent.name);
     }
   } else {
     if (titleEl) titleEl.textContent = 'Каталог товарів';
@@ -1743,9 +1730,9 @@ function selectCategory(catId, parentId) {
   }
 
   currentPage = 1;
-  applyFiltersAndRender();
-  // НЕ викликаємо loadCategoryTree() — щоб не стерти відкриті пункти
+  applyFiltersAndRender(); // оновить товари + updateDynamicFilters всередині
 }
+
 
 // Завантажити товари з Supabase (з fallback на localStorage/дефолтні)
 async function loadProductsFromSupabase() {
@@ -1981,7 +1968,7 @@ async function renderCatalog() {
   if (countEl) countEl.textContent = allProducts.length + ' товарів';
 
   // Заповнити лічильники у фільтрах справжніми числами з бази
-  updateFilterCounts();
+  updateDynamicFilters();
   // Підтягнути попередній фільтр з URL (?cat=jeep, ?catId=, ?parentId= тощо)
   applyUrlFilters();
 
@@ -1995,9 +1982,8 @@ async function renderCatalog() {
 function _getActiveCategoryIds() {
   if (_activeCatIdFilter) return [_activeCatIdFilter];
   if (_activeParentIdFilter) {
-    // Всі підкатегорії основної категорії
-    const subs = _allCategories.filter(c => c.main_category_id === _activeParentIdFilter).map(c => c.id);
-    return subs;
+    // Всі підкатегорії обраної основної категорії
+    return _allCategories.filter(c => c.main_category_id === _activeParentIdFilter).map(c => c.id);
   }
   return [];
 }
@@ -2125,15 +2111,18 @@ function renderPagination(totalPages) {
 
 // ── FILTER COUNTS ──────────────────────────────────────────────────────────
 // Рахуємо кількість товарів у кожній групі фільтрів та оновлюємо .filter-cnt
+function _getCategoryProducts() {
+  // Товари у поточному виборі категорії/підкатегорії (лише ті що є в наявності або під замовлення)
+  const base = (allProducts || []).filter(p => !(p.stock != null && p.stock <= 0 && !(Number(p.preorderDays) > 0)));
+  const ids = _getActiveCategoryIds();
+  return ids.length ? base.filter(p => ids.includes(p.category_id)) : base;
+}
+
 function updateFilterCounts() {
-  const products = (allProducts || []).filter(p => !(p.stock != null && p.stock <= 0 && !(Number(p.preorderDays) > 0)));
-  const total = products.length;
+  const catProds = _getCategoryProducts();
 
-  // Оновити "В наявності" — це загальна кількість видимих товарів
-  document.querySelectorAll('.filter-option[data-group="available"] .filter-cnt').forEach(el => el.textContent = total);
-
-  // Допоміжні мапи: міткаУкр → значенняВДанихТовару
-  const TYPE_MAP = { 'Джип':'jeep','Квадроцикл':'quad','Мотоцикл':'moto','Машина':'car','Трактор':'tractor','Каталка-толокар':'walker','Вантажівка':'truck','Баггі':'buggy' };
+  // "В наявності" — лічильник по поточній категорії
+  document.querySelectorAll('.filter-option[data-group="available"] .filter-cnt').forEach(el => el.textContent = catProds.length);
 
   document.querySelectorAll('.filter-option').forEach(opt => {
     const group = opt.dataset.group;
@@ -2142,38 +2131,116 @@ function updateFilterCounts() {
     if (!group || !cntEl || group === 'available') return;
 
     let n = 0;
-    if (group === 'type') {
-      const code = TYPE_MAP[label] || label.toLowerCase();
-      n = products.filter(p => p.category === code).length;
-    } else if (group === 'age') {
+    if (group === 'age') {
       const m = label.match(/(\d+)\s*[-–—]\s*(\d+)/);
       if (m) {
         const rMin = +m[1], rMax = +m[2];
-        n = products.filter(p => {
+        n = catProds.filter(p => {
           const pAges = String(p.age || '').split('-').map(Number);
           return pAges[0] <= rMax && (pAges[1] || pAges[0]) >= rMin;
         }).length;
       }
     } else if (group === 'brand') {
-      n = products.filter(p => (p.brand || '') === label).length;
+      n = catProds.filter(p => (p.brand || '') === label).length;
     } else if (group === 'voltage') {
       const v = label.toUpperCase().replace(/\s+/g, '');
-      n = products.filter(p => String(p.voltage || '').toUpperCase().replace(/\s+/g,'') === v).length;
+      n = catProds.filter(p => String(p.voltage || '').toUpperCase().replace(/\s+/g,'') === v).length;
     }
     cntEl.textContent = n;
   });
 }
 
+// Динамічно показати/сховати фільтри та перебудувати бренди/напруги
+function updateDynamicFilters() {
+  const catProds = _getCategoryProducts();
+
+  // ── Бренди — будуємо з реальних даних ────────────────────────────────────
+  const brandBody = document.querySelector('#filterBlockBrand .filter-body, .filter-block:has([data-group="brand"]) .filter-body');
+  const brandSet  = [...new Set(catProds.map(p => p.brand).filter(Boolean))].sort();
+  if (brandBody && brandSet.length) {
+    const prevChecked = _getCheckedLabels('brand');
+    brandBody.innerHTML = brandSet.map(b => {
+      const cnt     = catProds.filter(p => p.brand === b).length;
+      const checked = prevChecked.includes(b) ? ' checked' : '';
+      return `<label class="filter-option${checked}" data-group="brand" onclick="toggleCheck(this,'brand')">
+        <div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <span class="filter-label">${b}</span>
+        <span class="filter-cnt">${cnt}</span>
+      </label>`;
+    }).join('');
+  }
+  const brandBlock = document.querySelector('.filter-block:has([data-group="brand"])');
+  if (brandBlock) brandBlock.style.display = brandSet.length ? '' : 'none';
+
+  // ── Напруга акумулятора — тільки якщо є товари з voltage ─────────────────
+  const voltageSet = [...new Set(catProds.map(p => String(p.voltage||'').toUpperCase().replace(/\s+/g,'')).filter(v => v && /^\d+V$/i.test(v)))].sort();
+  const voltBody   = document.querySelector('#filterBlockVoltage .filter-body');
+  if (voltBody && voltageSet.length) {
+    const prevChecked = _getCheckedLabels('voltage');
+    voltBody.innerHTML = voltageSet.map(v => {
+      const cnt     = catProds.filter(p => String(p.voltage||'').toUpperCase().replace(/\s+/g,'') === v).length;
+      const checked = prevChecked.includes(v) ? ' checked' : '';
+      return `<label class="filter-option${checked}" data-group="voltage" onclick="toggleCheck(this,'voltage')">
+        <div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <span class="filter-label">${v}</span>
+        <span class="filter-cnt">${cnt}</span>
+      </label>`;
+    }).join('');
+  }
+  const voltBlock = document.getElementById('filterBlockVoltage');
+  if (voltBlock) voltBlock.style.display = voltageSet.length ? '' : 'none';
+
+  // ── Вік — показуємо тільки якщо є товари з заповненим age ────────────────
+  const hasAge  = catProds.some(p => p.age && String(p.age).match(/\d/));
+  const ageBlock = document.querySelector('.filter-block:has([data-group="age"])');
+  if (ageBlock) ageBlock.style.display = hasAge ? '' : 'none';
+
+  // ── Тип транспорту — динамічно з даних товарів обраної категорії ─────────
+  const TYPE_UA = {
+    'jeep':'Джип', 'quad':'Квадроцикл', 'moto':'Мотоцикл', 'car':'Машина',
+    'tractor':'Трактор', 'walker':'Каталка-толокар', 'truck':'Вантажівка', 'buggy':'Баггі'
+  };
+  const TYPE_EN = {};
+  Object.entries(TYPE_UA).forEach(([en,ua]) => TYPE_EN[ua] = en);
+
+  const typeCodesInCat = [...new Set(catProds.map(p => p.category).filter(c => c && TYPE_UA[c]))];
+  const typeBlock = document.getElementById('filterBlockType');
+  if (typeBlock) {
+    if (typeCodesInCat.length > 0) {
+      const prevChecked = _getCheckedLabels('type').map(l => TYPE_EN[l]).filter(Boolean);
+      const typeBody = typeBlock.querySelector('.filter-body');
+      if (typeBody) {
+        typeBody.innerHTML = typeCodesInCat
+          .sort((a, b) => (TYPE_UA[a] || a).localeCompare(TYPE_UA[b] || b, 'uk'))
+          .map(code => {
+            const label   = TYPE_UA[code] || code;
+            const cnt     = catProds.filter(p => p.category === code).length;
+            const checked = prevChecked.includes(code) ? ' checked' : '';
+            return `<label class="filter-option${checked}" data-group="type" onclick="toggleCheck(this,'type')">
+              <div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <span class="filter-label">${label}</span>
+              <span class="filter-cnt">${cnt}</span>
+            </label>`;
+          }).join('');
+      }
+      typeBlock.style.display = '';
+    } else {
+      typeBlock.style.display = 'none';
+    }
+  }
+
+  updateFilterCounts();
+}
+
 // ── URL FILTER PRE-SELECT ──────────────────────────────────────────────────
-// Підтримуємо ?catId=77&catName=…  (підкатегорія), ?mainCatId=1&parentName=… (основна)
-// Також зворотна сумісність: ?parentId= (старі посилання), ?cat=jeep,car тощо
+// Підтримуємо ?catId=77&catName=…  (підкатегорія), ?parentId=9001&parentName=… (батьківська)
+// Також зворотна сумісність: ?cat=jeep,car, ?type=, ?category=
 // + ?search=… для пошуку, + ?brand=… для бренду
 function applyUrlFilters() {
   const params = new URLSearchParams(location.search);
 
   const catId      = params.get('catId')      || '';
   const catName    = params.get('catName')    || '';
-  // підтримуємо і новий mainCatId, і старий parentId для зворотної сумісності
   const parentId   = params.get('mainCatId') || params.get('parentId') || '';
   const parentName = params.get('parentName') || '';
 
@@ -2193,7 +2260,7 @@ function applyUrlFilters() {
     if (titleEl) titleEl.textContent = name;
     _applyCategoryFilters(name);
   }
-  // ── Фільтр по основній категорії (mainCatId / parentId)
+  // ── Фільтр по батьківській категорії (parentId)
   else if (parentId && !isNaN(parseInt(parentId))) {
     _activeCatIdFilter    = 0;
     _activeParentIdFilter = parseInt(parentId);

@@ -5623,13 +5623,13 @@ window.addEventListener('load', () => {
 <script>
 // ── CATEGORIES PANEL ──────────────────────────────────────────────────────────
 let _catsCache   = [];
-let _mainCats    = [];   // головні категорії з таблиці main_categories
+let _parentCats  = [];
 
-// ── Завантаження головних категорій (таблиця main_categories) ─────────────────
+// ── Завантаження головних категорій (parent_id IS NULL, id >= 9000) ───────────
 async function loadParentCategories() {
   try {
-    const data = await sbFetch('main_categories?select=id,name,active&order=sort_order.asc,name.asc');
-    _mainCats = data || [];
+    const all = await sbFetch('categories?select=id,name,active&order=name.asc');
+    _parentCats = (all || []).filter(c => !c.parent_id && c.id >= 9000);
     renderParentCatsList();
   } catch(e) {
     document.getElementById('parentCatsList').innerHTML =
@@ -5640,11 +5640,11 @@ async function loadParentCategories() {
 function renderParentCatsList() {
   const el = document.getElementById('parentCatsList');
   if (!el) return;
-  if (!_mainCats.length) {
-    el.innerHTML = `<span style="font-size:12px;color:var(--text-muted)">Головних категорій немає. Натисніть «+ Додати» щоб створити першу.</span>`;
+  if (!_parentCats.length) {
+    el.innerHTML = `<span style="font-size:12px;color:var(--text-muted)">Головних категорій немає. Спочатку виконайте SQL-міграцію SUPABASE_PARENT_CATEGORIES.sql</span>`;
     return;
   }
-  el.innerHTML = _mainCats.map(p => `
+  el.innerHTML = _parentCats.map(p => `
     <div style="display:inline-flex;align-items:center;gap:6px;background:var(--bg-soft);border:1.5px solid var(--border);border-radius:20px;padding:5px 12px">
       <span style="font-size:13px;font-weight:700;color:var(--navy)">${_esc(p.name)}</span>
       <span style="font-size:10px;color:var(--text-muted)">ID: ${p.id}</span>
@@ -5662,10 +5662,13 @@ async function createParentCategory() {
   const name = (document.getElementById('newParentName').value || '').trim();
   if (!name) { showToast('Введіть назву категорії', 'error'); return; }
 
-  const sortOrder = _mainCats.length + 1;
+  // Знайти вільний ID >= 9000
+  const usedIds = _parentCats.map(p => p.id);
+  let newId = 9000;
+  while (usedIds.includes(++newId)) {}
 
   try {
-    const res = await fetch(SUPABASE_URL + '/rest/v1/main_categories', {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/categories', {
       method: 'POST',
       headers: {
         'apikey': SUPABASE_KEY,
@@ -5673,14 +5676,14 @@ async function createParentCategory() {
         'Content-Type': 'application/json',
         'Prefer': 'return=minimal'
       },
-      body: JSON.stringify({ name, active: true, sort_order: sortOrder })
+      body: JSON.stringify({ id: newId, name, active: true })
     });
     if (!res.ok) {
       const t = await res.text();
       throw new Error('HTTP ' + res.status + ': ' + t);
     }
     document.getElementById('addParentModal').style.display = 'none';
-    showToast('✅ Головну категорію «' + name + '» створено', 'success');
+    showToast('✅ Головну категорію «' + name + '» створено (ID ' + newId + ')', 'success');
     await loadCategories();
   } catch(e) {
     showToast('Помилка: ' + e.message, 'error');
@@ -5690,7 +5693,7 @@ async function createParentCategory() {
 async function deleteParentCategory(id, name) {
   if (!confirm(`Видалити головну категорію «${name}»?\nПідкатегорії НЕ видаляться — вони стануть непризначеними.`)) return;
   try {
-    const res = await fetch(SUPABASE_URL + '/rest/v1/main_categories?id=eq.' + id, {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/categories?id=eq.' + id, {
       method: 'DELETE',
       headers: {
         'apikey': SUPABASE_KEY,
@@ -5718,13 +5721,13 @@ async function setParentCategory(subId, parentId) {
         'Content-Type': 'application/json',
         'Prefer': 'return=minimal'
       },
-      body: JSON.stringify({ main_category_id: val })
+      body: JSON.stringify({ parent_id: val })
     });
     if (!res.ok) { const t = await res.text(); throw new Error('HTTP ' + res.status + ': ' + t); }
     showToast('✅ Збережено', 'success');
     // Не перезавантажуємо всю таблицю — лише оновлюємо кеш локально
     const c = _catsCache.find(c => c.id === subId);
-    if (c) c.main_category_id = val;
+    if (c) c.parent_id = val;
   } catch(e) {
     showToast('Помилка: ' + e.message, 'error');
     // Відновити попереднє значення у select
@@ -5742,17 +5745,16 @@ async function loadCategories() {
   if (status) status.textContent = 'Завантаження…';
 
   try {
-    // Завантажити головні категорії та підкатегорії паралельно
-    const [mainData, catsData] = await Promise.all([
-      sbFetch('main_categories?select=id,name,active&order=sort_order.asc,name.asc'),
-      sbFetch('categories?select=*&order=name.asc')
-    ]);
-    _mainCats  = mainData || [];
-    _catsCache = catsData || [];
+    // Завантажити всі категорії (включаючи parent_id)
+    const cats = await sbFetch('categories?select=*&order=name.asc');
+    _catsCache = cats || [];
+
+    // Виділити головні категорії (id >= 9000, parent_id = null)
+    _parentCats = _catsCache.filter(c => !c.parent_id && c.id >= 9000);
     renderParentCatsList();
 
-    // Підкатегорії — всі категорії що прийшли з XML (є в таблиці categories)
-    const subCats = _catsCache;
+    // Підкатегорії — всі категорії з id < 9000 (прийшли з XML)
+    const subCats = _catsCache.filter(c => c.id < 9000);
 
     // Завантажити кількість товарів per category
     let counts = {};
@@ -5771,9 +5773,9 @@ async function loadCategories() {
 
     if (status) status.textContent = `Всього: ${subCats.length} підкатегорій`;
 
-    // Опції для select основної категорії
+    // Опції для select батьківської категорії
     const parentOptions = `<option value="">— не призначено —</option>` +
-      _mainCats.map(p => `<option value="${p.id}">${_esc(p.name)}</option>`).join('');
+      _parentCats.map(p => `<option value="${p.id}">${_esc(p.name)}</option>`).join('');
 
     tbody.innerHTML = subCats.map(cat => {
       const cnt = counts[cat.id] || 0;
@@ -5786,8 +5788,8 @@ async function loadCategories() {
         ? 'background:var(--red-soft);color:var(--red);border:1px solid rgba(229,57,53,.25)'
         : 'background:var(--green-soft);color:var(--green);border:1px solid rgba(39,174,96,.25)';
 
-      const currentParentId = cat.main_category_id ?? '';
-      const parentSelect = _mainCats.length
+      const currentParentId = cat.parent_id ?? '';
+      const parentSelect = _parentCats.length
         ? `<select onchange="setParentCategory(${cat.id}, this.value)"
             style="width:100%;padding:5px 8px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;font-family:'Manrope',sans-serif;background:var(--bg-soft);color:var(--navy);cursor:pointer;outline:none">
             ${parentOptions.replace(`value="${currentParentId}"`, `value="${currentParentId}" selected`)}
