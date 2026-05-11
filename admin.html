@@ -5416,7 +5416,12 @@ function ostatokOpenModal(id) {
           </div>
           <div class="f-row single">
             <div class="f-group">
-              <label>Фото (до 15 посилань — кожне з нового рядка)</label>
+              <label style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+                <span>Фото (до 15 посилань — кожне з нового рядка)</span>
+                <button type="button" onclick="document.getElementById('osFileInput').click()" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border:1.5px solid var(--border);border-radius:6px;background:white;font-size:12px;font-weight:700;color:var(--navy);cursor:pointer;font-family:'Nunito',sans-serif;transition:all .2s" onmouseover="this.style.borderColor='var(--orange)';this.style.color='var(--orange)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--navy)'"><svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Завантажити з ПК</button>
+                <input type="file" id="osFileInput" accept="image/*" multiple style="display:none" onchange="osUploadImages(this.files)">
+              </label>
+              <div id="osUploadProgress" style="display:none;font-size:12px;color:var(--orange);margin-bottom:6px;font-weight:700">⏳ Завантаження…</div>
               <textarea id="osF_images" rows="4" placeholder="https://example.com/photo1.jpg" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:monospace;font-size:12px;resize:vertical;box-sizing:border-box;color:var(--navy);outline:none"></textarea>
               <div id="osF_imagesPreviews" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>
             </div>
@@ -5479,6 +5484,24 @@ async function ostatokSave() {
     }
     _osRows.sort((a,b)=>(a.sku||'').localeCompare(b.sku||'')||(a.color||'').localeCompare(b.color||''));
     ostatokRenderStats(); ostatokRenderTable();
+    // Синхронізуємо active статус у таблиці products за артикулом
+    try {
+      const colorFilter = color ? '&color=eq.'+encodeURIComponent(color) : '';
+      await sbFetch('products?sku=eq.'+encodeURIComponent(sku)+colorFilter, {
+        method:'PATCH', headers:{ Prefer:'return=minimal' },
+        body:JSON.stringify({ active: activeVal })
+      });
+    } catch(syncE){ console.warn('products active sync:', syncE.message); }
+    // Оновлюємо images у products якщо є фото
+    if(imgsRaw.length) {
+      try {
+        const colorFilter2 = color ? '&color=eq.'+encodeURIComponent(color) : '';
+        await sbFetch('products?sku=eq.'+encodeURIComponent(sku)+colorFilter2, {
+          method:'PATCH', headers:{ Prefer:'return=minimal' },
+          body:JSON.stringify({ images: imgsRaw, ...(sellPrice?{price:sellPrice}:{}), ...(oldPrice?{old_price:oldPrice}:{}) })
+        });
+      } catch(imgE){ console.warn('products images sync:', imgE.message); }
+    }
     document.getElementById('osModal').classList.remove('open');
     showToast(id?'Збережено ✓':'Додано ✓','success');
   } catch(e){
@@ -5496,6 +5519,54 @@ async function ostatokDelete(id, sku) {
     ostatokRenderStats(); ostatokRenderTable();
     showToast('Видалено','success');
   } catch(e){ showToast('Помилка: '+e.message,'error'); }
+}
+
+// ── UPLOAD IMAGES TO SUPABASE STORAGE ───────────────────────────────────────
+async function osUploadImages(fileList) {
+  if(!fileList||!fileList.length) return;
+  const prog = document.getElementById('osUploadProgress');
+  if(prog) { prog.style.display='block'; prog.textContent='⏳ Завантаження '+fileList.length+' фото…'; }
+  const bucket = 'product-images';
+  const urls = [];
+  let errors = 0;
+  for(const file of Array.from(fileList)) {
+    const ext  = file.name.split('.').pop().toLowerCase();
+    const safe = file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+    const path = 'ostatok/' + Date.now() + '_' + safe;
+    try {
+      const res = await fetch(SUPABASE_URL + '/storage/v1/object/' + bucket + '/' + path, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': 'Bearer ' + (window._adminToken || SUPABASE_KEY),
+          'Content-Type': file.type || 'image/jpeg',
+          'x-upsert': 'true'
+        },
+        body: file
+      });
+      if(res.ok) {
+        const pub = SUPABASE_URL + '/storage/v1/object/public/' + bucket + '/' + path;
+        urls.push(pub);
+      } else {
+        const err = await res.json().catch(()=>({}));
+        console.warn('Upload failed:', err);
+        errors++;
+      }
+    } catch(e) { console.warn('Upload error:', e); errors++; }
+  }
+  if(prog) prog.style.display = 'none';
+  // Append new URLs to textarea
+  const ta = document.getElementById('osF_images');
+  if(ta && urls.length) {
+    const existing = ta.value.trim();
+    ta.value = (existing ? existing + '\n' : '') + urls.join('\n');
+    ta.dispatchEvent(new Event('input'));
+  }
+  // Reset file input so same files can be re-selected
+  const fi = document.getElementById('osFileInput');
+  if(fi) fi.value = '';
+  if(urls.length) showToast('✅ Завантажено: '+urls.length+' фото','success');
+  if(errors)      showToast('⚠️ Не вдалося завантажити: '+errors+'. Перевір бакет "product-images" у Supabase Storage','error');
 }
 
 document.addEventListener('keydown', e=>{
