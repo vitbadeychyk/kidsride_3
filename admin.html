@@ -5266,29 +5266,37 @@ function clearAdminCache() {
 
 // ── OSTATOK (власний склад) ────────────────────────────────────────────────
 let _osRows = [];
+let _osCategories = [];
 
 async function loadOstatokPanel() {
   const tbody = document.getElementById('osTbody');
   if(!tbody) return;
   tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px"><div class="spinner" style="margin:0 auto"></div></td></tr>';
   try {
-    const PAGE = 1000;
-    let all = [], from = 0;
-    while(true) {
-      const data = await sbFetch('ostatok?select=*&order=sku.asc,color.asc', {
-        headers:{ Range:`${from}-${from+PAGE-1}`, 'Range-Unit':'items', Prefer:'count=none' }
-      });
-      if(!data||!data.length) break;
-      all = all.concat(data);
-      if(data.length < PAGE) break;
-      from += PAGE;
-    }
-    _osRows = all;
+    const [osData, catsData] = await Promise.all([
+      (async () => {
+        const PAGE = 1000;
+        let all = [], from = 0;
+        while(true) {
+          const data = await sbFetch('ostatok?select=*&order=sku.asc,color.asc', {
+            headers:{ Range:`${from}-${from+PAGE-1}`, 'Range-Unit':'items', Prefer:'count=none' }
+          });
+          if(!data||!data.length) break;
+          all = all.concat(data);
+          if(data.length < PAGE) break;
+          from += PAGE;
+        }
+        return all;
+      })(),
+      sbFetch('categories?select=id,name&active=eq.true&order=name.asc').catch(()=>[])
+    ]);
+    _osRows = osData;
+    _osCategories = catsData || [];
     ostatokRenderStats();
     ostatokRenderTable();
     // badge
     const badge = document.getElementById('navBadgeOstatok');
-    if(badge){ badge.textContent=all.length; badge.style.display=all.length?'':'none'; }
+    if(badge){ badge.textContent=osData.length; badge.style.display=osData.length?'':'none'; }
   } catch(e) {
     tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--red);padding:32px">Помилка: ${e.message}</td></tr>`;
     showToast('Помилка завантаження ostatok: '+e.message,'error');
@@ -5416,6 +5424,14 @@ function ostatokOpenModal(id) {
           </div>
           <div class="f-row single">
             <div class="f-group">
+              <label>Підкатегорія (для відображення в каталозі)</label>
+              <select id="osF_category_id" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:inherit;font-size:14px;color:var(--navy);background:white;outline:none">
+                <option value="">— не обрано —</option>
+              </select>
+            </div>
+          </div>
+          <div class="f-row single">
+            <div class="f-group">
               <label style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
                 <span>Фото (до 15 посилань — кожне з нового рядка)</span>
                 <button type="button" onclick="document.getElementById('osFileInput').click()" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border:1.5px solid var(--border);border-radius:6px;background:white;font-size:12px;font-weight:700;color:var(--navy);cursor:pointer;font-family:'Nunito',sans-serif;transition:all .2s" onmouseover="this.style.borderColor='var(--orange)';this.style.color='var(--orange)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--navy)'"><svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Завантажити з ПК</button>
@@ -5446,11 +5462,15 @@ function ostatokOpenModal(id) {
   document.getElementById('osF_note').value          = row ? (row.note||'')       : '';
   const _imgsArr = (row && Array.isArray(row.images)) ? row.images : [];
   document.getElementById('osF_images').value = _imgsArr.join('\n');
-  document.getElementById('osF_imagesPreviews').innerHTML = _imgsArr.map(u=>'<img src="'+u+'" style="width:52px;height:52px;object-fit:cover;border-radius:6px;border:1.5px solid var(--border)" onerror="this.style.display=\'none\'">' ).join('');
-  document.getElementById('osF_images').oninput = function(){
-    const urls = this.value.split('\n').map(s=>s.trim()).filter(Boolean).slice(0,15);
-    document.getElementById('osF_imagesPreviews').innerHTML = urls.map(u=>'<img src="'+u+'" style="width:52px;height:52px;object-fit:cover;border-radius:6px;border:1.5px solid var(--border)" onerror="this.style.display=\'none\'">' ).join('');
-  };
+  osRenderPreviews();
+  document.getElementById('osF_images').oninput = function(){ osRenderPreviews(); };
+  // Заповнюємо список підкатегорій
+  const catSel = document.getElementById('osF_category_id');
+  if(catSel) {
+    catSel.innerHTML = '<option value="">— не обрано —</option>' +
+      (_osCategories||[]).map(c=>`<option value="${c.id}">${_esc(c.name)}</option>`).join('');
+    catSel.value = row ? (row.category_id ?? '') : '';
+  }
   document.getElementById('osModalSave').disabled = false;
   document.getElementById('osModalSave').textContent = 'Зберегти';
   ov.classList.add('open');
@@ -5458,12 +5478,14 @@ function ostatokOpenModal(id) {
 }
 
 async function ostatokSave() {
-  const id    = document.getElementById('osModalId').value;
-  const sku   = document.getElementById('osF_sku').value.trim();
-  const color = document.getElementById('osF_color').value.trim()||null;
-  const qty   = parseInt(document.getElementById('osF_qty').value)||0;
-  const price = parseFloat(document.getElementById('osF_price').value)||null;
-  const note  = document.getElementById('osF_note').value.trim()||null;
+  const id         = document.getElementById('osModalId').value;
+  const sku        = document.getElementById('osF_sku').value.trim();
+  const color      = document.getElementById('osF_color').value.trim()||null;
+  const qty        = parseInt(document.getElementById('osF_qty').value)||0;
+  const price      = parseFloat(document.getElementById('osF_price').value)||null;
+  const note       = document.getElementById('osF_note').value.trim()||null;
+  const catIdRaw   = document.getElementById('osF_category_id')?.value || '';
+  const categoryId = catIdRaw ? parseInt(catIdRaw) : null;
   if(!sku){ showToast('Вкажи артикул','error'); return; }
 
   const btn = document.getElementById('osModalSave');
@@ -5472,7 +5494,7 @@ async function ostatokSave() {
   const oldPrice  = parseFloat(document.getElementById('osF_old_price').value)||null;
   const activeVal = document.getElementById('osF_active').value === 'true';
   const imgsRaw   = (document.getElementById('osF_images').value||'').split('\n').map(s=>s.trim()).filter(Boolean).slice(0,15);
-  const payload = { sku, color, quantity:qty, buy_price:price, note, sell_price:sellPrice, old_price:oldPrice, active:activeVal, images:imgsRaw.length?imgsRaw:null };
+  const payload = { sku, color, quantity:qty, buy_price:price, note, sell_price:sellPrice, old_price:oldPrice, active:activeVal, images:imgsRaw.length?imgsRaw:null, category_id:categoryId };
   try {
     if(id) {
       await sbFetch('ostatok?id=eq.'+id, { method:'PATCH', headers:{ Prefer:'return=minimal' }, body:JSON.stringify(payload) });
@@ -5484,24 +5506,47 @@ async function ostatokSave() {
     }
     _osRows.sort((a,b)=>(a.sku||'').localeCompare(b.sku||'')||(a.color||'').localeCompare(b.color||''));
     ostatokRenderStats(); ostatokRenderTable();
-    // Синхронізуємо active статус у таблиці products за артикулом
+
+    // Синхронізуємо дані у таблиці products за артикулом
+    // Якщо товар з таким артикулом не існує — створюємо його (upsert)
     try {
       const colorFilter = color ? '&color=eq.'+encodeURIComponent(color) : '';
-      await sbFetch('products?sku=eq.'+encodeURIComponent(sku)+colorFilter, {
-        method:'PATCH', headers:{ Prefer:'return=minimal' },
-        body:JSON.stringify({ active: activeVal })
-      });
-    } catch(syncE){ console.warn('products active sync:', syncE.message); }
-    // Оновлюємо images у products якщо є фото
-    if(imgsRaw.length) {
-      try {
-        const colorFilter2 = color ? '&color=eq.'+encodeURIComponent(color) : '';
-        await sbFetch('products?sku=eq.'+encodeURIComponent(sku)+colorFilter2, {
+      const productFields = {
+        active: activeVal,
+        ...(imgsRaw.length ? { images: imgsRaw } : {}),
+        ...(sellPrice ? { price: sellPrice } : {}),
+        ...(oldPrice  ? { old_price: oldPrice } : {}),
+        ...(categoryId ? { category_id: categoryId } : {})
+      };
+      // Перевіряємо чи існує продукт з таким SKU
+      const existing = await sbFetch('products?sku=eq.'+encodeURIComponent(sku)+colorFilter+'&select=id');
+      if(existing && existing.length > 0) {
+        // Оновлюємо існуючий товар
+        await sbFetch('products?sku=eq.'+encodeURIComponent(sku)+colorFilter, {
           method:'PATCH', headers:{ Prefer:'return=minimal' },
-          body:JSON.stringify({ images: imgsRaw, ...(sellPrice?{price:sellPrice}:{}), ...(oldPrice?{old_price:oldPrice}:{}) })
+          body:JSON.stringify(productFields)
         });
-      } catch(imgE){ console.warn('products images sync:', imgE.message); }
-    }
+      } else {
+        // Товару немає в каталозі — створюємо новий запис
+        const newProduct = {
+          sku,
+          name: sku,
+          active: activeVal,
+          price: sellPrice || 0,
+          stock: qty,
+          ...(color ? { color } : {}),
+          ...(imgsRaw.length ? { images: imgsRaw } : {}),
+          ...(oldPrice  ? { old_price: oldPrice } : {}),
+          ...(categoryId ? { category_id: categoryId } : {})
+        };
+        await sbFetch('products', {
+          method:'POST', headers:{ Prefer:'return=minimal' },
+          body:JSON.stringify(newProduct)
+        });
+        showToast('Товар додано до каталогу (назву можна уточнити в розділі Товари) ✓','success');
+      }
+    } catch(syncE){ console.warn('products sync:', syncE.message); }
+
     document.getElementById('osModal').classList.remove('open');
     showToast(id?'Збережено ✓':'Додано ✓','success');
   } catch(e){
@@ -5521,52 +5566,87 @@ async function ostatokDelete(id, sku) {
   } catch(e){ showToast('Помилка: '+e.message,'error'); }
 }
 
-// ── UPLOAD IMAGES TO SUPABASE STORAGE ───────────────────────────────────────
+// ── PREVIEWS З КНОПКОЮ ВИДАЛЕННЯ ─────────────────────────────────────────────
+function osRenderPreviews() {
+  const ta = document.getElementById('osF_images');
+  const box = document.getElementById('osF_imagesPreviews');
+  if(!ta || !box) return;
+  const urls = ta.value.split('\n').map(s=>s.trim()).filter(Boolean).slice(0,15);
+  if(!urls.length){ box.innerHTML=''; return; }
+  box.innerHTML = urls.map((u,i)=>`
+    <div style="position:relative;width:64px;flex-shrink:0">
+      <img src="${u}" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1.5px solid var(--border);display:block" onerror="this.style.opacity='.3'">
+      <button type="button" title="Видалити фото"
+        onclick="osRemovePhoto(${i})"
+        style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:var(--red);border:2px solid #fff;color:#fff;font-size:11px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;font-family:inherit">×</button>
+    </div>`).join('');
+}
+
+function osRemovePhoto(idx) {
+  const ta = document.getElementById('osF_images');
+  if(!ta) return;
+  const urls = ta.value.split('\n').map(s=>s.trim()).filter(Boolean);
+  urls.splice(idx, 1);
+  ta.value = urls.join('\n');
+  osRenderPreviews();
+}
+
+// ── UPLOAD IMAGES (base64, як у розділі Товари) ──────────────────────────────
+function osReadFileAsDataUrl(file) {
+  return new Promise((resolve) => {
+    if (!file || !file.type || !file.type.startsWith('image/')) {
+      showToast('Файл «' + (file && file.name) + '» не зображення', 'error');
+      resolve(null); return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      showToast('«' + file.name + '» більше 10 МБ — пропущено', 'error');
+      resolve(null); return;
+    }
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = new Image();
+      img.onload = function() {
+        const maxDim = 1200;
+        let w = img.naturalWidth, h = img.naturalHeight;
+        if (Math.max(w, h) > maxDim) {
+          const k = maxDim / Math.max(w, h);
+          w = Math.round(w * k); h = Math.round(h * k);
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        const isPng = file.type === 'image/png';
+        resolve(isPng ? canvas.toDataURL('image/png') : canvas.toDataURL('image/jpeg', 0.85));
+      };
+      img.onerror = function() { resolve(e.target.result); };
+      img.src = e.target.result;
+    };
+    reader.onerror = function() { showToast('Помилка читання файлу', 'error'); resolve(null); };
+    reader.readAsDataURL(file);
+  });
+}
+
 async function osUploadImages(fileList) {
   if(!fileList||!fileList.length) return;
   const prog = document.getElementById('osUploadProgress');
-  if(prog) { prog.style.display='block'; prog.textContent='⏳ Завантаження '+fileList.length+' фото…'; }
-  const bucket = 'product-images';
-  const urls = [];
-  let errors = 0;
+  if(prog) { prog.style.display='block'; prog.textContent='⏳ Обробка '+fileList.length+' фото…'; }
+
+  const dataUrls = [];
   for(const file of Array.from(fileList)) {
-    const ext  = file.name.split('.').pop().toLowerCase();
-    const safe = file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
-    const path = 'ostatok/' + Date.now() + '_' + safe;
-    try {
-      const res = await fetch(SUPABASE_URL + '/storage/v1/object/' + bucket + '/' + path, {
-        method: 'POST',
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': 'Bearer ' + (window._adminToken || SUPABASE_KEY),
-          'Content-Type': file.type || 'image/jpeg',
-          'x-upsert': 'true'
-        },
-        body: file
-      });
-      if(res.ok) {
-        const pub = SUPABASE_URL + '/storage/v1/object/public/' + bucket + '/' + path;
-        urls.push(pub);
-      } else {
-        const err = await res.json().catch(()=>({}));
-        console.warn('Upload failed:', err);
-        errors++;
-      }
-    } catch(e) { console.warn('Upload error:', e); errors++; }
+    const dataUrl = await osReadFileAsDataUrl(file);
+    if(dataUrl) dataUrls.push(dataUrl);
   }
+
   if(prog) prog.style.display = 'none';
-  // Append new URLs to textarea
   const ta = document.getElementById('osF_images');
-  if(ta && urls.length) {
+  if(ta && dataUrls.length) {
     const existing = ta.value.trim();
-    ta.value = (existing ? existing + '\n' : '') + urls.join('\n');
-    ta.dispatchEvent(new Event('input'));
+    ta.value = (existing ? existing + '\n' : '') + dataUrls.join('\n');
+    osRenderPreviews();
   }
-  // Reset file input so same files can be re-selected
   const fi = document.getElementById('osFileInput');
   if(fi) fi.value = '';
-  if(urls.length) showToast('✅ Завантажено: '+urls.length+' фото','success');
-  if(errors)      showToast('⚠️ Не вдалося завантажити: '+errors+'. Перевір бакет "product-images" у Supabase Storage','error');
+  if(dataUrls.length) showToast('✅ Додано: '+dataUrls.length+' фото','success');
 }
 
 document.addEventListener('keydown', e=>{
