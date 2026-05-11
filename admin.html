@@ -5432,6 +5432,12 @@ function ostatokOpenModal(id) {
           </div>
           <div class="f-row single">
             <div class="f-group">
+              <label>Опис товару <span style="font-size:11px;color:var(--text-muted);font-weight:500">(використовується якщо товару немає в каталозі)</span></label>
+              <textarea id="osF_short_desc" rows="3" placeholder="Короткий опис: характеристики, особливості товару…" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:inherit;font-size:13px;resize:vertical;box-sizing:border-box;color:var(--navy);outline:none;line-height:1.5"></textarea>
+            </div>
+          </div>
+          <div class="f-row single">
+            <div class="f-group">
               <label style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
                 <span>Фото (до 15 посилань — кожне з нового рядка)</span>
                 <button type="button" onclick="document.getElementById('osFileInput').click()" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border:1.5px solid var(--border);border-radius:6px;background:white;font-size:12px;font-weight:700;color:var(--navy);cursor:pointer;font-family:'Nunito',sans-serif;transition:all .2s" onmouseover="this.style.borderColor='var(--orange)';this.style.color='var(--orange)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--navy)'"><svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Завантажити з ПК</button>
@@ -5460,6 +5466,7 @@ function ostatokOpenModal(id) {
   document.getElementById('osF_old_price').value     = row ? (row.old_price??'')  : '';
   document.getElementById('osF_price').value         = row ? (row.buy_price??'')  : '';
   document.getElementById('osF_note').value          = row ? (row.note||'')       : '';
+  document.getElementById('osF_short_desc').value    = row ? (row.short_desc||'') : '';
   const _imgsArr = (row && Array.isArray(row.images)) ? row.images : [];
   document.getElementById('osF_images').value = _imgsArr.join('\n');
   osRenderPreviews();
@@ -5486,6 +5493,7 @@ async function ostatokSave() {
   const note       = document.getElementById('osF_note').value.trim()||null;
   const catIdRaw   = document.getElementById('osF_category_id')?.value || '';
   const categoryId = catIdRaw ? parseInt(catIdRaw) : null;
+  const shortDesc  = document.getElementById('osF_short_desc')?.value.trim() || null;
   if(!sku){ showToast('Вкажи артикул','error'); return; }
 
   const btn = document.getElementById('osModalSave');
@@ -5494,7 +5502,7 @@ async function ostatokSave() {
   const oldPrice  = parseFloat(document.getElementById('osF_old_price').value)||null;
   const activeVal = document.getElementById('osF_active').value === 'true';
   const imgsRaw   = (document.getElementById('osF_images').value||'').split('\n').map(s=>s.trim()).filter(Boolean).slice(0,15);
-  const payload = { sku, color, quantity:qty, buy_price:price, note, sell_price:sellPrice, old_price:oldPrice, active:activeVal, images:imgsRaw.length?imgsRaw:null, category_id:categoryId };
+  const payload = { sku, color, quantity:qty, buy_price:price, note, sell_price:sellPrice, old_price:oldPrice, active:activeVal, images:imgsRaw.length?imgsRaw:null, category_id:categoryId, short_desc:shortDesc };
   try {
     if(id) {
       await sbFetch('ostatok?id=eq.'+id, { method:'PATCH', headers:{ Prefer:'return=minimal' }, body:JSON.stringify(payload) });
@@ -5508,42 +5516,54 @@ async function ostatokSave() {
     ostatokRenderStats(); ostatokRenderTable();
 
     // Синхронізуємо дані у таблиці products за артикулом
-    // Якщо товар з таким артикулом не існує — створюємо його (upsert)
+    // Якщо товар існує — оновлюємо тільки склад/ціни/фото (характеристики не чіпаємо)
+    // Якщо товару немає — створюємо новий з описом і даними з остатку
     try {
       const colorFilter = color ? '&color=eq.'+encodeURIComponent(color) : '';
-      const productFields = {
-        active: activeVal,
-        ...(imgsRaw.length ? { images: imgsRaw } : {}),
-        ...(sellPrice ? { price: sellPrice } : {}),
-        ...(oldPrice  ? { old_price: oldPrice } : {}),
-        ...(categoryId ? { category_id: categoryId } : {})
-      };
-      // Перевіряємо чи існує продукт з таким SKU
-      const existing = await sbFetch('products?sku=eq.'+encodeURIComponent(sku)+colorFilter+'&select=id');
+      // Перевіряємо чи існує продукт з таким SKU (з кольором або без)
+      let existing = await sbFetch('products?sku=eq.'+encodeURIComponent(sku)+colorFilter+'&select=id,stock');
+      // Якщо з кольором не знайшли — шукаємо без фільтру кольору
+      if((!existing || existing.length === 0) && color) {
+        existing = await sbFetch('products?sku=eq.'+encodeURIComponent(sku)+'&select=id,stock');
+      }
+
       if(existing && existing.length > 0) {
-        // Оновлюємо існуючий товар
-        await sbFetch('products?sku=eq.'+encodeURIComponent(sku)+colorFilter, {
+        // ✅ Товар є в каталозі — оновлюємо тільки склад/ціни/фото/категорію
+        // Характеристики (назва, акумулятор, вік тощо) беруться з products як є
+        const updateFields = {
+          active: activeVal,
+          stock: qty,
+          ...(imgsRaw.length ? { images: imgsRaw } : {}),
+          ...(sellPrice ? { price: sellPrice } : {}),
+          ...(oldPrice  ? { old_price: oldPrice } : {}),
+          ...(categoryId ? { category_id: categoryId } : {})
+        };
+        const filter = color
+          ? 'products?sku=eq.'+encodeURIComponent(sku)+colorFilter
+          : 'products?sku=eq.'+encodeURIComponent(sku);
+        await sbFetch(filter, {
           method:'PATCH', headers:{ Prefer:'return=minimal' },
-          body:JSON.stringify(productFields)
+          body:JSON.stringify(updateFields)
         });
       } else {
-        // Товару немає в каталозі — створюємо новий запис
+        // 🆕 Товару немає в каталозі — створюємо новий запис з описом з остатку
         const newProduct = {
           sku,
           name: sku,
           active: activeVal,
           price: sellPrice || 0,
           stock: qty,
-          ...(color ? { color } : {}),
-          ...(imgsRaw.length ? { images: imgsRaw } : {}),
-          ...(oldPrice  ? { old_price: oldPrice } : {}),
-          ...(categoryId ? { category_id: categoryId } : {})
+          ...(color       ? { color }                     : {}),
+          ...(shortDesc   ? { short_desc: shortDesc }     : {}),
+          ...(imgsRaw.length ? { images: imgsRaw }        : {}),
+          ...(oldPrice    ? { old_price: oldPrice }       : {}),
+          ...(categoryId  ? { category_id: categoryId }   : {})
         };
         await sbFetch('products', {
           method:'POST', headers:{ Prefer:'return=minimal' },
           body:JSON.stringify(newProduct)
         });
-        showToast('Товар додано до каталогу (назву можна уточнити в розділі Товари) ✓','success');
+        showToast('Товар додано до каталогу. Назву можна уточнити в розділі «Товари» ✓','success');
       }
     } catch(syncE){ console.warn('products sync:', syncE.message); }
 
