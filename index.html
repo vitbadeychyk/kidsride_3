@@ -1280,13 +1280,13 @@ function toggleReview(id) {
       <h2 class="s-title" style="text-align:center">@<em>kidsride.ua</em></h2>
       <p class="s-desc" style="text-align:center;margin:8px auto 0">Слідкуй за новинками, акціями та реальними відео</p>
     </div>
-    <div class="ig-grid">
-      <div class="ig-post" style="background:linear-gradient(145deg,#e8ecf7,#d0d8f0)"><div class="ig-post-ov"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> 124</div></div>
-      <div class="ig-post" style="background:linear-gradient(145deg,#eef0ff,#d6dcff)"><div class="ig-post-ov"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> 89</div></div>
-      <div class="ig-post" style="background:linear-gradient(145deg,#edfff5,#d5f5e5)"><div class="ig-post-ov"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> 203</div></div>
-      <div class="ig-post" style="background:linear-gradient(145deg,#fff8e1,#ffebb0)"><div class="ig-post-ov"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> 156</div></div>
-      <div class="ig-post" style="background:linear-gradient(145deg,#fce4ec,#f8bbd0)"><div class="ig-post-ov"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> 91</div></div>
-      <div class="ig-post" style="background:linear-gradient(145deg,#e8f5e9,#c8e6c9)"><div class="ig-post-ov"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> 178</div></div>
+    <div class="ig-grid" id="ig-grid">
+      <div class="ig-post ig-skeleton" style="background:linear-gradient(145deg,#e8ecf7,#d0d8f0)"></div>
+      <div class="ig-post ig-skeleton" style="background:linear-gradient(145deg,#eef0ff,#d6dcff)"></div>
+      <div class="ig-post ig-skeleton" style="background:linear-gradient(145deg,#edfff5,#d5f5e5)"></div>
+      <div class="ig-post ig-skeleton" style="background:linear-gradient(145deg,#fff8e1,#ffebb0)"></div>
+      <div class="ig-post ig-skeleton" style="background:linear-gradient(145deg,#fce4ec,#f8bbd0)"></div>
+      <div class="ig-post ig-skeleton" style="background:linear-gradient(145deg,#e8f5e9,#c8e6c9)"></div>
     </div>
     <div class="ig-cta">
       <a href="https://www.instagram.com/kidsride.ua/" target="_blank" class="btn btn-outline" style="font-size:15px;padding:13px 32px">
@@ -2384,6 +2384,68 @@ else document.addEventListener('DOMContentLoaded', initInstaFab);
       }
     }
   } catch(e) {}
+})();
+</script>
+
+<script>
+(function() {
+  // ── Instagram Feed Loader ──
+  // Замініть цей URL на URL вашого задеплоєного API сервера
+  // Наприклад: 'https://your-app.replit.app/api'
+  // Або залиште '/api' якщо сайт розміщений на тому ж домені
+  var IG_API = '/api';
+
+  var HEART_SVG = '<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
+  var VIDEO_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
+  var ALBUM_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M7 2v20M17 2v20M2 7h20M2 17h20"/></svg>';
+
+  function buildPost(post) {
+    var imgUrl = post.media_type === 'VIDEO' ? post.thumbnail_url : post.media_url;
+    if (!imgUrl) return null;
+
+    var typeIcon = '';
+    if (post.media_type === 'VIDEO') typeIcon = '<span style="position:absolute;top:8px;right:8px;opacity:.9">' + VIDEO_SVG + '</span>';
+    if (post.media_type === 'CAROUSEL_ALBUM') typeIcon = '<span style="position:absolute;top:8px;right:8px;opacity:.9">' + ALBUM_SVG + '</span>';
+
+    var caption = post.caption ? post.caption.substring(0, 80).replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
+    if (post.caption && post.caption.length > 80) caption += '…';
+
+    return '<a href="' + post.permalink + '" target="_blank" rel="noopener" class="ig-post" style="display:block;text-decoration:none">'
+      + '<img src="' + imgUrl + '" alt="Instagram пост" loading="lazy">'
+      + typeIcon
+      + '<div class="ig-post-ov">' + HEART_SVG + (caption ? '<span style="max-width:80%;text-align:center;font-size:11px;font-weight:400;line-height:1.4;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">' + caption + '</span>' : '') + '</div>'
+      + '</a>';
+  }
+
+  function loadInstagramFeed() {
+    var grid = document.getElementById('ig-grid');
+    if (!grid) return;
+
+    fetch(IG_API + '/instagram/posts?limit=6')
+      .then(function(r) { return r.json(); })
+      .then(function(json) {
+        var posts = json.data || [];
+        if (!posts.length) return;
+
+        var html = '';
+        var count = 0;
+        for (var i = 0; i < posts.length && count < 6; i++) {
+          var postHtml = buildPost(posts[i]);
+          if (postHtml) { html += postHtml; count++; }
+        }
+
+        if (html) grid.innerHTML = html;
+      })
+      .catch(function(e) {
+        console.warn('Instagram feed unavailable:', e);
+      });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadInstagramFeed);
+  } else {
+    loadInstagramFeed();
+  }
 })();
 </script>
 </body>
