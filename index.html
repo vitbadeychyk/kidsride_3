@@ -2400,11 +2400,11 @@ else document.addEventListener('DOMContentLoaded', initInstaFab);
   var ALBUM_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M7 2v20M17 2v20M2 7h20M2 17h20"/></svg>';
 
   function buildPost(post) {
-    if (post.media_type === 'VIDEO') return null;
-    var imgUrl = post.media_url;
+    var imgUrl = post.media_type === 'VIDEO' ? post.thumbnail_url : post.media_url;
     if (!imgUrl) return null;
 
     var typeIcon = '';
+    if (post.media_type === 'VIDEO') typeIcon = '<span style="position:absolute;top:8px;right:8px;opacity:.9">' + VIDEO_SVG + '</span>';
     if (post.media_type === 'CAROUSEL_ALBUM') typeIcon = '<span style="position:absolute;top:8px;right:8px;opacity:.9">' + ALBUM_SVG + '</span>';
 
     var caption = post.caption ? post.caption.substring(0, 80).replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
