@@ -358,7 +358,7 @@ async function loadProducts() {
       brand: p.brand || 'Bambi Racer',
       price: parseFloat(p.price) || 0,
       oldPrice: p.old_price ? parseFloat(p.old_price) : null,
-      category: p.category || 'jeep',
+      category: p.category || '',
       voltage: (p.voltage || '12V').toUpperCase().replace(/\s+/g,''),
       age: p.age_range || '3-8',
       stock: p.stock || 0,

@@ -1037,154 +1037,111 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
         <h2 class="s-title">Що кажуть <em>батьки</em></h2>
       </div>
       <div style="display:flex;align-items:center;gap:16px">
-        <div class="rating-big">4.9</div>
+        <div class="rating-big" id="reviewsAvgRating">—</div>
         <div>
-          <div class="stars-row">
-            <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <div class="stars-row" id="reviewsStarsRow">
+            <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:#e2e8f0;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:#e2e8f0;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:#e2e8f0;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:#e2e8f0;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:#e2e8f0;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
           </div>
-          <div class="rating-ct">127 відгуків</div>
+          <div class="rating-ct" id="reviewsCount">завантаження…</div>
         </div>
       </div>
     </div>
 
-    <!-- Grid відгуків 2 ряди по 4 -->
-    <div class="reviews-grid">
-
-      <div class="r-card">
-        <div class="r-head">
-          <div class="r-avatar" style="background:linear-gradient(135deg,#FF6B35,#ff9a6c)">О</div>
-          <div><div class="r-name">Олена Савченко</div><div class="r-loc">Київ</div></div>
-          <div class="r-stars-sm" style="margin-left:auto">
-            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-          </div>
-        </div>
-        <p class="r-text">Замовили джип синові на 4 роки. Якість відмінна — шкіряне сидіння, EVA колеса, пульт. Доставили за 2 дні. Дитина в захваті!</p>
-        <div class="r-product"><div style="font-size:20px">🚙</div><div class="r-product-name">Джип M 3804EBLR</div></div>
-      </div>
-
-      <div class="r-card">
-        <div class="r-head">
-          <div class="r-avatar" style="background:linear-gradient(135deg,#1B2A4A,#2d4270)">А</div>
-          <div><div class="r-name">Андрій Коваленко</div><div class="r-loc">Харків</div></div>
-          <div class="r-stars-sm" style="margin-left:auto">
-            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-          </div>
-        </div>
-        <p class="r-text">Брали квадроцикл доньці. Оплатили частинами ПриватБанк — дуже зручно. Менеджер відповів швидко. Товар прийшов добре запакованим!</p>
-        <div class="r-product"><div style="font-size:20px">🏎️</div><div class="r-product-name">Квадроцикл M 4795EBLR</div></div>
-      </div>
-
-      <div class="r-card">
-        <div class="r-head">
-          <div class="r-avatar" style="background:linear-gradient(135deg,#ec407a,#f48fb1)">М</div>
-          <div><div class="r-name">Марія Ткаченко</div><div class="r-loc">Одеса</div></div>
-          <div class="r-stars-sm" style="margin-left:auto">
-            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-          </div>
-        </div>
-        <p class="r-text">Скористалась Пакунком малюка — все оформили без проблем. Менеджер пояснив покроково. Електромобіль гарний, дитина дуже рада!</p>
-        <div class="r-product"><div style="font-size:20px">🚗</div><div class="r-product-name">Машина M 4140EBLR</div></div>
-      </div>
-
-      <div class="r-card">
-        <div class="r-head">
-          <div class="r-avatar" style="background:linear-gradient(135deg,#27AE60,#52d98a)">Д</div>
-          <div><div class="r-name">Дмитро Мельник</div><div class="r-loc">Львів</div></div>
-          <div class="r-stars-sm" style="margin-left:auto">
-            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-          </div>
-        </div>
-        <p class="r-text">Другий раз купую в KidsRide. Трактор відпрацював 1.5 роки без проблем. Тепер взяв мотоцикл. Якість стабільна, ціни чесні!</p>
-        <div class="r-product"><div style="font-size:20px">🏍️</div><div class="r-product-name">Мотоцикл M 4274EL</div></div>
-      </div>
-
-      <div class="r-card">
-        <div class="r-head">
-          <div class="r-avatar" style="background:linear-gradient(135deg,#9C27B0,#ce93d8)">І</div>
-          <div><div class="r-name">Ірина Бондаренко</div><div class="r-loc">Дніпро</div></div>
-          <div class="r-stars-sm" style="margin-left:auto">
-            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-          </div>
-        </div>
-        <p class="r-text">Взяли PROF1 SPORT 24V для 7-річного сина. Їздить по двору і траві — просто бомба! Дуже задоволені якістю та швидкою доставкою.</p>
-        <div class="r-product"><div style="font-size:20px">🚙</div><div class="r-product-name">PROF1 SPORT 24V</div></div>
-      </div>
-
-      <div class="r-card">
-        <div class="r-head">
-          <div class="r-avatar" style="background:linear-gradient(135deg,#F59E0B,#fcd34d)">В</div>
-          <div><div class="r-name">Василь Шевченко</div><div class="r-loc">Вінниця</div></div>
-          <div class="r-stars-sm" style="margin-left:auto">
-            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-          </div>
-        </div>
-        <p class="r-text">Трактор з причепом — просто хіт! Дочка 4 роки возить іграшки і в захваті. Причеп від'єднується — дуже зручно. Рекомендую!</p>
-        <div class="r-product"><div style="font-size:20px">🚜</div><div class="r-product-name">Трактор M 4419EBLR</div></div>
-      </div>
-
-      <div class="r-card">
-        <div class="r-head">
-          <div class="r-avatar" style="background:linear-gradient(135deg,#2196F3,#90CAF9)">Н</div>
-          <div><div class="r-name">Наталія Кравець</div><div class="r-loc">Запоріжжя</div></div>
-          <div class="r-stars-sm" style="margin-left:auto">
-            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-          </div>
-        </div>
-        <p class="r-text">Замовила мотоцикл через держпідтримку 7000 грн. Менеджер дуже допоміг з оформленням. Syn zadovolenyy, katayet'sya vіd ranku do vechora!</p>
-        <div class="r-product"><div style="font-size:20px">🏍️</div><div class="r-product-name">Мотоцикл M 4274EL</div></div>
-      </div>
-
-      <div class="r-card">
-        <div class="r-head">
-          <div class="r-avatar" style="background:linear-gradient(135deg,#e53935,#ff8a80)">С</div>
-          <div><div class="r-name">Сергій Романенко</div><div class="r-loc">Полтава</div></div>
-          <div class="r-stars-sm" style="margin-left:auto">
-            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#f59e0b;stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-          </div>
-        </div>
-        <p class="r-text">Відмінний магазин! Швидко відповіли, допомогли з вибором. Доставка за день! Джип виглядає дорого і солідно. Дуже задоволений покупкою.</p>
-        <div class="r-product"><div style="font-size:20px">🚙</div><div class="r-product-name">Джип M 3804EBLR</div></div>
-      </div>
-
+    <div class="reviews-grid" id="reviewsGrid">
+      <div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--text-muted);font-size:14px">Завантаження відгуків…</div>
     </div>
   </div>
 </section>
+<script>
+(async function loadReviews() {
+  const SB_URL = 'https://xczrzdbikkycgpnvolib.supabase.co';
+  const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
+  const headers = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY };
+
+  const AVATAR_COLORS = [
+    'linear-gradient(135deg,#FF6B35,#ff9a6c)',
+    'linear-gradient(135deg,#1B2A4A,#2d4270)',
+    'linear-gradient(135deg,#ec407a,#f48fb1)',
+    'linear-gradient(135deg,#27AE60,#52d98a)',
+    'linear-gradient(135deg,#9C27B0,#ce93d8)',
+    'linear-gradient(135deg,#F59E0B,#fcd34d)',
+    'linear-gradient(135deg,#2196F3,#90CAF9)',
+    'linear-gradient(135deg,#e53935,#ff8a80)',
+  ];
+
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function starsSvg(count, size) {
+    const star = (fill) =>
+      `<svg viewBox="0 0 24 24" style="width:${size}px;height:${size}px;fill:${fill};stroke:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+    return Array.from({length:5}, (_,i) => star(i < count ? '#f59e0b' : '#e2e8f0')).join('');
+  }
+
+  try {
+    const [reviewsRes, allRatingsRes] = await Promise.all([
+      fetch(SB_URL + '/rest/v1/reviews?select=*,products(id,name,images,category)&approved=eq.true&order=created_at.desc&limit=5', { headers }),
+      fetch(SB_URL + '/rest/v1/reviews?select=rating&approved=eq.true', { headers })
+    ]);
+
+    const reviews = reviewsRes.ok ? await reviewsRes.json() : [];
+    const allRatings = allRatingsRes.ok ? await allRatingsRes.json() : [];
+
+    const totalCount = allRatings.length;
+    const avgRating = totalCount > 0
+      ? (allRatings.reduce((s, r) => s + (r.rating || 0), 0) / totalCount)
+      : 0;
+
+    const avgEl = document.getElementById('reviewsAvgRating');
+    const starsEl = document.getElementById('reviewsStarsRow');
+    const countEl = document.getElementById('reviewsCount');
+    const gridEl = document.getElementById('reviewsGrid');
+
+    if (avgEl) avgEl.textContent = totalCount > 0 ? avgRating.toFixed(1) : '—';
+    if (starsEl) starsEl.innerHTML = starsSvg(Math.round(avgRating), 18);
+    if (countEl) countEl.textContent = totalCount > 0 ? totalCount + ' відгуків' : 'Поки немає відгуків';
+
+    if (!reviews || reviews.length === 0) {
+      if (gridEl) gridEl.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--text-muted);font-size:14px">Відгуків поки немає</div>';
+      return;
+    }
+
+    if (gridEl) gridEl.innerHTML = reviews.map((r, i) => {
+      const p = r.products || {};
+      const productName = esc(p.name || '');
+      const productImg = Array.isArray(p.images) && p.images[0] ? p.images[0] : '';
+      const firstLetter = (r.author_name || '?').charAt(0).toUpperCase();
+      const avatarColor = AVATAR_COLORS[i % AVATAR_COLORS.length];
+      const productThumb = productImg
+        ? `<img src="${esc(productImg)}" alt="${productName}" class="r-product-img" style="width:30px;height:30px;object-fit:cover;border-radius:6px;flex-shrink:0" onerror="this.style.display='none'">`
+        : `<div style="width:30px;height:30px;border-radius:6px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🚗</div>`;
+      return `
+        <div class="r-card">
+          <div class="r-head">
+            <div class="r-avatar" style="background:${avatarColor}">${esc(firstLetter)}</div>
+            <div><div class="r-name">${esc(r.author_name)}</div><div class="r-loc">${esc(r.city || '')}</div></div>
+            <div class="r-stars-sm" style="margin-left:auto">${starsSvg(r.rating || 5, 13)}</div>
+          </div>
+          <p class="r-text">${esc(r.text)}</p>
+          <div class="r-product">
+            ${productThumb}
+            <div class="r-product-name" title="${productName}">${productName}</div>
+          </div>
+        </div>`;
+    }).join('');
+  } catch(e) {
+    console.warn('Не вдалося завантажити відгуки:', e.message);
+    const gridEl = document.getElementById('reviewsGrid');
+    if (gridEl) gridEl.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--text-muted);font-size:14px">Не вдалося завантажити відгуки</div>';
+  }
+})();
+</script>
 
 <!-- DELIVERY & PAYMENT -->
 <section class="section delivery-section" id="delivery-section">
