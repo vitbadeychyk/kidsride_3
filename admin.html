@@ -404,6 +404,10 @@ tr:hover td{background:rgba(240,242,248,.5)}
       Аналітика
       <span class="nav-badge">Новий</span>
     </div>
+    <div class="nav-item" onclick="showPanel('product-analytics',this)">
+      <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 2 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+      Аналітика товарів
+    </div>
   </div>
 
   <div class="sidebar-section">
@@ -1227,6 +1231,65 @@ tr:hover td{background:rgba(240,242,248,.5)}
           </div>
         </div>
         <div id="reportPrintContent" style="padding:32px 40px;font-family:'Manrope',sans-serif"></div>
+      </div>
+    </div>
+
+    <!-- ═══ PRODUCT ANALYTICS ═══ -->
+    <div class="panel" id="panel-product-analytics">
+      <div class="section-header" style="flex-wrap:wrap;gap:12px">
+        <h2 class="section-title">Аналітика <span>товарів</span></h2>
+        <div class="date-range-bar">
+          <div class="dr-presets">
+            <button class="dr-preset" onclick="setPaPreset('today',this)">Сьогодні</button>
+            <button class="dr-preset" onclick="setPaPreset('week',this)">7 днів</button>
+            <button class="dr-preset active" onclick="setPaPreset('month',this)">30 днів</button>
+          </div>
+          <span class="dr-label">або</span>
+          <input type="date" class="dr-input" id="paDateFrom" onchange="onPaDateChange()">
+          <span class="dr-label">—</span>
+          <input type="date" class="dr-input" id="paDateTo" onchange="onPaDateChange()">
+        </div>
+      </div>
+
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
+        <div class="stat-card orange"><div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div><div class="stat-val" id="pa-total-views">—</div><div class="stat-label">Переглядів товарів</div><div class="stat-delta" id="pa-total-delta">за період</div></div>
+        <div class="stat-card blue"><div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 2 8v8"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div><div class="stat-val" id="pa-unique-products">—</div><div class="stat-label">Унікальних товарів</div><div class="stat-delta">переглянуто</div></div>
+        <div class="stat-card green"><div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div class="stat-val" id="pa-unique-sessions">—</div><div class="stat-label">Унікальних сесій</div><div class="stat-delta">відвідувачів</div></div>
+        <div class="stat-card yellow"><div class="stat-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="stat-val" id="pa-avg-day">—</div><div class="stat-label">Переглядів/день</div><div class="stat-delta">середнє</div></div>
+      </div>
+
+      <div class="charts-row">
+        <div class="chart-card" style="flex:2">
+          <div class="chart-head"><h3 class="chart-title">Перегляди по днях</h3></div>
+          <div class="bar-chart" id="paViewsChart" style="min-height:120px"></div>
+        </div>
+        <div class="chart-card" style="flex:1">
+          <div class="chart-head"><h3 class="chart-title">По годинах доби</h3></div>
+          <div id="paHourChart" style="min-height:120px;display:flex;align-items:flex-end;gap:2px;padding:0 4px"></div>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-head">
+          <span class="table-head-title">Топ переглянутих товарів</span>
+          <div class="table-tools">
+            <div class="search-input"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><input id="paSearch" placeholder="Пошук товару..." oninput="paFilterTable()"></div>
+          </div>
+        </div>
+        <table>
+          <thead><tr>
+            <th style="width:36px">#</th>
+            <th>Назва товару</th>
+            <th>Артикул</th>
+            <th onclick="paSortBy('views')" style="cursor:pointer">Переглядів ▾</th>
+            <th onclick="paSortBy('sessions')" style="cursor:pointer">Сесій</th>
+            <th>Остання дія</th>
+            <th>Динаміка (7 дн.)</th>
+          </tr></thead>
+          <tbody id="paTableBody">
+            <tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-muted)">Завантаження…</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
@@ -2253,7 +2316,7 @@ async function sbUpdateOrderStatus(id, status, ttn = null) {
 // Date init moved to initAdmin()
 
 // ── NAVIGATION ────────────────────────────────────────────────────────────
-const pageTitles={dashboard:'Dashboard',analytics:'Аналітика відвідувань',orders:'Замовлення',products:'Товари',carousel:'Карусель сайту',import:'Імпорт товарів',reviews:'Відгуки',ostatok:'Залишок (власний склад)',categories:'Категорії товарів',settings:'Налаштування',reports:'Звіти та аналітика',prices:'Перерахунок цін'};
+const pageTitles={dashboard:'Dashboard',analytics:'Аналітика відвідувань','product-analytics':'Аналітика товарів',orders:'Замовлення',products:'Товари',carousel:'Карусель сайту',import:'Імпорт товарів',reviews:'Відгуки',ostatok:'Залишок (власний склад)',categories:'Категорії товарів',settings:'Налаштування',reports:'Звіти та аналітика',prices:'Перерахунок цін'};
 
 function showPanel(id, navEl) {
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
@@ -2264,6 +2327,7 @@ function showPanel(id, navEl) {
   if(id==='orders')    renderOrdersTable();
   if(id==='dashboard') renderDashboard();
   if(id==='analytics') renderAnalytics();
+  if(id==='product-analytics') renderProductAnalytics();
   if(id==='settings')  renderSettings();
   if(id==='reports')   renderReports();
   if(id==='ostatok')     loadOstatokPanel();
@@ -6327,6 +6391,182 @@ async function toggleCategoryActive(id, newActive) {
   } catch(e) {
     showToast('Помилка: ' + e.message, 'error');
   }
+}
+
+// ══════════════════════════════════════════════════════════════
+// PRODUCT ANALYTICS
+// ══════════════════════════════════════════════════════════════
+let _paData = [];
+let _paTableData = [];
+let _paSortCol = 'views';
+let _paSortDir = -1;
+
+function _paFmtDate(d){ return d.toLocaleDateString('uk-UA',{day:'2-digit',month:'2-digit'}); }
+function _paIsoDate(d){ return d.toISOString().slice(0,10); }
+function _paDaysBetween(from,to){ return Math.max(1,Math.round((to-from)/(86400000))+1); }
+
+function setPaPreset(key, btn) {
+  document.querySelectorAll('#panel-product-analytics .dr-preset').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  const today = new Date(); today.setHours(23,59,59,999);
+  const from  = new Date();
+  if(key==='today') from.setHours(0,0,0,0);
+  else if(key==='week') { from.setDate(from.getDate()-6); from.setHours(0,0,0,0); }
+  else { from.setDate(from.getDate()-29); from.setHours(0,0,0,0); }
+  document.getElementById('paDateFrom').value = _paIsoDate(from);
+  document.getElementById('paDateTo').value   = _paIsoDate(today);
+  loadProductAnalytics(from, today);
+}
+
+function onPaDateChange() {
+  const f = document.getElementById('paDateFrom').value;
+  const t = document.getElementById('paDateTo').value;
+  if(!f||!t) return;
+  document.querySelectorAll('#panel-product-analytics .dr-preset').forEach(b=>b.classList.remove('active'));
+  loadProductAnalytics(new Date(f+'T00:00:00'), new Date(t+'T23:59:59'));
+}
+
+async function loadProductAnalytics(from, to) {
+  const tbody = document.getElementById('paTableBody');
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-muted)">Завантаження…</td></tr>';
+  ['pa-total-views','pa-unique-products','pa-unique-sessions','pa-avg-day'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='—';});
+  const hdrs = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY };
+  try {
+    const url = SUPABASE_URL + '/rest/v1/product_views?select=product_id,product_name,product_sku,session_id,viewed_at'
+      + '&viewed_at=gte.' + from.toISOString()
+      + '&viewed_at=lte.' + to.toISOString()
+      + '&order=viewed_at.asc&limit=10000';
+    const res = await fetch(url, { headers: hdrs });
+    if(!res.ok) {
+      const err = await res.text();
+      if(res.status === 404 || err.includes('relation') || err.includes('does not exist')) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted)"><div style="font-size:15px;font-weight:700;margin-bottom:8px">Таблиця product_views не знайдена</div><div style="font-size:13px">Створіть таблицю в Supabase SQL Editor — кнопка «Показати SQL» нижче</div></td></tr>';
+        document.getElementById('pa-total-views').textContent = '—';
+        return;
+      }
+      throw new Error('HTTP ' + res.status);
+    }
+    _paData = await res.json();
+    renderProductAnalyticsUI(from, to);
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--red)">Помилка: ${_escHtml(e.message)}</td></tr>`;
+  }
+}
+
+function renderProductAnalyticsUI(from, to) {
+  const data = _paData;
+  const days = _paDaysBetween(from, to);
+
+  // KPI
+  const totalViews    = data.length;
+  const uniqueProds   = new Set(data.map(r=>r.product_id||r.product_name)).size;
+  const uniqueSess    = new Set(data.map(r=>r.session_id)).size;
+  const avgDay        = days > 0 ? (totalViews/days).toFixed(1) : 0;
+  document.getElementById('pa-total-views').textContent    = totalViews.toLocaleString('uk-UA');
+  document.getElementById('pa-unique-products').textContent= uniqueProds;
+  document.getElementById('pa-unique-sessions').textContent= uniqueSess;
+  document.getElementById('pa-avg-day').textContent        = avgDay;
+  document.getElementById('pa-total-delta').textContent    = 'за ' + days + ' дн.';
+
+  // Bar chart by day
+  const dayMap = {};
+  data.forEach(r => {
+    const d = (r.viewed_at||'').slice(0,10);
+    dayMap[d] = (dayMap[d]||0) + 1;
+  });
+  const allDays = [];
+  for(let d = new Date(from); d <= to; d.setDate(d.getDate()+1)) allDays.push(_paIsoDate(new Date(d)));
+  const counts = allDays.map(d => dayMap[d]||0);
+  const maxC   = Math.max(...counts, 1);
+  const chartEl = document.getElementById('paViewsChart');
+  chartEl.innerHTML = allDays.map((d,i) => {
+    const pct = Math.round((counts[i]/maxC)*100);
+    const label = _paFmtDate(new Date(d+'T12:00:00'));
+    return `<div class="bar-wrap" title="${label}: ${counts[i]} переглядів">
+      <div class="bar-fill" style="height:${Math.max(pct,2)}%"></div>
+      <div class="bar-label">${allDays.length <= 14 ? label : (i%7===0?label:'')}</div>
+    </div>`;
+  }).join('');
+
+  // Hour chart
+  const hourMap = Array(24).fill(0);
+  data.forEach(r => { const h = new Date(r.viewed_at).getHours(); if(!isNaN(h)) hourMap[h]++; });
+  const maxH = Math.max(...hourMap, 1);
+  const hourEl = document.getElementById('paHourChart');
+  hourEl.innerHTML = hourMap.map((c,h) => {
+    const pct = Math.round((c/maxH)*100);
+    const color = c === Math.max(...hourMap) ? 'var(--orange)' : 'var(--blue)';
+    return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px" title="${h}:00 — ${c} переглядів">
+      <div style="width:100%;background:${color};opacity:.8;height:${Math.max(pct,2)}%;min-height:2px;border-radius:3px 3px 0 0;transition:height .3s"></div>
+      <div style="font-size:9px;color:var(--text-muted);font-weight:600">${h%3===0?h:''}</div>
+    </div>`;
+  }).join('');
+
+  // Aggregate by product
+  const prodMap = {};
+  data.forEach(r => {
+    const key = r.product_id || r.product_name || 'unknown';
+    if(!prodMap[key]) prodMap[key] = { id: r.product_id, name: r.product_name||'—', sku: r.product_sku||'—', views: 0, sessions: new Set(), lastSeen: '', days7: Array(7).fill(0) };
+    prodMap[key].views++;
+    prodMap[key].sessions.add(r.session_id);
+    if(r.viewed_at > prodMap[key].lastSeen) prodMap[key].lastSeen = r.viewed_at;
+    const daysAgo = Math.floor((Date.now() - new Date(r.viewed_at)) / 86400000);
+    if(daysAgo < 7) prodMap[key].days7[6-daysAgo]++;
+  });
+  _paTableData = Object.values(prodMap).map(p => ({...p, sessions: p.sessions.size}));
+  paSortBy(_paSortCol, true);
+}
+
+function paSortBy(col, keepDir) {
+  if(!keepDir) _paSortDir = (_paSortCol===col) ? -_paSortDir : -1;
+  _paSortCol = col;
+  _paTableData.sort((a,b) => _paSortDir * (b[col] - a[col]));
+  paRenderTable();
+}
+
+function paFilterTable() {
+  paRenderTable();
+}
+
+function paRenderTable() {
+  const q = (document.getElementById('paSearch')?.value||'').toLowerCase();
+  const tbody = document.getElementById('paTableBody');
+  let rows = _paTableData.filter(p => !q || p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q));
+  if(!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-muted)">Нічого не знайдено</td></tr>';
+    return;
+  }
+  const maxV = Math.max(...rows.map(r=>r.views), 1);
+  tbody.innerHTML = rows.slice(0,200).map((p,i) => {
+    const pct = Math.round((p.views/maxV)*100);
+    const last = p.lastSeen ? _fmtDate(p.lastSeen) : '—';
+    const spark = p.days7.map(c => {
+      const h = Math.max(Math.round((c/(Math.max(...p.days7,1)))*18),1);
+      return `<div style="width:7px;height:${h}px;background:var(--orange);opacity:.7;border-radius:2px 2px 0 0"></div>`;
+    }).join('');
+    const href = p.id ? `product.html?id=${encodeURIComponent(p.id)}` : `catalog.html?search=${encodeURIComponent(p.name)}`;
+    return `<tr>
+      <td style="color:var(--text-muted);font-size:12px">${i+1}</td>
+      <td><a href="${_escHtml(href)}" target="_blank" style="color:var(--navy);font-weight:600;text-decoration:none;hover:color:var(--orange)">${_escHtml(p.name)}</a>
+        <div style="margin-top:4px;height:4px;background:var(--border);border-radius:2px"><div style="width:${pct}%;height:100%;background:var(--orange);border-radius:2px"></div></div>
+      </td>
+      <td style="font-size:12px;color:var(--text-muted)">${_escHtml(p.sku)}</td>
+      <td style="font-weight:700;color:var(--navy)">${p.views}</td>
+      <td>${p.sessions}</td>
+      <td style="font-size:12px">${last}</td>
+      <td><div style="display:flex;align-items:flex-end;gap:1px;height:20px">${spark}</div></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderProductAnalytics() {
+  const from = document.getElementById('paDateFrom');
+  const to   = document.getElementById('paDateTo');
+  if(!from?.value) {
+    setPaPreset('month', document.querySelector('#panel-product-analytics .dr-preset.active'));
+    return;
+  }
+  loadProductAnalytics(new Date(from.value+'T00:00:00'), new Date(to.value+'T23:59:59'));
 }
 </script>
 </body>

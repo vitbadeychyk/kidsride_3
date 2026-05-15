@@ -400,6 +400,8 @@ nav a.active{color:var(--orange)}
       <option value="popular">Популярні</option>
       <option value="price_asc">Ціна: від дешевших</option>
       <option value="price_desc">Ціна: від дорожчих</option>
+      <option value="name_az">Назва: А → Я</option>
+      <option value="name_za">Назва: Я → А</option>
       <option value="new">Новинки</option>
     </select>
     <div class="view-btns">
@@ -2169,6 +2171,8 @@ function applyFiltersAndRender() {
   const sortVal = document.getElementById('sortSelect')?.value || 'popular';
   if (sortVal === 'price_asc') filteredProducts.sort((a,b) => a.price - b.price);
   else if (sortVal === 'price_desc') filteredProducts.sort((a,b) => b.price - a.price);
+  else if (sortVal === 'name_az') filteredProducts.sort((a,b) => (a.name||'').localeCompare(b.name||'','uk'));
+  else if (sortVal === 'name_za') filteredProducts.sort((a,b) => (b.name||'').localeCompare(a.name||'','uk'));
   else if (sortVal === 'new') filteredProducts.sort((a,b) => (b.addedAt||0) - (a.addedAt||0));
 
   // Оновити лічильник

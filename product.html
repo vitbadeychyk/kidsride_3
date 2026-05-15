@@ -1415,8 +1415,33 @@ console.log('[KidsRide] product.html v3.9 — працюють: копіюван
     if (p.sku || p.model_code) await buildColorVariants(p.sku, p.id, SUPA_URL, SUPA_KEY, p.model_code);
     // ─ Відгуки з Supabase (по реальному product_id) ─
     loadReviewsFromSupabase(p.id);
+    // ─ Трекінг перегляду ─
+    _krTrackView(p.id, p.name, p.sku);
   } catch(e){ console.warn('[KidsRide] loadFullProduct error:', e); }
 })();
+
+async function _krTrackView(productId, productName, productSku) {
+  try {
+    let sid = sessionStorage.getItem('kr_sid');
+    if (!sid) { sid = Math.random().toString(36).slice(2) + Date.now().toString(36); sessionStorage.setItem('kr_sid', sid); }
+    await fetch(_krSupaUrl() + '/rest/v1/product_views', {
+      method: 'POST',
+      headers: {
+        'apikey': _krSupaKey(),
+        'Authorization': 'Bearer ' + _krSupaKey(),
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        product_id: productId,
+        product_name: productName,
+        product_sku: productSku,
+        session_id: sid,
+        viewed_at: new Date().toISOString()
+      })
+    });
+  } catch(e) {}
+}
 
 // ── Рендер блоку «Опис» ──────────────────────────────────────────────────
 function renderProductDescription(p){
