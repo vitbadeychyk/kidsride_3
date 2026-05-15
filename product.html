@@ -2224,12 +2224,17 @@ function _ytEmbedFromUrl(url){
     if (_krProdPromise) return _krProdPromise;
     _krProdPromise = (async () => {
       try {
-        const url = _krSupaUrl() + '/rest/v1/products?select=id,name,brand,model_code,sku,category,price,images&active=eq.true&order=created_at.desc&limit=5000';
-        const res = await fetch(url, { headers: { 'apikey': _krSupaKey(), 'Authorization': 'Bearer ' + _krSupaKey() } });
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data) && data.length) {
-            _krProdCache = data.map(p => ({
+        const hdrs = { 'apikey': _krSupaKey(), 'Authorization': 'Bearer ' + _krSupaKey() };
+        const base = _krSupaUrl() + '/rest/v1/products?select=id,name,brand,model_code,sku,category,price,images&active=eq.true&order=created_at.desc&limit=1000';
+        const pages = await Promise.all(
+          [0, 1000, 2000].map(off => fetch(base + '&offset=' + off, { headers: hdrs })
+            .then(r => r.ok ? r.json() : []).catch(() => []))
+        );
+        const data = pages.flat();
+        if (data.length) {
+          const seen = new Set();
+          _krProdCache = data.filter(p => { if (!p || seen.has(p.id)) return false; seen.add(p.id); return true; })
+            .map(p => ({
               id:       p.id,
               name:     p.name  || '',
               brand:    p.brand || '',
@@ -2239,8 +2244,7 @@ function _ytEmbedFromUrl(url){
               price:    parseFloat(p.price) || 0,
               photo:    Array.isArray(p.images) && p.images[0] ? p.images[0] : null,
             }));
-            return _krProdCache;
-          }
+          return _krProdCache;
         }
       } catch(e) { console.warn('KR search fail:', e); }
       _krProdCache = [];

@@ -2126,13 +2126,17 @@ async function krLoadAllProducts() {
   if (KR_PRODUCTS_PROMISE) return KR_PRODUCTS_PROMISE;
   KR_PRODUCTS_PROMISE = (async () => {
     try {
-      const res = await fetch(KR_SUPABASE_URL + '/rest/v1/products?select=id,name,brand,model_code,sku,category,price,images&active=eq.true&order=created_at.desc&limit=5000', {
-        headers: { 'apikey': KR_SUPABASE_KEY, 'Authorization': 'Bearer ' + KR_SUPABASE_KEY }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (Array.isArray(data) && data.length) {
-          KR_PRODUCTS_CACHE = data.map(p => ({
+      const hdrs = { 'apikey': KR_SUPABASE_KEY, 'Authorization': 'Bearer ' + KR_SUPABASE_KEY };
+      const base = KR_SUPABASE_URL + '/rest/v1/products?select=id,name,brand,model_code,sku,category,price,images&active=eq.true&order=created_at.desc&limit=1000';
+      const pages = await Promise.all(
+        [0, 1000, 2000].map(off => fetch(base + '&offset=' + off, { headers: hdrs })
+          .then(r => r.ok ? r.json() : []).catch(() => []))
+      );
+      const data = pages.flat();
+      if (data.length) {
+        const seen = new Set();
+        KR_PRODUCTS_CACHE = data.filter(p => { if (!p || seen.has(p.id)) return false; seen.add(p.id); return true; })
+          .map(p => ({
             id: p.id,
             name: p.name || '',
             brand: p.brand || '',
@@ -2143,8 +2147,7 @@ async function krLoadAllProducts() {
             emoji: KR_CAT_EMOJI[p.category] || '🚗',
             photo: Array.isArray(p.images) && p.images[0] ? p.images[0] : null
           }));
-          return KR_PRODUCTS_CACHE;
-        }
+        return KR_PRODUCTS_CACHE;
       }
     } catch(e) { console.warn('KR search supabase fail:', e); }
     // fallback на статичний індекс
