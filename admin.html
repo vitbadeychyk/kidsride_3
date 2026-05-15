@@ -687,6 +687,15 @@ tr:hover td{background:rgba(240,242,248,.5)}
               <option value="active">Активні</option>
               <option value="hidden">Приховані</option>
             </select>
+            <select id="productPageSizeSelect" class="filter-select" onchange="setProductsPageSize(this.value)" title="Кількість на сторінці">
+              <option value="50" selected>50 / стор.</option>
+              <option value="100">100 / стор.</option>
+              <option value="1000">1 000 / стор.</option>
+              <option value="all">Всі</option>
+            </select>
+            <button class="btn btn-sm btn-outline" onclick="refreshProductsCache()" title="Оновити список з бази даних" style="display:flex;align-items:center;gap:4px">
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Оновити
+            </button>
           </div>
         </div>
         <table>
@@ -4157,8 +4166,22 @@ function toggleProductStatus(id) {
 }
 
 // Стан пагінації товарів
-const PRODUCTS_PAGE_SIZE = 20;
+let _productsPageSize = 50; // 50 | 100 | 1000 | 'all'
 let _productsCurrentPage = 1;
+
+function setProductsPageSize(val) {
+  _productsPageSize = val === 'all' ? 'all' : Math.max(1, parseInt(val) || 50);
+  _productsCurrentPage = 1;
+  renderProductsTable();
+}
+
+async function refreshProductsCache() {
+  window._productsRawCache = undefined;
+  const btn = document.querySelector('[onclick="refreshProductsCache()"]');
+  if (btn) btn.disabled = true;
+  await renderProductsTable();
+  if (btn) btn.disabled = false;
+}
 
 function setProductsPage(n) {
   _productsCurrentPage = Math.max(1, parseInt(n) || 1);
@@ -4244,7 +4267,7 @@ async function renderProductsTable() {
         <div style="font-family:'Nunito',sans-serif;font-weight:700;font-size:16px;margin-bottom:8px">Товарів ще немає</div>
         <div style="font-size:13px">Натисніть "Додати товар" щоб почати</div>
       </td></tr>`;
-    _renderProductsPagination(0, 1, PRODUCTS_PAGE_SIZE);
+    _renderProductsPagination(0, 1, _productsPageSize);
     return;
   }
 
@@ -4259,13 +4282,15 @@ async function renderProductsTable() {
     return true;
   });
 
-  // Пагінація
+  // Пагінація (підтримка режиму "Всі")
   const total = filtered.length;
-  const pages = Math.max(1, Math.ceil(total / PRODUCTS_PAGE_SIZE));
+  const isAll = _productsPageSize === 'all';
+  const effectivePageSize = isAll ? total || 1 : _productsPageSize;
+  const pages = Math.max(1, Math.ceil(total / effectivePageSize));
   if (_productsCurrentPage > pages) _productsCurrentPage = pages;
   if (_productsCurrentPage < 1) _productsCurrentPage = 1;
-  const start = (_productsCurrentPage - 1) * PRODUCTS_PAGE_SIZE;
-  const pageItems = filtered.slice(start, start + PRODUCTS_PAGE_SIZE);
+  const start = isAll ? 0 : (_productsCurrentPage - 1) * effectivePageSize;
+  const pageItems = isAll ? filtered : filtered.slice(start, start + effectivePageSize);
 
   tbody.innerHTML = pageItems.map(p => {
     const status = p.active !== false
@@ -4317,7 +4342,7 @@ async function renderProductsTable() {
     </tr>`;
   }).join('');
 
-  _renderProductsPagination(total, _productsCurrentPage, PRODUCTS_PAGE_SIZE);
+  _renderProductsPagination(total, _productsCurrentPage, effectivePageSize);
 }
 
 // Пошук товарів
