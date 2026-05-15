@@ -2006,14 +2006,57 @@ async function sbFetch(path, options = {}) {
 }
 
 // ── SUPABASE PRODUCTS ──────────────────────────────────────────────────────
+// Пагінований збір ВСІХ товарів — обходить max_rows обмеження PostgREST
 async function sbGetProducts() {
   try {
-    // Отримуємо ВСІ товари (без ліміту Supabase за замовчуванням)
-    const data = await sbFetch('products?select=*&order=created_at.desc&limit=10000');
-    return Array.isArray(data) ? data : [];
+    const token = (typeof _adminToken !== 'undefined' && _adminToken) || SUPABASE_KEY;
+    const baseHeaders = {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + token,
+      'Content-Type': 'application/json',
+      'Prefer': 'count=exact'
+    };
+    const baseUrl = SUPABASE_URL + '/rest/v1/products?select=*&order=id.asc';
+
+    // Перший запит — виявляємо реальний ліміт і загальну кількість
+    const firstRes = await fetch(baseUrl, {
+      headers: { ...baseHeaders, 'Range': '0-999' }
+    });
+    if (!firstRes.ok) {
+      const txt = await firstRes.text();
+      throw new Error('Supabase ' + firstRes.status + ': ' + txt.slice(0, 200));
+    }
+
+    // Content-Range: 0-4/739  →  total=739, pageSize=5
+    const cr = firstRes.headers.get('content-range') || '';
+    const totalMatch = cr.match(/\/(\d+)$/);
+    const total = totalMatch ? parseInt(totalMatch[1]) : null;
+    const firstBatch = await firstRes.json();
+    const pageSize = firstBatch.length;
+
+    if (!pageSize) return [];
+    if (!total || total <= pageSize) return firstBatch;
+
+    // Паралельно добираємо решту сторінок
+    const offsets = [];
+    for (let off = pageSize; off < total; off += pageSize) offsets.push(off);
+
+    // Щоб не перевантажити Supabase — групуємо по 20 паралельних запитів
+    const CHUNK = 20;
+    let rest = [];
+    for (let i = 0; i < offsets.length; i += CHUNK) {
+      const chunk = offsets.slice(i, i + CHUNK);
+      const results = await Promise.all(chunk.map(off =>
+        fetch(baseUrl, { headers: { ...baseHeaders, 'Range': `${off}-${off + pageSize - 1}` } })
+          .then(r => r.ok ? r.json() : [])
+          .catch(() => [])
+      ));
+      rest = rest.concat(results.flat());
+    }
+
+    return [...firstBatch, ...rest];
   } catch(e) {
     console.error('sbGetProducts:', e);
-    // Fallback на localStorage
     return JSON.parse(localStorage.getItem('kr_products') || '[]');
   }
 }
