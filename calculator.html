@@ -339,8 +339,9 @@ const BG_BY_TYPE = {
 // ── ЗАВАНТАЖЕННЯ ТОВАРІВ ────────────────────────────────────
 async function loadProducts() {
   try {
+    const catFilter = 'category=in.(' + EV_CATEGORIES.join(',') + ')';
     const res = await fetch(
-      SUPABASE_URL + '/rest/v1/products?select=*&active=eq.true&order=sort_order.asc,created_at.desc',
+      SUPABASE_URL + '/rest/v1/products?select=*&active=eq.true&' + catFilter + '&order=sort_order.asc,created_at.desc',
       {
         headers: {
           'apikey': SUPABASE_KEY,
@@ -359,8 +360,8 @@ async function loadProducts() {
       price: parseFloat(p.price) || 0,
       oldPrice: p.old_price ? parseFloat(p.old_price) : null,
       category: p.category || '',
-      voltage: (p.voltage || '12V').toUpperCase().replace(/\s+/g,''),
-      age: p.age_range || '3-8',
+      voltage: p.voltage ? p.voltage.toUpperCase().replace(/\s+/g,'') : '',
+      age: p.age_range || '',
       stock: p.stock || 0,
       preorderDays: p.preorder_days || 0,
       img: p.img_type || p.category || 'jeep',

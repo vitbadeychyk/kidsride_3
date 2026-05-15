@@ -274,7 +274,10 @@ nav a.active{color:var(--orange)}
 .r-loc{font-size:11px;color:var(--text-muted);margin-top:2px}
 .r-stars-sm{display:flex;gap:1px;margin-left:auto;flex-shrink:0;padding-top:2px}
 .r-stars-sm svg{width:10px;height:10px;fill:#f59e0b;stroke:none}
-.r-text{font-size:13px;color:var(--text);line-height:1.55;margin-bottom:12px;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden;flex:1}
+.r-text{font-size:13px;color:var(--text);line-height:1.55;margin-bottom:6px;overflow:hidden;flex:1;transition:max-height .3s ease}
+.r-text.clamped{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.r-read-more{font-size:12px;font-weight:700;color:var(--orange);background:none;border:none;cursor:pointer;padding:0;margin-bottom:10px;font-family:'Nunito',sans-serif;display:none}
+.r-read-more.visible{display:inline}
 .r-product{display:flex;align-items:center;gap:6px;padding:7px 10px;background:var(--bg-soft);border-radius:8px;margin-top:auto}
 .r-product-img{width:30px;height:30px;object-fit:cover;border-radius:6px;background:#e8ecf4}
 .r-product-name{font-size:11px;font-weight:600;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
@@ -1121,6 +1124,7 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
       const productThumb = productImg
         ? `<img src="${esc(productImg)}" alt="${productName}" class="r-product-img" style="width:30px;height:30px;object-fit:cover;border-radius:6px;flex-shrink:0" onerror="this.style.display='none'">`
         : `<div style="width:30px;height:30px;border-radius:6px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🚗</div>`;
+      const cardId = 'rv-' + i;
       return `
         <div class="r-card">
           <div class="r-head">
@@ -1128,7 +1132,8 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
             <div><div class="r-name">${esc(r.author_name)}</div><div class="r-loc">${esc(r.city || '')}</div></div>
             <div class="r-stars-sm" style="margin-left:auto">${starsSvg(r.rating || 5, 13)}</div>
           </div>
-          <p class="r-text">${esc(r.text)}</p>
+          <p class="r-text clamped" id="${cardId}-text">${esc(r.text)}</p>
+          <button class="r-read-more" id="${cardId}-btn" onclick="toggleReview('${cardId}')">Читати далі ↓</button>
           <div class="r-product">
             ${productThumb}
             <div class="r-product-name" title="${productName}">${productName}</div>
@@ -1140,7 +1145,26 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
     const gridEl = document.getElementById('reviewsGrid');
     if (gridEl) gridEl.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--text-muted);font-size:14px">Не вдалося завантажити відгуки</div>';
   }
+
+  // Показати кнопку "Читати далі" тільки де текст реально обрізається
+  requestAnimationFrame(() => {
+    document.querySelectorAll('.r-text.clamped').forEach(el => {
+      if (el.scrollHeight > el.clientHeight + 4) {
+        const btn = el.nextElementSibling;
+        if (btn && btn.classList.contains('r-read-more')) btn.classList.add('visible');
+      }
+    });
+  });
 })();
+
+function toggleReview(id) {
+  const textEl = document.getElementById(id + '-text');
+  const btn = document.getElementById(id + '-btn');
+  if (!textEl || !btn) return;
+  const expanded = !textEl.classList.contains('clamped');
+  textEl.classList.toggle('clamped', expanded);
+  btn.textContent = expanded ? 'Читати далі ↓' : 'Згорнути ↑';
+}
 </script>
 
 <!-- DELIVERY & PAYMENT -->

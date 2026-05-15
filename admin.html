@@ -4203,13 +4203,15 @@ async function renderProductsTable() {
   if (!tbody) return;
 
   // Показати loader тільки якщо raw кешу ще немає (перший рендер)
-  const isFirstLoad = !Array.isArray(window._productsRawCache) || !window._productsRawCache.length;
+  const isFirstLoad = !Array.isArray(window._productsRawCache);
   if (isFirstLoad) {
     tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-muted)"><div style="width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--orange);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px"></div>Завантаження...</td></tr>';
     // Завантажити з Supabase
-    const supabaseProducts = await sbGetProducts();
-    if (Array.isArray(supabaseProducts) && supabaseProducts.length) {
-      window._productsRawCache = supabaseProducts;
+    try {
+      const supabaseProducts = await sbGetProducts();
+      window._productsRawCache = Array.isArray(supabaseProducts) ? supabaseProducts : [];
+    } catch(e) {
+      window._productsRawCache = [];
     }
   }
 
