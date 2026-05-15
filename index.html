@@ -2125,7 +2125,7 @@ async function krLoadAllProducts() {
   if (KR_PRODUCTS_PROMISE) return KR_PRODUCTS_PROMISE;
   KR_PRODUCTS_PROMISE = (async () => {
     try {
-      const res = await fetch(KR_SUPABASE_URL + '/rest/v1/products?select=id,name,brand,model_code,sku,category,price&active=eq.true&order=created_at.desc', {
+      const res = await fetch(KR_SUPABASE_URL + '/rest/v1/products?select=id,name,brand,model_code,sku,category,price&active=eq.true&order=created_at.desc&limit=5000', {
         headers: { 'apikey': KR_SUPABASE_KEY, 'Authorization': 'Bearer ' + KR_SUPABASE_KEY }
       });
       if (res.ok) {
@@ -2215,6 +2215,7 @@ function renderSearchSuggestions(query) {
     empty.style.display = 'none';
     return;
   }
+  const KR_VEHICLE_CATS = new Set(Object.keys(KR_CAT_EMOJI));
   let items;
   if (!q) {
     items = products.slice(0, 6);
@@ -2222,7 +2223,10 @@ function renderSearchSuggestions(query) {
     items = products
       .map(p => ({ p, s: krMatchScore(p, q) }))
       .filter(x => x.s > 0)
-      .sort((a, b) => b.s - a.s)
+      .sort((a, b) =>
+        b.s - a.s ||
+        (KR_VEHICLE_CATS.has(a.p.category) ? 0 : 1) - (KR_VEHICLE_CATS.has(b.p.category) ? 0 : 1)
+      )
       .slice(0, 10)
       .map(x => x.p);
   }

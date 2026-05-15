@@ -1755,9 +1755,10 @@ async function buildColorVariants(currentSku, currentId, supaUrl, supaKey, model
   async function _fetchVariants(qsBase){
     const headers = { 'apikey': supaKey, 'Authorization': 'Bearer ' + supaKey };
     const selects = [
-      'id,sku,model_code,color,name,images,stock',
-      'id,sku,color,name,images,stock',
-      'id,sku,model_code,name,images,stock',
+      'id,sku,model_code,color,category,name,images,stock',
+      'id,sku,color,category,name,images,stock',
+      'id,sku,model_code,category,name,images,stock',
+      'id,sku,category,name,images,stock',
       'id,sku,name,images,stock'
     ];
     for (const sel of selects){
@@ -1846,9 +1847,13 @@ async function buildColorVariants(currentSku, currentId, supaUrl, supaKey, model
     return;
   }
 
-  // Сортуємо: спершу за SKU цілком (літери), потім за числовим суфіксом, щоб
-  // M 4259EBLR-1, -2, -3, потім M 4259EBLRS-3 ішли в логічному порядку.
+  // Сортуємо: спершу автомобілі, потім запчастини/аксесуари.
+  // Всередині кожної групи — за SKU (префікс, потім числовий суфікс).
+  const _VARIANT_VEHICLE_CATS = new Set(['jeep','car','quad','moto','tractor','truck','buggy','walker']);
   arr.sort((a, b) => {
+    const aIsVehicle = _VARIANT_VEHICLE_CATS.has(a.category);
+    const bIsVehicle = _VARIANT_VEHICLE_CATS.has(b.category);
+    if (aIsVehicle !== bIsVehicle) return aIsVehicle ? -1 : 1;
     const sa = String(a.sku || ''), sb = String(b.sku || '');
     const ba = sa.replace(/-(\d+)\s*$/, ''), bb = sb.replace(/-(\d+)\s*$/, '');
     if (ba !== bb) return ba.localeCompare(bb);
@@ -2219,19 +2224,20 @@ function _ytEmbedFromUrl(url){
     if (_krProdPromise) return _krProdPromise;
     _krProdPromise = (async () => {
       try {
-        const url = _krSupaUrl() + '/rest/v1/products?select=id,name,brand,model_code,sku,price,images&active=eq.true&order=created_at.desc&limit=2000';
+        const url = _krSupaUrl() + '/rest/v1/products?select=id,name,brand,model_code,sku,category,price,images&active=eq.true&order=created_at.desc&limit=5000';
         const res = await fetch(url, { headers: { 'apikey': _krSupaKey(), 'Authorization': 'Bearer ' + _krSupaKey() } });
         if (res.ok) {
           const data = await res.json();
           if (Array.isArray(data) && data.length) {
             _krProdCache = data.map(p => ({
-              id:    p.id,
-              name:  p.name  || '',
-              brand: p.brand || '',
-              model: p.model_code || p.sku || '',
-              sku:   p.sku   || '',
-              price: parseFloat(p.price) || 0,
-              photo: Array.isArray(p.images) && p.images[0] ? p.images[0] : null,
+              id:       p.id,
+              name:     p.name  || '',
+              brand:    p.brand || '',
+              model:    p.model_code || p.sku || '',
+              sku:      p.sku   || '',
+              category: p.category || '',
+              price:    parseFloat(p.price) || 0,
+              photo:    Array.isArray(p.images) && p.images[0] ? p.images[0] : null,
             }));
             return _krProdCache;
           }
@@ -2296,12 +2302,21 @@ function _ytEmbedFromUrl(url){
       if (empty) empty.style.display = 'none';
       return;
     }
+    const _VEHICLE_CATS = new Set(['jeep','car','quad','moto','tractor','truck','buggy','walker']);
     let items;
     if (!q) {
       items = products.slice(0, 6);
       if (label) label.textContent = 'Популярні моделі';
     } else {
-      items = products.map(p=>({p,s:_krScore(p,q)})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s).slice(0,10).map(x=>x.p);
+      items = products
+        .map(p=>({p,s:_krScore(p,q)}))
+        .filter(x=>x.s>0)
+        .sort((a,b) =>
+          b.s - a.s ||
+          (_VEHICLE_CATS.has(a.p.category) ? 0 : 1) - (_VEHICLE_CATS.has(b.p.category) ? 0 : 1)
+        )
+        .slice(0,10)
+        .map(x=>x.p);
       if (label) label.textContent = 'Результати пошуку';
     }
     list.innerHTML = '';
