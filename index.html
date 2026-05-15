@@ -2222,15 +2222,20 @@ function renderSearchSuggestions(query) {
   if (!q) {
     items = products.slice(0, 6);
   } else {
-    items = products
+    const scored = products
       .map(p => ({ p, s: krMatchScore(p, q) }))
-      .filter(x => x.s > 0)
-      .sort((a, b) =>
-        b.s - a.s ||
-        (KR_VEHICLE_CATS.has(a.p.category) ? 0 : 1) - (KR_VEHICLE_CATS.has(b.p.category) ? 0 : 1)
-      )
-      .slice(0, 10)
+      .filter(x => x.s > 0);
+    const vehicles = scored
+      .filter(x => KR_VEHICLE_CATS.has(x.p.category))
+      .sort((a, b) => b.s - a.s)
+      .slice(0, 6)
       .map(x => x.p);
+    const others = scored
+      .filter(x => !KR_VEHICLE_CATS.has(x.p.category))
+      .sort((a, b) => b.s - a.s)
+      .slice(0, 4)
+      .map(x => x.p);
+    items = [...vehicles, ...others];
   }
   list.innerHTML = '';
   if (items.length === 0) {

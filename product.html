@@ -2308,15 +2308,18 @@ function _ytEmbedFromUrl(url){
       items = products.slice(0, 6);
       if (label) label.textContent = 'Популярні моделі';
     } else {
-      items = products
-        .map(p=>({p,s:_krScore(p,q)}))
-        .filter(x=>x.s>0)
-        .sort((a,b) =>
-          b.s - a.s ||
-          (_VEHICLE_CATS.has(a.p.category) ? 0 : 1) - (_VEHICLE_CATS.has(b.p.category) ? 0 : 1)
-        )
-        .slice(0,10)
-        .map(x=>x.p);
+      const scored = products.map(p=>({p,s:_krScore(p,q)})).filter(x=>x.s>0);
+      const vehicles = scored
+        .filter(x => _VEHICLE_CATS.has(x.p.category))
+        .sort((a,b) => b.s - a.s)
+        .slice(0, 6)
+        .map(x => x.p);
+      const others = scored
+        .filter(x => !_VEHICLE_CATS.has(x.p.category))
+        .sort((a,b) => b.s - a.s)
+        .slice(0, 4)
+        .map(x => x.p);
+      items = [...vehicles, ...others];
       if (label) label.textContent = 'Результати пошуку';
     }
     list.innerHTML = '';
