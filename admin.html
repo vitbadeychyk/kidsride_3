@@ -2017,13 +2017,16 @@ async function sbGetProducts() {
     };
     const BASE = SUPABASE_URL + '/rest/v1/products';
 
-    // Крок 1: загальна кількість через агрегат SELECT count(*) — не залежить від max_rows
+    // Крок 1: загальна кількість через Prefer: count=exact (коректний PostgREST синтаксис)
     let total = 0;
     try {
-      const cntRes = await fetch(BASE + '?select=count', { headers: hdr });
-      if (cntRes.ok) {
-        const cntData = await cntRes.json();
-        total = parseInt(Array.isArray(cntData) ? cntData[0]?.count : 0) || 0;
+      const cntRes = await fetch(BASE + '?select=id', {
+        headers: { ...hdr, 'Prefer': 'count=exact', 'Range': '0-0' }
+      });
+      if (cntRes.ok || cntRes.status === 206) {
+        const cr = cntRes.headers.get('content-range') || '';
+        const m  = cr.match(/\/([0-9]+)$/);
+        total = m ? parseInt(m[1], 10) : 0;
       }
     } catch(_) { /* ігноруємо */ }
 
@@ -4281,7 +4284,11 @@ async function renderProductsTable() {
     try {
       const supabaseProducts = await sbGetProducts();
       window._productsRawCache = Array.isArray(supabaseProducts) ? supabaseProducts : [];
+      if (!window._productsRawCache.length) {
+        console.warn('[admin] sbGetProducts повернув порожній масив — перевірте RLS-правила таблиці products у Supabase');
+      }
     } catch(e) {
+      console.error('[admin] Помилка завантаження товарів:', e);
       window._productsRawCache = [];
     }
   }
@@ -4309,12 +4316,19 @@ async function renderProductsTable() {
   if (countEl) countEl.textContent = '(' + products.length.toLocaleString('uk-UA').replace(/,/g,' ') + ')';
 
   if (!products.length) {
-    tbody.innerHTML = `
-      <tr><td colspan="8" style="text-align:center;padding:48px;color:var(--text-muted)">
-        <div style="font-size:32px;margin-bottom:12px">📦</div>
-        <div style="font-family:'Nunito',sans-serif;font-weight:700;font-size:16px;margin-bottom:8px">Товарів ще немає</div>
-        <div style="font-size:13px">Натисніть "Додати товар" щоб почати</div>
-      </td></tr>`;
+    const rawCount = Array.isArray(window._productsRawCache) ? window._productsRawCache.length : -1;
+    const emptyMsg = rawCount === 0
+      ? `<div style="font-size:32px;margin-bottom:12px">⚠️</div>
+         <div style="font-family:'Nunito',sans-serif;font-weight:700;font-size:16px;margin-bottom:8px">Товари не завантажились з Supabase</div>
+         <div style="font-size:13px;color:var(--text-muted);max-width:460px;margin:0 auto;line-height:1.6">
+           Перевірте RLS-правила таблиці <b>products</b> у Supabase.<br>
+           Виконайте <b>FIX_PRODUCTS_RLS.sql</b> у Supabase → SQL Editor, потім оновіть сторінку.
+         </div>
+         <button onclick="window._productsRawCache=null;renderProductsTable()" style="margin-top:16px;padding:8px 18px;background:var(--orange);color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px">Спробувати знову</button>`
+      : `<div style="font-size:32px;margin-bottom:12px">📦</div>
+         <div style="font-family:'Nunito',sans-serif;font-weight:700;font-size:16px;margin-bottom:8px">Товарів ще немає</div>
+         <div style="font-size:13px">Натисніть "Додати товар" щоб почати</div>`;
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:48px;color:var(--text-muted)">${emptyMsg}</td></tr>`;
     _renderProductsPagination(0, 1, _productsPageSize);
     return;
   }
