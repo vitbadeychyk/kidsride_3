@@ -3883,7 +3883,7 @@ function saveProducts(products) {
 
 // Кеш "сирих" рядків з Supabase — використовуємо при відкритті модалки,
 // щоб бачити всі поля (model_code, motor, battery тощо), яких немає в легасі-кеші.
-window._productsRawCache = window._productsRawCache || [];
+window._productsRawCache = window._productsRawCache || null; // null = ще не завантажено з Supabase
 
 function _findRawProduct(id) {
   if (!id) return null;
@@ -4339,7 +4339,7 @@ async function renderProductsTable() {
   if (!tbody) return;
 
   // Показати loader тільки якщо raw кешу ще немає (перший рендер)
-  const isFirstLoad = !Array.isArray(window._productsRawCache);
+  const isFirstLoad = !Array.isArray(window._productsRawCache) || window._productsRawCache === null;
   if (isFirstLoad) {
     tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-muted)"><div style="width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--orange);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px"></div>Завантаження...</td></tr>';
     // Завантажити з Supabase
