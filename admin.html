@@ -1999,9 +1999,9 @@ async function sbFetch(path, options = {}) {
 // ── SUPABASE PRODUCTS ──────────────────────────────────────────────────────
 async function sbGetProducts() {
   try {
-    // service_role не потрібен — адмін бачить всі через RLS
-    const data = await sbFetch('products?select=*&order=created_at.desc');
-    return data;
+    // Отримуємо ВСІ товари (без ліміту Supabase за замовчуванням)
+    const data = await sbFetch('products?select=*&order=created_at.desc&limit=10000');
+    return Array.isArray(data) ? data : [];
   } catch(e) {
     console.error('sbGetProducts:', e);
     // Fallback на localStorage

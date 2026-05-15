@@ -502,10 +502,14 @@ function showResults() {
   document.getElementById('resultsWrap').style.display = 'block';
 
   // Жорсткі фільтри
+  const selectedVoltage = AGE_RANGES[answers.age]?.voltage || '';
   const filtered = (allProducts || []).filter(p => {
     if (!EV_CATEGORIES.includes(p.category)) return false;       // тільки електромобілі
     if (p.price > answers.budget) return false;                  // бюджет
-    if (!fitsAge(p)) return false;                               // вік
+    // Жорсткий фільтр по напрузі: якщо не вказано — не показуємо
+    const pv = String(p.voltage || '').toUpperCase().replace(/\s+/g,'');
+    if (!pv) return false;                                       // немає напруги — пропускаємо
+    if (selectedVoltage && pv !== selectedVoltage) return false; // не відповідає обраній напрузі
     return true;
   });
 
