@@ -4283,7 +4283,8 @@ async function renderProductsTable() {
 
   const raw = Array.isArray(window._productsRawCache) ? window._productsRawCache : [];
 
-  const products = raw.length ? raw.map(p => ({
+  // Товари з Supabase (якщо є)
+  const fromSupabase = raw.map(p => ({
     id: p.id,
     sku: p.sku,
     name: p.name,
@@ -4296,10 +4297,18 @@ async function renderProductsTable() {
     img: p.img_type || 'jeep',
     images: Array.isArray(p.images) ? p.images.filter(Boolean) : [],
     addedAt: p.created_at ? new Date(p.created_at).getTime() : 0
-  })) : getProducts();
+  }));
 
-  // Оновити локальний кеш для офлайн-фолбеку
-  if (raw.length) saveProducts(products);
+  // Товари з localStorage (попередній імпорт або повний кеш)
+  const fromStorage = getProducts();
+
+  // Використовуємо більший набір — щоб не втрачати товари через ліміти Supabase
+  const products = fromSupabase.length >= fromStorage.length
+    ? fromSupabase
+    : fromStorage;
+
+  // Оновлюємо localStorage лише якщо отримали БІЛЬШЕ товарів, ніж там є
+  if (fromSupabase.length > fromStorage.length) saveProducts(fromSupabase);
   const countEl = document.getElementById('productsCount');
   if (countEl) countEl.textContent = '(' + products.length.toLocaleString('uk-UA').replace(/,/g,' ') + ')';
 
