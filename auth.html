@@ -338,19 +338,29 @@ const IS_OAUTH_CALLBACK = window.location.hash.includes('access_token')
   || window.location.search.includes('error=');
 
 let currentTab = 'login';
+let rememberMe = false;
 
 // ════════════════════════════════════════════════════════════════════════════
 // ЗБЕРЕЖЕННЯ СЕСІЇ ДЛЯ SHARED.JS
 // Зберігає сесію у форматі, який очікує shared.js (kr_admin_session)
+// rememberMe=true  → localStorage  (залишається після закриття браузера)
+// rememberMe=false → sessionStorage (зникає при закритті браузера)
 // ════════════════════════════════════════════════════════════════════════════
 function saveKrSession(session) {
   if (!session) return;
-  localStorage.setItem(KR_SESSION_KEY, JSON.stringify({
+  const data = JSON.stringify({
     access_token:  session.access_token,
     refresh_token: session.refresh_token,
     user:          session.user,
     expires_at:    session.expires_at
-  }));
+  });
+  if (rememberMe) {
+    localStorage.setItem(KR_SESSION_KEY, data);
+    sessionStorage.removeItem(KR_SESSION_KEY);
+  } else {
+    sessionStorage.setItem(KR_SESSION_KEY, data);
+    localStorage.removeItem(KR_SESSION_KEY);
+  }
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -475,6 +485,7 @@ sb.auth.onAuthStateChange(async (event, session) => {
 
   if (event === 'SIGNED_OUT') {
     localStorage.removeItem(KR_SESSION_KEY);
+    sessionStorage.removeItem(KR_SESSION_KEY);
   }
 });
 
@@ -594,6 +605,9 @@ async function submitLogin() {
 
   hideError('loginError');
   if (!email || !pwd) { showError('loginError', 'Введіть email та пароль'); return; }
+
+  // Читаємо стан чекбоксу "Запам'ятати мене"
+  rememberMe = document.querySelector('#loginForm .check-box').classList.contains('checked');
 
   // Знімаємо прапорець "вийшов" — користувач явно хоче увійти
   localStorage.removeItem('kr_signed_out');
@@ -730,7 +744,7 @@ function hideError(id) {
   if (IS_OAUTH_CALLBACK) return; // не заважаємо OAuth callback
   if (localStorage.getItem('kr_signed_out') === '1') return; // явно виходив — показуємо форму
   try {
-    const s = localStorage.getItem(KR_SESSION_KEY);
+    const s = localStorage.getItem(KR_SESSION_KEY) || sessionStorage.getItem(KR_SESSION_KEY);
     if (!s) return;
     const session = JSON.parse(s);
     if (!session.access_token) return;
