@@ -130,7 +130,7 @@ nav a.active{color:var(--orange)}
 .price-hint strong{color:var(--navy)}
 .installment{display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,107,53,.1)}
 .installment svg{width:18px;height:18px;stroke:var(--orange);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
-.installment-text{font-size:12px;color:var(--navy);font-weight:600}
+.installment-text{font-size:12px;color:var(--navy);font-weight:600;overflow-wrap:break-word;word-break:break-word;min-width:0}
 .installment-text span{color:var(--orange)}
 
 /* Color picker */
@@ -325,9 +325,18 @@ nav a.active{color:var(--orange)}
   .related{padding:0 16px 80px}
 
   /* Gallery — fix image overflow on mobile */
-  .gallery{width:100%;max-width:100%;box-sizing:border-box}
-  .gallery-main{width:100%;max-width:100%;overflow:hidden;box-sizing:border-box}
-  .gallery-main img{max-width:100%;max-height:100%;min-width:0;min-height:0;width:auto;height:auto;display:block}
+  .gallery{width:100%;max-width:100%;box-sizing:border-box;overflow:hidden}
+  .gallery-main{
+    width:100%;max-width:100%;box-sizing:border-box;overflow:hidden;
+    display:block;position:relative;
+    height:calc(100vw - 32px);aspect-ratio:unset;
+  }
+  .gallery-main img{
+    position:absolute;inset:0;
+    width:100%;height:100%;
+    object-fit:contain;display:block;
+    max-width:100%;max-height:100%;min-width:0;min-height:0;
+  }
 
   /* Gallery thumbs scroll */
   .gallery-thumbs{gap:6px;max-width:100%;overflow-x:auto}
@@ -357,6 +366,13 @@ nav a.active{color:var(--orange)}
   .action-btns{display:none}
   .btn-wish-compare{display:none}
   .mobile-buy-bar{display:flex}
+
+  /* Global overflow protection */
+  .product-info{min-width:0;max-width:100%;overflow-x:hidden}
+  .price-block{max-width:100%;overflow:hidden}
+  .installment{flex-wrap:wrap}
+  .delivery-mini{max-width:100%}
+  [data-color-variants-wrap]{max-width:100%;overflow:hidden}
 }
 
 @media(max-width:420px){
@@ -1721,12 +1737,12 @@ function buildPhotoGallery(images){
   if (share) main.appendChild(share);
 
   const imgWrap = document.createElement('div');
-  imgWrap.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;overflow:hidden';
+  imgWrap.style.cssText = 'position:absolute;inset:0;overflow:hidden;display:flex;align-items:center;justify-content:center';
   const mainImg = document.createElement('img');
   mainImg.id = 'mainProductImg';
   mainImg.src = images[0];
   mainImg.alt = '';
-  mainImg.style.cssText = 'max-width:100%;max-height:100%;min-width:0;min-height:0;width:auto;height:auto;object-fit:contain;transition:opacity .25s;display:block';
+  mainImg.style.cssText = 'display:block;width:100%;height:100%;object-fit:contain;min-width:0;min-height:0;transition:opacity .25s';
   imgWrap.appendChild(mainImg);
   main.appendChild(imgWrap);
 
@@ -2029,13 +2045,11 @@ async function buildColorVariants(currentSku, currentId, supaUrl, supaKey, model
 
   const wrap = document.createElement('div');
   wrap.setAttribute('data-color-variants-wrap', '1');
-  wrap.style.cssText = 'position:relative;margin-bottom:24px';
+  wrap.style.cssText = 'position:relative;margin-bottom:24px;max-width:100%;overflow:hidden';
 
   const scroller = document.createElement('div');
   scroller.id = 'variantsScroller';
-  // flex-wrap: дозволяємо акуратно перенестись на новий рядок, якщо моделей багато,
-  // а в основному вони вміщуються в один рядок (4–5 плиток на ширині сайдбара).
-  scroller.style.cssText = 'display:flex;flex-wrap:wrap;gap:10px;overflow-x:auto;scroll-behavior:smooth;padding:6px 2px 8px;scrollbar-width:none';
+  scroller.style.cssText = 'display:flex;flex-wrap:nowrap;gap:10px;overflow-x:auto;overflow-y:hidden;scroll-behavior:smooth;padding:6px 2px 8px;scrollbar-width:none;-webkit-overflow-scrolling:touch;max-width:100%;box-sizing:border-box';
   // hide webkit scrollbar inline (одноразово в head)
   if (!document.getElementById('variantsScrollerStyle')){
     const s = document.createElement('style');
