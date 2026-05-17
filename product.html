@@ -122,12 +122,16 @@ nav a.active{color:var(--orange)}
 .rating-count:hover{color:var(--orange)}
 
 .price-block{background:var(--bg-warm);border-radius:var(--r);padding:20px;margin-bottom:20px;border:1px solid rgba(255,107,53,.1)}
-.price-row{display:flex;align-items:baseline;gap:10px;margin-bottom:6px}
+.price-sale-label{display:inline-block;background:var(--orange);color:#fff;border-radius:6px;padding:3px 10px;font-family:'Nunito',sans-serif;font-weight:800;font-size:11px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+.price-row{display:flex;align-items:baseline;gap:10px;margin-bottom:4px}
 .price-main{font-family:'Nunito',sans-serif;font-size:34px;font-weight:900;color:var(--navy)}
 .price-old{font-size:16px;color:var(--text-muted);text-decoration:line-through;font-weight:500}
 .price-save{background:var(--green);color:#fff;border-radius:5px;padding:2px 8px;font-size:11px;font-weight:800;font-family:'Nunito',sans-serif}
-.price-hint{font-size:12px;color:var(--text-muted)}
-.price-hint strong{color:var(--navy)}
+.price-hint{font-size:13px;color:var(--text-muted);margin-bottom:6px}
+.price-hint strong{color:var(--text-muted);text-decoration:line-through}
+.price-savings{display:flex;align-items:center;gap:8px;background:rgba(39,174,96,.08);border:1.5px solid rgba(39,174,96,.3);border-radius:10px;padding:10px 14px;margin-top:4px;margin-bottom:8px;font-size:14px;font-weight:700;color:var(--green)}
+.price-savings svg{width:18px;height:18px;flex-shrink:0;fill:none;stroke:var(--green);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.price-savings strong{font-family:'Nunito',sans-serif;font-size:16px;font-weight:900}
 .installment{display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,107,53,.1)}
 .installment svg{width:18px;height:18px;stroke:var(--orange);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
 .installment-text{font-size:12px;color:var(--navy);font-weight:600;overflow-wrap:break-word;word-break:break-word;min-width:0}
@@ -641,13 +645,15 @@ nav a.active{color:var(--orange)}
 
       <!-- PRICE -->
       <div class="price-block">
+        <div class="price-sale-label" style="display:none">Акційна ціна</div>
         <div class="price-row">
-          <span class="price-main">17 224 ₴</span>
+          <span class="price-main">17 224 грн</span>
         </div>
-        <div class="price-hint">РРЦ: <strong>18 500 ₴</strong> — ви економите <strong>1 276 ₴</strong></div>
+        <div class="price-hint" style="display:none">РРЦ: <strong>18 500 грн</strong></div>
+        <div class="price-savings" style="display:none"></div>
         <div class="installment">
           <svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-          <div class="installment-text">Оплата частинами від ПриватБанк: <span>від 4 306 ₴</span> × 4 платежі</div>
+          <div class="installment-text">Оплата частинами від ПриватБанк: <span>від 4 306 грн</span> × 4 платежі</div>
         </div>
       </div>
 
@@ -795,7 +801,7 @@ nav a.active{color:var(--orange)}
 <!-- MOBILE BUY BAR -->
 <div class="mobile-buy-bar" id="mobileBuyBar">
   <div>
-    <div class="mbb-price">17 224 ₴</div>
+    <div class="mbb-price">17 224 грн</div>
     <div style="font-size:11px;color:var(--text-muted)">В наявності</div>
   </div>
   <div class="mbb-actions">
@@ -1691,22 +1697,28 @@ function applyProductData(p){
   }
   if (p.price){
     const priceMain = document.querySelector('.price-main');
-    if (priceMain) priceMain.textContent = fmt(p.price) + ' ₴';
+    if (priceMain) priceMain.textContent = fmt(p.price) + ' грн';
     const hint = document.querySelector('.price-hint');
+    const saleLabel = document.querySelector('.price-sale-label');
+    const savingsEl = document.querySelector('.price-savings');
     const oldP = Number(p.old_price)||0;
-    if (hint){
-      if (oldP > Number(p.price)){
-        const save = oldP - Number(p.price);
-        hint.style.display = '';
-        hint.innerHTML = 'РРЦ: <strong>' + fmt(oldP) + ' ₴</strong> — ви економите <strong>' + fmt(save) + ' ₴</strong>';
-      } else {
-        hint.style.display = 'none';
+    if (oldP > Number(p.price)){
+      const save = oldP - Number(p.price);
+      if (saleLabel) saleLabel.style.display = '';
+      if (hint){ hint.style.display = ''; hint.innerHTML = 'РРЦ: <strong>' + fmt(oldP) + ' грн</strong>'; }
+      if (savingsEl){
+        savingsEl.style.display = 'flex';
+        savingsEl.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Ви економите: <strong>' + fmt(save) + ' грн</strong>';
       }
+    } else {
+      if (saleLabel) saleLabel.style.display = 'none';
+      if (hint) hint.style.display = 'none';
+      if (savingsEl) savingsEl.style.display = 'none';
     }
     const inst = document.querySelector('.installment-text span');
-    if (inst) inst.textContent = 'від ' + fmt(Math.ceil(Number(p.price)/4)) + ' ₴';
+    if (inst) inst.textContent = 'від ' + fmt(Math.ceil(Number(p.price)/4)) + ' грн';
     const mbb = document.querySelector('.mbb-price');
-    if (mbb) mbb.textContent = fmt(p.price) + ' ₴';
+    if (mbb) mbb.textContent = fmt(p.price) + ' грн';
   }
   if (p.badge){
     const bd = document.querySelector('.gallery-badge');
@@ -2045,11 +2057,11 @@ async function buildColorVariants(currentSku, currentId, supaUrl, supaKey, model
 
   const wrap = document.createElement('div');
   wrap.setAttribute('data-color-variants-wrap', '1');
-  wrap.style.cssText = 'position:relative;margin-bottom:24px;max-width:100%;overflow:hidden';
+  wrap.style.cssText = 'position:relative;margin-bottom:24px;max-width:100%';
 
   const scroller = document.createElement('div');
   scroller.id = 'variantsScroller';
-  scroller.style.cssText = 'display:flex;flex-wrap:nowrap;gap:10px;overflow-x:auto;overflow-y:hidden;scroll-behavior:smooth;padding:6px 2px 8px;scrollbar-width:none;-webkit-overflow-scrolling:touch;max-width:100%;box-sizing:border-box';
+  scroller.style.cssText = 'display:flex;flex-wrap:wrap;gap:10px;padding:6px 0 8px;max-width:100%;box-sizing:border-box';
   // hide webkit scrollbar inline (одноразово в head)
   if (!document.getElementById('variantsScrollerStyle')){
     const s = document.createElement('style');
@@ -2260,17 +2272,24 @@ function _ytEmbedFromUrl(url){
     // Ціна
     const fmt = n => Number(n).toLocaleString('uk-UA');
     const priceMain = document.querySelector('.price-main');
-    if (priceMain && p.price) priceMain.textContent = fmt(p.price) + ' ₴';
+    if (priceMain && p.price) priceMain.textContent = fmt(p.price) + ' грн';
 
     // РРЦ / знижка
     const priceHint = document.querySelector('.price-hint');
-    if (priceHint) {
-      if (p.oldPrice && Number(p.oldPrice) > Number(p.price)) {
-        const save = Math.round(Number(p.oldPrice) - Number(p.price));
-        priceHint.innerHTML = 'РРЦ: <strong>' + fmt(p.oldPrice) + ' ₴</strong> — ви економите <strong>' + fmt(save) + ' ₴</strong>';
-      } else {
-        priceHint.style.display = 'none';
+    const saleLabel2 = document.querySelector('.price-sale-label');
+    const savingsEl2 = document.querySelector('.price-savings');
+    if (p.oldPrice && Number(p.oldPrice) > Number(p.price)) {
+      const save = Math.round(Number(p.oldPrice) - Number(p.price));
+      if (saleLabel2) saleLabel2.style.display = '';
+      if (priceHint){ priceHint.style.display = ''; priceHint.innerHTML = 'РРЦ: <strong>' + fmt(p.oldPrice) + ' грн</strong>'; }
+      if (savingsEl2){
+        savingsEl2.style.display = 'flex';
+        savingsEl2.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Ви економите: <strong>' + fmt(save) + ' грн</strong>';
       }
+    } else {
+      if (saleLabel2) saleLabel2.style.display = 'none';
+      if (priceHint) priceHint.style.display = 'none';
+      if (savingsEl2) savingsEl2.style.display = 'none';
     }
 
     // Залишок / Під замовлення
@@ -2333,11 +2352,11 @@ function _ytEmbedFromUrl(url){
 
     // Розстрочка
     const inst = document.querySelector('.installment-text span');
-    if (inst && p.price) inst.textContent = 'від ' + fmt(Math.ceil(Number(p.price) / 4)) + ' ₴';
+    if (inst && p.price) inst.textContent = 'від ' + fmt(Math.ceil(Number(p.price) / 4)) + ' грн';
 
     // Мобільна панель знизу
     const mbb = document.querySelector('.mbb-price');
-    if (mbb && p.price) mbb.textContent = fmt(p.price) + ' ₴';
+    if (mbb && p.price) mbb.textContent = fmt(p.price) + ' грн';
   }
 })();
 </script>
@@ -2463,7 +2482,7 @@ function _ytEmbedFromUrl(url){
     }
     return 0;
   }
-  function _krFmt(n){ return n ? new Intl.NumberFormat('uk-UA').format(Math.round(n))+' ₴' : ''; }
+  function _krFmt(n){ return n ? new Intl.NumberFormat('uk-UA').format(Math.round(n))+' грн' : ''; }
 
   function renderSearchSuggestions(query) {
     const list  = document.getElementById('searchSuggestions');
