@@ -1,61 +1,44 @@
 -- ============================================================================
--- KidsRide — таблиця reviews для реальних відгуків покупців.
--- Запустити один раз у Supabase → SQL Editor.
---
--- Після цього:
---   • product.html буде завантажувати відгуки тільки з цієї таблиці
---     (старі hardcoded "Олена Савченко" та "Андрій Коваленко" прибрані).
---   • Кнопка "Написати відгук" зберігатиме новий відгук у цю таблицю.
---   • Адмінка → Відгуки тягне записи звідси, можна видаляти/публікувати.
+-- KidsRide — таблиця слайдів каруселі для синхронізації між пристроями
+-- Виконати ОДИН раз у Supabase: SQL Editor → New query → вставити → Run
 -- ============================================================================
 
-create extension if not exists "pgcrypto";
-
-create table if not exists public.reviews (
-  id           uuid          primary key default gen_random_uuid(),
-  product_id   uuid          not null references public.products(id) on delete cascade,
-  author_name  text          not null,
-  city         text          not null default '',
-  rating       smallint      not null check (rating between 1 and 5),
-  text         text          not null,
-  approved     boolean       not null default true,   -- true = одразу видно на сайті
-  color_label  text,                                  -- "Колір: Білий" (для картки)
-  created_at   timestamptz   not null default now()
+create table if not exists public.slides (
+  id          text        primary key,
+  title       text        not null default '',
+  link        text        not null default '',
+  enabled     boolean     not null default true,
+  image       text        not null default '',
+  bg          text        not null default 'linear-gradient(135deg,#1B2A4A,#2d4270)',
+  sort_order  integer     not null default 0,
+  updated_at  timestamptz          default now()
 );
 
-create index if not exists reviews_product_idx
-  on public.reviews (product_id, approved, created_at desc);
+-- Авто-оновлення updated_at
+create or replace function public.slides_set_updated_at()
+returns trigger language plpgsql as $$
+begin
+  new.updated_at = now();
+  return new;
+end $$;
 
--- ── RLS: дозволяємо анонімам читати ТІЛЬКИ approved=true і додавати нові ────
-alter table public.reviews enable row level security;
+drop trigger if exists slides_set_updated_at on public.slides;
+create trigger slides_set_updated_at
+  before update on public.slides
+  for each row execute function public.slides_set_updated_at();
 
-drop policy if exists reviews_read_approved on public.reviews;
-create policy reviews_read_approved
-  on public.reviews
-  for select
-  using (approved = true);
+-- Row-Level Security
+alter table public.slides enable row level security;
 
-drop policy if exists reviews_insert_anon on public.reviews;
-create policy reviews_insert_anon
-  on public.reviews
-  for insert
-  with check (true);
+-- Публічне читання (відвідувачі сайту бачать слайди)
+drop policy if exists "slides_select_public" on public.slides;
+create policy "slides_select_public" on public.slides
+  for select using (true);
 
--- ── Адмінка повинна мати змогу видаляти/правити. Якщо у вас є окрема роль
---    "service_role" (Supabase service key) — вона ігнорує RLS і так працює.
---    Якщо адмінка користується anon-ключем (як зараз) — додаємо політики:
-drop policy if exists reviews_update_anon on public.reviews;
-create policy reviews_update_anon
-  on public.reviews
-  for update
+-- Запис лише для авторизованих користувачів (адмінів)
+drop policy if exists "slides_write_authenticated" on public.slides;
+create policy "slides_write_authenticated" on public.slides
+  for all
+  to authenticated
   using (true)
   with check (true);
-
-drop policy if exists reviews_delete_anon on public.reviews;
-create policy reviews_delete_anon
-  on public.reviews
-  for delete
-  using (true);
-
--- ── Перевірка: ─────────────────────────────────────────────────────────────
--- SELECT * FROM public.reviews ORDER BY created_at DESC LIMIT 20;

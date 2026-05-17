@@ -1,69 +1,118 @@
--- ═══════════════════════════════════════════════════════════════════════════
--- KIDSRIDE: Міграція — батьківські категорії (ієрархія двох рівнів)
--- Виконайте цей скрипт у Supabase → SQL Editor
--- ═══════════════════════════════════════════════════════════════════════════
+-- ============================================================================
+-- KidsRide — таблиці orders та order_items для прийому замовлень з checkout.html
+-- Виконати у Supabase: SQL Editor → New query → вставити → Run
+-- ----------------------------------------------------------------------------
+-- Якщо ваші таблиці вже існують з іншими колонками — порівняйте і додайте
+-- бракуючі через ALTER TABLE ... ADD COLUMN ... .
+-- ============================================================================
 
--- ── КРОК 1: Додати колонку parent_id ────────────────────────────────────────
-ALTER TABLE categories
-  ADD COLUMN IF NOT EXISTS parent_id INTEGER;
+create extension if not exists "pgcrypto";
 
--- ── КРОК 2: Додати зовнішній ключ (якщо RLS дозволяє) ──────────────────────
--- Якщо виникне помилка — пропустіть цей рядок, parent_id все одно працюватиме
-ALTER TABLE categories
-  ADD CONSTRAINT IF NOT EXISTS fk_categories_parent
-  FOREIGN KEY (parent_id) REFERENCES categories(id) ON DELETE SET NULL;
+-- ── ORDERS ────────────────────────────────────────────────────────────────
+create table if not exists public.orders (
+  id                          uuid        primary key default gen_random_uuid(),
+  order_number                text        not null,
+  customer_first_name         text        not null default '',
+  customer_last_name          text        not null default '',
+  customer_phone              text        not null default '',
+  customer_email              text,
+  delivery_type               text        not null default 'warehouse',
+  delivery_city               text        not null default '',
+  delivery_city_ref           text        not null default '',
+  delivery_warehouse          text        not null default '',
+  delivery_warehouse_number   text        not null default '',
+  delivery_address            text        not null default '',
+  payment_method              text        not null default 'fop',
+  payment_method_label        text        not null default '',
+  comment                     text        not null default '',
+  subtotal                    numeric     not null default 0,
+  total                       numeric     not null default 0,
+  items_count                 integer     not null default 0,
+  status                      text        not null default 'Новий',
+  ttn                         text,
+  created_at                  timestamptz not null default now(),
+  updated_at                  timestamptz          default now()
+);
 
--- ── КРОК 3: Вставити головні (батьківські) категорії ────────────────────────
--- ID 9001, 9002 — спеціальні ID, що не конфліктують з XML-синхронізацією
--- (XML зазвичай генерує ID < 9000)
-INSERT INTO categories (id, name, active, parent_id) VALUES
-  (9001, 'Дитячий транспорт', true, NULL),
-  (9002, 'Електромобілі',     true, NULL)
-ON CONFLICT (id) DO UPDATE
-  SET name = EXCLUDED.name,
-      active = EXCLUDED.active,
-      parent_id = NULL;
+create index if not exists orders_created_at_idx on public.orders (created_at desc);
+create index if not exists orders_status_idx     on public.orders (status);
+create index if not exists orders_phone_idx      on public.orders (customer_phone);
 
--- ── КРОК 4: Призначити підкатегорії ─────────────────────────────────────────
--- ВАЖЛИВО: Перевірте реальні назви через SELECT id, name FROM categories ORDER BY name;
--- Потім розкоментуйте та виконайте відповідні рядки нижче.
+-- ── ORDER_ITEMS ───────────────────────────────────────────────────────────
+create table if not exists public.order_items (
+  id              uuid        primary key default gen_random_uuid(),
+  order_id        uuid        not null references public.orders(id) on delete cascade,
+  product_id      text        not null default '',
+  product_name    text        not null default '',
+  product_brand   text        not null default '',
+  product_image   text        not null default '',
+  sku             text        not null default '',
+  color           text        not null default '',
+  price           numeric     not null default 0,
+  quantity        integer     not null default 1,
+  subtotal        numeric     not null default 0,
+  created_at      timestamptz not null default now()
+);
 
--- === Підкатегорії "Дитячий транспорт" (parent_id = 9001) ===
--- Велосипеди, самокати, біговели, каталки, ходунки, санки, скейти тощо
+-- Якщо таблиця вже існує — додаємо колонку sku якщо її немає
+alter table public.order_items add column if not exists sku text not null default '';
 
--- UPDATE categories SET parent_id = 9001 WHERE name ILIKE '%велосипед%' AND id < 9000;
--- UPDATE categories SET parent_id = 9001 WHERE name ILIKE '%самокат%'   AND id < 9000;
--- UPDATE categories SET parent_id = 9001 WHERE name ILIKE '%біговел%'   AND id < 9000;
--- UPDATE categories SET parent_id = 9001 WHERE name ILIKE '%каталка%'   AND id < 9000;
--- UPDATE categories SET parent_id = 9001 WHERE name ILIKE '%толокар%'   AND id < 9000;
--- UPDATE categories SET parent_id = 9001 WHERE name ILIKE '%ходунк%'    AND id < 9000;
--- UPDATE categories SET parent_id = 9001 WHERE name ILIKE '%санк%'      AND id < 9000;
--- UPDATE categories SET parent_id = 9001 WHERE name ILIKE '%скейт%'     AND id < 9000;
--- UPDATE categories SET parent_id = 9001 WHERE name ILIKE '%ролик%'     AND id < 9000;
--- UPDATE categories SET parent_id = 9001 WHERE name ILIKE '%гойдалк%'   AND id < 9000;
+create index if not exists order_items_order_id_idx on public.order_items (order_id);
 
--- === Підкатегорії "Електромобілі" (parent_id = 9002) ===
--- Електромобілі, джипи, квадроцикли, мотоцикли, трактори, вантажівки, баггі
+-- ── Авто-оновлення updated_at ─────────────────────────────────────────────
+create or replace function public.orders_set_updated_at()
+returns trigger language plpgsql as $$
+begin
+  new.updated_at = now();
+  return new;
+end $$;
 
--- UPDATE categories SET parent_id = 9002 WHERE name ILIKE '%електромобіл%' AND id < 9000;
--- UPDATE categories SET parent_id = 9002 WHERE name ILIKE '%джип%'          AND id < 9000;
--- UPDATE categories SET parent_id = 9002 WHERE name ILIKE '%квадроцикл%'    AND id < 9000;
--- UPDATE categories SET parent_id = 9002 WHERE name ILIKE '%мотоцикл%'      AND id < 9000;
--- UPDATE categories SET parent_id = 9002 WHERE name ILIKE '%трактор%'       AND id < 9000;
--- UPDATE categories SET parent_id = 9002 WHERE name ILIKE '%вантаж%'        AND id < 9000;
--- UPDATE categories SET parent_id = 9002 WHERE name ILIKE '%баггі%'         AND id < 9000;
--- UPDATE categories SET parent_id = 9002 WHERE name ILIKE '%машин%'         AND id < 9000;
+drop trigger if exists orders_set_updated_at on public.orders;
+create trigger orders_set_updated_at
+  before update on public.orders
+  for each row execute function public.orders_set_updated_at();
 
--- ── КРОК 5: Перевірити результат ────────────────────────────────────────────
-SELECT
-  c.id,
-  c.name,
-  c.active,
-  c.parent_id,
-  p.name AS parent_name
-FROM categories c
-LEFT JOIN categories p ON p.id = c.parent_id
-ORDER BY
-  COALESCE(c.parent_id, c.id),
-  c.parent_id IS NULL DESC,
-  c.name;
+-- ── Row-Level Security ────────────────────────────────────────────────────
+alter table public.orders      enable row level security;
+alter table public.order_items enable row level security;
+
+-- Дозволити будь-кому (включно з анонімними покупцями) СТВОРЮВАТИ замовлення
+drop policy if exists "orders_insert_anyone"      on public.orders;
+create policy "orders_insert_anyone" on public.orders
+  for insert
+  to anon, authenticated
+  with check (true);
+
+drop policy if exists "order_items_insert_anyone" on public.order_items;
+create policy "order_items_insert_anyone" on public.order_items
+  for insert
+  to anon, authenticated
+  with check (true);
+
+-- Читання та редагування — лише для авторизованих (адмін-панель)
+drop policy if exists "orders_select_auth"        on public.orders;
+create policy "orders_select_auth" on public.orders
+  for select
+  to authenticated
+  using (true);
+
+drop policy if exists "orders_update_auth"        on public.orders;
+create policy "orders_update_auth" on public.orders
+  for update
+  to authenticated
+  using (true)
+  with check (true);
+
+drop policy if exists "order_items_select_auth"   on public.order_items;
+create policy "order_items_select_auth" on public.order_items
+  for select
+  to authenticated
+  using (true);
+
+-- ── Дозволити анонімним читати налаштування Telegram (лише select, лише рядок id=1) ──
+-- Потрібно щоб checkout.html міг завантажити tg_token/tg_chat для відправки сповіщень
+drop policy if exists "settings_notifications_select_anon" on public.settings_notifications;
+create policy "settings_notifications_select_anon" on public.settings_notifications
+  for select
+  to anon, authenticated
+  using (id = 1);

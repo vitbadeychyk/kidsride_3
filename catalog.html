@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Каталог — KidsRide</title>
+<title>Кошик — KidsRide</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -11,7 +11,8 @@
   --orange:#FF6B35;--orange-dark:#e85520;
   --navy:#1B2A4A;--navy-light:#2d4270;
   --bg:#fff;--bg-soft:#F8F9FC;--bg-warm:#FFF8F5;
-  --green:#27AE60;--text:#1a1a2e;--text-muted:#6b7280;
+  --green:#27AE60;--red:#e53935;
+  --text:#1a1a2e;--text-muted:#6b7280;
   --border:#e8ecf4;
   --shadow-sm:0 2px 12px rgba(27,42,74,.07);
   --shadow-md:0 8px 32px rgba(27,42,74,.12);
@@ -22,330 +23,201 @@
 html{scroll-behavior:smooth}
 body{font-family:'Manrope',sans-serif;color:var(--text);background:var(--bg-soft);overflow-x:hidden}
 h1,h2,h3,h4{font-family:'Nunito',sans-serif;font-weight:800}
-a{text-decoration:none}
+a{text-decoration:none;color:inherit}
 
-/* ── PHONE TOP BAR ── */
-.phone-top-bar{position:fixed;top:0;left:0;right:0;z-index:1100;background:var(--orange);padding:7px 16px;display:flex;align-items:center;justify-content:center}
-.phone-top-link{color:white;text-decoration:none;font-family:'Nunito',sans-serif;font-weight:700;font-size:14px;display:inline-flex;align-items:center;gap:8px;letter-spacing:.3px;transition:opacity .2s}
-.phone-top-link:hover{opacity:.88}
-
-/* ── HEADER ── */
-.header{position:fixed;top:36px;left:0;right:0;z-index:1000;height:68px;padding:0 40px;display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);transition:box-shadow .3s}
+/* HEADER */
+.header{position:fixed;top:0;left:0;right:0;z-index:1000;height:64px;padding:0 40px;display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.93);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);transition:box-shadow .3s}
 .header.scrolled{box-shadow:var(--shadow-md)}
-.logo{display:flex;align-items:center;gap:10px;font-family:'Nunito',sans-serif;font-weight:900;font-size:22px;color:var(--navy);text-decoration:none}
+.logo{display:flex;align-items:center;gap:10px;font-family:'Nunito',sans-serif;font-weight:900;font-size:22px;color:var(--navy)}
 .logo-mark{width:36px;height:36px;background:var(--orange);border-radius:9px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(255,107,53,.3)}
 .logo span{color:var(--orange)}
 nav{display:flex;gap:2px}
 nav a{color:var(--text-muted);font-weight:600;font-size:14px;padding:7px 13px;border-radius:7px;transition:all .2s}
 nav a:hover{color:var(--navy);background:var(--bg-soft)}
-nav a.active{color:var(--orange)}
 .h-right{display:flex;align-items:center;gap:6px}
 .ic-btn{width:38px;height:38px;border:none;background:none;cursor:pointer;border-radius:9px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);transition:all .2s;position:relative}
 .ic-btn:hover{background:var(--bg-soft);color:var(--navy)}
-.badge{position:absolute;top:4px;right:4px;width:17px;height:17px;background:var(--orange);border-radius:50%;font-size:9px;font-weight:700;color:white;display:flex;align-items:center;justify-content:center;font-family:'Nunito',sans-serif}
-.btn{display:inline-flex;align-items:center;gap:7px;padding:10px 20px;border-radius:9px;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;border:none;cursor:pointer;transition:all .25s cubic-bezier(.34,1.56,.64,1)}
-.btn-primary{background:var(--orange);color:white;box-shadow:0 4px 14px rgba(255,107,53,.28)}
-.btn-primary:hover{background:var(--orange-dark);transform:translateY(-1px)}
+.ic-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.badge{position:absolute;top:4px;right:4px;width:17px;height:17px;background:var(--orange);border-radius:50%;font-size:9px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Nunito',sans-serif}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:10px;font-family:'Nunito',sans-serif;font-weight:700;font-size:14px;border:none;cursor:pointer;transition:all .25s cubic-bezier(.34,1.56,.64,1)}
+.btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.btn-primary{background:var(--orange);color:#fff;box-shadow:0 4px 16px rgba(255,107,53,.3)}
+.btn-primary:hover{background:var(--orange-dark);transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,107,53,.4)}
 .btn-outline{background:transparent;color:var(--navy);border:1.5px solid var(--border)}
 .btn-outline:hover{border-color:var(--orange);color:var(--orange)}
 .btn-ghost{background:transparent;color:var(--text-muted);border:none}
-.btn-ghost:hover{color:var(--orange)}
+.btn-ghost:hover{color:var(--red)}
 
-/* ── BREADCRUMB ── */
-.breadcrumb{margin-top:68px;padding:16px 40px;background:white;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-muted)}
+/* BREADCRUMB */
+.breadcrumb{margin-top:64px;background:white;border-bottom:1px solid var(--border);padding:14px 40px;display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted)}
 .breadcrumb a{color:var(--text-muted);transition:color .2s}
 .breadcrumb a:hover{color:var(--orange)}
-.breadcrumb-sep{opacity:.4}
-.breadcrumb-current{color:var(--navy);font-weight:600}
+.breadcrumb svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;opacity:.5}
+.breadcrumb-cur{color:var(--navy);font-weight:600}
 
-/* ── CATALOG HEADER ── */
-.catalog-head{background:white;border-bottom:1px solid var(--border);padding:20px 40px;display:flex;align-items:center;justify-content:space-between;gap:16px}
-.catalog-title-row{display:flex;align-items:center;gap:16px}
-.catalog-title{font-size:22px;color:var(--navy)}
-.catalog-count{background:var(--bg-soft);border:1px solid var(--border);border-radius:6px;padding:3px 10px;font-size:13px;font-weight:600;color:var(--text-muted)}
-.catalog-controls{display:flex;align-items:center;gap:10px}
-.sort-select{appearance:none;background:var(--bg-soft);border:1.5px solid var(--border);border-radius:9px;padding:9px 36px 9px 14px;font-family:'Manrope',sans-serif;font-size:13px;font-weight:600;color:var(--navy);cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b7280' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;transition:border-color .2s}
-.sort-select:focus{outline:none;border-color:var(--orange)}
-.view-btns{display:flex;gap:4px}
-.view-btn{width:36px;height:36px;border:1.5px solid var(--border);border-radius:8px;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted);transition:all .2s}
-.view-btn.active,.view-btn:hover{border-color:var(--orange);color:var(--orange);background:rgba(255,107,53,.06)}
+/* PAGE */
+.page{max-width:1200px;margin:0 auto;padding:32px 40px 64px}
+.page-head{display:flex;align-items:center;gap:14px;margin-bottom:32px}
+.page-title{font-size:28px;color:var(--navy)}
+.cart-count-badge{background:var(--orange);color:#fff;border-radius:8px;padding:4px 12px;font-family:'Nunito',sans-serif;font-size:14px;font-weight:800}
 
-/* ── LAYOUT ── */
-.catalog-layout{display:grid;grid-template-columns:272px 1fr;min-height:calc(100vh - 140px)}
+/* EMPTY CART */
+.empty-cart{text-align:center;padding:80px 24px;background:white;border-radius:var(--r-lg);border:1.5px solid var(--border)}
+.empty-cart svg{width:80px;height:80px;stroke:var(--border);fill:none;stroke-width:1.2;margin:0 auto 24px;display:block}
+.empty-title{font-size:22px;color:var(--navy);margin-bottom:10px}
+.empty-desc{font-size:14px;color:var(--text-muted);margin-bottom:28px;line-height:1.6}
 
-/* ── SIDEBAR ── */
-.sidebar{background:white;border-right:1px solid var(--border);padding:24px;position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto;scrollbar-width:thin}
-.sidebar::-webkit-scrollbar{width:4px}
-.sidebar::-webkit-scrollbar-track{background:transparent}
-.sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+/* CART LAYOUT */
+.cart-layout{display:grid;grid-template-columns:1fr 380px;gap:28px;align-items:start}
 
-.filter-block{margin-bottom:28px}
-.filter-block:last-child{margin-bottom:0}
-.filter-title{display:flex;align-items:center;justify-content:space-between;font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;color:var(--navy);margin-bottom:14px;cursor:pointer}
-.filter-title svg{width:14px;height:14px;stroke:var(--text-muted);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;transition:transform .25s;flex-shrink:0}
-.filter-title.collapsed svg{transform:rotate(-90deg)}
-.filter-body{transition:all .3s}
-.filter-body.hidden{display:none}
+/* CART ITEMS */
+.cart-items{background:white;border-radius:var(--r-lg);border:1.5px solid var(--border);overflow:hidden}
+.cart-items-head{padding:18px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.cart-items-title{font-size:16px;color:var(--navy)}
+.clear-cart-btn{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--text-muted);background:none;border:none;cursor:pointer;font-family:'Manrope',sans-serif;transition:color .2s;padding:0}
+.clear-cart-btn:hover{color:var(--red)}
+.clear-cart-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
 
-/* Search in sidebar */
-.sidebar-search{position:relative;margin-bottom:20px}
-.sidebar-search input{width:100%;padding:10px 14px 10px 38px;border:1.5px solid var(--border);border-radius:9px;font-family:'Manrope',sans-serif;font-size:13px;color:var(--navy);background:var(--bg-soft);transition:border-color .2s}
-.sidebar-search input:focus{outline:none;border-color:var(--orange);background:white}
-.sidebar-search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:14px;height:14px;stroke:var(--text-muted);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+/* CART ITEM */
+.cart-item{display:grid;grid-template-columns:96px 1fr auto;gap:16px;padding:20px 24px;border-bottom:1px solid var(--border);align-items:start;transition:background .2s}
+.cart-item:last-child{border-bottom:none}
+.cart-item:hover{background:rgba(248,249,252,.6)}
+.cart-item.removing{opacity:.5;transform:translateX(-20px);transition:all .3s ease}
 
-/* Checkboxes */
-.filter-option{display:flex;align-items:center;gap:10px;padding:7px 0;cursor:pointer;transition:color .15s}
-.filter-option:hover .filter-label{color:var(--orange)}
-.filter-checkbox{width:18px;height:18px;border:2px solid var(--border);border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;background:white}
-.filter-option.checked .filter-checkbox{background:var(--orange);border-color:var(--orange)}
-.filter-option.checked .filter-checkbox svg{display:block}
-.filter-checkbox svg{display:none;width:10px;height:10px;stroke:white;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
-.filter-label{font-size:13px;font-weight:500;color:var(--text);flex:1}
-.filter-cnt{font-size:11px;color:var(--text-muted);background:var(--bg-soft);border-radius:4px;padding:1px 7px;font-weight:600}
+.ci-img{width:96px;height:80px;border-radius:var(--r-sm);background:var(--bg-soft);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;border:1px solid var(--border)}
+.ci-img svg{width:80%}
 
-/* Price range */
-.price-inputs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
-.price-inp-wrap{position:relative}
-.price-inp-wrap span{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--text-muted);font-weight:600}
-.price-inp{width:100%;padding:9px 28px 9px 12px;border:1.5px solid var(--border);border-radius:9px;font-family:'Manrope',sans-serif;font-size:13px;color:var(--navy);background:var(--bg-soft);transition:border-color .2s}
-.price-inp:focus{outline:none;border-color:var(--orange);background:white}
-.range-slider{position:relative;height:4px;background:var(--border);border-radius:2px;margin:8px 4px}
-.range-fill{position:absolute;height:100%;background:var(--orange);border-radius:2px}
-.range-thumb{position:absolute;top:50%;transform:translate(-50%,-50%);width:18px;height:18px;background:white;border:2.5px solid var(--orange);border-radius:50%;cursor:pointer;transition:transform .2s;box-shadow:var(--shadow-sm)}
-.range-thumb:hover{transform:translate(-50%,-50%) scale(1.2)}
-.range-thumb:active{transform:translate(-50%,-50%) scale(1.15)}
+.ci-info{min-width:0}
+.ci-brand{font-size:10px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px}
+.ci-sku{display:inline-flex;align-items:center;gap:5px;margin-bottom:5px}
+.ci-sku-label{font-size:10px;font-weight:700;color:white;background:var(--navy);border-radius:4px;padding:1px 6px;letter-spacing:.04em;text-transform:uppercase;flex-shrink:0}
+.ci-sku-val{font-size:12px;font-weight:700;color:var(--navy)}
+.ci-color{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:6px}
+.ci-color-dot{width:12px;height:12px;border-radius:50%;border:1.5px solid rgba(0,0,0,.15);flex-shrink:0}
+.ci-color strong{color:var(--navy);font-weight:700}
+.ci-name{font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;color:var(--navy);line-height:1.3;margin-bottom:4px}
+.ci-name a:hover{color:var(--orange)}
+.ci-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.ci-tag{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--text-muted);background:var(--bg-soft);border-radius:5px;padding:2px 8px;font-weight:500}
+.ci-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 
-/* Reset filters */
-.reset-filters{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--text-muted);cursor:pointer;padding:8px 0;transition:color .2s;background:none;border:none;font-family:'Manrope',sans-serif}
-.reset-filters:hover{color:var(--orange)}
-.reset-filters svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+/* Quantity control */
+.qty-ctrl{display:flex;align-items:center;border:1.5px solid var(--border);border-radius:9px;overflow:hidden;background:white}
+.qty-btn{width:34px;height:34px;border:none;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted);transition:all .2s;flex-shrink:0}
+.qty-btn:hover{background:var(--bg-soft);color:var(--navy)}
+.qty-btn:active{background:rgba(255,107,53,.08);color:var(--orange)}
+.qty-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.qty-val{min-width:36px;text-align:center;font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;color:var(--navy);padding:0 4px}
 
-/* ── CATEGORY TREE ── */
-.cat-tree-loading{font-size:12px;color:var(--text-muted);padding:8px 0}
-.cat-tree-all{display:flex;align-items:center;gap:8px;padding:7px 0 7px 0;cursor:pointer;border-radius:7px;transition:background .15s;margin-bottom:2px}
-.cat-tree-all:hover{background:var(--bg-soft)}
-.cat-tree-all.active .ctree-label{color:var(--orange);font-weight:700}
-.ctree-parent{border-radius:8px;overflow:hidden;margin-bottom:4px}
-.ctree-parent-row{display:flex;align-items:center;gap:6px;padding:7px 8px 7px 4px;cursor:pointer;border-radius:8px;transition:background .15s;user-select:none}
-.ctree-parent-row:hover{background:var(--bg-soft)}
-.ctree-parent-row.active{background:rgba(255,107,53,.08)}
-.ctree-parent-row.active .ctree-label{color:var(--orange);font-weight:700}
-.ctree-chevron{width:14px;height:14px;stroke:var(--text-muted);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;transition:transform .22s}
-.ctree-chevron.open{transform:rotate(90deg)}
-.ctree-parent-icon{font-size:16px;flex-shrink:0}
-.ctree-label{font-size:13px;font-weight:600;color:var(--text);flex:1;line-height:1.2}
-.ctree-cnt{font-size:11px;color:var(--text-muted);background:var(--bg-soft);border-radius:4px;padding:1px 7px;font-weight:600;flex-shrink:0}
-.ctree-subs{padding-left:24px;overflow:hidden;max-height:0;transition:max-height .28s ease}
-.ctree-subs.open{max-height:600px}
-.ctree-sub-row{display:flex;align-items:center;gap:6px;padding:5px 6px 5px 4px;cursor:pointer;border-radius:6px;transition:background .15s;margin-bottom:1px}
-.ctree-sub-row:hover{background:var(--bg-soft)}
-.ctree-sub-row.active{background:rgba(255,107,53,.08)}
-.ctree-sub-row.active .ctree-label{color:var(--orange);font-weight:700}
-.ctree-dot{width:6px;height:6px;border-radius:50%;background:var(--border);flex-shrink:0;transition:background .15s}
-.ctree-sub-row.active .ctree-dot,.ctree-sub-row:hover .ctree-dot{background:var(--orange)}
-.ctree-divider{height:1px;background:var(--border);margin:12px 0 10px}
+.wish-move-btn{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--text-muted);background:none;border:none;cursor:pointer;font-family:'Manrope',sans-serif;transition:color .2s;padding:0}
+.wish-move-btn:hover{color:var(--orange)}
+.wish-move-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
-/* Active filters */
-.active-filters{display:flex;flex-wrap:wrap;gap:6px;padding:14px 40px;background:white;border-bottom:1px solid var(--border)}
-.active-filters:empty{display:none}
-.filter-tag{display:inline-flex;align-items:center;gap:6px;background:rgba(255,107,53,.08);border:1px solid rgba(255,107,53,.2);border-radius:6px;padding:5px 10px;font-size:12px;font-weight:600;color:var(--navy)}
-.filter-tag button{background:none;border:none;cursor:pointer;color:var(--text-muted);display:flex;align-items:center;padding:0;transition:color .2s;line-height:1}
-.filter-tag button:hover{color:var(--orange)}
-.filter-tag svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.ci-right{display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0}
+.ci-price{font-family:'Nunito',sans-serif;font-weight:900;font-size:18px;color:var(--navy);white-space:nowrap}
+.ci-price-per{font-size:11px;color:var(--text-muted);text-align:right}
+.ci-del{width:30px;height:30px;border-radius:8px;border:none;background:var(--bg-soft);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted);transition:all .2s}
+.ci-del:hover{background:rgba(229,57,53,.1);color:var(--red)}
+.ci-del svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
 
-/* ── PRODUCTS AREA ── */
-.products-area{padding:24px}
-.products-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;transition:all .3s}
-.products-grid.cols-2{grid-template-columns:repeat(2,1fr)}
-.products-grid.cols-4{grid-template-columns:repeat(4,1fr)}
-.products-grid.list{grid-template-columns:1fr}
 
-/* ── PRODUCT CARD ── */
-.p-card{background:white;border-radius:var(--r);overflow:hidden;border:1.5px solid var(--border);transition:all .3s cubic-bezier(.34,1.56,.64,1);cursor:pointer;position:relative}
-.p-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg);border-color:transparent}
-.p-img-wrap{position:relative;overflow:hidden}
-.p-img{aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;width:100%}
-.p-img svg{transition:transform .4s ease}
-.p-card:hover .p-img svg{transform:scale(1.06) translateY(-3px)}
-.p-overlay{position:absolute;inset:0;background:rgba(27,42,74,.45);display:flex;align-items:center;justify-content:center;gap:10px;opacity:0;pointer-events:none;transition:opacity .25s;backdrop-filter:blur(3px);z-index:1}
-.p-card:hover .p-overlay{opacity:1;pointer-events:auto}
-.p-overlay-btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:8px;font-family:'Nunito',sans-serif;font-weight:700;font-size:12px;border:none;cursor:pointer;transition:all .2s}
-.ob-white{background:white;color:var(--navy)}
-.ob-white:hover{background:var(--bg-soft)}
-.ob-orange{background:var(--orange);color:white}
-.ob-orange:hover{background:var(--orange-dark)}
-.ob-white svg,.ob-orange svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
-.p-badge{position:absolute;top:10px;left:10px;padding:4px 10px;border-radius:6px;font-family:'Nunito',sans-serif;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;z-index:2}
-.badge-hot{background:var(--orange);color:white}
-.badge-new{background:var(--navy);color:white}
-.badge-sale{background:var(--green);color:white}
+/* CART SIDEBAR */
+.cart-sidebar{display:flex;flex-direction:column;gap:16px;position:sticky;top:80px}
 
-.p-wish{position:absolute;top:10px;right:10px;width:32px;height:32px;background:white;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-sm);transition:all .2s;z-index:5}
-.p-wish:hover{transform:scale(1.15)}
-.p-wish svg{width:15px;height:15px;stroke:#94a3b8;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:all .2s}
-.p-wish.liked svg{stroke:#ef4444;fill:#ef4444}
+/* PROMO */
+.promo-block{background:white;border-radius:var(--r-lg);border:1.5px solid var(--border);padding:20px}
+.promo-title{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.promo-title svg{width:16px;height:16px;stroke:var(--orange);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.promo-row{display:flex;gap:8px}
+.promo-input{flex:1;padding:11px 14px;border:1.5px solid var(--border);border-radius:9px;font-family:'Manrope',sans-serif;font-size:13px;outline:none;transition:border-color .2s;color:var(--navy)}
+.promo-input:focus{border-color:var(--orange)}
+.promo-input::placeholder{color:var(--text-muted)}
+.promo-apply{padding:11px 16px;border-radius:9px;background:var(--navy);color:#fff;border:none;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;white-space:nowrap;transition:all .2s}
+.promo-apply:hover{background:var(--navy-light)}
+.promo-ok{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--green);margin-top:10px}
+.promo-ok svg{width:14px;height:14px;stroke:var(--green);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
 
-.p-compare{position:absolute;top:10px;right:50px;width:32px;height:32px;background:white;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-sm);transition:all .2s;z-index:5}
-.p-compare:hover{transform:scale(1.15)}
-.p-compare svg{width:15px;height:15px;stroke:#94a3b8;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:all .2s}
-.p-compare.active{background:var(--orange)}
-.p-compare.active svg{stroke:white}
+/* SUMMARY */
+.summary{background:white;border-radius:var(--r-lg);border:1.5px solid var(--border);padding:24px}
+.summary-title{font-size:17px;color:var(--navy);margin-bottom:20px}
+.summary-rows{display:flex;flex-direction:column;gap:12px;margin-bottom:20px}
+.sum-row{display:flex;align-items:center;justify-content:space-between;font-size:14px}
+.sum-label{color:var(--text-muted)}
+.sum-val{color:var(--navy);font-weight:600}
+.sum-val.green{color:var(--green);font-weight:700}
+.sum-val.orange{color:var(--orange);font-weight:700}
+.sum-divider{height:1px;background:var(--border);margin:4px 0}
+.sum-total-row{display:flex;align-items:center;justify-content:space-between;padding-top:4px}
+.sum-total-label{font-family:'Nunito',sans-serif;font-weight:800;font-size:16px;color:var(--navy)}
+.sum-total-val{font-family:'Nunito',sans-serif;font-weight:900;font-size:24px;color:var(--navy)}
+.sum-note{font-size:11px;color:var(--text-muted);margin-top:4px;text-align:right}
 
-.p-body{padding:16px 18px 18px}
-.p-brand{font-size:10px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
-.p-name{font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;color:var(--navy);margin-bottom:8px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.p-specs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-.p-spec{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--text-muted);font-weight:500;background:var(--bg-soft);border-radius:5px;padding:3px 8px}
-.p-spec svg{width:11px;height:11px;stroke:var(--text-muted);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
-.p-bottom{display:flex;align-items:center;justify-content:space-between}
-.p-price{font-family:'Nunito',sans-serif;font-size:20px;font-weight:900;color:var(--navy)}
-.p-price-old{font-size:12px;color:var(--text-muted);text-decoration:line-through;margin-left:5px;font-weight:500}
-.p-actions{display:flex;gap:6px}
-.btn-cart{width:38px;height:38px;border-radius:9px;border:none;background:var(--orange);color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .25s cubic-bezier(.34,1.56,.64,1);box-shadow:0 4px 12px rgba(255,107,53,.28);flex-shrink:0}
-.btn-cart:hover{transform:scale(1.12);box-shadow:0 6px 18px rgba(255,107,53,.4)}
-.btn-cart svg{width:16px;height:16px;stroke:white;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.btn-cart.added{background:var(--green)}
-.btn-quick{width:38px;height:38px;border-radius:9px;border:1.5px solid var(--border);background:white;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
-.btn-quick:hover{border-color:var(--orange);color:var(--orange)}
-.btn-quick svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.checkout-btn{width:100%;padding:15px;border-radius:12px;background:var(--orange);color:#fff;border:none;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:800;font-size:16px;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 6px 20px rgba(255,107,53,.35);transition:all .25s cubic-bezier(.34,1.56,.64,1);margin-top:16px}
+.checkout-btn:hover{background:var(--orange-dark);transform:translateY(-2px);box-shadow:0 10px 28px rgba(255,107,53,.4)}
+.checkout-btn svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.checkout-btn:disabled{background:#d1d5db;box-shadow:none;cursor:not-allowed;transform:none}
 
-/* LIST VIEW */
-.products-grid.list .p-card{display:grid;grid-template-columns:220px 1fr}
-.products-grid.list .p-img{aspect-ratio:unset;height:100%;min-height:160px}
-.products-grid.list .p-body{padding:20px 24px;display:flex;flex-direction:column;justify-content:space-between}
-.products-grid.list .p-name{-webkit-line-clamp:unset;font-size:17px}
-.products-grid.list .p-specs{gap:10px}
+.continue-link{display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;color:var(--text-muted);margin-top:12px;cursor:pointer;transition:color .2s;font-weight:600}
+.continue-link:hover{color:var(--orange)}
+.continue-link svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
 
-/* ── PAGINATION ── */
-.pagination{display:flex;align-items:center;justify-content:center;gap:6px;padding:32px 0 16px}
-.pag-btn{width:38px;height:38px;border-radius:9px;border:1.5px solid var(--border);background:white;font-family:'Nunito',sans-serif;font-weight:700;font-size:14px;color:var(--navy);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
-.pag-btn:hover{border-color:var(--orange);color:var(--orange)}
-.pag-btn.active{background:var(--orange);border-color:var(--orange);color:white;box-shadow:0 4px 12px rgba(255,107,53,.3)}
-.pag-btn.arrow{color:var(--text-muted)}
-.pag-btn.arrow svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
-.pag-dots{color:var(--text-muted);font-weight:700;padding:0 4px}
+/* TRUST BADGES */
+.trust-badges{display:flex;flex-direction:column;gap:8px}
+.trust-item{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text-muted);font-weight:500}
+.trust-item svg{width:15px;height:15px;stroke:var(--green);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
 
-/* ── EMPTY STATE ── */
-.empty-state{text-align:center;padding:64px 24px;color:var(--text-muted)}
-.empty-state svg{width:64px;height:64px;stroke:var(--border);fill:none;stroke-width:1.5;margin:0 auto 20px;display:block}
-.empty-title{font-family:'Nunito',sans-serif;font-weight:800;font-size:20px;color:var(--navy);margin-bottom:8px}
-.empty-desc{font-size:14px;line-height:1.6;margin-bottom:24px}
+/* MOBILE CHECKOUT BAR */
+.mobile-checkout{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);padding:12px 16px;z-index:800;box-shadow:0 -8px 24px rgba(27,42,74,.1);align-items:center;justify-content:space-between;gap:12px}
+.mc-total{font-family:'Nunito',sans-serif;font-weight:900;font-size:20px;color:var(--navy)}
+.mc-label{font-size:11px;color:var(--text-muted)}
+.mc-btn{flex:1;padding:13px;border-radius:11px;background:var(--orange);color:#fff;border:none;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;box-shadow:0 4px 16px rgba(255,107,53,.3);transition:all .2s;white-space:nowrap}
+.mc-btn:hover{background:var(--orange-dark)}
 
-/* ── MOBILE FILTER BTN ── */
-.mobile-filter-btn{display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:500;background:var(--navy);color:white;border:none;cursor:pointer;border-radius:100px;padding:13px 26px;font-family:'Nunito',sans-serif;font-weight:700;font-size:14px;box-shadow:0 8px 32px rgba(27,42,74,.35);white-space:nowrap}
-.mobile-filter-btn svg{width:16px;height:16px;stroke:white;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+/* TOAST */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:11px 22px;border-radius:100px;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;z-index:3000;box-shadow:0 8px 24px rgba(0,0,0,.2);white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .25s}
+.toast.show{opacity:1}
 
-/* ── DRAWER (mobile sidebar) ── */
-.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:800;opacity:0;pointer-events:none;transition:opacity .3s}
-.drawer-overlay.open{opacity:1;pointer-events:all}
-.drawer{position:fixed;left:0;top:0;bottom:0;width:300px;background:white;z-index:900;transform:translateX(-100%);transition:transform .35s cubic-bezier(.4,0,.2,1);overflow-y:auto;padding:20px}
-.drawer.open{transform:translateX(0)}
-.drawer-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
-.drawer-head h3{font-size:18px;color:var(--navy)}
-.drawer-close{width:36px;height:36px;border:none;background:var(--bg-soft);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted)}
-
-/* ── SCROLL REVEAL ── */
-.reveal{opacity:0;transform:translateY(20px);transition:opacity .45s ease,transform .45s ease}.reveal.visible{opacity:1;transform:translateY(0)}
-.reveal.visible{opacity:1;transform:translateY(0)}
-.d1{transition-delay:.05s}.d2{transition-delay:.1s}.d3{transition-delay:.15s}.d4{transition-delay:.2s}.d5{transition-delay:.25s}.d6{transition-delay:.3s}
-
-/* ── RESPONSIVE ── */
-@media(max-width:1400px){
-  .products-grid{grid-template-columns:repeat(3,1fr)}
+/* RESPONSIVE */
+@media(max-width:1024px){
+  .cart-layout{grid-template-columns:1fr;gap:20px}
+  .cart-sidebar{position:static}
+  .page{padding:24px 24px 100px}
+  .breadcrumb{padding:12px 24px}
 }
-@media(max-width:1200px){
-  .products-grid{grid-template-columns:repeat(2,1fr)}
-}
-
-@media(max-width:900px){
-  /* Header */
-  .header{padding:0 16px;height:60px}
+@media(max-width:768px){
+  .header{height:58px;padding:0 16px}
   nav{display:none}
   .h-right .btn{display:none}
+  .breadcrumb{margin-top:58px;padding:10px 16px;font-size:11px}
+  .page{padding:16px 16px 100px}
+  .page-head{margin-bottom:20px}
+  .page-title{font-size:22px}
 
-  /* Breadcrumb */
-  .breadcrumb{margin-top:60px;padding:12px 16px;font-size:12px}
+  .cart-item{grid-template-columns:76px 1fr;gap:12px}
+  .ci-right{display:none}
+  .ci-actions{gap:8px}
+  .ci-name{font-size:14px}
 
-  /* Catalog head */
-  .catalog-head{padding:14px 16px;flex-wrap:wrap;gap:10px}
-  .catalog-title{font-size:18px}
-  .catalog-controls{width:100%;justify-content:space-between}
-  .sort-select{flex:1}
+  /* Show price in info section on mobile */
+  .ci-info::after{display:none}
+  .ci-price-mobile{display:block !important}
+  .summary{padding:18px}
+  .sum-total-val{font-size:20px}
 
-  /* Active filters */
-  .active-filters{padding:10px 16px}
-
-  /* Layout — hide sidebar, show full width */
-  .catalog-layout{grid-template-columns:1fr;margin-top:0}
-  .sidebar{display:none}
-
-  /* Products area */
-  .products-area{padding:12px 16px}
-  .products-grid{grid-template-columns:repeat(2,1fr);gap:12px}
-  .products-grid.list{grid-template-columns:1fr}
-  .products-grid.list .p-card{grid-template-columns:120px 1fr}
-  .products-grid.list .p-img{min-height:120px}
-
-  /* Mobile filter button */
-  .mobile-filter-btn{display:flex}
-
-  /* Pagination */
-  .pagination{padding:20px 0 80px}
+  /* Mobile checkout bar */
+  .mobile-checkout{display:flex}
+  .checkout-btn,.continue-link{display:none}
 }
-
-@media(max-width:480px){
-  /* Cards — single column on small phones */
-  .products-grid{grid-template-columns:1fr;gap:12px}
-
-  /* Card adjustments */
-  .p-body{padding:12px 14px 14px}
-  .p-name{font-size:14px}
-  .p-price{font-size:18px}
-  .p-specs{gap:6px}
-  .p-spec{font-size:10px;padding:2px 6px}
-
-  /* Header shrink */
-  .logo{font-size:18px}
-  .logo-mark{width:30px;height:30px;border-radius:7px}
-  .ic-btn{width:34px;height:34px}
-
-  /* Catalog head */
-  .catalog-title{font-size:16px}
-  .catalog-count{font-size:11px}
-}
-
-/* Tablet landscape */
-@media(min-width:901px) and (max-width:1100px){
-  .products-grid{grid-template-columns:repeat(2,1fr)}
-  .sidebar{width:240px}
-  .catalog-layout{grid-template-columns:240px 1fr}
-}
-
-/* Sidebar moved into mobile drawer */
-#sidebar.in-drawer{
-  display:block !important;
-  position:static !important;
-  height:auto !important;
-  overflow-y:visible !important;
-  width:100% !important;
-  border:none !important;
-  border-radius:0 !important;
-  padding:0 4px !important;
-  top:auto !important;
+@media(max-width:420px){
+  .cart-item{grid-template-columns:64px 1fr;gap:10px;padding:14px 16px}
+  .ci-img{width:64px;height:56px}
+  .page-title{font-size:20px}
 }
 </style>
 </head>
 <body>
 <script src="shared.js"></script>
-
-<!-- PHONE TOP BAR -->
-<div class="phone-top-bar">
-  <a href="tel:+380980707348" class="phone-top-link">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-    +380 98 070 73 48
-  </a>
-</div>
 
 <!-- HEADER -->
 <header class="header" id="hdr">
@@ -357,2322 +229,612 @@ nav a.active{color:var(--orange)}
   </a>
   <nav>
     <a href="index.html">Головна</a>
-    <a href="catalog.html" class="active">Каталог</a>
-    <a href="calculator.html">Підбір</a>
-    <a href="compare.html">Порівняння</a>
+    <a href="catalog.html">Каталог</a>
     <a href="index.html#delivery-section">Доставка</a>
     <a href="index.html#warranty-section">Гарантія</a>
     <a href="index.html#contacts-section">Контакти</a>
   </nav>
   <div class="h-right">
-    <button class="ic-btn" onclick="toggleSearch()">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-    </button>
-    <button class="ic-btn" id="wishBtn" title="Список бажань" onclick="window.location.href='index.html#wishlist'" style="cursor:pointer">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-      <span class="badge wish-badge" id="wishBadge" style="display:none">0</span>
-    </button>
-    <button class="ic-btn" id="compareBtn" title="Порівняння" onclick="window.location.href='compare.html'" style="cursor:pointer">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-      <span class="badge" id="compareBadge" style="display:none">0</span>
-    </button>
+    <button class="ic-btn"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></button>
+    <button class="ic-btn" id="wishBtn" title="Список бажань" onclick="window.location.href='index.html#wishlist'" style="cursor:pointer"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span class="badge wish-badge" id="wishBadge" style="display:none">0</span></button>
+    <button class="ic-btn" id="compareBtn" title="Порівняння" onclick="window.location.href='compare.html'" style="cursor:pointer"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span class="badge" id="compareBadge" style="display:none">0</span></button>
     <button class="ic-btn" id="cartBtn" onclick="window.location.href='cart.html'" style="cursor:pointer">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-      <span class="badge" id="cartBadge">0</span>
+      <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+      <span class="badge" id="cartBadge">2</span>
     </button>
     <a href="auth.html" class="btn btn-primary" style="margin-left:6px;font-size:13px;padding:9px 18px">Увійти</a>
   </div>
 </header>
 
 <!-- BREADCRUMB -->
-<div class="breadcrumb" id="breadcrumb">
+<div class="breadcrumb">
   <a href="index.html">Головна</a>
-  <span class="breadcrumb-sep">
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-  </span>
-  <a href="categories.html" id="bcCategories" style="display:none;color:var(--text-muted);transition:color .2s">Категорії</a>
-  <span class="breadcrumb-sep" id="bcSep2" style="display:none">
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-  </span>
-  <span class="breadcrumb-current" id="bcCurrent">Каталог</span>
+  <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+  <span class="breadcrumb-cur">Кошик</span>
 </div>
 
-<!-- ACTIVE FILTERS -->
-<div class="active-filters" id="activeFilters">
-  <!-- populated by JS -->
-</div>
-
-<!-- CATALOG HEAD -->
-<div class="catalog-head">
-  <div class="catalog-title-row">
-    <h1 class="catalog-title" id="catalogTitle">Каталог товарів</h1>
-    <span class="catalog-count" id="catalogCount">Завантаження…</span>
+<!-- PAGE -->
+<div class="page">
+  <div class="page-head">
+    <h1 class="page-title">Кошик</h1>
+    <span class="cart-count-badge" id="itemCountBadge">2 товари</span>
   </div>
-  <div class="catalog-controls">
-    <select class="sort-select" id="sortSelect" onchange="applyFilters()">
-      <option value="popular">Популярні</option>
-      <option value="price_asc">Ціна: від дешевших</option>
-      <option value="price_desc">Ціна: від дорожчих</option>
-      <option value="name_az">Назва: А → Я</option>
-      <option value="name_za">Назва: Я → А</option>
-      <option value="new">Новинки</option>
-    </select>
-    <div class="view-btns">
-      <button class="view-btn active" onclick="setView('grid3',this)" title="3 колонки">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="2" width="8" height="8" rx="1"/><rect x="14" y="2" width="8" height="8" rx="1"/><rect x="2" y="14" width="8" height="8" rx="1"/><rect x="14" y="14" width="8" height="8" rx="1"/></svg>
-      </button>
-      <button class="view-btn" onclick="setView('list',this)" title="Список">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-      </button>
-    </div>
-  </div>
-</div>
 
-<!-- CATALOG LAYOUT -->
-<div class="catalog-layout">
+  <!-- CART LAYOUT -->
+  <div class="cart-layout" id="cartLayout">
 
-  <!-- SIDEBAR -->
-  <aside class="sidebar" id="sidebar">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-      <span style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;color:var(--navy)">Фільтри</span>
-      <button class="reset-filters" id="resetBtn" onclick="resetFilters()">
-        <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.57"/></svg>
-        Скинути всі
-      </button>
-    </div>
-
-    <!-- Search (moved to top) -->
-    <div class="sidebar-search" style="margin-bottom:16px">
-      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-      <input type="text" placeholder="Назва, артикул, бренд..." id="searchInput" oninput="applyFilters()" autocomplete="off">
-    </div>
-
-    <!-- Category tree -->
-    <div class="filter-block" id="catTreeBlock" style="margin-bottom:20px">
-      <div class="filter-title" onclick="toggleFilter(this)">
-        Категорії
-        <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-      </div>
-      <div class="filter-body" id="catTree">
-        <div class="cat-tree-loading">Завантаження…</div>
-      </div>
-    </div>
-
-    <div class="ctree-divider"></div>
-
-    <!-- Availability -->
-    <!-- В наявності block removed per user request -->
-
-    <!-- Type -->
-    <div class="filter-block" id="filterBlockType" style="display:none">
-      <div class="filter-title" onclick="toggleFilter(this)">
-        Тип транспорту
-        <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-      </div>
-      <div class="filter-body" id="typeFilter">
-        <label class="filter-option" data-group="type" onclick="toggleCheck(this,'type')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">Джип</span><span class="filter-cnt">—</span></label>
-        <label class="filter-option" data-group="type" onclick="toggleCheck(this,'type')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">Квадроцикл</span><span class="filter-cnt">—</span></label>
-        <label class="filter-option" data-group="type" onclick="toggleCheck(this,'type')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">Мотоцикл</span><span class="filter-cnt">—</span></label>
-        <label class="filter-option" data-group="type" onclick="toggleCheck(this,'type')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">Машина</span><span class="filter-cnt">—</span></label>
-        <label class="filter-option" data-group="type" onclick="toggleCheck(this,'type')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">Трактор</span><span class="filter-cnt">—</span></label>
-        <label class="filter-option" data-group="type" onclick="toggleCheck(this,'type')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">Каталка-толокар</span><span class="filter-cnt">—</span></label>
-        <label class="filter-option" data-group="type" onclick="toggleCheck(this,'type')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">Вантажівка</span><span class="filter-cnt">—</span></label>
-        <label class="filter-option" data-group="type" onclick="toggleCheck(this,'type')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">Баггі</span><span class="filter-cnt">—</span></label>
-      </div>
-    </div>
-
-    <!-- Age -->
-    <div class="filter-block">
-      <div class="filter-title" onclick="toggleFilter(this)">
-        Вік дитини
-        <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-      </div>
-      <div class="filter-body">
-        <label class="filter-option" data-group="age" onclick="toggleCheck(this,'age')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">1 – 3 роки</span><span class="filter-cnt">—</span></label>
-        <label class="filter-option" data-group="age" onclick="toggleCheck(this,'age')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">3 – 6 років</span><span class="filter-cnt">—</span></label>
-        <label class="filter-option" data-group="age" onclick="toggleCheck(this,'age')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">6 – 10 років</span><span class="filter-cnt">—</span></label>
-      </div>
-    </div>
-
-    <!-- Price -->
-    <div class="filter-block">
-      <div class="filter-title" onclick="toggleFilter(this)">
-        Ціна, ₴
-        <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-      </div>
-      <div class="filter-body">
-        <div class="price-inputs">
-          <div class="price-inp-wrap">
-            <input class="price-inp" type="number" id="priceMin" value="664" min="664" max="86610" onchange="applyFilters()">
-            <span>від</span>
-          </div>
-          <div class="price-inp-wrap">
-            <input class="price-inp" type="number" id="priceMax" value="86610" min="664" max="86610" onchange="applyFilters()">
-            <span>до</span>
-          </div>
+    <!-- LEFT: ITEMS -->
+    <div>
+      <div class="cart-items">
+        <div class="cart-items-head">
+          <span class="cart-items-title">Товари у кошику</span>
+          <button class="clear-cart-btn" onclick="clearCart()">
+            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+            Очистити кошик
+          </button>
         </div>
-        <div class="range-slider" id="priceSlider">
-          <div class="range-fill" id="rangeFill" style="left:0%;right:0%"></div>
-          <div class="range-thumb" id="thumbMin" style="left:0%"></div>
-          <div class="range-thumb" id="thumbMax" style="left:100%"></div>
-        </div>
-      </div>
-    </div>
 
-    <!-- Brand -->
-    <div class="filter-block" id="filterBlockBrand" style="display:none">
-      <div class="filter-title" onclick="toggleFilter(this)">
-        Бренд
-        <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-      </div>
-      <div class="filter-body">
-        <label class="filter-option" data-group="brand" onclick="toggleCheck(this,'brand')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">Bambi Racer</span><span class="filter-cnt">—</span></label>
-        <label class="filter-option" data-group="brand" onclick="toggleCheck(this,'brand')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">PROF1</span><span class="filter-cnt">—</span></label>
-        <label class="filter-option" data-group="brand" onclick="toggleCheck(this,'brand')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">Bambi kart</span><span class="filter-cnt">—</span></label>
-        <label class="filter-option" data-group="brand" onclick="toggleCheck(this,'brand')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">EL CAMINO</span><span class="filter-cnt">—</span></label>
-      </div>
-    </div>
-
-    <!-- Voltage -->
-    <div class="filter-block" id="filterBlockVoltage">
-      <div class="filter-title" onclick="toggleFilter(this)">
-        Акумулятор
-        <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-      </div>
-      <div class="filter-body">
-        <label class="filter-option" data-group="voltage" onclick="toggleCheck(this,'voltage')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">6V</span><span class="filter-cnt">—</span></label>
-        <label class="filter-option" data-group="voltage" onclick="toggleCheck(this,'voltage')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">12V</span><span class="filter-cnt">—</span></label>
-        <label class="filter-option" data-group="voltage" onclick="toggleCheck(this,'voltage')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">24V</span><span class="filter-cnt">—</span></label>
-      </div>
-    </div>
-  </aside>
-
-  <!-- PRODUCTS -->
-  <main class="products-area">
-    <div class="products-grid" id="productsGrid">
-
-      <!-- Card 1 -->
-      <div class="p-card reveal">
-        <div class="p-img-wrap">
-          <div class="p-img" style="background:linear-gradient(145deg,#e8ecf7,#d0d8f0)">
-            <svg viewBox="0 0 240 160" style="width:78%;position:relative;z-index:1">
-              <rect x="20" y="75" width="200" height="55" rx="14" fill="#1B2A4A" opacity=".15"/>
-              <rect x="50" y="40" width="130" height="52" rx="12" fill="#1B2A4A" opacity=".18"/>
-              <rect x="55" y="45" width="55" height="34" rx="6" fill="#64B5F6" opacity=".4"/>
-              <rect x="118" y="45" width="55" height="34" rx="6" fill="#64B5F6" opacity=".35"/>
-              <rect x="185" y="72" width="32" height="34" rx="5" fill="#1B2A4A" opacity=".12"/>
-              <rect x="18" y="82" width="25" height="26" rx="4" fill="#1B2A4A" opacity=".12"/>
-              <circle cx="65" cy="132" r="22" fill="#1B2A4A" opacity=".2"/>
-              <circle cx="65" cy="132" r="12" fill="#FF6B35" opacity=".3"/>
-              <circle cx="175" cy="132" r="22" fill="#1B2A4A" opacity=".2"/>
-              <circle cx="175" cy="132" r="12" fill="#FF6B35" opacity=".3"/>
+        <div id="cartItemsList"></div>
+        <!-- (приховані демо-товари — лишаємо як референс, динамічний рендер у скрипті) -->
+        <div style="display:none">
+        <!-- Item 1 -->
+        <div class="cart-item" id="item1" data-price="17224" data-qty="1">
+          <div class="ci-img">
+            <svg viewBox="0 0 120 90">
+              <rect x="10" y="38" width="100" height="32" rx="8" fill="#c8d0ea"/>
+              <rect x="24" y="18" width="65" height="28" rx="6" fill="#d0d8f0"/>
+              <rect x="27" y="21" width="28" height="18" rx="3" fill="#90CAF9" opacity=".6"/>
+              <rect x="58" y="21" width="24" height="18" rx="3" fill="#90CAF9" opacity=".5"/>
+              <rect x="94" y="36" width="16" height="18" rx="3" fill="#c0c8e0"/>
+              <circle cx="30" cy="76" r="13" fill="#2d3748"/>
+              <circle cx="30" cy="76" r="7" fill="#FF6B35" opacity=".7"/>
+              <circle cx="90" cy="76" r="13" fill="#2d3748"/>
+              <circle cx="90" cy="76" r="7" fill="#FF6B35" opacity=".7"/>
             </svg>
           </div>
-          <div class="p-overlay">
-            <button class="p-overlay-btn ob-white"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Детальніше</button>
-            <button class="p-overlay-btn ob-orange" onclick="addToCart(this)"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>В кошик</button>
-          </div>
-          <span class="p-badge badge-hot">🔥 Хіт</span>
-          <button class="p-wish" onclick="toggleWish(this)"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
-          <button class="p-compare" title="Порівняти" onclick="toggleCompare(this)"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></button>
-        </div>
-        <div class="p-body">
-          <div class="p-brand">Bambi Racer</div>
-          <div class="p-name">Джип M 3804EBLR — 4 мотори 45W</div>
-          <div class="p-specs">
-            <span class="p-spec"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>3–8 р.</span>
-            <span class="p-spec"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>12V</span>
-            <span class="p-spec"><svg viewBox="0 0 24 24"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>2.4G</span>
-            <span class="p-spec"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Шкіра</span>
-          </div>
-          <div class="p-bottom">
-            <div><span class="p-price">17 224 ₴</span></div>
-            <div class="p-actions">
-              <button class="btn-quick" title="Купити в 1 клік" onclick="quickOrder()"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button>
-              <button class="btn-cart" onclick="addToCart(this)"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></button>
+          <div class="ci-info">
+            <div class="ci-brand">Bambi Racer</div>
+            <div class="ci-name"><a href="product.html">Джип M 3804EBLR-1 — 4 мотори 45W, пульт 2.4G</a></div>
+            <div class="ci-meta">
+              <span class="ci-tag">Колір: Білий</span>
+              
+
+            </div>
+            <!-- Price visible on mobile -->
+            <div class="ci-price-mobile" style="display:none;font-family:'Nunito',sans-serif;font-weight:900;font-size:17px;color:var(--navy);margin-bottom:10px" id="price1-mobile">17 224 ₴</div>
+            <div class="ci-actions">
+              <div class="qty-ctrl">
+                <button class="qty-btn" onclick="changeQty('item1',-1)">
+                  <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+                <span class="qty-val" id="qty1">1</span>
+                <button class="qty-btn" onclick="changeQty('item1',1)">
+                  <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+              </div>
+              <button class="wish-move-btn" onclick="moveToWish('item1')">
+                <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                В список бажань
+              </button>
             </div>
           </div>
+          <div class="ci-right">
+            <div>
+              <div class="ci-price" id="price1">17 224 ₴</div>
+              <div class="ci-price-per">за 1 шт.</div>
+            </div>
+            <button class="ci-del" onclick="removeItem('item1')" title="Видалити">
+              <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
         </div>
-      </div>
 
-      <!-- Card 2 -->
-      <div class="p-card reveal d1">
-        <div class="p-img-wrap">
-          <div class="p-img" style="background:linear-gradient(145deg,#eef0ff,#d6dcff)">
-            <svg viewBox="0 0 240 160" style="width:78%;position:relative;z-index:1">
-              <rect x="50" y="70" width="140" height="45" rx="10" fill="#3B4A8A" opacity=".18"/>
-              <rect x="70" y="42" width="100" height="42" rx="10" fill="#3B4A8A" opacity=".2"/>
-              <rect x="80" y="48" width="40" height="26" rx="5" fill="#90CAF9" opacity=".4"/>
-              <rect x="128" y="48" width="30" height="26" rx="5" fill="#90CAF9" opacity=".35"/>
-              <circle cx="68" cy="120" r="24" fill="#2d4270" opacity=".2"/>
-              <circle cx="68" cy="120" r="13" fill="#FF6B35" opacity=".28"/>
-              <circle cx="172" cy="120" r="24" fill="#2d4270" opacity=".2"/>
-              <circle cx="172" cy="120" r="13" fill="#FF6B35" opacity=".28"/>
-              <rect x="30" y="80" width="18" height="28" rx="4" fill="#2d4270" opacity=".15"/>
-              <rect x="192" y="80" width="18" height="28" rx="4" fill="#2d4270" opacity=".15"/>
+        <!-- Item 2 -->
+        <div class="cart-item" id="item2" data-price="12210" data-qty="1">
+          <div class="ci-img" style="background:linear-gradient(145deg,#eef0ff,#d6dcff)">
+            <svg viewBox="0 0 120 90">
+              <rect x="24" y="36" width="72" height="26" rx="6" fill="#3B4A8A" opacity=".25"/>
+              <rect x="34" y="20" width="52" height="24" rx="5" fill="#3B4A8A" opacity=".28"/>
+              <rect x="37" y="23" width="21" height="15" rx="3" fill="#90CAF9" opacity=".55"/>
+              <rect x="62" y="23" width="18" height="15" rx="3" fill="#90CAF9" opacity=".5"/>
+              <rect x="14" y="38" width="10" height="16" rx="2" fill="#2d4270" opacity=".2"/>
+              <rect x="96" y="38" width="10" height="16" rx="2" fill="#2d4270" opacity=".2"/>
+              <circle cx="34" cy="72" r="13" fill="#2d4270" opacity=".28"/>
+              <circle cx="34" cy="72" r="7" fill="#FF6B35" opacity=".4"/>
+              <circle cx="86" cy="72" r="13" fill="#2d4270" opacity=".28"/>
+              <circle cx="86" cy="72" r="7" fill="#FF6B35" opacity=".4"/>
             </svg>
           </div>
-          <div class="p-overlay">
-            <button class="p-overlay-btn ob-white"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Детальніше</button>
-            <button class="p-overlay-btn ob-orange" onclick="addToCart(this)"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>В кошик</button>
-          </div>
-          <span class="p-badge badge-new">✨ Новинка</span>
-          <button class="p-wish" onclick="toggleWish(this)"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
-          <button class="p-compare" onclick="toggleCompare(this)"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></button>
-        </div>
-        <div class="p-body">
-          <div class="p-brand">Bambi Racer</div>
-          <div class="p-name">Квадроцикл M 4795EBLR — EVA колеса</div>
-          <div class="p-specs">
-            <span class="p-spec"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>3–8 р.</span>
-            <span class="p-spec"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>12V</span>
-            <span class="p-spec">EVA</span>
-          </div>
-          <div class="p-bottom">
-            <div><span class="p-price">12 210 ₴</span></div>
-            <div class="p-actions">
-              <button class="btn-quick" onclick="quickOrder()"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button>
-              <button class="btn-cart" onclick="addToCart(this)"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></button>
+          <div class="ci-info">
+            <div class="ci-brand">Bambi Racer</div>
+            <div class="ci-name"><a href="product.html">Квадроцикл M 4795EBLR — EVA колеса</a></div>
+            <div class="ci-meta">
+              <span class="ci-tag">Колір: Синій</span>
+              
+              
+            </div>
+            <div class="ci-price-mobile" style="display:none;font-family:'Nunito',sans-serif;font-weight:900;font-size:17px;color:var(--navy);margin-bottom:10px" id="price2-mobile">12 210 ₴</div>
+            <div class="ci-actions">
+              <div class="qty-ctrl">
+                <button class="qty-btn" onclick="changeQty('item2',-1)">
+                  <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+                <span class="qty-val" id="qty2">1</span>
+                <button class="qty-btn" onclick="changeQty('item2',1)">
+                  <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+              </div>
+              <button class="wish-move-btn" onclick="moveToWish('item2')">
+                <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                В список бажань
+              </button>
             </div>
           </div>
-        </div>
-      </div>
-
-      <!-- Card 3 -->
-      <div class="p-card reveal d2">
-        <div class="p-img-wrap">
-          <div class="p-img" style="background:linear-gradient(145deg,#edfff5,#d5f5e5)">
-            <svg viewBox="0 0 240 160" style="width:78%;position:relative;z-index:1">
-              <rect x="85" y="65" width="130" height="50" rx="10" fill="#2E7D32" opacity=".2"/>
-              <rect x="90" y="38" width="75" height="40" rx="9" fill="#2E7D32" opacity=".22"/>
-              <rect x="96" y="44" width="35" height="26" rx="5" fill="#A5D6A7" opacity=".5"/>
-              <circle cx="110" cy="122" r="28" fill="#1B5E20" opacity=".2"/>
-              <circle cx="110" cy="122" r="16" fill="#27AE60" opacity=".3"/>
-              <circle cx="200" cy="126" r="18" fill="#1B5E20" opacity=".18"/>
-              <circle cx="200" cy="126" r="10" fill="#27AE60" opacity=".28"/>
-              <rect x="20" y="85" width="65" height="35" rx="8" fill="#2E7D32" opacity=".15"/>
-              <rect x="25" y="90" width="20" height="25" rx="4" fill="#A5D6A7" opacity=".35"/>
-            </svg>
-          </div>
-          <div class="p-overlay">
-            <button class="p-overlay-btn ob-white"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Детальніше</button>
-            <button class="p-overlay-btn ob-orange" onclick="addToCart(this)"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>В кошик</button>
-          </div>
-          <span class="p-badge badge-sale">−15%</span>
-          <button class="p-wish liked" onclick="toggleWish(this)"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
-          <button class="p-compare" onclick="toggleCompare(this)"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></button>
-        </div>
-        <div class="p-body">
-          <div class="p-brand">Bambi Racer</div>
-          <div class="p-name">Трактор M 4419EBLR з причепом</div>
-          <div class="p-specs">
-            <span class="p-spec"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>2–7 р.</span>
-            <span class="p-spec"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>12V</span>
-            <span class="p-spec">Причеп</span>
-          </div>
-          <div class="p-bottom">
-            <div><span class="p-price">10 231 ₴</span><span class="p-price-old">12 037 ₴</span></div>
-            <div class="p-actions">
-              <button class="btn-quick" onclick="quickOrder()"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button>
-              <button class="btn-cart" onclick="addToCart(this)"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></button>
+          <div class="ci-right">
+            <div>
+              <div class="ci-price" id="price2">12 210 ₴</div>
+              <div class="ci-price-per">за 1 шт.</div>
             </div>
+            <button class="ci-del" onclick="removeItem('item2')" title="Видалити">
+              <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
           </div>
         </div>
+        </div><!-- /прихований шаблон демо -->
       </div>
 
-      <!-- Card 4 -->
-      <div class="p-card reveal d3">
-        <div class="p-img-wrap">
-          <div class="p-img" style="background:linear-gradient(145deg,#fff8e1,#ffebb0)">
-            <svg viewBox="0 0 240 160" style="width:72%;position:relative;z-index:1">
-              <ellipse cx="120" cy="110" rx="80" ry="14" fill="#1B2A4A" opacity=".07"/>
-              <circle cx="65" cy="108" r="26" fill="#1B2A4A" opacity=".18"/>
-              <circle cx="65" cy="108" r="14" fill="#FF6B35" opacity=".28"/>
-              <circle cx="175" cy="108" r="26" fill="#1B2A4A" opacity=".18"/>
-              <circle cx="175" cy="108" r="14" fill="#FF6B35" opacity=".28"/>
-              <path d="M65 85 Q90 52 140 56 L170 85 Q145 90 110 88 Z" fill="#1B2A4A" opacity=".18"/>
-              <rect x="100" y="50" width="38" height="20" rx="5" fill="#90CAF9" opacity=".4"/>
-              <path d="M140 60 L168 72 L163 86 L133 80 Z" fill="#1B2A4A" opacity=".14"/>
-              <rect x="58" y="74" width="11" height="32" rx="3" fill="#1B2A4A" opacity=".14"/>
-            </svg>
-          </div>
-          <div class="p-overlay">
-            <button class="p-overlay-btn ob-white"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Детальніше</button>
-            <button class="p-overlay-btn ob-orange" onclick="addToCart(this)"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>В кошик</button>
-          </div>
-          <span class="p-badge badge-hot">🔥 Хіт</span>
-          <button class="p-wish" onclick="toggleWish(this)"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
-          <button class="p-compare" onclick="toggleCompare(this)"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></button>
+      <!-- RIGHT: SIDEBAR -->
+    <div class="cart-sidebar">
+
+      <!-- PROMO -->
+      <div class="promo-block">
+        <div class="promo-title">
+          <svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+          Промокод
         </div>
-        <div class="p-body">
-          <div class="p-brand">Bambi Racer</div>
-          <div class="p-name">Мотоцикл M 4274EL — шкіра, EVA</div>
-          <div class="p-specs">
-            <span class="p-spec"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>3–8 р.</span>
-            <span class="p-spec"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>12V</span>
-            <span class="p-spec"><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>MP3</span>
-          </div>
-          <div class="p-bottom">
-            <div><span class="p-price">8 114 ₴</span></div>
-            <div class="p-actions">
-              <button class="btn-quick" onclick="quickOrder()"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button>
-              <button class="btn-cart" onclick="addToCart(this)"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></button>
-            </div>
-          </div>
+        <div class="promo-row">
+          <input class="promo-input" type="text" id="promoInput" placeholder="Введіть промокод" oninput="this.value=this.value.toUpperCase()">
+          <button class="promo-apply" onclick="applyPromo()">Застосувати</button>
         </div>
+        <div id="promoMsg" style="display:none"></div>
       </div>
 
-      <!-- Card 5 -->
-      <div class="p-card reveal d4">
-        <div class="p-img-wrap">
-          <div class="p-img" style="background:linear-gradient(145deg,#fce4ec,#f8bbd0)">
-            <svg viewBox="0 0 240 160" style="width:78%;position:relative;z-index:1">
-              <rect x="25" y="78" width="190" height="48" rx="12" fill="#880E4F" opacity=".14"/>
-              <rect x="55" y="48" width="120" height="44" rx="10" fill="#880E4F" opacity=".16"/>
-              <rect x="60" y="53" width="50" height="28" rx="5" fill="#F48FB1" opacity=".45"/>
-              <rect x="118" y="53" width="50" height="28" rx="5" fill="#F48FB1" opacity=".4"/>
-              <circle cx="62" cy="130" r="20" fill="#880E4F" opacity=".18"/>
-              <circle cx="62" cy="130" r="11" fill="#FF6B35" opacity=".3"/>
-              <circle cx="178" cy="130" r="20" fill="#880E4F" opacity=".18"/>
-              <circle cx="178" cy="130" r="11" fill="#FF6B35" opacity=".3"/>
-              <rect x="180" y="76" width="28" height="32" rx="5" fill="#880E4F" opacity=".12"/>
-            </svg>
+      <!-- SUMMARY -->
+      <div class="summary">
+        <h3 class="summary-title">Підсумок замовлення</h3>
+        <div class="summary-rows">
+          <div class="sum-row">
+            <span class="sum-label">Товари (<span id="sumQty">0</span> шт.)</span>
+            <span class="sum-val" id="sumItems">0 ₴</span>
           </div>
-          <div class="p-overlay">
-            <button class="p-overlay-btn ob-white"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Детальніше</button>
-            <button class="p-overlay-btn ob-orange" onclick="addToCart(this)"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>В кошик</button>
+          <div class="sum-row" id="discountRow" style="display:none">
+            <span class="sum-label">Знижка</span>
+            <span class="sum-val green" id="sumDiscount">−0 ₴</span>
           </div>
-          <span class="p-badge badge-new">✨ Новинка</span>
-          <button class="p-wish" onclick="toggleWish(this)"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
-          <button class="p-compare" onclick="toggleCompare(this)"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></button>
-        </div>
-        <div class="p-body">
-          <div class="p-brand">Bambi Racer</div>
-          <div class="p-name">Машина M 4140EBLR — з відкидним капотом</div>
-          <div class="p-specs">
-            <span class="p-spec"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>3–6 р.</span>
-            <span class="p-spec"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>12V</span>
-            <span class="p-spec"><svg viewBox="0 0 24 24"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>2.4G</span>
+          <div class="sum-row" id="promoRow" style="display:none">
+            <span class="sum-label">Промокод</span>
+            <span class="sum-val green" id="sumPromo">−0 ₴</span>
           </div>
-          <div class="p-bottom">
-            <div><span class="p-price">12 120 ₴</span></div>
-            <div class="p-actions">
-              <button class="btn-quick" onclick="quickOrder()"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button>
-              <button class="btn-cart" onclick="addToCart(this)"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></button>
-            </div>
+          <div class="sum-row">
+            <span class="sum-label">Доставка</span>
+            <span class="sum-val orange" id="sumDelivery">за тарифами НП</span>
           </div>
         </div>
+        <div class="sum-divider"></div>
+        <div class="sum-total-row">
+          <span class="sum-total-label">До сплати</span>
+          <div>
+            <span class="sum-total-val" id="sumTotal">0 ₴</span>
+            <div class="sum-note">+ доставка НП</div>
+          </div>
+        </div>
+
+        <!-- Installment hint -->
+        <div style="background:rgba(255,107,53,.06);border:1px solid rgba(255,107,53,.15);border-radius:9px;padding:12px 14px;margin-top:14px;display:flex;align-items:center;gap:10px">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          <div style="font-size:12px;color:var(--navy);line-height:1.5">Оплата частинами ПриватБанк:<br><strong id="installmentHint">від 4 306 ₴ × 4 платежі</strong></div>
+        </div>
+
+        <button class="checkout-btn" onclick="goCheckout()">
+          <svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          Оформити замовлення
+        </button>
+        <a href="catalog.html" class="continue-link">
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+          Продовжити покупки
+        </a>
       </div>
 
-      <!-- Card 6 -->
-      <div class="p-card reveal d5">
-        <div class="p-img-wrap">
-          <div class="p-img" style="background:linear-gradient(145deg,#e8f5e9,#c8e6c9)">
-            <svg viewBox="0 0 240 160" style="width:78%;position:relative;z-index:1">
-              <rect x="20" y="72" width="200" height="52" rx="14" fill="#1B5E20" opacity=".15"/>
-              <rect x="40" y="40" width="145" height="48" rx="12" fill="#1B5E20" opacity=".18"/>
-              <rect x="46" y="46" width="60" height="30" rx="6" fill="#A5D6A7" opacity=".5"/>
-              <rect x="114" y="46" width="60" height="30" rx="6" fill="#A5D6A7" opacity=".45"/>
-              <rect x="190" y="68" width="28" height="36" rx="5" fill="#1B5E20" opacity=".12"/>
-              <rect x="18" y="80" width="20" height="28" rx="4" fill="#1B5E20" opacity=".12"/>
-              <circle cx="62" cy="128" r="22" fill="#1B5E20" opacity=".2"/>
-              <circle cx="62" cy="128" r="12" fill="#27AE60" opacity=".35"/>
-              <circle cx="178" cy="128" r="22" fill="#1B5E20" opacity=".2"/>
-              <circle cx="178" cy="128" r="12" fill="#27AE60" opacity=".35"/>
-            </svg>
-          </div>
-          <div class="p-overlay">
-            <button class="p-overlay-btn ob-white"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Детальніше</button>
-            <button class="p-overlay-btn ob-orange" onclick="addToCart(this)"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>В кошик</button>
-          </div>
-          <span class="p-badge badge-hot">🔥 Хіт</span>
-          <button class="p-wish" onclick="toggleWish(this)"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
-          <button class="p-compare" onclick="toggleCompare(this)"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></button>
+      <!-- TRUST -->
+      <div class="trust-badges">
+        <div class="trust-item">
+          <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Безпечне оформлення замовлення
         </div>
-        <div class="p-body">
-          <div class="p-brand">PROF1</div>
-          <div class="p-name">Джип PROF1 SPORT — 24V потужний</div>
-          <div class="p-specs">
-            <span class="p-spec"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>6–10 р.</span>
-            <span class="p-spec"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>24V</span>
-            <span class="p-spec"><svg viewBox="0 0 24 24"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>2.4G</span>
-            <span class="p-spec"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>4 мотори</span>
-          </div>
-          <div class="p-bottom">
-            <div><span class="p-price">24 890 ₴</span></div>
-            <div class="p-actions">
-              <button class="btn-quick" onclick="quickOrder()"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button>
-              <button class="btn-cart" onclick="addToCart(this)"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></button>
-            </div>
-          </div>
+        <div class="trust-item">
+          <svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+          Доставка Новою Поштою по Україні
+        </div>
+        <div class="trust-item">
+          <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.57"/></svg>
+          Повернення протягом 14 днів
+        </div>
+        <div class="trust-item">
+          <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          Підтримка 7 днів на тиждень
         </div>
       </div>
-
     </div>
-
-    <!-- PAGINATION -->
-    <div class="pagination" id="pagination"></div>
-  </main>
-</div>
-
-<!-- MOBILE FILTER BUTTON -->
-<button class="mobile-filter-btn" onclick="openDrawer()">
-  <svg viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="12" y1="18" x2="20" y2="18"/></svg>
-  Фільтри
-</button>
-
-<!-- MOBILE DRAWER -->
-<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
-<div class="drawer" id="drawer">
-  <div class="drawer-head">
-    <h3>Фільтри</h3>
-    <button class="drawer-close" onclick="closeDrawer()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-    </button>
-  </div>
-  <!-- sidebar content is moved here dynamically via openDrawer() -->
-</div>
-
-<!-- QUICK ORDER MODAL -->
-<div id="quickModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;align-items:center;justify-content:center;backdrop-filter:blur(4px);padding:16px">
-  <div style="background:white;border-radius:20px;padding:32px;max-width:400px;width:100%;position:relative;animation:modalIn .3s cubic-bezier(.34,1.56,.64,1)">
-    <button onclick="closeQuick()" style="position:absolute;top:16px;right:16px;background:var(--bg-soft);border:none;width:32px;height:32px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted)">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-    </button>
-    <div style="font-size:28px;margin-bottom:8px">📞</div>
-    <h3 style="font-size:20px;color:var(--navy);margin-bottom:6px">Купити в 1 клік</h3>
-    <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px;line-height:1.6">Залиш номер — менеджер передзвонить і оформить замовлення за 2 хвилини.</p>
-    <div id="quickProductInfo" style="display:none;background:var(--bg-soft);border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:13px"></div>
-    <input type="tel" id="quickPhone" value="+380 " placeholder="+380 __ ___ __ __" style="width:100%;padding:13px 16px;border:1.5px solid var(--border);border-radius:10px;font-family:'Manrope',sans-serif;font-size:15px;margin-bottom:10px;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='var(--orange)';if(!this.value||this.value.trim()==='')this.value='+380 ';requestAnimationFrame(()=>{try{this.setSelectionRange(this.value.length,this.value.length)}catch(e){}})" onblur="this.style.borderColor='var(--border)';if(this.value.trim()==='+380'||this.value.trim()==='')this.value=''">
-    <input type="text" id="quickName" placeholder="Ваше ім'я (опціонально)" style="width:100%;padding:13px 16px;border:1.5px solid var(--border);border-radius:10px;font-family:'Manrope',sans-serif;font-size:14px;margin-bottom:12px;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='var(--orange)'" onblur="this.style.borderColor='var(--border)'">
-    <button id="quickSubmitBtn" onclick="submitQuick()" class="btn btn-primary" style="width:100%;justify-content:center;font-size:15px;padding:14px">Передзвоніть мені</button>
-    <div id="quickStatus" style="font-size:12px;text-align:center;margin-top:10px;min-height:16px;color:var(--text-muted)">Передзвонимо протягом 15 хвилин</div>
   </div>
 </div>
 
-<style>
-@keyframes modalIn{from{opacity:0;transform:scale(.9) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
-</style>
+<!-- MOBILE CHECKOUT BAR -->
+<div class="mobile-checkout" id="mobileCheckout">
+  <div>
+    <div class="mc-label">До сплати</div>
+    <div class="mc-total" id="mcTotal">0 ₴</div>
+  </div>
+  <button class="mc-btn" onclick="goCheckout()">Оформити →</button>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
 
 <script>
+// ── STATE ─────────────────────────────────────────────────────────────────
+let cartData = [];
+try { cartData = JSON.parse(localStorage.getItem('kr_cart') || '[]'); } catch(e) { cartData = []; }
+if (!Array.isArray(cartData)) cartData = [];
+
+let promoDiscount = 0;
+const promoCode = 'KIDSRIDE10';
+
 // Header scroll
 window.addEventListener('scroll', () => {
   document.getElementById('hdr').classList.toggle('scrolled', scrollY > 40);
 });
 
-// Scroll reveal
-// Reveal cards — show immediately if in viewport, animate others on scroll
-const obs = new IntersectionObserver(entries => {
-  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
-}, { threshold: 0.05, rootMargin: '0px 0px -40px 0px' });
+// ── HELPERS ───────────────────────────────────────────────────────────────
+function escHtml(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function formatPrice(n) { return Number(n||0).toLocaleString('uk-UA') + ' ₴'; }
+function plural(n, one, few, many) {
+  if (n % 10 === 1 && n % 100 !== 11) return one;
+  if ([2,3,4].includes(n % 10) && ![12,13,14].includes(n % 100)) return few;
+  return many;
+}
+// Унікальний ключ: артикул (sku) + колір; якщо sku немає — id + колір
+function itemKey(it){
+  if (it.sku) return 'sku:' + String(it.sku) + '|' + String(it.color || '');
+  return 'id:' + String(it.id || '') + '|' + String(it.color || '');
+}
+function findIdx(key){ return cartData.findIndex(it => itemKey(it) === key); }
+function genericSvg(){
+  return `<svg viewBox="0 0 120 90">
+    <rect x="10" y="38" width="100" height="32" rx="8" fill="#c8d0ea"/>
+    <rect x="24" y="18" width="65" height="28" rx="6" fill="#d0d8f0"/>
+    <rect x="27" y="21" width="28" height="18" rx="3" fill="#90CAF9" opacity=".6"/>
+    <rect x="58" y="21" width="24" height="18" rx="3" fill="#90CAF9" opacity=".5"/>
+    <circle cx="30" cy="76" r="13" fill="#2d3748"/>
+    <circle cx="30" cy="76" r="7" fill="#FF6B35" opacity=".7"/>
+    <circle cx="90" cy="76" r="13" fill="#2d3748"/>
+    <circle cx="90" cy="76" r="7" fill="#FF6B35" opacity=".7"/>
+  </svg>`;
+}
 
-document.querySelectorAll('.reveal').forEach(el => {
-  const rect = el.getBoundingClientRect();
-  if (rect.top < window.innerHeight) {
-    // Already in viewport on load — show immediately
-    el.classList.add('visible');
-  } else {
-    obs.observe(el);
+// ── PERSIST ───────────────────────────────────────────────────────────────
+function saveCart() {
+  localStorage.setItem('kr_cart', JSON.stringify(cartData));
+  const badge = document.getElementById('cartBadge');
+  if (badge) badge.textContent = cartData.reduce((s,i) => s + (Number(i.qty)||1), 0);
+  // Шлемо обидва імена події — різні сторінки слухають по-різному
+  try { window.dispatchEvent(new CustomEvent('kr:cartUpdated',  { detail: { cart: cartData } })); } catch(e) {}
+  try { window.dispatchEvent(new CustomEvent('kr:cart-changed', { detail: { cart: cartData } })); } catch(e) {}
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────
+// Вгадати колір крапки для кольору товару
+function colorDot(colorName) {
+  if (!colorName) return '#ccc';
+  const n = colorName.toLowerCase();
+  if (/біл|white/.test(n))   return '#f5f5f5';
+  if (/чорн|black/.test(n))  return '#1a1a1a';
+  if (/черв|red/.test(n))    return '#e53935';
+  if (/синь|blue/.test(n))   return '#1e88e5';
+  if (/зелен|green/.test(n)) return '#43a047';
+  if (/жовт|yellow/.test(n)) return '#fdd835';
+  if (/роже|pink/.test(n))   return '#ec407a';
+  if (/оранж|orange/.test(n))return '#fb8c00';
+  if (/фіолет|purple/.test(n))return '#8e24aa';
+  if (/сір|grey|gray/.test(n))return '#90a4ae';
+  if (/бежев|beige/.test(n)) return '#d7c4a3';
+  if (/корич|brown/.test(n)) return '#6d4c41';
+  if (/золот|gold/.test(n))  return '#ffc107';
+  if (/срібл|silver/.test(n))return '#bdbdbd';
+  return '#FF6B35';
+}
+
+function renderCartItems() {
+  const list = document.getElementById('cartItemsList');
+  if (!list) return;
+  if (!cartData.length) { list.innerHTML = ''; return; }
+  list.innerHTML = cartData.map(p => {
+    const key = itemKey(p);
+    const qty = Number(p.qty) || 1;
+    const total = (Number(p.price)||0) * qty;
+    const tags = [];
+
+
+    const productHref = 'product.html' + (p.sku ? ('?sku=' + encodeURIComponent(p.sku)) : (p.model ? ('?model=' + encodeURIComponent(p.model)) : ''));
+    const safeKey = escHtml(key);
+    const imgHtml = p.img
+      ? `<img src="${escHtml(String(p.img))}" alt="${escHtml(p.name||'')}" loading="lazy" data-sku="${escHtml(p.sku||'')}" style="width:100%;height:100%;object-fit:contain;background:#fff;border-radius:10px" onerror="this.style.display='none';this.parentNode.innerHTML+=genericSvg()">`
+      : `<span class="ci-img-placeholder" data-sku="${escHtml(p.sku||'')}" data-name="${escHtml(p.name||'')}">${genericSvg()}</span>`;
+    return `
+      <div class="cart-item" data-key="${safeKey}">
+        <div class="ci-img">${imgHtml}</div>
+        <div class="ci-info">
+          ${p.brand ? `<div class="ci-brand">${escHtml(p.brand)}</div>` : ''}
+          ${p.sku ? `<div class="ci-sku"><span class="ci-sku-label">Арт.</span><span class="ci-sku-val">${escHtml(p.sku)}</span></div>` : ''}
+          <div class="ci-name"><a href="${escHtml(productHref)}">${escHtml(p.name || 'Товар')}</a></div>
+          ${p.color ? `<div class="ci-color"><span class="ci-color-dot" style="background:${colorDot(p.color)}"></span>Колір: <strong>${escHtml(p.color)}</strong></div>` : ''}
+          ${tags.length ? `<div class="ci-meta">${tags.join('')}</div>` : ''}
+          <div class="ci-price-mobile" style="display:none;font-family:'Nunito',sans-serif;font-weight:900;font-size:17px;color:var(--navy);margin-bottom:10px">${formatPrice(total)}</div>
+          <div class="ci-actions">
+            <div class="qty-ctrl">
+              <button class="qty-btn" onclick="changeQty('${safeKey}',-1)"><svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+              <span class="qty-val">${qty}</span>
+              <button class="qty-btn" onclick="changeQty('${safeKey}',1)"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+            </div>
+            <button class="wish-move-btn" onclick="moveToWish('${safeKey}')">
+              <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              В список бажань
+            </button>
+          </div>
+        </div>
+        <div class="ci-right">
+          <div>
+            <div class="ci-price">${formatPrice(total)}</div>
+            <div class="ci-price-per">за ${qty} шт.</div>
+          </div>
+          <button class="ci-del" onclick="removeItem('${safeKey}')" title="Видалити">
+            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      </div>`;
+  }).join('');
+  checkMobilePrices();
+  // Асинхронно підтягуємо фото для товарів без зображення
+  asyncLoadCartImages();
+}
+
+// ── ASYNC ЗАВАНТАЖЕННЯ ФОТО З SUPABASE ────────────────────────────────────
+const _SUPA_URL_CART = 'https://xczrzdbikkycgpnvolib.supabase.co';
+const _SUPA_KEY_CART = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
+
+async function asyncLoadCartImages() {
+  // Знаходимо всі placeholder-и без фото
+  const placeholders = document.querySelectorAll('.ci-img-placeholder[data-sku]');
+  if (!placeholders.length) return;
+
+  // Збираємо унікальні артикули
+  const skus = [...new Set([...placeholders].map(el => el.dataset.sku).filter(Boolean))];
+  if (!skus.length) return;
+
+  try {
+    const q = skus.map(s => encodeURIComponent('"' + s + '"')).join(',');
+    const res = await fetch(
+      `${_SUPA_URL_CART}/rest/v1/products?select=sku,images&sku=in.(${skus.map(s=>'"'+s+'"').join(',')})`,
+      { headers: { 'apikey': _SUPA_KEY_CART, 'Authorization': 'Bearer ' + _SUPA_KEY_CART } }
+    );
+    if (!res.ok) return;
+    const data = await res.json();
+    if (!Array.isArray(data)) return;
+
+    // Карта sku → перше зображення
+    const imgMap = {};
+    data.forEach(p => {
+      const imgs = Array.isArray(p.images) ? p.images : (typeof p.images === 'string' ? (() => { try { return JSON.parse(p.images); } catch{ return []; } })() : []);
+      if (imgs[0]) imgMap[p.sku] = imgs[0];
+    });
+
+    // Вставляємо зображення у DOM і оновлюємо localStorage
+    let cartUpdated = false;
+    placeholders.forEach(el => {
+      const sku = el.dataset.sku;
+      const imgUrl = imgMap[sku];
+      if (!imgUrl) return;
+      const wrapper = el.parentNode; // .ci-img
+      wrapper.innerHTML = `<img src="${imgUrl}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:contain;background:#fff;border-radius:10px" onerror="this.style.opacity=0">`;
+      // Зберігаємо у cart
+      const item = cartData.find(i => i.sku === sku);
+      if (item && !item.img) { item.img = imgUrl; cartUpdated = true; }
+    });
+
+    if (cartUpdated) localStorage.setItem('kr_cart', JSON.stringify(cartData));
+  } catch(e) {}
+}
+
+function recalc() {
+  const subtotal = cartData.reduce((s,p) => s + (Number(p.price)||0) * (Number(p.qty)||1), 0);
+  const totalQty = cartData.reduce((s,p) => s + (Number(p.qty)||1), 0);
+  const grand = subtotal - promoDiscount;
+  const sumQty = document.getElementById('sumQty');
+  if (sumQty) sumQty.textContent = totalQty;
+  const sumItems = document.getElementById('sumItems');
+  if (sumItems) sumItems.textContent = formatPrice(subtotal);
+  const sumTotal = document.getElementById('sumTotal');
+  if (sumTotal) sumTotal.textContent = formatPrice(grand);
+  const mcTotal = document.getElementById('mcTotal');
+  if (mcTotal) mcTotal.textContent = formatPrice(grand);
+  const cnt = document.getElementById('itemCountBadge');
+  if (cnt) cnt.textContent = totalQty + ' ' + plural(totalQty, 'товар', 'товари', 'товарів');
+  const inst = document.getElementById('installmentHint');
+  if (inst) inst.textContent = 'від ' + formatPrice(Math.ceil(grand / 4)) + ' × 4 платежі';
+  if (promoDiscount > 0) {
+    const pr = document.getElementById('promoRow');
+    if (pr) pr.style.display = 'flex';
+    const sp = document.getElementById('sumPromo');
+    if (sp) sp.textContent = '−' + formatPrice(promoDiscount);
   }
+}
+
+// ── ACTIONS ───────────────────────────────────────────────────────────────
+function changeQty(key, delta) {
+  const idx = findIdx(key);
+  if (idx < 0) return;
+  const newQty = (Number(cartData[idx].qty)||1) + delta;
+  if (newQty < 1) { removeItem(key); return; }
+  if (newQty > 10) { showToast('Максимум 10 шт. одного товару'); return; }
+  cartData[idx].qty = newQty;
+  saveCart();
+  renderCartItems();
+  recalc();
+}
+
+function removeItem(key) {
+  const idx = findIdx(key);
+  if (idx < 0) return;
+  const el = document.querySelector('.cart-item[data-key="' + key + '"]');
+  const finish = () => {
+    cartData.splice(idx, 1);
+    saveCart();
+    if (!cartData.length) showEmptyCart();
+    else { renderCartItems(); recalc(); }
+    showToast('Товар видалено з кошика');
+  };
+  if (el) {
+    el.classList.add('removing');
+    setTimeout(finish, 300);
+  } else {
+    finish();
+  }
+}
+
+function moveToWish(key) {
+  const idx = cartData.findIndex(i => (i.id||i.name+i.color) === key || (i.name + (i.color||'')) === key || i.id === key || (i.name+i.price) === key);
+  const item = cartData[idx >= 0 ? idx : cartData.findIndex(i => itemKey(i) === key)];
+  if (item) {
+    try {
+      let wish = JSON.parse(localStorage.getItem('kr_wishlist') || '[]');
+      const isSameCW = w =>
+        (item.id && !item.id.startsWith('idx-') && !item.id.startsWith('p-') && w.id === item.id) ||
+        (item.sku && w.sku === item.sku) ||
+        w.name === item.name;
+      if (wish.some(isSameCW)) {
+        showToast('❤️ Вже є у списку бажань');
+        return;
+      }
+      wish.push({id: 'w-' + Date.now(), name: item.name, price: item.price, brand: item.brand, img: item.img, sku: item.sku||'', color: item.color||'', addedAt: Date.now()});
+      localStorage.setItem('kr_wishlist', JSON.stringify(wish));
+      // Update wishlist badge count in header
+      const wishBadge = document.getElementById('wishBadge');
+      if (wishBadge) {
+        wishBadge.textContent = wish.length;
+        wishBadge.style.display = 'flex';
+        wishBadge.style.transform = 'scale(1.5)';
+        setTimeout(() => { wishBadge.style.transform = ''; }, 300);
+      }
+      showToast('❤️ Додано до списку бажань');
+    } catch(e) { showToast('❤️ Додано до списку бажань'); }
+  } else {
+    showToast('Товар не знайдено в кошику');
+  }
+}
+
+function clearCart() {
+  if (!cartData.length) return;
+  if (!confirm('Очистити весь кошик?')) return;
+  cartData = [];
+  saveCart();
+  showEmptyCart();
+  showToast('Кошик очищено');
+}
+
+function showEmptyCart() {
+  const layout = document.getElementById('cartLayout');
+  if (layout) {
+    layout.innerHTML = `
+      <div class="empty-cart" style="grid-column:1/-1">
+        <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        <div class="empty-title">Кошик порожній</div>
+        <p class="empty-desc">Додайте товари з каталогу, щоб оформити замовлення</p>
+        <a href="catalog.html" class="btn btn-primary" style="font-size:15px;padding:13px 28px">Перейти до каталогу</a>
+      </div>`;
+  }
+  const cnt = document.getElementById('itemCountBadge');
+  if (cnt) cnt.textContent = '0 товарів';
+  const mc = document.getElementById('mobileCheckout');
+  if (mc) mc.style.display = 'none';
+}
+
+function applyPromo() {
+  const val = document.getElementById('promoInput').value.trim();
+  const msg = document.getElementById('promoMsg');
+  msg.style.display = 'block';
+  if (val === promoCode) {
+    const subtotal = cartData.reduce((s,p) => s + (Number(p.price)||0) * (Number(p.qty)||1), 0);
+    promoDiscount = Math.round(subtotal * 0.1);
+    msg.innerHTML = `<div class="promo-ok"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Промокод застосовано! Знижка 10%</div>`;
+    recalc();
+  } else if (val === '') {
+    msg.innerHTML = '<div style="font-size:12px;color:var(--red);margin-top:8px">Введіть промокод</div>';
+  } else {
+    msg.innerHTML = '<div style="font-size:12px;color:var(--red);margin-top:8px">Промокод не знайдено або вичерпано</div>';
+  }
+}
+
+function goCheckout() {
+  // Завжди перечитуємо кошик безпосередньо з localStorage перед переходом,
+  // щоб уникнути ситуації "снапшот сторінки = 1, насправді 0/2"
+  let fresh = [];
+  try { fresh = JSON.parse(localStorage.getItem('kr_cart') || '[]'); } catch(e) { fresh = []; }
+  if (!Array.isArray(fresh) || !fresh.length) {
+    cartData = [];
+    showEmptyCart();
+    showToast('Кошик порожній');
+    return;
+  }
+  cartData = fresh;
+  window.location.href = 'checkout.html';
+}
+
+// Синхронізація з іншими вкладками: якщо в іншій вкладці змінили kr_cart —
+// перечитуємо тут і ререндеримо.
+window.addEventListener('storage', e => {
+  if (e.key !== 'kr_cart') return;
+  try { cartData = JSON.parse(e.newValue || '[]'); } catch { cartData = []; }
+  if (!Array.isArray(cartData)) cartData = [];
+  if (!cartData.length) showEmptyCart();
+  else { renderCartItems(); recalc(); }
 });
 
-// Filter toggle (collapse/expand)
-function toggleFilter(title) {
-  title.classList.toggle('collapsed');
-  title.nextElementSibling.classList.toggle('hidden');
-}
-
-// Checkbox
-function toggleCheck(label, group) {
-  label.classList.toggle('checked');
-  applyFilters();
-  updateActiveFilters();
-}
-
-// Active filters display
-function updateActiveFilters() {
-  const container = document.getElementById('activeFilters');
-  container.innerHTML = '';
-  document.querySelectorAll('.filter-option.checked').forEach(opt => {
-    const label = opt.querySelector('.filter-label').textContent;
-    if (label === 'В наявності') return;
-    const tag = document.createElement('div');
-    tag.className = 'filter-tag';
-    tag.innerHTML = `${label}<button onclick="removeFilter(this,'${label}')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>`;
-    container.appendChild(tag);
+function checkMobilePrices() {
+  const isMobile = window.innerWidth <= 768;
+  document.querySelectorAll('.ci-price-mobile').forEach(el => {
+    el.style.display = isMobile ? 'block' : 'none';
   });
 }
+window.addEventListener('resize', checkMobilePrices);
 
-function removeFilter(btn, label) {
-  document.querySelectorAll('.filter-option').forEach(opt => {
-    if (opt.querySelector('.filter-label').textContent === label) {
-      opt.classList.remove('checked');
-    }
-  });
-  if (typeof syncActiveFiltersFromDOM === 'function') syncActiveFiltersFromDOM();
-  applyFilters();
-  updateActiveFilters();
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
 }
 
-function resetFilters() {
-  document.querySelectorAll('.filter-option.checked').forEach(opt => {
-    if (opt.querySelector('.filter-label').textContent !== 'В наявності') {
-      opt.classList.remove('checked');
-    }
-  });
-  document.getElementById('searchInput').value = '';
-  document.getElementById('priceMin').value = 664;
-  document.getElementById('priceMax').value = 86610;
-  applyFilters();
-  updateActiveFilters();
+// ── INIT ──────────────────────────────────────────────────────────────────
+if (!cartData.length) {
+  showEmptyCart();
+} else {
+  renderCartItems();
+  recalc();
+  saveCart(); // sync badge
 }
-
-// Помічники для парсингу даних картки
-function _parseRange(s) {
-  // "1 – 3 роки", "3-6 років", "3–8 р." → [min, max]
-  const m = (s || '').match(/(\d+)\s*[-–—]\s*(\d+)/);
-  return m ? [parseInt(m[1], 10), parseInt(m[2], 10)] : null;
-}
-function _getCheckedLabels(group) {
-  return Array.from(document.querySelectorAll('.filter-option.checked[data-group="' + group + '"]'))
-    .map(opt => (opt.querySelector('.filter-label')?.textContent || '').trim());
-}
-
-// Один раз: проставити data-group на кожен .filter-option, парсячи його onclick
-(function tagFilterGroups(){
-  document.querySelectorAll('.filter-option').forEach(opt => {
-    if (opt.dataset.group) return;
-    const oc = opt.getAttribute('onclick') || '';
-    const m = oc.match(/toggleCheck\s*\(\s*this\s*,\s*['"]([^'"]+)['"]/);
-    if (m) opt.dataset.group = m[1];
-  });
-})();
-
-function applyFilters() {
-  const grid = document.getElementById('productsGrid');
-  const q = (document.getElementById('searchInput')?.value || '').trim().toLowerCase();
-
-  const selTypes    = _getCheckedLabels('type').map(s => s.toLowerCase());
-  const selBrands   = _getCheckedLabels('brand').map(s => s.toLowerCase());
-  const selVoltages = _getCheckedLabels('voltage');
-  const selAges     = _getCheckedLabels('age').map(_parseRange).filter(Boolean);
-
-  const priceMinEl = document.getElementById('priceMin');
-  const priceMaxEl = document.getElementById('priceMax');
-  const priceMin = priceMinEl ? (parseFloat(priceMinEl.value) || 0) : 0;
-  const priceMax = priceMaxEl ? (parseFloat(priceMaxEl.value) || Infinity) : Infinity;
-
-  const cards = grid.querySelectorAll('.p-card');
-  let visible = 0;
-
-  cards.forEach(card => {
-    const name = (card.querySelector('.p-name')?.textContent || '').trim();
-    const nameLower = name.toLowerCase();
-    const brand = (card.querySelector('.p-brand')?.textContent || '').trim().toLowerCase();
-    const specs = Array.from(card.querySelectorAll('.p-spec')).map(s => s.textContent.trim());
-    const priceDigits = (card.querySelector('.p-price')?.textContent || '').replace(/[^\d]/g, '');
-    const price = priceDigits ? parseFloat(priceDigits) : 0;
-
-    // 1) пошук по назві / бренду
-    if (q && !nameLower.includes(q) && !brand.includes(q)) {
-      card.style.display = 'none'; return;
-    }
-    // 2) тип — перше слово назви («Джип», «Квадроцикл», «Каталка-толокар» тощо)
-    if (selTypes.length) {
-      const firstWord = (name.split(/\s+/)[0] || '').toLowerCase();
-      if (!selTypes.includes(firstWord)) { card.style.display = 'none'; return; }
-    }
-    // 3) бренд — точне порівняння тексту
-    if (selBrands.length) {
-      if (!selBrands.includes(brand)) { card.style.display = 'none'; return; }
-    }
-    // 4) акумулятор — спец «12V» / «24V» / «6V»
-    if (selVoltages.length) {
-      const cardVolt = specs.find(s => /^\d+V$/i.test(s));
-      if (!cardVolt || !selVoltages.includes(cardVolt.toUpperCase())) {
-        card.style.display = 'none'; return;
-      }
-    }
-    // 5) вік — спец зі словом «р.», перетин діапазонів
-    if (selAges.length) {
-      const ageSpec = specs.find(s => /р\./i.test(s));
-      const cardRange = ageSpec ? _parseRange(ageSpec) : null;
-      if (!cardRange) { card.style.display = 'none'; return; }
-      const ok = selAges.some(([a, b]) => cardRange[0] <= b && cardRange[1] >= a);
-      if (!ok) { card.style.display = 'none'; return; }
-    }
-    // 6) ціна
-    if (price && (price < priceMin || price > priceMax)) {
-      card.style.display = 'none'; return;
-    }
-
-    card.style.display = '';
-    visible++;
-  });
-
-  // empty state
-  let empty = document.getElementById('searchEmptyState');
-  if (!empty) {
-    empty = document.createElement('div');
-    empty.id = 'searchEmptyState';
-    empty.style.cssText = 'grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--text-muted);font-size:15px';
-    grid.appendChild(empty);
-  }
-  if (visible === 0) {
-    const reason = q
-      ? 'Нічого не знайдено за запитом «<strong style="color:var(--navy)">' + q.replace(/[<>&]/g,'') + '</strong>».'
-      : 'Жоден товар не відповідає обраним фільтрам.';
-    empty.innerHTML = reason + '<br><button onclick="resetFilters()" style="margin-top:14px;padding:9px 18px;border:1.5px solid var(--orange);background:white;color:var(--orange);border-radius:9px;font-weight:700;cursor:pointer;font-family:inherit">Скинути всі фільтри</button>';
-    empty.style.display = '';
-  } else {
-    empty.style.display = 'none';
-  }
-
-  // легка анімація
-  grid.style.opacity = '.5';
-  setTimeout(() => { grid.style.opacity = '1'; }, 180);
-
-  // лічильник у шапці
-  const countEl = document.querySelector('.products-area .count, .catalog-title-row .count');
-  if (countEl) countEl.textContent = visible + ' товарів';
-}
-
-function clearSearch() {
-  document.getElementById('searchInput').value = '';
-  applyFilters();
-}
-
-// Pre-fill search from URL ?search=...
-(function initSearchFromUrl(){
-  try {
-    const params = new URLSearchParams(window.location.search);
-    const q = params.get('search');
-    if (q) {
-      const inp = document.getElementById('searchInput');
-      if (inp) {
-        inp.value = q;
-        inp.focus();
-        applyFilters();
-        window.scrollTo({ top: 120, behavior: 'smooth' });
-      }
-    }
-  } catch(e) {}
-})();
-
-// View toggle
-let currentView = 'grid3';
-function setView(view, btn) {
-  currentView = view;
-  document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  const grid = document.getElementById('productsGrid');
-  grid.className = 'products-grid';
-  if (view === 'list') grid.classList.add('list');
-}
-
-// Cart
-let cartCount = 0;
-function getCardProduct(card) {
-  if (!card) return null;
-  const name = (card.querySelector('.p-name')?.textContent || 'Товар').trim();
-  const brand = (card.querySelector('.p-brand')?.textContent || '').trim();
-  const priceEl = card.querySelector('.p-price');
-  const price = priceEl ? parseInt(priceEl.textContent.replace(/\D/g,'')) || 0 : 0;
-  // Реальний id з Supabase (data-id), якщо є — інакше fallback за іменем
-  const realId = card.dataset && card.dataset.id;
-  const id = realId || ('cat-' + name.toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi,'-').slice(0,40));
-  return { id, name, brand, price, img: 'jeep' };
-}
-
-function addToCart(btn) {
-  if (event && event.stopPropagation) event.stopPropagation();
-  const card = btn.closest('.p-card');
-  const product = getCardProduct(card);
-  if (window.KR && typeof window.KR.addToCart === 'function' && product) {
-    window.KR.addToCart(product);
-  } else {
-    cartCount++;
-    const badge = document.getElementById('cartBadge');
-    if (badge) { badge.textContent = cartCount; badge.style.transform = 'scale(1.5)'; setTimeout(() => badge.style.transform = '', 300); }
-  }
-  const originalHTML = btn.innerHTML;
-  btn.classList.add('added');
-  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
-  setTimeout(() => { btn.classList.remove('added'); btn.innerHTML = originalHTML; }, 1400);
-}
-
-function openProduct(card) {
-  if (event && event.stopPropagation) event.stopPropagation();
-  const realId = card && card.dataset && card.dataset.id;
-  // Якщо є реальний id з Supabase — використовуємо catOpenProduct (зберігає повний об'єкт у sessionStorage)
-  if (realId && typeof catOpenProduct === 'function') {
-    catOpenProduct(realId);
-    return;
-  }
-  // Fallback: мінімальні дані з картки
-  const product = getCardProduct(card);
-  if (product) {
-    try { sessionStorage.setItem('kr_active_product', JSON.stringify(product)); } catch{}
-  }
-  window.location.href = 'product.html' + (realId ? ('?id=' + encodeURIComponent(realId)) : '');
-}
-
-// Wishlist
-function toggleWish(btn) {
-  btn.classList.toggle('liked');
-  btn.style.transform = 'scale(1.3)';
-  setTimeout(() => btn.style.transform = '', 200);
-
-  // Зберегти в localStorage
-  const card = btn.closest('.p-card');
-  const name = card.querySelector('.p-name')?.textContent.trim() || 'Товар';
-  const priceEl = card.querySelector('.p-price');
-  const price = priceEl ? parseInt(priceEl.textContent.replace(/\D/g,'')) : 0;
-  const product = { id: 'wish-' + name.slice(0,10), name, price, addedAt: Date.now() };
-
-  let wishlist = [];
-  try { wishlist = JSON.parse(localStorage.getItem('kr_wishlist') || '[]'); } catch{}
-
-  if (btn.classList.contains('liked')) {
-    wishlist.push(product);
-    showToastLocal('❤️ Додано до списку бажань');
-  } else {
-    wishlist = wishlist.filter(p => p.name !== name);
-    showToastLocal('🤍 Видалено зі списку бажань');
-  }
-  localStorage.setItem('kr_wishlist', JSON.stringify(wishlist));
-  if (window.KR && typeof window.KR.updateWishBadge === 'function') window.KR.updateWishBadge();
-}
-
-// Compare
-let compareList = (function(){
-  try { return JSON.parse(localStorage.getItem('kr_compare') || '[]'); } catch { return []; }
-})();
-function toggleCompare(btn) {
-  if (event && event.stopPropagation) event.stopPropagation();
-  btn.classList.toggle('active');
-  const card = btn.closest('.p-card');
-  const name = card.querySelector('.p-name').textContent.trim();
-  const brand = card.querySelector('.p-brand') ? card.querySelector('.p-brand').textContent.trim() : 'Bambi Racer';
-  const priceEl = card.querySelector('.p-price');
-  const price = priceEl ? parseInt(priceEl.textContent.replace(/\D/g,'')) : 0;
-
-  // Витягнути специфікації з картки (.p-spec)
-  const specTexts = Array.from(card.querySelectorAll('.p-spec')).map(s => s.textContent.trim());
-  const ageStr = specTexts.find(t => /\d.*р/i.test(t)) || '3 – 8 років';
-  const voltStr = specTexts.find(t => /\d+\s*v/i.test(t)) || '12V';
-  const remoteStr = specTexts.find(t => /2\.4|G$|пульт/i.test(t)) || '2.4G';
-  const seatStr = specTexts.find(t => /шкір|EVA|тканин/i.test(t));
-  const wheelStr = specTexts.find(t => /eva|гум|пласт/i.test(t)) || 'EVA';
-
-  // Визначити тип і картинку за назвою товару
-  const lowerName = name.toLowerCase();
-  let img = 'jeep';
-  if (/квадро/.test(lowerName)) img = 'quad';
-  else if (/мотоцикл|мото/.test(lowerName)) img = 'moto';
-
-  // Побудувати об'єкт товару для порівняння — з повним набором характеристик
-  const product = {
-    id: 'cat-' + name.toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi,'-').slice(0,40),
-    name, brand, price, img,
-    specs: {
-      'Вік': ageStr,
-      'Акумулятор': voltStr + ' 7A',
-      'Кількість моторів': /квадро|мото/.test(lowerName) ? '2 × 35W' : '4 × 45W',
-      'Швидкість': 'до 5 км/год',
-      'Тип коліс': wheelStr,
-      'Пульт ДК': remoteStr,
-      'Шкіряне сидіння': !!(seatStr && /шкір/i.test(seatStr)),
-      'MP3 / USB': true,
-      'Bluetooth': /квадро|мото/.test(lowerName) ? false : true,
-      'LED фари': true,
-      'Ремінь безпеки': true,
-      'Вага': '15 кг',
-      'Час їзди': 'до 1.5 год',
-      'Гарантія': '12 місяців',
-    }
-  };
-
-  if (btn.classList.contains('active')) {
-    if (compareList.some(p => p.name === name)) {
-      // already there, do nothing extra
-    } else if (compareList.length >= 3) {
-      btn.classList.remove('active');
-      showToastLocal('Можна порівнювати до 3 товарів одночасно');
-      return;
-    } else {
-      compareList.push(product);
-      showToastLocal('✓ Додано до порівняння (' + compareList.length + ')');
-    }
-    if (compareList.length >= 2) showCompareBar();
-  } else {
-    compareList = compareList.filter(p => p.name !== name);
-    showToastLocal('Видалено з порівняння');
-    if (compareList.length < 2) {
-      const bar = document.getElementById('compareBar');
-      if (bar) bar.remove();
-    }
-  }
-
-  // Зберегти в localStorage
-  localStorage.setItem('kr_compare', JSON.stringify(compareList));
-  if (window.KR && typeof window.KR.updateCompareBadge === 'function') window.KR.updateCompareBadge();
-}
-
-function showToastLocal(msg) {
-  let t = document.getElementById('_catToast');
-  if (!t) {
-    t = document.createElement('div');
-    t.id = '_catToast';
-    t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--navy);color:white;padding:11px 20px;border-radius:100px;font-family:"Nunito",sans-serif;font-weight:700;font-size:13px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.2);white-space:nowrap;pointer-events:none;transition:opacity .3s';
-    document.body.appendChild(t);
-  }
-  t.textContent = msg; t.style.opacity = '1';
-  clearTimeout(t._t); t._t = setTimeout(() => t.style.opacity = '0', 2500);
-}
-
-function showCompareBar() {
-  let bar = document.getElementById('compareBar');
-  if (!bar) {
-    bar = document.createElement('div');
-    bar.id = 'compareBar';
-    bar.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:var(--navy);color:white;padding:16px 40px;display:flex;align-items:center;justify-content:space-between;z-index:600;box-shadow:0 -8px 32px rgba(0,0,0,.2);animation:slideUp .3s ease';
-    document.body.appendChild(bar);
-  }
-  bar.innerHTML = `<div style="font-family:'Nunito',sans-serif;font-weight:700">Порівняти товари (${compareList.length})</div><div style="display:flex;gap:10px"><button onclick="hideCompareBar()" style="background:rgba(255,255,255,.1);border:none;color:white;padding:10px 20px;border-radius:9px;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:700">Скасувати</button><button onclick="window.location.href='compare.html'" style="background:var(--orange);border:none;color:white;padding:10px 24px;border-radius:9px;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:700;box-shadow:0 4px 14px rgba(255,107,53,.3)">Порівняти →</button></div>`;
-}
-
-function hideCompareBar() {
-  const bar = document.getElementById('compareBar');
-  if (bar) bar.remove();
-  document.querySelectorAll('.p-compare.active').forEach(b => b.classList.remove('active'));
-  compareList = [];
-}
-
-// Quick order
-let _quickProduct = null;
-
-function quickOrder(productId, productName, productPrice, productBrand) {
-  // Підтримка виклику без параметрів (загальний дзвінок) і з параметрами (з картки товару)
-  _quickProduct = productId ? {
-    id: productId,
-    name: productName || '',
-    price: Number(productPrice) || null,
-    brand: productBrand || ''
-  } : null;
-
-  const info = document.getElementById('quickProductInfo');
-  if (info) {
-    if (_quickProduct) {
-      info.style.display = '';
-      info.innerHTML =
-        '<div style="font-weight:700;color:var(--navy);margin-bottom:2px">' + (_quickProduct.name || 'Товар') + '</div>' +
-        (_quickProduct.brand ? '<div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">' + _quickProduct.brand + '</div>' : '') +
-        (_quickProduct.price ? '<div style="font-weight:800;color:var(--orange)">' + _quickProduct.price.toLocaleString('uk-UA') + ' ₴</div>' : '');
-    } else {
-      info.style.display = 'none';
-      info.innerHTML = '';
-    }
-  }
-
-  // Скинути статус
-  const status = document.getElementById('quickStatus');
-  if (status) { status.textContent = 'Передзвонимо протягом 15 хвилин'; status.style.color = 'var(--text-muted)'; }
-  const btn = document.getElementById('quickSubmitBtn');
-  if (btn) { btn.disabled = false; btn.textContent = 'Передзвоніть мені'; btn.style.opacity = ''; }
-
-  document.getElementById('quickModal').style.display = 'flex';
-  document.body.style.overflow = 'hidden';
-  setTimeout(() => document.getElementById('quickPhone')?.focus(), 200);
-}
-
-function closeQuick() {
-  document.getElementById('quickModal').style.display = 'none';
-  document.body.style.overflow = '';
-}
-
-async function submitQuick() {
-  const phone = (document.getElementById('quickPhone')?.value || '').trim();
-  const name  = (document.getElementById('quickName')?.value || '').trim();
-  const status = document.getElementById('quickStatus');
-  const btn = document.getElementById('quickSubmitBtn');
-
-  // Валідація — мінімум 7 цифр
-  const digits = phone.replace(/\D/g, '');
-  if (digits.length < 7) {
-    if (status) { status.textContent = '⚠ Вкажіть коректний номер телефону'; status.style.color = '#e53935'; }
-    document.getElementById('quickPhone')?.focus();
-    return;
-  }
-
-  if (btn) { btn.disabled = true; btn.textContent = 'Відправляємо…'; btn.style.opacity = '.6'; }
-  if (status) { status.textContent = ''; status.style.color = 'var(--text-muted)'; }
-
-  try {
-    const r = await fetch('/api/lead', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        phone, name,
-        productId: _quickProduct?.id || null,
-        productName: _quickProduct?.name || null,
-        productPrice: _quickProduct?.price || null,
-        productBrand: _quickProduct?.brand || null,
-        source: _quickProduct ? 'catalog' : 'quick_order'
-      })
-    });
-    if (!r.ok) {
-      const err = await r.json().catch(() => ({}));
-      throw new Error(err.error || 'Не вдалось відправити');
-    }
-    closeQuick();
-    if (typeof showToast === 'function') {
-      showToast('✓ Заявка прийнята! Передзвонимо найближчим часом');
-    } else {
-      alert('Заявка прийнята! Передзвонимо найближчим часом');
-    }
-    // Очистити поля
-    document.getElementById('quickPhone').value = '';
-    document.getElementById('quickName').value = '';
-  } catch(e) {
-    if (status) { status.textContent = '⚠ ' + (e.message || 'Помилка з\'єднання. Спробуйте ще раз'); status.style.color = '#e53935'; }
-    if (btn) { btn.disabled = false; btn.textContent = 'Передзвоніть мені'; btn.style.opacity = ''; }
-  }
-}
-
-// Простий toast (якщо ще немає)
-if (typeof showToast === 'undefined') {
-  window.showToast = function(text) {
-    let t = document.getElementById('_toast');
-    if (!t) {
-      t = document.createElement('div');
-      t.id = '_toast';
-      t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#16a34a;color:white;padding:14px 22px;border-radius:12px;font-weight:700;z-index:9999;box-shadow:0 10px 30px rgba(0,0,0,.15);transition:opacity .3s;font-size:14px';
-      document.body.appendChild(t);
-    }
-    t.textContent = text;
-    t.style.opacity = '1';
-    setTimeout(() => { t.style.opacity = '0'; }, 3500);
-  };
-}
-
-// Mobile drawer — sidebar фізично переміщається всередину drawer
-function openDrawer() {
-  const sidebar = document.getElementById('sidebar');
-  const drawer  = document.getElementById('drawer');
-  if (sidebar && !sidebar._inDrawer) {
-    sidebar._origParent  = sidebar.parentNode;
-    sidebar._origNextSib = sidebar.nextElementSibling;
-    drawer.appendChild(sidebar);
-    sidebar.classList.add('in-drawer');
-    sidebar._inDrawer = true;
-  }
-  drawer.classList.add('open');
-  document.getElementById('drawerOverlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-function closeDrawer() {
-  const sidebar = document.getElementById('sidebar');
-  if (sidebar && sidebar._inDrawer) {
-    if (sidebar._origParent) {
-      sidebar._origParent.insertBefore(sidebar, sidebar._origNextSib || null);
-    }
-    sidebar.classList.remove('in-drawer');
-    sidebar._inDrawer = false;
-  }
-  document.getElementById('drawer').classList.remove('open');
-  document.getElementById('drawerOverlay').classList.remove('open');
-  document.body.style.overflow = '';
-}
-
-// Search toggle
-function toggleSearch() {
-  // Could expand a search overlay
-  document.getElementById('sidebar').querySelector('#searchInput').focus();
-  window.scrollTo({ top: 140, behavior: 'smooth' });
-}
-
-// Wire product cards & "Детальніше" buttons → product.html
-function wireProductCards() {
-  document.querySelectorAll('.p-card').forEach(card => {
-    if (card.dataset.wired) return;
-    card.dataset.wired = '1';
-    card.addEventListener('click', function(e) {
-      if (e.target.closest('button') || e.target.closest('a')) return;
-      openProduct(card);
-    });
-    card.querySelectorAll('.p-overlay-btn').forEach(btn => {
-      const txt = (btn.textContent || '').trim();
-      if (/Детальніше/i.test(txt)) {
-        btn.addEventListener('click', function(e) {
-          e.stopPropagation();
-          openProduct(card);
-        });
-      }
-    });
-    // Mark compare button as active if product is already in compare list
-    const cmpBtn = card.querySelector('.p-compare');
-    const nameEl = card.querySelector('.p-name');
-    if (cmpBtn && nameEl) {
-      const name = nameEl.textContent.trim();
-      if (compareList.some(p => p.name === name)) cmpBtn.classList.add('active');
-    }
-  });
-  if (compareList.length >= 2) showCompareBar();
-  if (window.KR && typeof window.KR.updateCartBadge === 'function') {
-    window.KR.updateCartBadge();
-  }
-}
-document.addEventListener('DOMContentLoaded', wireProductCards);
-if (document.readyState !== 'loading') wireProductCards();
+checkMobilePrices();
 </script>
 <!-- shared.js завантажено вгорі сторінки, щоб KR був гарантовано доступний -->
-<script>
-
-// ── PRODUCTS SYSTEM ────────────────────────────────────────────────────────
-// Ключ localStorage для товарів
-const PRODUCTS_KEY = 'kr_products';
-
-// Дефолтні товари (показуються якщо адмін ще не додав)
-const DEFAULT_PRODUCTS = [
-  {
-    id: 'default-1',
-    name: 'Джип M 3804EBLR-1 — 4 мотори 45W',
-    brand: 'Bambi Racer',
-    price: 17224,
-    oldPrice: null,
-    category: 'jeep',
-    age: '3-8',
-    voltage: '12V',
-    color: 'Білий',
-    features: ['2.4G пульт', 'Шкіряне сидіння', 'EVA колеса', 'MP3/USB'],
-    badge: 'hot',
-    stock: 1,
-    active: true,
-    img: 'jeep',
-    addedAt: Date.now()
-  },
-  {
-    id: 'default-2',
-    name: 'Квадроцикл M 4795EBLR — EVA колеса',
-    brand: 'Bambi Racer',
-    price: 12210,
-    oldPrice: null,
-    category: 'quad',
-    age: '3-8',
-    voltage: '12V',
-    color: 'Синій',
-    features: ['2.4G пульт', 'EVA колеса'],
-    badge: 'new',
-    stock: 3,
-    active: true,
-    img: 'quad',
-    addedAt: Date.now()
-  },
-  {
-    id: 'default-3',
-    name: 'Трактор M 4419EBLR з причепом',
-    brand: 'Bambi Racer',
-    price: 10231,
-    oldPrice: 12037,
-    category: 'tractor',
-    age: '2-7',
-    voltage: '12V',
-    color: 'Зелений',
-    features: ['Причеп', 'EVA колеса'],
-    badge: 'sale',
-    stock: 1,
-    active: true,
-    img: 'tractor',
-    addedAt: Date.now()
-  },
-  {
-    id: 'default-4',
-    name: 'Мотоцикл M 4274EL — шкіра, EVA',
-    brand: 'Bambi Racer',
-    price: 8114,
-    oldPrice: null,
-    category: 'moto',
-    age: '3-8',
-    voltage: '12V',
-    color: 'Жовтий',
-    features: ['Шкіряне сидіння', 'MP3/USB'],
-    badge: 'hot',
-    stock: 2,
-    active: true,
-    img: 'moto',
-    addedAt: Date.now()
-  },
-  {
-    id: 'default-5',
-    name: 'Машина M 4140EBLR з відкидним капотом',
-    brand: 'Bambi Racer',
-    price: 12120,
-    oldPrice: null,
-    category: 'car',
-    age: '3-6',
-    voltage: '12V',
-    color: 'Рожевий',
-    features: ['2.4G пульт', 'LED фари'],
-    badge: 'new',
-    stock: 2,
-    active: true,
-    img: 'car',
-    addedAt: Date.now()
-  },
-  {
-    id: 'default-6',
-    name: 'Джип PROF1 SPORT 24V — 4 мотори',
-    brand: 'PROF1',
-    price: 24890,
-    oldPrice: null,
-    category: 'jeep',
-    age: '6-10',
-    voltage: '24V',
-    color: 'Чорний',
-    features: ['24V', '4WD', '2.4G пульт', 'Шкіра'],
-    badge: 'hot',
-    stock: 1,
-    active: true,
-    img: 'jeep',
-    addedAt: Date.now()
-  }
-];
-
-// SVG ілюстрації за типом
-const SVG_BY_TYPE = {
-  jeep: `<svg viewBox="0 0 240 160" style="width:78%;position:relative;z-index:1"><rect x="20" y="75" width="200" height="55" rx="14" fill="#1B2A4A" opacity=".15"/><rect x="50" y="40" width="130" height="52" rx="12" fill="#1B2A4A" opacity=".18"/><rect x="55" y="45" width="55" height="34" rx="6" fill="#64B5F6" opacity=".4"/><rect x="118" y="45" width="55" height="34" rx="6" fill="#64B5F6" opacity=".35"/><rect x="185" y="72" width="32" height="34" rx="5" fill="#1B2A4A" opacity=".12"/><rect x="18" y="82" width="25" height="26" rx="4" fill="#1B2A4A" opacity=".12"/><circle cx="65" cy="132" r="22" fill="#1B2A4A" opacity=".2"/><circle cx="65" cy="132" r="12" fill="#FF6B35" opacity=".5"/><circle cx="175" cy="132" r="22" fill="#1B2A4A" opacity=".2"/><circle cx="175" cy="132" r="12" fill="#FF6B35" opacity=".5"/></svg>`,
-  quad: `<svg viewBox="0 0 240 160" style="width:78%;position:relative;z-index:1"><rect x="50" y="70" width="140" height="45" rx="10" fill="#3B4A8A" opacity=".22"/><rect x="70" y="42" width="100" height="42" rx="10" fill="#3B4A8A" opacity=".25"/><rect x="80" y="48" width="40" height="26" rx="5" fill="#90CAF9" opacity=".5"/><rect x="128" y="48" width="30" height="26" rx="5" fill="#90CAF9" opacity=".45"/><circle cx="68" cy="120" r="24" fill="#2d4270" opacity=".25"/><circle cx="68" cy="120" r="13" fill="#FF6B35" opacity=".4"/><circle cx="172" cy="120" r="24" fill="#2d4270" opacity=".25"/><circle cx="172" cy="120" r="13" fill="#FF6B35" opacity=".4"/></svg>`,
-  moto: `<svg viewBox="0 0 240 160" style="width:72%;position:relative;z-index:1"><circle cx="65" cy="108" r="26" fill="#1B2A4A" opacity=".2"/><circle cx="65" cy="108" r="14" fill="#FF6B35" opacity=".35"/><circle cx="175" cy="108" r="26" fill="#1B2A4A" opacity=".2"/><circle cx="175" cy="108" r="14" fill="#FF6B35" opacity=".35"/><path d="M65 85 Q90 52 140 56 L170 85 Q145 90 110 88 Z" fill="#1B2A4A" opacity=".2"/><rect x="100" y="50" width="38" height="20" rx="5" fill="#90CAF9" opacity=".45"/><rect x="58" y="74" width="11" height="32" rx="3" fill="#1B2A4A" opacity=".15"/></svg>`,
-  tractor: `<svg viewBox="0 0 240 160" style="width:78%;position:relative;z-index:1"><rect x="85" y="65" width="130" height="50" rx="10" fill="#2E7D32" opacity=".22"/><rect x="90" y="38" width="75" height="40" rx="9" fill="#2E7D32" opacity=".25"/><rect x="96" y="44" width="35" height="26" rx="5" fill="#A5D6A7" opacity=".5"/><circle cx="110" cy="122" r="28" fill="#1B5E20" opacity=".22"/><circle cx="110" cy="122" r="16" fill="#27AE60" opacity=".4"/><circle cx="200" cy="126" r="18" fill="#1B5E20" opacity=".2"/><circle cx="200" cy="126" r="10" fill="#27AE60" opacity=".3"/><rect x="20" y="85" width="65" height="35" rx="8" fill="#2E7D32" opacity=".18"/></svg>`,
-  car: `<svg viewBox="0 0 240 160" style="width:78%;position:relative;z-index:1"><rect x="25" y="80" width="190" height="50" rx="12" fill="#ffd5c0" opacity=".9"/><rect x="45" y="48" width="130" height="44" rx="10" fill="#ffe0cc"/><rect x="50" y="53" width="54" height="30" rx="5" fill="#90CAF9" opacity=".55"/><rect x="112" y="53" width="54" height="30" rx="5" fill="#90CAF9" opacity=".5"/><circle cx="62" cy="132" r="20" fill="#2d3748" opacity=".25"/><circle cx="62" cy="132" r="11" fill="#FF6B35" opacity=".4"/><circle cx="178" cy="132" r="20" fill="#2d3748" opacity=".25"/><circle cx="178" cy="132" r="11" fill="#FF6B35" opacity=".4"/></svg>`,
-};
-
-const BG_BY_TYPE = {
-  jeep: 'linear-gradient(145deg,#e8ecf7,#c8d0ea)',
-  quad: 'linear-gradient(145deg,#eef0ff,#d6dcff)',
-  moto: 'linear-gradient(145deg,#fff8e1,#ffebb0)',
-  tractor: 'linear-gradient(145deg,#edfff5,#d5f5e5)',
-  car: 'linear-gradient(145deg,#fce4ec,#f8bbd0)',
-  default: 'linear-gradient(145deg,#f0f2f8,#dde1f0)',
-};
-
-const BADGE_MAP = {
-  hot: '<span class="p-badge badge-hot">🔥 Хіт</span>',
-  new: '<span class="p-badge badge-new">✨ Новинка</span>',
-  sale: '<span class="p-badge badge-sale">−%</span>',
-};
-
-// ── SUPABASE CONFIG ─────────────────────────────────────────
-const SUPABASE_URL = 'https://xczrzdbikkycgpnvolib.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
-
-// ── CATEGORY TREE ────────────────────────────────────────────
-// Кеш категорій для дерева
-let _allCategories    = [];
-let _mainCategories   = [];
-let _activeVehicleType = ''; // код типу транспорту: 'jeep','quad','moto' тощо
-
-function _getCatIcon(name) {
-  const n = (name || '').toLowerCase();
-  if (/електромобіл/.test(n))       return '⚡';
-  if (/дитячий транспорт/.test(n))  return '🚲';
-  if (/велосипед/.test(n))          return '🚲';
-  if (/самокат/.test(n))            return '🛴';
-  if (/біговел/.test(n))            return '🚴';
-  if (/мотоцикл/.test(n))           return '🏍️';
-  if (/квадроцикл/.test(n))         return '🏎️';
-  if (/трактор/.test(n))            return '🚜';
-  if (/джип|позашляхов/.test(n))    return '🚙';
-  if (/машин|авто/.test(n))         return '🚘';
-  if (/вантаж/.test(n))             return '🚛';
-  if (/баггі/.test(n))              return '🏁';
-  if (/каталка|толокар/.test(n))    return '🧸';
-  if (/санк/.test(n))               return '⛄';
-  if (/транспорт/.test(n))          return '🚗';
-  return '📦';
-}
-
-async function loadCategoryTree() {
-  const treeEl = document.getElementById('catTree');
-  if (!treeEl) return;
-
-  try {
-    const headers = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY };
-    const [mcRes, catRes] = await Promise.all([
-      fetch(SUPABASE_URL + '/rest/v1/main_categories?select=id,name&active=eq.true&order=sort_order.asc,name.asc', { headers }),
-      fetch(SUPABASE_URL + '/rest/v1/categories?select=id,name,main_category_id&active=eq.true&order=name.asc', { headers })
-    ]);
-    if (!mcRes.ok || !catRes.ok) throw new Error('HTTP error');
-    _mainCategories = await mcRes.json() || [];
-    _allCategories  = await catRes.json() || [];
-  } catch(e) {
-    treeEl.innerHTML = '<div class="cat-tree-loading" style="color:var(--text-muted)">—</div>';
-    return;
-  }
-
-  const parents  = _mainCategories;
-  const children = _allCategories.filter(c => c.main_category_id);
-
-  // Рахуємо тільки доступні товари (в наявності або під замовлення) — щоб цифри збігались з сіткою
-  const _availableProds = (allProducts || []).filter(p => !(p.stock != null && p.stock <= 0 && !(Number(p.preorderDays) > 0)));
-  const prodCountMap = {};
-  _availableProds.forEach(p => {
-    if (p.category_id != null) prodCountMap[p.category_id] = (prodCountMap[p.category_id] || 0) + 1;
-  });
-
-  const _urlParams      = new URLSearchParams(location.search);
-  const _activeCatId    = parseInt(_urlParams.get('catId')    || '0') || 0;
-  const _activeParentId = parseInt((_urlParams.get('mainCatId') || _urlParams.get('parentId')) || '0') || 0;
-
-  let html = '';
-
-  // "Всі товари"
-  html += `
-    <div class="cat-tree-all${!_activeCatId && !_activeParentId && !_activeCatIdFilter ? ' active' : ''}" onclick="selectCategory(0,0)">
-      <span class="ctree-label" style="font-weight:700">Всі товари</span>
-      <span class="ctree-cnt">${_availableProds.length}</span>
-    </div>`;
-
-  if (!parents.length) {
-    _allCategories.forEach(c => {
-      const cnt = prodCountMap[c.id] || 0;
-      if (!cnt) return; // не показуємо порожні підкатегорії
-      const isActive = _activeCatIdFilter === c.id;
-      html += `
-        <div class="ctree-sub-row${isActive?' active':''}" onclick="selectCategory(${c.id},0)">
-          <span class="ctree-dot"></span>
-          <span class="ctree-label">${c.name}</span>
-          <span class="ctree-cnt">${cnt}</span>
-        </div>`;
-    });
-    treeEl.innerHTML = html;
-    return;
-  }
-
-  // Маппінг кодів → українські назви
-  const TYPE_UA_TREE = {
-    'jeep':'Джипи','quad':'Квадроцикли','moto':'Мотоцикли','car':'Машини',
-    'tractor':'Трактори','walker':'Каталки-толокари','truck':'Вантажівки','buggy':'Баггі'
-  };
-
-  // Дерево з основними категоріями
-  parents.forEach(parent => {
-    const subs = children.filter(c => c.main_category_id === parent.id);
-
-    // Продукти поточної основної категорії
-    const subIds = subs.map(c => c.id);
-    const parentProds = _availableProds.filter(p => subIds.includes(p.category_id));
-
-    // Типи транспорту у цій категорії
-    const vehicleTypes = [...new Set(parentProds.map(p => p.category).filter(c => c && TYPE_UA_TREE[c]))]
-      .sort((a,b) => (TYPE_UA_TREE[a]||a).localeCompare(TYPE_UA_TREE[b]||b,'uk'));
-
-    // Використовувати типи замість підкатегорій якщо:
-    // — 2+ різних типи І (підкатегорій <= 1 АБО всі підкатегорії мають таку саму назву як батько)
-    const subNamesRedundant = subs.every(s => s.name.toLowerCase().includes(parent.name.toLowerCase()) || parent.name.toLowerCase().includes(s.name.toLowerCase()));
-    const useVehicleTypes   = vehicleTypes.length >= 2 && (subs.length <= 1 || subNamesRedundant);
-
-    // ── Якщо єдина підкатегорія має ту саму назву що й батько — рендеримо як
-    //    пряме посилання (без розкривного списку і стрілки).
-    //    Виняток: якщо є типи транспорту для показу (напр. Електромобілі) —
-    //    тоді залишаємо стандартний розкривний список з типами.
-    const isSingleSameName = subs.length === 1 && subNamesRedundant && !useVehicleTypes;
-    if (isSingleSameName) {
-      const sub      = subs[0];
-      const cnt      = prodCountMap[sub.id] || 0;
-      const isActive = _activeCatIdFilter === sub.id;
-      html += `
-      <div class="ctree-parent">
-        <div class="ctree-parent-row${isActive ? ' active' : ''}" onclick="selectCategory(${sub.id},0)" style="cursor:pointer">
-          <span class="ctree-label">${parent.name}</span>
-          ${cnt ? `<span class="ctree-cnt">${cnt}</span>` : ''}
-        </div>
-      </div>`;
-      return; // перейти до наступного батька
-    }
-
-    const isParentActive    = _activeParentIdFilter === parent.id;
-    const hasActiveSub      = subs.some(c => c.id === _activeCatIdFilter);
-    const hasActiveVehicle  = isParentActive && _activeVehicleType !== '';
-    const isOpen            = isParentActive || hasActiveSub;
-    const parentCnt         = parentProds.length ||
-                              subs.reduce((s,c) => s + (prodCountMap[c.id] || 0), 0);
-
-    html += `
-      <div class="ctree-parent">
-        <div class="ctree-parent-row${isParentActive || hasActiveSub ? ' active' : ''}" onclick="toggleParent(this,${parent.id})">
-          <svg class="ctree-chevron${isOpen?' open':''}" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-          <span class="ctree-label">${parent.name}</span>
-          ${parentCnt ? `<span class="ctree-cnt">${parentCnt}</span>` : ''}
-        </div>
-        <div class="ctree-subs${isOpen?' open':''}">
-          <div class="ctree-sub-row${isParentActive && !hasActiveSub && !hasActiveVehicle ? ' active' : ''}" onclick="selectCategory(0,${parent.id})">
-            <span class="ctree-dot"></span>
-            <span class="ctree-label" style="color:var(--text-muted)">Всі в категорії</span>
-          </div>`;
-
-    if (useVehicleTypes) {
-      // Показуємо типи транспорту як віртуальні підкатегорії
-      vehicleTypes.forEach(code => {
-        const label    = TYPE_UA_TREE[code] || code;
-        const cnt      = parentProds.filter(p => p.category === code).length;
-        const isActive = isParentActive && _activeVehicleType === code;
-        html += `
-          <div class="ctree-sub-row${isActive?' active':''}" onclick="selectVehicleType('${code}',${parent.id})">
-            <span class="ctree-dot"></span>
-            <span class="ctree-label">${label}</span>
-            ${cnt ? `<span class="ctree-cnt">${cnt}</span>` : ''}
-          </div>`;
-      });
-    } else {
-      // Звичайні підкатегорії з БД
-      subs.forEach(sub => {
-        const cnt      = prodCountMap[sub.id] || 0;
-        const isActive = _activeCatIdFilter === sub.id;
-        html += `
-          <div class="ctree-sub-row${isActive?' active':''}" onclick="selectCategory(${sub.id},0)">
-            <span class="ctree-dot"></span>
-            <span class="ctree-label">${sub.name}</span>
-            ${cnt ? `<span class="ctree-cnt">${cnt}</span>` : ''}
-          </div>`;
-      });
-    }
-
-    html += `
-        </div>
-      </div>`;
-  });
-
-  // Непризначені — НЕ показуємо ("Інші" прибрані)
-
-  treeEl.innerHTML = html;
-}
-
-// Відкрити/закрити підкатегорії
-function toggleParent(rowEl, parentId) {
-  const subsEl = rowEl.nextElementSibling;
-  const chevron = rowEl.querySelector('.ctree-chevron');
-  const isOpen  = subsEl.classList.contains('open');
-
-  // Закрити всі інші відкриті
-  document.querySelectorAll('.ctree-subs.open').forEach(el => {
-    if (el !== subsEl) {
-      el.classList.remove('open');
-      el.previousElementSibling?.querySelector('.ctree-chevron')?.classList.remove('open');
-    }
-  });
-
-  if (isOpen) {
-    subsEl.classList.remove('open');
-    chevron && chevron.classList.remove('open');
-    selectCategory(0, 0);
-  } else {
-    subsEl.classList.add('open');
-    chevron && chevron.classList.add('open');
-    selectCategory(0, parentId);
-  }
-}
-
-// Активний categoryId фільтр (числовий)
-let _activeCatIdFilter = 0;
-let _activeParentIdFilter = 0;
-
-function selectCategory(catId, parentId) {
-  _activeCatIdFilter    = catId;
-  _activeParentIdFilter = parentId;
-  _activeVehicleType    = ''; // скидаємо тип при виборі категорії
-
-  // Оновити активні класи без повного перемалювання дерева
-  document.querySelectorAll('.cat-tree-all, .ctree-parent-row, .ctree-sub-row').forEach(el => el.classList.remove('active'));
-  if (!catId && !parentId) {
-    document.querySelector('.cat-tree-all')?.classList.add('active');
-  } else if (catId) {
-    document.querySelector(`.ctree-sub-row[onclick="selectCategory(${catId},0)"]`)?.classList.add('active');
-  } else if (parentId) {
-    document.querySelector(`.ctree-parent-row[onclick="toggleParent(this,${parentId})"]`)?.classList.add('active');
-    document.querySelector(`.ctree-sub-row[onclick="selectCategory(0,${parentId})"]`)?.classList.add('active');
-  }
-
-  // Оновити breadcrumb і заголовок
-  const titleEl = document.getElementById('catalogTitle');
-  const bcCur   = document.getElementById('bcCurrent');
-  const bcCats  = document.getElementById('bcCategories');
-  const bcSep2  = document.getElementById('bcSep2');
-
-  if (catId) {
-    const cat = _allCategories.find(c => c.id === catId);
-    if (cat) {
-      if (titleEl) titleEl.textContent = cat.name;
-      if (bcCur)   bcCur.textContent   = cat.name;
-      if (bcCats)  bcCats.style.display = '';
-      if (bcSep2)  bcSep2.style.display = '';
-    }
-  } else if (parentId) {
-    const parent = _mainCategories.find(c => c.id === parentId);
-    if (parent) {
-      if (titleEl) titleEl.textContent = parent.name;
-      if (bcCur)   bcCur.textContent   = parent.name;
-      if (bcCats)  bcCats.style.display = '';
-      if (bcSep2)  bcSep2.style.display = '';
-    }
-  } else {
-    if (titleEl) titleEl.textContent = 'Каталог товарів';
-    if (bcCur)   bcCur.textContent   = 'Каталог';
-    if (bcCats)  bcCats.style.display = 'none';
-    if (bcSep2)  bcSep2.style.display = 'none';
-  }
-
-  currentPage = 1;
-  applyFiltersAndRender(); // оновить товари + updateDynamicFilters всередині
-}
-
-// Клік на тип транспорту в дереві (Джипи, Квадроцикли тощо)
-function selectVehicleType(code, parentId) {
-  _activeCatIdFilter    = 0;
-  _activeParentIdFilter = parentId;
-  _activeVehicleType    = code;
-
-  // Оновити активні класи в дереві
-  document.querySelectorAll('.cat-tree-all, .ctree-parent-row, .ctree-sub-row').forEach(el => el.classList.remove('active'));
-  document.querySelector(`.ctree-sub-row[onclick="selectVehicleType('${code}',${parentId})"]`)?.classList.add('active');
-
-  // Breadcrumb і заголовок
-  const TYPE_UA_SEL = {
-    'jeep':'Джипи','quad':'Квадроцикли','moto':'Мотоцикли','car':'Машини',
-    'tractor':'Трактори','walker':'Каталки-толокари','truck':'Вантажівки','buggy':'Баггі'
-  };
-  const parent  = _mainCategories.find(c => c.id === parentId);
-  const typeName = TYPE_UA_SEL[code] || code;
-  const fullName = parent ? parent.name + ' → ' + typeName : typeName;
-
-  const titleEl = document.getElementById('catalogTitle');
-  const bcCur   = document.getElementById('bcCurrent');
-  const bcCats  = document.getElementById('bcCategories');
-  const bcSep2  = document.getElementById('bcSep2');
-  if (titleEl) titleEl.textContent = fullName;
-  if (bcCur)   bcCur.textContent   = fullName;
-  if (bcCats)  bcCats.style.display = '';
-  if (bcSep2)  bcSep2.style.display = '';
-
-  currentPage = 1;
-  applyFiltersAndRender();
-}
-
-
-// Завантажити товари з Supabase (з fallback на localStorage/дефолтні)
-async function loadProductsFromSupabase() {
-  try {
-    // Завантажуємо всі товари посторінково (Supabase ліміт 1000 на запит)
-    // Фільтрування по категорії виконується клієнтськи через _activeCatIdFilter
-    const PAGE = 1000;
-    let all = [];
-    let from = 0;
-    while (true) {
-      const res = await fetch(
-        SUPABASE_URL + '/rest/v1/products?select=*&active=eq.true&order=created_at.desc',
-        {
-          headers: {
-            'apikey': SUPABASE_KEY,
-            'Authorization': 'Bearer ' + SUPABASE_KEY,
-            'Content-Type': 'application/json',
-            'Range': from + '-' + (from + PAGE - 1),
-            'Range-Unit': 'items',
-            'Prefer': 'count=none'
-          }
-        }
-      );
-
-      if (!res.ok && res.status !== 206) throw new Error('Supabase error: ' + res.status);
-
-      const data = await res.json();
-      if (!data || data.length === 0) break;
-      all = all.concat(data);
-      if (data.length < PAGE) break;
-      from += PAGE;
-    }
-
-    if (all.length > 0) {
-      // Конвертувати формат Supabase → формат сайту
-      return all.map(p => ({
-        id: p.id,
-        sku: p.sku,
-        model_code: p.model_code || null,
-        modelCode: p.model_code || null,
-        color: p.color || null,
-        name: p.name,
-        brand: p.brand || 'Bambi Racer',
-        price: parseFloat(p.price),
-        oldPrice: p.old_price ? parseFloat(p.old_price) : null,
-        category: p.category,
-        category_id: p.category_id ?? null,
-        voltage: p.voltage || null,
-        age: p.age_range || null,
-        stock: p.stock ?? null,
-        preorderDays: p.preorder_days || 0,
-        badge: p.badge,
-        img: p.img_type || 'jeep',
-        features: Array.isArray(p.features) ? p.features : [],
-        images: Array.isArray(p.images) ? p.images : [],
-        active: p.active,
-        addedAt: new Date(p.created_at).getTime()
-      }));
-    }
-  } catch(e) {
-    console.warn('Supabase недоступний, використовую локальні дані:', e.message);
-  }
-
-  // Fallback: localStorage або дефолтні
-  try {
-    const saved = JSON.parse(localStorage.getItem(PRODUCTS_KEY) || '[]');
-    if (saved.length > 0) return saved;
-  } catch(e) {}
-  return DEFAULT_PRODUCTS;
-}
-
-// Синхронна версія для зворотної сумісності
-function getProducts() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(PRODUCTS_KEY) || '[]');
-    if (saved.length > 0) return saved;
-  } catch(e) {}
-  return DEFAULT_PRODUCTS;
-}
-
-// Українська плюралізація для слова "день/дні/днів"
-function plDays(n) {
-  const a = Math.abs(Number(n) || 0) % 100;
-  const b = a % 10;
-  if (a > 10 && a < 20) return 'днів';
-  if (b > 1 && b < 5) return 'дні';
-  if (b === 1) return 'день';
-  return 'днів';
-}
-
-// Безпечне екранування рядків для inline onclick (JS у HTML-атрибуті)
-function escAttr(s) {
-  return String(s == null ? '' : s)
-    .replace(/\\/g, '\\\\')
-    .replace(/'/g, "\\'")
-    .replace(/\n/g, '\\n')
-    .replace(/\r/g, '\\r')
-    .replace(/&/g, '&amp;')
-    .replace(/"/g, '&quot;')
-    .replace(/</g, '&lt;');
-}
-
-// Відкрити сторінку товару зі збереженням контексту
-function catOpenProduct(id) {
-  try {
-    const p = (allProducts || []).find(x => String(x.id) === String(id));
-    if (p) sessionStorage.setItem('kr_active_product', JSON.stringify(p));
-  } catch {}
-  window.location.href = 'product.html?id=' + encodeURIComponent(id);
-}
-
-// Рендер однієї картки
-function renderCard(p) {
-  const svg = SVG_BY_TYPE[p.img] || SVG_BY_TYPE.jeep;
-  const bg = BG_BY_TYPE[p.img] || BG_BY_TYPE.default;
-  const photoUrl = (Array.isArray(p.images) && p.images.length > 0) ? p.images[0] : '';
-  const visual = photoUrl
-    ? `<img src="${photoUrl}" alt="${escAttr(p.name)}" loading="lazy" style="width:100%;height:100%;object-fit:cover;position:relative;z-index:1">`
-    : svg;
-  const wrapBg = photoUrl ? '#fff' : bg;
-  const badge = p.badge === 'sale' && p.oldPrice
-    ? `<span class="p-badge badge-sale">−${Math.round((1 - p.price/p.oldPrice)*100)}%</span>`
-    : (BADGE_MAP[p.badge] || '');
-
-  const priceOld = p.oldPrice
-    ? `<span class="p-price-old">${Number(p.oldPrice).toLocaleString('uk-UA')} ₴</span>`
-    : '';
-
-  const specs = [];
-  if (p.age) specs.push(`<span class="p-spec"><svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${p.age} р.</span>`);
-  if (p.voltage) specs.push(`<span class="p-spec"><svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>${p.voltage}</span>`);
-  if (p.features && p.features[0]) specs.push(`<span class="p-spec">${p.features[0]}</span>`);
-
-  const stockNum = p.stock != null ? Number(p.stock) : null;
-  const preDays = Number(p.preorderDays || 0);
-  const isPreorder = (stockNum != null && stockNum <= 0) && preDays > 0;
-  const outOfStock = (stockNum != null && stockNum <= 0) && !isPreorder;
-  const lowStock = stockNum != null && stockNum === 1;
-  let stockBadge;
-  if (outOfStock) {
-    stockBadge = '<div style="font-size:11px;color:#e53935;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:5px"><svg viewBox="0 0 8 8" style="width:8px;height:8px"><circle cx="4" cy="4" r="4" fill="#e53935"/></svg>Немає в наявності</div>';
-  } else if (isPreorder) {
-    stockBadge = `<div style="font-size:11px;color:#2563eb;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:5px"><svg viewBox="0 0 8 8" style="width:8px;height:8px"><circle cx="4" cy="4" r="4" fill="#2563eb"/></svg>Під замовлення ${preDays} ${plDays(preDays)}</div>`;
-  } else if (lowStock) {
-    stockBadge = '<div style="font-size:11px;color:#16a34a;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="display:inline-flex;align-items:center;gap:5px"><svg viewBox="0 0 8 8" style="width:8px;height:8px"><circle cx="4" cy="4" r="4" fill="#16a34a"/></svg>В наявності</span><span style="font-size:10px;color:#F59E0B;background:#FEF3C7;padding:2px 6px;border-radius:10px;font-weight:700">остання модель</span></div>';
-  } else {
-    stockBadge = '<div style="font-size:11px;color:#16a34a;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:5px"><svg viewBox="0 0 8 8" style="width:8px;height:8px"><circle cx="4" cy="4" r="4" fill="#16a34a"/></svg>В наявності</div>';
-  }
-
-  return `
-    <div class="p-card reveal" data-id="${escAttr(p.id)}" data-category="${escAttr(p.category)}" data-age="${escAttr(p.age)}" data-voltage="${escAttr(p.voltage)}" data-price="${p.price}" data-brand="${escAttr(p.brand)}">
-      <div class="p-img-wrap">
-        <div class="p-img" style="background:${wrapBg}">
-          ${visual}
-          <div class="p-overlay">
-            <button class="p-overlay-btn ob-white" onclick="event.stopPropagation();catOpenProduct('${escAttr(p.id)}')">
-              <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-              Детальніше
-            </button>
-            ${outOfStock ? '<button class="p-overlay-btn ob-orange" disabled style="opacity:.5;cursor:not-allowed">Немає в наявності</button>' : `<button class="p-overlay-btn ob-orange" onclick="catAddToCart(event,'${escAttr(p.id)}',${p.price},'${escAttr(p.name)}','${escAttr(p.brand)}')">
-              <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-              В кошик
-            </button>`}
-          </div>
-        </div>
-        ${badge}
-        <button class="p-wish${(window.KR && window.KR.isWished && window.KR.isWished(p.id)) ? ' liked' : ''}" onclick="event.stopPropagation();catToggleWish(this,'${escAttr(p.id)}','${escAttr(p.name)}',${p.price})">
-          <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-        </button>
-        <button class="p-compare" onclick="event.stopPropagation();catToggleCompare(this,'${escAttr(p.id)}','${escAttr(p.name)}',${p.price},'${escAttr(p.brand)}','${escAttr(p.img)}')">
-          <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-        </button>
-      </div>
-      <div class="p-body">
-        <div class="p-brand">${p.brand}</div>
-        <div class="p-name">${p.name}</div>
-        ${p.sku ? `<div class="p-sku" style="font-size:11px;color:var(--text-muted);font-weight:600;margin:2px 0 6px;letter-spacing:.02em">Арт: ${escAttr(p.sku)}</div>` : ''}
-        ${stockBadge}
-        <div class="p-bottom">
-          <div>
-            <span class="p-price">${Number(p.price).toLocaleString('uk-UA')} ₴</span>
-            ${priceOld}
-          </div>
-          <div class="p-actions">
-            <button class="btn-quick" title="Купити в 1 клік" onclick="event.stopPropagation();quickOrder('${escAttr(p.id)}','${escAttr(p.name)}',${p.price},'${escAttr(p.brand)}')">
-              <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-            </button>
-            ${outOfStock
-              ? '<button class="btn-cart" disabled style="opacity:.4;cursor:not-allowed;background:var(--text-muted)"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></button>'
-              : `<button class="btn-cart" id="cart-btn-${escAttr(p.id)}" onclick="catAddToCart(event,'${escAttr(p.id)}',${p.price},'${escAttr(p.name)}','${escAttr(p.brand)}')">
-              <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-            </button>`}
-          </div>
-        </div>
-      </div>
-    </div>`;
-}
-
-// ── RENDER CATALOG ──────────────────────────────────────────────────────────
-let allProducts = [];
-let filteredProducts = [];
-let activeFilters = { types: [], ages: [], brands: [], voltages: [], priceMin: 0, priceMax: 999999, search: '' };
-// Ідентифікатори підкатегорій для фільтрації (розраховуються з _activeCatIdFilter / _activeParentIdFilter)
-
-async function renderCatalog() {
-  const grid = document.getElementById('productsGrid');
-  if (!grid) return;
-
-  // Spin CSS
-  if (!document.getElementById('_spinStyle')) {
-    const s = document.createElement('style');
-    s.id = '_spinStyle';
-    s.textContent = '@keyframes spin{to{transform:rotate(360deg)}}';
-    document.head.appendChild(s);
-  }
-
-  // ── Крок 1: Показати кешовані товари ОДРАЗУ (якщо є в localStorage) ─────
-  const PRODUCTS_CACHE_KEY = 'kidsride_products_v3'; // v3: stock null fix (was p.stock||0)
-  let cached = null;
-  try {
-    const raw = localStorage.getItem(PRODUCTS_CACHE_KEY);
-    if (raw) cached = JSON.parse(raw);
-  } catch(_) {}
-
-  if (cached && cached.length > 0) {
-    // ── Є кеш: показуємо одразу ──────────────────────────────────────────────
-    allProducts = cached;
-    const countEl = document.getElementById('catalogCount');
-    if (countEl) countEl.textContent = allProducts.length + ' товарів';
-    updateDynamicFilters();
-    applyUrlFilters();
-    // Дерево будуємо вже з allProducts заповненим
-    loadCategoryTree();
-    applyFiltersAndRender();
-    // У фоні оновлюємо товари (без блокування)
-    loadProductsFromSupabase().then(freshProds => {
-      if (freshProds && freshProds.length > 0) {
-        allProducts = freshProds.filter(p => p.active !== false);
-        try { localStorage.setItem(PRODUCTS_CACHE_KEY, JSON.stringify(allProducts)); } catch(_) {}
-        const el = document.getElementById('catalogCount');
-        if (el) el.textContent = allProducts.length + ' товарів';
-        updateDynamicFilters();
-        // Оновити дерево зі свіжими даними (кількості можуть змінитись)
-        loadCategoryTree();
-        applyFiltersAndRender();
-      }
-    }).catch(() => {});
-    return;
-  }
-
-  // ── Немає кешу: показуємо лоадер, чекаємо товари, тоді будуємо дерево ────
-  grid.innerHTML = `
-    <div style="grid-column:1/-1;text-align:center;padding:60px 24px;color:var(--text-muted)">
-      <div style="width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--orange);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 16px"></div>
-      <div style="font-size:14px">Завантаження товарів...</div>
-    </div>`;
-
-  // ВАЖЛИВО: спочатку товари, потім дерево — щоб кількості і типи були правильні
-  const products = await loadProductsFromSupabase();
-  allProducts = (products || []).filter(p => p.active !== false);
-  try { localStorage.setItem(PRODUCTS_CACHE_KEY, JSON.stringify(allProducts)); } catch(_) {}
-
-  const countEl = document.getElementById('catalogCount');
-  if (countEl) countEl.textContent = allProducts.length + ' товарів';
-
-  updateDynamicFilters();
-  applyUrlFilters();
-  // Дерево ПІСЛЯ того як allProducts заповнений
-  loadCategoryTree();
-  applyFiltersAndRender();
-}
-
-// Повертає масив category_id для поточного вибору в дереві категорій
-function _getActiveCategoryIds() {
-  if (_activeCatIdFilter) return [_activeCatIdFilter];
-  if (_activeParentIdFilter) {
-    // Всі підкатегорії обраної основної категорії
-    return _allCategories.filter(c => c.main_category_id === _activeParentIdFilter).map(c => c.id);
-  }
-  return [];
-}
-
-function applyFiltersAndRender() {
-  const grid = document.getElementById('productsGrid');
-
-  // Застосувати фільтри
-  filteredProducts = allProducts.filter(p => {
-    // Приховуємо товар, тільки якщо немає в наявності І не доступний під замовлення
-    if (p.stock != null && p.stock <= 0 && !(Number(p.preorderDays) > 0)) return false;
-    // Фільтр по категорії з дерева (category_id)
-    const activeCatIds = _getActiveCategoryIds();
-    if (activeCatIds.length && !activeCatIds.includes(p.category_id)) return false;
-    // Фільтр по типу транспорту (з дерева або окремого блоку)
-    if (_activeVehicleType && p.category !== _activeVehicleType) return false;
-    if (!_activeVehicleType && activeFilters.types.length && !activeFilters.types.includes(p.category)) return false;
-    if (activeFilters.ages.length) {
-      const ageRanges = { '1-3': [1,3], '3-6': [3,6], '6-10': [6,10] };
-      const pAges = String(p.age || '').split('-').map(Number);
-      const match = activeFilters.ages.some(r => {
-        const [rMin, rMax] = ageRanges[r] || [0,99];
-        return pAges[0] <= rMax && (pAges[1] || pAges[0]) >= rMin;
-      });
-      if (!match) return false;
-    }
-    if (activeFilters.brands.length && !activeFilters.brands.includes(p.brand)) return false;
-    if (activeFilters.voltages.length) {
-      const pv = String(p.voltage || '').toUpperCase().replace(/\s+/g, '');
-      if (!activeFilters.voltages.includes(pv)) return false;
-    }
-    if (p.price < activeFilters.priceMin || p.price > activeFilters.priceMax) return false;
-    if (activeFilters.search) {
-      const q = activeFilters.search.toLowerCase();
-      const nameMatch   = p.name.toLowerCase().includes(q);
-      const brandMatch  = (p.brand || '').toLowerCase().includes(q);
-      const priceMatch  = String(p.price || '').includes(q);
-      const skuMatch    = String(p.sku || p.id || '').toLowerCase().includes(q);
-      if (!nameMatch && !brandMatch && !priceMatch && !skuMatch) return false;
-    }
-    return true;
-  });
-
-  // Сортування
-  const sortVal = document.getElementById('sortSelect')?.value || 'popular';
-  if (sortVal === 'price_asc') filteredProducts.sort((a,b) => a.price - b.price);
-  else if (sortVal === 'price_desc') filteredProducts.sort((a,b) => b.price - a.price);
-  else if (sortVal === 'name_az') filteredProducts.sort((a,b) => (a.name||'').localeCompare(b.name||'','uk'));
-  else if (sortVal === 'name_za') filteredProducts.sort((a,b) => (b.name||'').localeCompare(a.name||'','uk'));
-  else if (sortVal === 'new') filteredProducts.sort((a,b) => (b.addedAt||0) - (a.addedAt||0));
-
-  // Оновити лічильник
-  const countEl = document.getElementById('catalogCount');
-  if (countEl) countEl.textContent = filteredProducts.length + ' товарів';
-
-  if (!filteredProducts.length) {
-    grid.innerHTML = `
-      <div class="empty-state" style="grid-column:1/-1">
-        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <div class="empty-title">Товарів не знайдено</div>
-        <p class="empty-desc">Спробуйте змінити фільтри або пошуковий запит</p>
-        <button class="btn btn-outline" onclick="resetFilters()">Скинути фільтри</button>
-      </div>`;
-    return;
-  }
-
-  // Пагінація: показуємо лише товари поточної сторінки
-  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / PAGE_SIZE));
-  if (currentPage > totalPages) currentPage = totalPages;
-  if (currentPage < 1) currentPage = 1;
-  const startIdx = (currentPage - 1) * PAGE_SIZE;
-  const pageItems = filteredProducts.slice(startIdx, startIdx + PAGE_SIZE);
-
-  grid.innerHTML = pageItems.map(renderCard).join('');
-  if (window.KR && typeof window.KR.updateWishBadge === 'function') window.KR.updateWishBadge();
-  if (typeof wireProductCards === 'function') wireProductCards();
-
-  renderPagination(totalPages);
-
-  // Reveal animation
-  grid.querySelectorAll('.reveal').forEach((el, i) => {
-    el.style.opacity = '0';
-    el.style.transform = 'translateY(20px)';
-    el.style.transition = `opacity .4s ${i*0.05}s ease, transform .4s ${i*0.05}s ease`;
-    requestAnimationFrame(() => {
-      el.style.opacity = '1';
-      el.style.transform = 'translateY(0)';
-    });
-  });
-}
-
-// ── PAGINATION ─────────────────────────────────────────────────────────────
-const PAGE_SIZE = 12;
-let currentPage = 1;
-
-function goToPage(n) {
-  currentPage = Math.max(1, n);
-  applyFiltersAndRender();
-  // Прокрутити до початку списку товарів
-  const grid = document.getElementById('productsGrid');
-  if (grid) {
-    const top = grid.getBoundingClientRect().top + window.scrollY - 100;
-    window.scrollTo({ top, behavior: 'smooth' });
-  }
-}
-
-function renderPagination(totalPages) {
-  const pag = document.getElementById('pagination');
-  if (!pag) return;
-  if (totalPages <= 1) { pag.innerHTML = ''; return; }
-
-  const pages = [];
-  const add = (n) => pages.push(n);
-  // Завжди показуємо першу
-  add(1);
-  // Діапазон навколо поточної
-  const start = Math.max(2, currentPage - 1);
-  const end = Math.min(totalPages - 1, currentPage + 1);
-  if (start > 2) add('…');
-  for (let i = start; i <= end; i++) add(i);
-  if (end < totalPages - 1) add('…');
-  if (totalPages > 1) add(totalPages);
-
-  let html = '';
-  html += `<button class="pag-btn arrow" ${currentPage===1?'disabled style="opacity:.4;cursor:not-allowed"':''} onclick="goToPage(${currentPage-1})"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>`;
-  pages.forEach(n => {
-    if (n === '…') html += `<span class="pag-dots">…</span>`;
-    else html += `<button class="pag-btn${n===currentPage?' active':''}" onclick="goToPage(${n})">${n}</button>`;
-  });
-  html += `<button class="pag-btn arrow" ${currentPage===totalPages?'disabled style="opacity:.4;cursor:not-allowed"':''} onclick="goToPage(${currentPage+1})"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>`;
-  pag.innerHTML = html;
-}
-
-// ── FILTER COUNTS ──────────────────────────────────────────────────────────
-// Рахуємо кількість товарів у кожній групі фільтрів та оновлюємо .filter-cnt
-function _getCategoryProducts() {
-  const base = (allProducts || []).filter(p => !(p.stock != null && p.stock <= 0 && !(Number(p.preorderDays) > 0)));
-  const ids  = _getActiveCategoryIds();
-  let prods  = ids.length ? base.filter(p => ids.includes(p.category_id)) : base;
-  if (_activeVehicleType) prods = prods.filter(p => p.category === _activeVehicleType);
-  return prods;
-}
-
-function updateFilterCounts() {
-  const catProds = _getCategoryProducts();
-
-  // "В наявності" — лічильник по поточній категорії
-  document.querySelectorAll('.filter-option[data-group="available"] .filter-cnt').forEach(el => el.textContent = catProds.length);
-
-  document.querySelectorAll('.filter-option').forEach(opt => {
-    const group = opt.dataset.group;
-    const label = (opt.querySelector('.filter-label')?.textContent || '').trim();
-    const cntEl = opt.querySelector('.filter-cnt');
-    if (!group || !cntEl || group === 'available') return;
-
-    let n = 0;
-    if (group === 'age') {
-      const m = label.match(/(\d+)\s*[-–—]\s*(\d+)/);
-      if (m) {
-        const rMin = +m[1], rMax = +m[2];
-        n = catProds.filter(p => {
-          const pAges = String(p.age || '').split('-').map(Number);
-          return pAges[0] <= rMax && (pAges[1] || pAges[0]) >= rMin;
-        }).length;
-      }
-    } else if (group === 'brand') {
-      n = catProds.filter(p => (p.brand || '') === label).length;
-    } else if (group === 'voltage') {
-      const v = label.toUpperCase().replace(/\s+/g, '');
-      n = catProds.filter(p => String(p.voltage || '').toUpperCase().replace(/\s+/g,'') === v).length;
-    }
-    cntEl.textContent = n;
-  });
-}
-
-// Динамічно показати/сховати фільтри та перебудувати бренди/напруги
-function updateDynamicFilters() {
-  const catProds = _getCategoryProducts();
-
-  // ── Бренди — будуємо з реальних даних ────────────────────────────────────
-  const brandBody = document.querySelector('#filterBlockBrand .filter-body, .filter-block:has([data-group="brand"]) .filter-body');
-  const brandSet  = [...new Set(catProds.map(p => p.brand).filter(Boolean))].sort();
-  if (brandBody && brandSet.length) {
-    const prevChecked = _getCheckedLabels('brand');
-    brandBody.innerHTML = brandSet.map(b => {
-      const cnt     = catProds.filter(p => p.brand === b).length;
-      const checked = prevChecked.includes(b) ? ' checked' : '';
-      return `<label class="filter-option${checked}" data-group="brand" onclick="toggleCheck(this,'brand')">
-        <div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-        <span class="filter-label">${b}</span>
-        <span class="filter-cnt">${cnt}</span>
-      </label>`;
-    }).join('');
-  }
-  const brandBlock = document.querySelector('.filter-block:has([data-group="brand"])');
-  const hasCatSelection = _activeCatIdFilter || _activeParentIdFilter || _activeVehicleType;
-  if (brandBlock) brandBlock.style.display = (brandSet.length && hasCatSelection) ? '' : 'none';
-
-  // ── Напруга акумулятора ───────────────────────────────────────────────────
-  // Показуємо ТІЛЬКИ якщо товари в категорії мають електричні типи транспорту
-  // (джип, квадроцикл, мото, машина, трактор, вантажівка, баггі)
-  // і є 2+ різних значень voltage (не просто один дефолтний '12V')
-  // Показуємо фільтр акумулятора лише якщо: 1) обрана категорія, 2) є товари з даними voltage
-    const voltageSet = [...new Set(
-      catProds.map(p => String(p.voltage||'').toUpperCase().replace(/\s+/g,'')).filter(v => v && /^\d+V$/i.test(v))
-    )].sort();
-    const showVoltage = hasCatSelection && voltageSet.length >= 1;
-    const voltBody = document.querySelector('#filterBlockVoltage .filter-body');
-  if (voltBody && showVoltage) {
-    const prevChecked = _getCheckedLabels('voltage');
-    voltBody.innerHTML = voltageSet.map(v => {
-      const cnt     = catProds.filter(p => String(p.voltage||'').toUpperCase().replace(/\s+/g,'') === v).length;
-      const checked = prevChecked.includes(v) ? ' checked' : '';
-      return `<label class="filter-option${checked}" data-group="voltage" onclick="toggleCheck(this,'voltage')">
-        <div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-        <span class="filter-label">${v}</span>
-        <span class="filter-cnt">${cnt}</span>
-      </label>`;
-    }).join('');
-  }
-  const voltBlock = document.getElementById('filterBlockVoltage');
-  if (voltBlock) voltBlock.style.display = (showVoltage && voltageSet.length) ? '' : 'none';
-
-  // ── Вік — показуємо тільки якщо є 2+ різних значень age ─────────────────
-  // (якщо всі мають те саме '3-8' — це дефолт з XML, не реальні дані)
-  const ageValues = [...new Set(catProds.map(p => p.age).filter(Boolean))];
-  const showAge = ageValues.length >= 2;
-  const ageBlock = document.querySelector('.filter-block:has([data-group="age"])');
-  if (ageBlock) ageBlock.style.display = showAge ? '' : 'none';
-
-  // ── Тип транспорту — прихований, бо вибір типу йде через дерево категорій ──
-  const typeBlock = document.getElementById('filterBlockType');
-  if (typeBlock) typeBlock.style.display = 'none';
-
-  updateFilterCounts();
-}
-
-// ── URL FILTER PRE-SELECT ──────────────────────────────────────────────────
-// Підтримуємо ?catId=77&catName=…  (підкатегорія), ?parentId=9001&parentName=… (батьківська)
-// Також зворотна сумісність: ?cat=jeep,car, ?type=, ?category=
-// + ?search=… для пошуку, + ?brand=… для бренду
-function applyUrlFilters() {
-  const params = new URLSearchParams(location.search);
-
-  const catId      = params.get('catId')      || '';
-  const catName    = params.get('catName')    || '';
-  const parentId   = params.get('mainCatId') || params.get('parentId') || '';
-  const parentName = params.get('parentName') || '';
-
-  const bcCats = document.getElementById('bcCategories');
-  const bcSep2 = document.getElementById('bcSep2');
-  const bcCur  = document.getElementById('bcCurrent');
-  const titleEl = document.getElementById('catalogTitle');
-
-  // ── Фільтр по підкатегорії (catId)
-  if (catId && !isNaN(parseInt(catId))) {
-    _activeCatIdFilter    = parseInt(catId);
-    _activeParentIdFilter = 0;
-    const name = catName || catId;
-    if (bcCats) bcCats.style.display = '';
-    if (bcSep2) bcSep2.style.display = '';
-    if (bcCur)  bcCur.textContent = name;
-    if (titleEl) titleEl.textContent = name;
-    _applyCategoryFilters(name);
-  }
-  // ── Фільтр по батьківській категорії (parentId)
-  else if (parentId && !isNaN(parseInt(parentId))) {
-    _activeCatIdFilter    = 0;
-    _activeParentIdFilter = parseInt(parentId);
-    const name = parentName || parentId;
-    if (bcCats) bcCats.style.display = '';
-    if (bcSep2) bcSep2.style.display = '';
-    if (bcCur)  bcCur.textContent = name;
-    if (titleEl) titleEl.textContent = name;
-    _applyCategoryFilters(name);
-  } else {
-    _activeCatIdFilter    = 0;
-    _activeParentIdFilter = 0;
-    if (bcCur)  bcCur.textContent = 'Каталог';
-    if (titleEl) titleEl.textContent = 'Каталог товарів';
-    if (bcCats) bcCats.style.display = 'none';
-    if (bcSep2) bcSep2.style.display = 'none';
-  }
-
-  // ── Стара логіка: ?cat=jeep,car (для зворотної сумісності)
-  const catRaw = params.get('cat') || params.get('type') || params.get('category') || '';
-  const TYPE_LABELS = { jeep:'Джип', quad:'Квадроцикл', moto:'Мотоцикл', car:'Машина', tractor:'Трактор', walker:'Каталка-толокар', truck:'Вантажівка', buggy:'Баггі' };
-  if (catRaw) {
-    const cats = catRaw.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
-    const targets = cats.map(c => TYPE_LABELS[c]).filter(Boolean);
-    if (targets.length) {
-      document.querySelectorAll('.filter-option[data-group="type"]').forEach(opt => {
-        const label = (opt.querySelector('.filter-label')?.textContent || '').trim();
-        if (targets.indexOf(label) >= 0) opt.classList.add('checked');
-      });
-    }
-  }
-  // Пошуковий запит
-  const search = params.get('search');
-  if (search) {
-    const inp = document.getElementById('searchInput');
-    if (inp) inp.value = search;
-  }
-  // Бренд (за повною назвою з ?brand=Bambi%20Racer)
-  const brand = params.get('brand');
-  if (brand) {
-    document.querySelectorAll('.filter-option[data-group="brand"]').forEach(opt => {
-      const label = (opt.querySelector('.filter-label')?.textContent || '').trim();
-      if (label.toLowerCase() === brand.toLowerCase()) opt.classList.add('checked');
-    });
-  }
-  // Фільтр по напрузі акумулятора (?voltage=6V або ?voltage=6)
-  const voltageRaw = params.get('voltage') || params.get('volt') || '';
-  if (voltageRaw) {
-    const vNorm = voltageRaw.trim().toUpperCase().replace(/\s+/g,'').replace(/^(\d+)$/, '$1V');
-    document.querySelectorAll('.filter-option[data-group="voltage"]').forEach(opt => {
-      const label = (opt.querySelector('.filter-label')?.textContent || '').trim().toUpperCase();
-      if (label === vNorm) opt.classList.add('checked');
-    });
-  }
-  // Фільтр по віку (?age=1-3 або ?age=3-6 або ?age=6-10)
-  const ageRaw = params.get('age') || '';
-  if (ageRaw) {
-    const aNorm = ageRaw.trim().replace(/\s/g,'');
-    document.querySelectorAll('.filter-option[data-group="age"]').forEach(opt => {
-      const label = (opt.querySelector('.filter-label')?.textContent || '').trim();
-      const m = label.match(/(\d+)[\s–-]+(\d+)/);
-      if (m && (m[1]+'-'+m[2]) === aNorm) opt.classList.add('checked');
-    });
-  }
-  syncActiveFiltersFromDOM();
-  updateActiveFilters();
-}
-
-// ── CATEGORY-SPECIFIC FILTERS ──────────────────────────────────────────────
-// Показуємо / ховаємо фільтрові блоки залежно від типу категорії
-function _applyCategoryFilters(catName) {
-  const n = (catName || '').toLowerCase();
-  const isElectric  = /електромобіл|машин|джип|квадроцикл|мотоцикл|трактор|баггі|вантаж|каталка|транспорт/.test(n);
-  const isVehicleType = isElectric;
-  const isVoltage   = /електромобіл|машин|джип|квадроцикл|мотоцикл|трактор|баггі/.test(n);
-
-  const blockVoltage = document.getElementById('filterBlockVoltage');
-
-  // Тип транспорту завжди прихований — вибір іде через дерево категорій
-  // Акумулятор — лише для електротранспорту
-  if (blockVoltage) {
-    blockVoltage.style.display = isVoltage ? '' : 'none';
-  }
-}
-
-// ── FILTER FUNCTIONS ────────────────────────────────────────────────────────
-const CAT_MAP = {'Джип':'jeep','Квадроцикл':'quad','Мотоцикл':'moto','Машина':'car','Трактор':'tractor','Каталка-толокар':'walker','Вантажівка':'truck','Баггі':'buggy'};
-
-// Зчитати активні фільтри з DOM (гарантує синхронність з checkbox-ами)
-function syncActiveFiltersFromDOM() {
-  activeFilters.types = [];
-  activeFilters.ages = [];
-  activeFilters.brands = [];
-  activeFilters.voltages = [];
-  document.querySelectorAll('.filter-option.checked').forEach(opt => {
-    const group = opt.dataset.group;
-    const val = (opt.querySelector('.filter-label')?.textContent || '').trim();
-    if (!group || !val) return;
-    if (group === 'type') {
-      activeFilters.types.push(CAT_MAP[val] || val.toLowerCase());
-    } else if (group === 'age') {
-      const m = val.match(/(\d+)\s*[-–—]\s*(\d+)/);
-      if (m) activeFilters.ages.push(m[1] + '-' + m[2]);
-    } else if (group === 'brand') {
-      activeFilters.brands.push(val);
-    } else if (group === 'voltage') {
-      activeFilters.voltages.push(val.toUpperCase().replace(/\s+/g, ''));
-    }
-  });
-}
-
-function toggleCheck(label, group) {
-  label.classList.toggle('checked');
-  syncActiveFiltersFromDOM();
-  currentPage = 1;
-  applyFilters();
-  updateActiveFilters();
-}
-
-function applyFilters() {
-  syncActiveFiltersFromDOM();
-  const min = parseInt(document.getElementById('priceMin')?.value || 0);
-  const max = parseInt(document.getElementById('priceMax')?.value || 999999);
-  activeFilters.priceMin = min;
-  activeFilters.priceMax = max;
-  activeFilters.search = document.getElementById('searchInput')?.value.trim() || '';
-  currentPage = 1;
-  applyFiltersAndRender();
-}
-
-function resetFilters() {
-  activeFilters = { types: [], ages: [], brands: [], voltages: [], priceMin: 0, priceMax: 999999, search: '' };
-  _activeCatIdFilter    = 0;
-  _activeParentIdFilter = 0;
-  _activeVehicleType    = '';
-  document.querySelectorAll('.filter-option.checked').forEach(o => o.classList.remove('checked'));
-  const searchInput = document.getElementById('searchInput');
-  if (searchInput) searchInput.value = '';
-  const priceMin = document.getElementById('priceMin');
-  const priceMax = document.getElementById('priceMax');
-  if (priceMin) priceMin.value = 664;
-  if (priceMax) priceMax.value = 86610;
-  document.getElementById('activeFilters').innerHTML = '';
-  const titleEl = document.getElementById('catalogTitle');
-  if (titleEl) titleEl.textContent = 'Каталог товарів';
-  const bcCur = document.getElementById('bcCurrent');
-  if (bcCur) bcCur.textContent = 'Каталог';
-  applyFiltersAndRender();
-  loadCategoryTree(); // оновити активний стан у дереві
-}
-
-// Знайти товар у завантаженому списку (для отримання img URL, sku та інших полів)
-function _findProd(id) {
-  return (allProducts || []).find(x => String(x.id) === String(id)) || {};
-}
-function _photoOf(p) {
-  return (p && Array.isArray(p.images) && p.images.length > 0) ? p.images[0] : '';
-}
-
-// ── CART / WISH / COMPARE ───────────────────────────────────────────────────
-function catAddToCart(e, id, price, name, brand) {
-  e.stopPropagation();
-  const prod = _findProd(id);
-  const img  = _photoOf(prod);
-  const sku   = prod.sku   || '';
-  const color = prod.color || '';
-  const voltage = prod.voltage || '';
-  const age   = prod.age   || '';
-  const model = prod.model_code || prod.modelCode || '';
-  // Маршрутизуємо через KR.addToCart, щоб дедуплікація була єдина по всьому сайту
-  if (window.KR && typeof window.KR.addToCart === 'function') {
-    window.KR.addToCart({ id, name, brand, price, color, img, sku, voltage, age, model });
-  } else {
-    let cart = [];
-    try { cart = JSON.parse(localStorage.getItem('kr_cart') || '[]'); } catch{}
-    const slug = (name||'').toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi,'-').slice(0,60);
-    const ex = cart.find(i =>
-      (sku && i.sku === sku && i.color === color) ||
-      (!sku && (i.name||'').toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi,'-').slice(0,60) === slug && i.color === color)
-    );
-    if (ex) ex.qty = Math.min((ex.qty||1) + 1, 10);
-    else cart.push({ id: id || ('p-'+slug), name, brand, price, color, sku, voltage, age, model, img, qty:1, addedAt:Date.now() });
-    localStorage.setItem('kr_cart', JSON.stringify(cart));
-  }
-  let total = 0;
-  try { total = JSON.parse(localStorage.getItem('kr_cart') || '[]').reduce((s,i) => s+(i.qty||1), 0); } catch{}
-  const badge = document.getElementById('cartBadge');
-  if (badge) { badge.textContent = total; badge.style.transform='scale(1.5)'; setTimeout(()=>badge.style.transform='',300); }
-  // Анімація кнопки
-  const btn = document.getElementById('cart-btn-'+id) || e.currentTarget;
-  if (btn && btn.classList.contains('btn-cart')) {
-    const orig = btn.innerHTML;
-    btn.style.background='var(--green)';
-    btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
-    setTimeout(()=>{btn.style.background='var(--orange)';btn.innerHTML=orig;},1400);
-  }
-  showToastLocal('✓ '+name+' додано в кошик');
-}
-
-function catToggleWish(btn, id, name, price) {
-  btn.classList.toggle('liked');
-  btn.style.transform='scale(1.3)'; setTimeout(()=>btn.style.transform='',200);
-  let list=[]; try{list=JSON.parse(localStorage.getItem('kr_wishlist')||'[]');}catch{}
-  const prod = _findProd(id);
-  const img = _photoOf(prod);
-  const brand = prod.brand || '';
-  if (btn.classList.contains('liked')) {
-    if (!list.some(i => i.id === id)) list.push({id,name,price,brand,img,addedAt:Date.now()});
-    showToastLocal('❤️ Додано до списку бажань');
-  } else {
-    list=list.filter(i=>i.id!==id);
-    showToastLocal('🤍 Видалено зі списку бажань');
-  }
-  localStorage.setItem('kr_wishlist',JSON.stringify(list));
-  if (window.KR && typeof window.KR.updateWishBadge === 'function') window.KR.updateWishBadge();
-}
-
-function catToggleCompare(btn, id, name, price, brand, img) {
-  btn.classList.toggle('active');
-  let list=[]; try{list=JSON.parse(localStorage.getItem('kr_compare')||'[]');}catch{}
-  const prod = _findProd(id);
-  const photo = _photoOf(prod);
-  const wasActive = btn.classList.contains('active');
-  if (wasActive) {
-    if (list.some(i=>i.id===id)) {
-      // вже у списку — нічого додатково
-    } else if (list.length>=3) {
-      btn.classList.remove('active');
-      showToastLocal('Можна порівнювати до 3 товарів одночасно');
-      return;
-    } else {
-      list.push({id,name,price,brand,img,photo,specs:{'Бренд':brand,'Ціна':price+' ₴'}});
-      showToastLocal('✓ Додано до порівняння (' + list.length + ')');
-    }
-  } else {
-    list=list.filter(i=>i.id!==id);
-    showToastLocal('Видалено з порівняння');
-  }
-  localStorage.setItem('kr_compare',JSON.stringify(list));
-  // Синхронізуємо глобальний compareList, який читає showCompareBar()
-  compareList = list;
-  if (list.length>=2) {
-    showCompareBar();
-  } else {
-    const bar = document.getElementById('compareBar');
-    if (bar) bar.remove();
-  }
-  if (window.KR && typeof window.KR.updateCompareBadge === 'function') window.KR.updateCompareBadge();
-}
-
-function showToastLocal(msg) {
-  let t=document.getElementById('_catToast');
-  if(!t){t=document.createElement('div');t.id='_catToast';t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--navy);color:white;padding:11px 20px;border-radius:100px;font-family:"Nunito",sans-serif;font-weight:700;font-size:13px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.2);white-space:nowrap;pointer-events:none;transition:opacity .3s';document.body.appendChild(t);}
-  t.textContent=msg;t.style.opacity='1';
-  clearTimeout(t._t);t._t=setTimeout(()=>t.style.opacity='0',2500);
-}
-
-// Ініціалізація каталогу
-document.addEventListener('DOMContentLoaded', () => {
-  renderCatalog(); // async — завантажує з Supabase
-  // Оновити badge кошика
-  try {
-    const cart = JSON.parse(localStorage.getItem('kr_cart') || '[]');
-    const total = cart.reduce((s,i) => s+(i.qty||1), 0);
-    const badge = document.getElementById('cartBadge');
-    if (badge) badge.textContent = total;
-  } catch {}
-});
-
-</script>
 
 <script>
 // Показати кнопку адмін панелі якщо залогінений як адмін

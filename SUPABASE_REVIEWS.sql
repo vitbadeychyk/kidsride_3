@@ -1,41 +1,61 @@
 -- ============================================================================
--- KidsRide — додає у таблицю `products` колонки, яких бракує сторінці товару.
--- Запустіть один раз у Supabase → SQL Editor.
+-- KidsRide — таблиця reviews для реальних відгуків покупців.
+-- Запустити один раз у Supabase → SQL Editor.
 --
--- ❗ Ключова колонка тут — `color`. Без неї весь запит до /products падає з 400
---   ("column products.color does not exist"), і блок "В інших кольорах:"
---   на сторінці товару не зʼявляється.
---
--- Інші колонки потрібні блоку "Характеристики" та для видачі коректного складу
--- товару у адмінці. Усі поля створюються "м'яко" (IF NOT EXISTS), тож якщо
--- частина з них уже існує — нічого не зламається.
+-- Після цього:
+--   • product.html буде завантажувати відгуки тільки з цієї таблиці
+--     (старі hardcoded "Олена Савченко" та "Андрій Коваленко" прибрані).
+--   • Кнопка "Написати відгук" зберігатиме новий відгук у цю таблицю.
+--   • Адмінка → Відгуки тягне записи звідси, можна видаляти/публікувати.
 -- ============================================================================
 
-ALTER TABLE products
-  ADD COLUMN IF NOT EXISTS color          text,
-  ADD COLUMN IF NOT EXISTS age            text,        -- напр. "3-8 років"
-  ADD COLUMN IF NOT EXISTS weight         text,        -- "12 кг"
-  ADD COLUMN IF NOT EXISTS max_load       text,        -- "30 кг"
-  ADD COLUMN IF NOT EXISTS motor          text,        -- "2 × 35 Вт"
-  ADD COLUMN IF NOT EXISTS battery        text,        -- "12 В / 7 Аг"
-  ADD COLUMN IF NOT EXISTS speed          text,        -- "5 км/год"
-  ADD COLUMN IF NOT EXISTS warranty       text,        -- "12 міс."
-  ADD COLUMN IF NOT EXISTS assembly_time  text,        -- "20 хв"
-  ADD COLUMN IF NOT EXISTS short_desc     text,        -- короткий опис під назвою
-  ADD COLUMN IF NOT EXISTS subcategory    text;        -- підкатегорія, напр. "Джипи"
+create extension if not exists "pgcrypto";
 
--- Індекс по color прискорить групування варіантів за моделлю+кольором.
-CREATE INDEX IF NOT EXISTS products_color_idx
-  ON products (color)
-  WHERE color IS NOT NULL;
+create table if not exists public.reviews (
+  id           uuid          primary key default gen_random_uuid(),
+  product_id   uuid          not null references public.products(id) on delete cascade,
+  author_name  text          not null,
+  city         text          not null default '',
+  rating       smallint      not null check (rating between 1 and 5),
+  text         text          not null,
+  approved     boolean       not null default true,   -- true = одразу видно на сайті
+  color_label  text,                                  -- "Колір: Білий" (для картки)
+  created_at   timestamptz   not null default now()
+);
 
--- ── Перевірка: що тепер є у таблиці ────────────────────────────────────────
--- SELECT column_name, data_type
--- FROM information_schema.columns
--- WHERE table_schema = 'public' AND table_name = 'products'
--- ORDER BY ordinal_position;
+create index if not exists reviews_product_idx
+  on public.reviews (product_id, approved, created_at desc);
 
--- ── Заповнити color у вже існуючих товарів можна так (приклад): ────────────
--- UPDATE products SET color='Чорний'  WHERE sku='M 4259EBLR-1';
--- UPDATE products SET color='Червоний' WHERE sku='M 4259EBLR-2';
--- UPDATE products SET color='Білий'    WHERE sku='M 4259EBLR-3';
+-- ── RLS: дозволяємо анонімам читати ТІЛЬКИ approved=true і додавати нові ────
+alter table public.reviews enable row level security;
+
+drop policy if exists reviews_read_approved on public.reviews;
+create policy reviews_read_approved
+  on public.reviews
+  for select
+  using (approved = true);
+
+drop policy if exists reviews_insert_anon on public.reviews;
+create policy reviews_insert_anon
+  on public.reviews
+  for insert
+  with check (true);
+
+-- ── Адмінка повинна мати змогу видаляти/правити. Якщо у вас є окрема роль
+--    "service_role" (Supabase service key) — вона ігнорує RLS і так працює.
+--    Якщо адмінка користується anon-ключем (як зараз) — додаємо політики:
+drop policy if exists reviews_update_anon on public.reviews;
+create policy reviews_update_anon
+  on public.reviews
+  for update
+  using (true)
+  with check (true);
+
+drop policy if exists reviews_delete_anon on public.reviews;
+create policy reviews_delete_anon
+  on public.reviews
+  for delete
+  using (true);
+
+-- ── Перевірка: ─────────────────────────────────────────────────────────────
+-- SELECT * FROM public.reviews ORDER BY created_at DESC LIMIT 20;
