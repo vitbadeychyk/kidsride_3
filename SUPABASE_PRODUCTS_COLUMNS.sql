@@ -1,41 +1,69 @@
--- ============================================================================
--- KidsRide — додає у таблицю `products` колонки, яких бракує сторінці товару.
--- Запустіть один раз у Supabase → SQL Editor.
---
--- ❗ Ключова колонка тут — `color`. Без неї весь запит до /products падає з 400
---   ("column products.color does not exist"), і блок "В інших кольорах:"
---   на сторінці товару не зʼявляється.
---
--- Інші колонки потрібні блоку "Характеристики" та для видачі коректного складу
--- товару у адмінці. Усі поля створюються "м'яко" (IF NOT EXISTS), тож якщо
--- частина з них уже існує — нічого не зламається.
--- ============================================================================
+-- ═══════════════════════════════════════════════════════════════════════════
+-- KIDSRIDE: Міграція — батьківські категорії (ієрархія двох рівнів)
+-- Виконайте цей скрипт у Supabase → SQL Editor
+-- ═══════════════════════════════════════════════════════════════════════════
 
-ALTER TABLE products
-  ADD COLUMN IF NOT EXISTS color          text,
-  ADD COLUMN IF NOT EXISTS age            text,        -- напр. "3-8 років"
-  ADD COLUMN IF NOT EXISTS weight         text,        -- "12 кг"
-  ADD COLUMN IF NOT EXISTS max_load       text,        -- "30 кг"
-  ADD COLUMN IF NOT EXISTS motor          text,        -- "2 × 35 Вт"
-  ADD COLUMN IF NOT EXISTS battery        text,        -- "12 В / 7 Аг"
-  ADD COLUMN IF NOT EXISTS speed          text,        -- "5 км/год"
-  ADD COLUMN IF NOT EXISTS warranty       text,        -- "12 міс."
-  ADD COLUMN IF NOT EXISTS assembly_time  text,        -- "20 хв"
-  ADD COLUMN IF NOT EXISTS short_desc     text,        -- короткий опис під назвою
-  ADD COLUMN IF NOT EXISTS subcategory    text;        -- підкатегорія, напр. "Джипи"
+-- ── КРОК 1: Додати колонку parent_id ────────────────────────────────────────
+ALTER TABLE categories
+  ADD COLUMN IF NOT EXISTS parent_id INTEGER;
 
--- Індекс по color прискорить групування варіантів за моделлю+кольором.
-CREATE INDEX IF NOT EXISTS products_color_idx
-  ON products (color)
-  WHERE color IS NOT NULL;
+-- ── КРОК 2: Додати зовнішній ключ (якщо RLS дозволяє) ──────────────────────
+-- Якщо виникне помилка — пропустіть цей рядок, parent_id все одно працюватиме
+ALTER TABLE categories
+  ADD CONSTRAINT IF NOT EXISTS fk_categories_parent
+  FOREIGN KEY (parent_id) REFERENCES categories(id) ON DELETE SET NULL;
 
--- ── Перевірка: що тепер є у таблиці ────────────────────────────────────────
--- SELECT column_name, data_type
--- FROM information_schema.columns
--- WHERE table_schema = 'public' AND table_name = 'products'
--- ORDER BY ordinal_position;
+-- ── КРОК 3: Вставити головні (батьківські) категорії ────────────────────────
+-- ID 9001, 9002 — спеціальні ID, що не конфліктують з XML-синхронізацією
+-- (XML зазвичай генерує ID < 9000)
+INSERT INTO categories (id, name, active, parent_id) VALUES
+  (9001, 'Дитячий транспорт', true, NULL),
+  (9002, 'Електромобілі',     true, NULL)
+ON CONFLICT (id) DO UPDATE
+  SET name = EXCLUDED.name,
+      active = EXCLUDED.active,
+      parent_id = NULL;
 
--- ── Заповнити color у вже існуючих товарів можна так (приклад): ────────────
--- UPDATE products SET color='Чорний'  WHERE sku='M 4259EBLR-1';
--- UPDATE products SET color='Червоний' WHERE sku='M 4259EBLR-2';
--- UPDATE products SET color='Білий'    WHERE sku='M 4259EBLR-3';
+-- ── КРОК 4: Призначити підкатегорії ─────────────────────────────────────────
+-- ВАЖЛИВО: Перевірте реальні назви через SELECT id, name FROM categories ORDER BY name;
+-- Потім розкоментуйте та виконайте відповідні рядки нижче.
+
+-- === Підкатегорії "Дитячий транспорт" (parent_id = 9001) ===
+-- Велосипеди, самокати, біговели, каталки, ходунки, санки, скейти тощо
+
+-- UPDATE categories SET parent_id = 9001 WHERE name ILIKE '%велосипед%' AND id < 9000;
+-- UPDATE categories SET parent_id = 9001 WHERE name ILIKE '%самокат%'   AND id < 9000;
+-- UPDATE categories SET parent_id = 9001 WHERE name ILIKE '%біговел%'   AND id < 9000;
+-- UPDATE categories SET parent_id = 9001 WHERE name ILIKE '%каталка%'   AND id < 9000;
+-- UPDATE categories SET parent_id = 9001 WHERE name ILIKE '%толокар%'   AND id < 9000;
+-- UPDATE categories SET parent_id = 9001 WHERE name ILIKE '%ходунк%'    AND id < 9000;
+-- UPDATE categories SET parent_id = 9001 WHERE name ILIKE '%санк%'      AND id < 9000;
+-- UPDATE categories SET parent_id = 9001 WHERE name ILIKE '%скейт%'     AND id < 9000;
+-- UPDATE categories SET parent_id = 9001 WHERE name ILIKE '%ролик%'     AND id < 9000;
+-- UPDATE categories SET parent_id = 9001 WHERE name ILIKE '%гойдалк%'   AND id < 9000;
+
+-- === Підкатегорії "Електромобілі" (parent_id = 9002) ===
+-- Електромобілі, джипи, квадроцикли, мотоцикли, трактори, вантажівки, баггі
+
+-- UPDATE categories SET parent_id = 9002 WHERE name ILIKE '%електромобіл%' AND id < 9000;
+-- UPDATE categories SET parent_id = 9002 WHERE name ILIKE '%джип%'          AND id < 9000;
+-- UPDATE categories SET parent_id = 9002 WHERE name ILIKE '%квадроцикл%'    AND id < 9000;
+-- UPDATE categories SET parent_id = 9002 WHERE name ILIKE '%мотоцикл%'      AND id < 9000;
+-- UPDATE categories SET parent_id = 9002 WHERE name ILIKE '%трактор%'       AND id < 9000;
+-- UPDATE categories SET parent_id = 9002 WHERE name ILIKE '%вантаж%'        AND id < 9000;
+-- UPDATE categories SET parent_id = 9002 WHERE name ILIKE '%баггі%'         AND id < 9000;
+-- UPDATE categories SET parent_id = 9002 WHERE name ILIKE '%машин%'         AND id < 9000;
+
+-- ── КРОК 5: Перевірити результат ────────────────────────────────────────────
+SELECT
+  c.id,
+  c.name,
+  c.active,
+  c.parent_id,
+  p.name AS parent_name
+FROM categories c
+LEFT JOIN categories p ON p.id = c.parent_id
+ORDER BY
+  COALESCE(c.parent_id, c.id),
+  c.parent_id IS NULL DESC,
+  c.name;
