@@ -1988,21 +1988,25 @@ async function updateNavBadges() {
 let _adminToken = null;
 let _adminUser  = null;
 
-// Отримати сесію з localStorage
+// Отримати сесію — перевіряє localStorage І sessionStorage
+// (auth.html зберігає в sessionStorage коли "Запам'ятати" не вибрано)
 function getAdminSession() {
   try {
-    const s = localStorage.getItem('kr_admin_session');
-    if (!s) return null;
-    const session = JSON.parse(s);
+    const KEY = 'kr_admin_session';
+    const raw = localStorage.getItem(KEY) || sessionStorage.getItem(KEY);
+    if (!raw) return null;
+    const session = JSON.parse(raw);
     if (session.expires_at && Date.now() / 1000 > session.expires_at) {
-      localStorage.removeItem('kr_admin_session');
+      localStorage.removeItem(KEY);
+      sessionStorage.removeItem(KEY);
       return null;
     }
     return session;
   } catch(e) { return null; }
 }
 
-// Перевірити роль адміна
+// Перевірити роль адміна через Supabase
+// Повертає: true — адмін, false — не адмін, null — помилка мережі/RLS (невизначено)
 async function checkIsAdmin(token) {
   try {
     const res = await fetch(SUPABASE_URL + '/rest/v1/user_roles?select=role&limit=1', {
@@ -2011,10 +2015,11 @@ async function checkIsAdmin(token) {
         'Authorization': 'Bearer ' + token
       }
     });
-    if (!res.ok) return false;
+    if (!res.ok) return null; // RLS або помилка сервера — не знімаємо сесію
     const data = await res.json();
-    return Array.isArray(data) && data.length > 0 && data[0].role === 'admin';
-  } catch(e) { return false; }
+    if (!Array.isArray(data) || data.length === 0) return null; // порожній результат — невизначено
+    return data[0].role === 'admin';
+  } catch(e) { return null; } // мережева помилка — не знімаємо сесію
 }
 
 // Захист сторінки
@@ -2028,13 +2033,25 @@ async function guardAdminPage() {
     return;
   }
 
-  const isAdm = await checkIsAdmin(session.access_token);
-
-  if (!isAdm) {
+  // Перевіряємо флаг is_admin який auth.html встановлює при вході
+  if (!session.is_admin) {
     localStorage.removeItem('kr_admin_session');
+    sessionStorage.removeItem('kr_admin_session');
     window.location.href = 'auth.html';
     return;
   }
+
+  // Додаткова перевірка через Supabase (тільки якщо відповідь явна)
+  const isAdm = await checkIsAdmin(session.access_token);
+
+  if (isAdm === false) {
+    // Supabase підтвердив: роль не admin — видаляємо сесію
+    localStorage.removeItem('kr_admin_session');
+    sessionStorage.removeItem('kr_admin_session');
+    window.location.href = 'auth.html';
+    return;
+  }
+  // isAdm === true або null (помилка) → довіряємо session.is_admin
 
   // Адмін підтверджений ✅
   _adminToken = session.access_token;
@@ -2048,13 +2065,13 @@ async function guardAdminPage() {
   if (roleEl) roleEl.textContent = 'Адміністратор';
 
   document.body.style.visibility = 'visible';
-  // Всі скрипти завантажені (ми в window.load)
   setTimeout(initAdmin, 0);
 }
 
 // Вихід
 function adminLogout() {
   localStorage.removeItem('kr_admin_session');
+  sessionStorage.removeItem('kr_admin_session');
   window.location.href = 'auth.html';
 }
 
