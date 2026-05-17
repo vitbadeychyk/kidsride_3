@@ -271,8 +271,37 @@ nav a.active{color:var(--orange)}
 .zoom-close{position:absolute;top:20px;right:20px;width:40px;height:40px;background:rgba(255,255,255,.15);border:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff}
 .zoom-close svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
 
+/* ── MOBILE BURGER ── */
+.mobile-burger{display:none;align-items:center;gap:8px;background:none;border:none;cursor:pointer;padding:6px 10px 6px 8px;border-radius:10px;transition:background .2s;font-family:'Nunito',sans-serif;font-weight:700;font-size:14px;color:var(--navy)}
+.mobile-burger:hover{background:var(--bg-soft)}
+.mobile-burger .burger-lines{display:flex;flex-direction:column;gap:5px;width:22px;height:18px;justify-content:center}
+.mobile-burger .burger-lines span{display:block;width:22px;height:2px;background:var(--navy);border-radius:2px;transition:all .3s;transform-origin:center}
+.mobile-burger.open .burger-lines span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.mobile-burger.open .burger-lines span:nth-child(2){opacity:0;transform:scaleX(0)}
+.mobile-burger.open .burger-lines span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+
+/* ── MOBILE DRAWER ── */
+.mobile-drawer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:998;backdrop-filter:blur(4px)}
+.mobile-drawer-overlay.open{display:block}
+.mobile-drawer{position:fixed;top:0;left:0;bottom:0;width:280px;background:white;z-index:999;transform:translateX(-100%);transition:transform .35s cubic-bezier(.4,0,.2,1);padding:24px 20px;display:flex;flex-direction:column;gap:4px;overflow-y:auto;box-shadow:8px 0 32px rgba(0,0,0,.15)}
+.mobile-drawer.open{transform:translateX(0)}
+.mobile-drawer-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.mobile-drawer-logo{font-family:'Nunito',sans-serif;font-weight:900;font-size:20px;color:var(--navy)}
+.mobile-drawer-logo span{color:var(--orange)}
+.mobile-drawer-close{width:32px;height:32px;border:none;background:var(--bg-soft);border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted)}
+.mobile-drawer a{display:flex;align-items:center;gap:12px;padding:13px 16px;border-radius:10px;color:var(--navy);font-weight:600;font-size:15px;text-decoration:none;transition:all .2s}
+.mobile-drawer a:hover,.mobile-drawer a.active{background:rgba(255,107,53,.08);color:var(--orange)}
+.mobile-drawer-divider{height:1px;background:var(--border);margin:8px 0}
+.mobile-drawer-social{display:flex;gap:10px;margin-top:auto;padding-top:20px;border-top:1px solid var(--border)}
+.mobile-drawer-social a{width:40px;height:40px;border-radius:10px;background:var(--bg-soft);display:flex;align-items:center;justify-content:center;border:1px solid var(--border);transition:all .2s;padding:0}
+.mobile-drawer-social a:hover{background:var(--orange);border-color:var(--orange)}
+.mobile-drawer-social svg{width:18px;height:18px;stroke:var(--text-muted);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.mobile-drawer-social a:hover svg{stroke:white}
+
 /* ── RESPONSIVE ── */
 @media(max-width:1024px){
+  .mobile-burger{display:flex}
+  nav{display:none !important}
   .page{padding:24px 24px 80px}
   .related{padding:0 24px 80px}
   .product-grid{grid-template-columns:1fr;gap:32px}
@@ -284,8 +313,9 @@ nav a.active{color:var(--orange)}
 @media(max-width:768px){
   /* Header */
   .header{height:58px;padding:0 16px}
-  nav{display:none}
   .h-right .btn{display:none}
+  .h-phone-sep{display:none}
+  #compareBtn{display:none}
 
   /* Breadcrumb */
   .breadcrumb{margin-top:58px;padding:10px 16px;font-size:11px}
@@ -363,6 +393,10 @@ nav a.active{color:var(--orange)}
     <a href="index.html#warranty-section">Гарантія</a>
     <a href="index.html#contacts-section">Контакти</a>
   </nav>
+  <button class="mobile-burger" id="mobileBurger" onclick="toggleMobileMenu()" aria-label="Меню">
+    <span class="burger-lines"><span></span><span></span><span></span></span>
+    <span>Меню</span>
+  </button>
   <div class="h-right">
     <a href="tel:+380980707348" class="h-phone-link" title="+380 98 070 73 48">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
@@ -380,6 +414,65 @@ nav a.active{color:var(--orange)}
     <a href="auth.html" class="btn btn-primary" style="margin-left:6px;font-size:13px;padding:9px 18px">Увійти</a>
   </div>
 </header>
+
+<!-- MOBILE DRAWER -->
+<div class="mobile-drawer-overlay" id="mobileOverlay" onclick="closeMobileMenu()"></div>
+<div class="mobile-drawer" id="mobileDrawer">
+  <div class="mobile-drawer-head">
+    <div class="mobile-drawer-logo"><span style="color:inherit">Kids<span>Ride</span></span></div>
+    <button class="mobile-drawer-close" onclick="closeMobileMenu()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <a href="index.html">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Головна
+  </a>
+  <a href="catalog.html" class="active">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    Каталог
+  </a>
+  <a href="calculator.html">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    Підбір за віком
+  </a>
+  <a href="compare.html">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    Порівняння
+  </a>
+  <div class="mobile-drawer-divider"></div>
+  <a href="index.html#delivery-section">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+    Доставка та оплата
+  </a>
+  <a href="index.html#warranty-section">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    Гарантія та сервіс
+  </a>
+  <a href="index.html#contacts-section">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+    Контакти
+  </a>
+  <div class="mobile-drawer-divider"></div>
+  <a href="tel:+380980707348" style="color:var(--orange);font-family:'Nunito',sans-serif;font-weight:700;background:rgba(255,107,53,.06);border:1px solid rgba(255,107,53,.15)">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+    +380 98 070 73 48
+  </a>
+  <a href="auth.html" style="background:var(--orange);color:white;justify-content:center;font-family:'Nunito',sans-serif;font-weight:700">
+    Увійти в акаунт
+  </a>
+  <div class="mobile-drawer-social">
+    <a href="https://www.instagram.com/kidsride.ua/" target="_blank" title="Instagram">
+      <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+    </a>
+    <a href="https://t.me/kids_ride" target="_blank" title="Telegram">
+      <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </a>
+    <a href="tel:+380980707348" title="Телефон">
+      <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+    </a>
+  </div>
+</div>
 
 <!-- BREADCRUMB -->
 <div class="breadcrumb">
@@ -2294,6 +2387,22 @@ function _ytEmbedFromUrl(url){
       return _krProdCache;
     })();
     return _krProdPromise;
+  }
+
+  function toggleMobileMenu() {
+    const burger = document.getElementById('mobileBurger');
+    const drawer = document.getElementById('mobileDrawer');
+    const overlay = document.getElementById('mobileOverlay');
+    burger.classList.toggle('open');
+    drawer.classList.toggle('open');
+    overlay.classList.toggle('open');
+    document.body.style.overflow = drawer.classList.contains('open') ? 'hidden' : '';
+  }
+  function closeMobileMenu() {
+    document.getElementById('mobileBurger')?.classList.remove('open');
+    document.getElementById('mobileDrawer')?.classList.remove('open');
+    document.getElementById('mobileOverlay')?.classList.remove('open');
+    document.body.style.overflow = '';
   }
 
   function openSearchOverlay() {
