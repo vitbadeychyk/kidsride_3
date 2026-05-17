@@ -324,9 +324,14 @@ nav a.active{color:var(--orange)}
   .page{padding:16px 16px 100px}
   .related{padding:0 16px 80px}
 
+  /* Gallery — fix image overflow on mobile */
+  .gallery{width:100%;max-width:100%;box-sizing:border-box}
+  .gallery-main{width:100%;max-width:100%;overflow:hidden;box-sizing:border-box}
+  .gallery-main img{max-width:100%;max-height:100%;min-width:0;min-height:0;width:auto;height:auto;display:block}
+
   /* Gallery thumbs scroll */
-  .gallery-thumbs{gap:6px}
-  .thumb{width:60px;height:60px}
+  .gallery-thumbs{gap:6px;max-width:100%;overflow-x:auto}
+  .thumb{width:60px;height:60px;flex-shrink:0}
 
   /* Product info */
   .product-title{font-size:20px}
@@ -1716,12 +1721,12 @@ function buildPhotoGallery(images){
   if (share) main.appendChild(share);
 
   const imgWrap = document.createElement('div');
-  imgWrap.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box';
+  imgWrap.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;overflow:hidden';
   const mainImg = document.createElement('img');
   mainImg.id = 'mainProductImg';
   mainImg.src = images[0];
   mainImg.alt = '';
-  mainImg.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain;transition:opacity .25s';
+  mainImg.style.cssText = 'max-width:100%;max-height:100%;min-width:0;min-height:0;width:auto;height:auto;object-fit:contain;transition:opacity .25s;display:block';
   imgWrap.appendChild(mainImg);
   main.appendChild(imgWrap);
 
