@@ -214,6 +214,14 @@ nav a:hover{color:var(--navy);background:var(--bg-soft)}
   .ci-img{width:64px;height:56px}
   .page-title{font-size:20px}
 }
+/* ── PHONE IN HEADER ── */
+.h-phone-link{display:inline-flex;align-items:center;gap:7px;text-decoration:none;color:var(--navy);font-family:'Nunito',sans-serif;font-weight:700;font-size:13.5px;padding:8px 12px;border-radius:10px;transition:all .2s;white-space:nowrap}
+.h-phone-link:hover{background:rgba(255,107,53,.07);color:var(--orange)}
+.h-phone-link svg{stroke:var(--orange);flex-shrink:0;transition:transform .2s}
+.h-phone-link:hover svg{transform:scale(1.12)}
+.h-phone-sep{width:1px;height:22px;background:var(--border);flex-shrink:0;margin:0 2px}
+@media(max-width:1024px){.h-phone-link .h-phone-text{display:none}}
+@media(max-width:640px){.h-phone-link{width:40px;height:40px;padding:0;justify-content:center}}
 </style>
 </head>
 <body>
@@ -235,6 +243,12 @@ nav a:hover{color:var(--navy);background:var(--bg-soft)}
     <a href="index.html#contacts-section">Контакти</a>
   </nav>
   <div class="h-right">
+    <a href="tel:+380980707348" class="h-phone-link" title="+380 98 070 73 48">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+      <span class="h-phone-text">+380 98 070 73 48</span>
+    </a>
+    <div class="h-phone-sep"></div>
+    
     <button class="ic-btn"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></button>
     <button class="ic-btn" id="wishBtn" title="Список бажань" onclick="window.location.href='index.html#wishlist'" style="cursor:pointer"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span class="badge wish-badge" id="wishBadge" style="display:none">0</span></button>
     <button class="ic-btn" id="compareBtn" title="Порівняння" onclick="window.location.href='compare.html'" style="cursor:pointer"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span class="badge" id="compareBadge" style="display:none">0</span></button>
