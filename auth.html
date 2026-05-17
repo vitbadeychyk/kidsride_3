@@ -2024,12 +2024,21 @@ async function checkIsAdmin(token) {
 
 // Захист сторінки
 async function guardAdminPage() {
-  document.body.style.visibility = 'hidden';
+  // Плавний оверлей замість visibility:hidden (прибирає мерехтіння)
+  const _overlay = document.createElement('div');
+  _overlay.style.cssText = 'position:fixed;inset:0;background:#F0F2F8;z-index:99999;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease';
+  _overlay.innerHTML = '<div style="width:36px;height:36px;border:3px solid #e5e7f0;border-top:3px solid #FF6B35;border-radius:50%;animation:spin .8s linear infinite"></div>';
+  document.body.appendChild(_overlay);
 
   const session = getAdminSession();
 
+  function _redirect(url) {
+    _overlay.style.opacity = '0';
+    setTimeout(() => { window.location.href = url; }, 280);
+  }
+
   if (!session) {
-    window.location.href = 'auth.html';
+    _redirect('auth.html');
     return;
   }
 
@@ -2037,7 +2046,7 @@ async function guardAdminPage() {
   if (!session.is_admin) {
     localStorage.removeItem('kr_admin_session');
     sessionStorage.removeItem('kr_admin_session');
-    window.location.href = 'auth.html';
+    _redirect('auth.html');
     return;
   }
 
@@ -2045,27 +2054,25 @@ async function guardAdminPage() {
   const isAdm = await checkIsAdmin(session.access_token);
 
   if (isAdm === false) {
-    // Supabase підтвердив: роль не admin — видаляємо сесію
     localStorage.removeItem('kr_admin_session');
     sessionStorage.removeItem('kr_admin_session');
-    window.location.href = 'auth.html';
+    _redirect('auth.html');
     return;
   }
-  // isAdm === true або null (помилка) → довіряємо session.is_admin
 
   // Адмін підтверджений ✅
   _adminToken = session.access_token;
   _adminUser  = session.user;
 
-  // Показати email адміна в sidebar
   const email = session.user?.email || 'Admin';
   const nameEl = document.querySelector('.user-name');
   const roleEl = document.querySelector('.user-role');
   if (nameEl) nameEl.textContent = email.split('@')[0];
   if (roleEl) roleEl.textContent = 'Адміністратор';
 
-  document.body.style.visibility = 'visible';
-  setTimeout(initAdmin, 0);
+  // Плавно прибираємо оверлей
+  _overlay.style.opacity = '0';
+  setTimeout(() => { _overlay.remove(); initAdmin(); }, 300);
 }
 
 // Вихід

@@ -738,19 +738,51 @@ function hideError(id) {
 }
 
 // ════════════════════════════════════════════════════════════════════════════
-// АВТО-РЕДИРЕКТ: якщо вже залогінений і НЕ виходив — перенаправити одразу
+// ПЕРЕВІРКА ІСНУЮЧОЇ СЕСІЇ: показуємо банер замість авто-редиректу
 // ════════════════════════════════════════════════════════════════════════════
 (function checkAlreadyLoggedIn() {
-  if (IS_OAUTH_CALLBACK) return; // не заважаємо OAuth callback
-  if (localStorage.getItem('kr_signed_out') === '1') return; // явно виходив — показуємо форму
+  if (IS_OAUTH_CALLBACK) return;
+  if (localStorage.getItem('kr_signed_out') === '1') return;
   try {
     const s = localStorage.getItem(KR_SESSION_KEY) || sessionStorage.getItem(KR_SESSION_KEY);
     if (!s) return;
     const session = JSON.parse(s);
     if (!session.access_token) return;
     if (session.expires_at && Date.now() / 1000 > session.expires_at) return;
-    // Є активна сесія — редирект без повторної авторизації
-    window.location.replace(session.is_admin ? 'admin.html' : 'index.html');
+
+    // Є активна сесія — показуємо банер "Ви вже авторизовані" замість авто-редиректу
+    const email = session.user?.email || '';
+    const dest  = session.is_admin ? 'admin.html' : 'index.html';
+    const destLabel = session.is_admin ? 'Адмін панель' : 'Головна';
+
+    document.addEventListener('DOMContentLoaded', function() {
+      // Створюємо банер
+      const banner = document.createElement('div');
+      banner.style.cssText = [
+        'position:fixed;top:0;left:0;right:0;z-index:9999',
+        'background:#1B2A4A;color:white',
+        'padding:12px 20px',
+        'display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap',
+        'font-family:"Nunito",sans-serif;font-size:14px;font-weight:600',
+        'box-shadow:0 4px 20px rgba(0,0,0,.25)'
+      ].join(';');
+      banner.innerHTML = [
+        '<span>Ви вже авторизовані' + (email ? ' як <b>' + email + '</b>' : '') + '</span>',
+        '<a href="' + dest + '" style="background:#FF6B35;color:white;padding:7px 16px;border-radius:7px;font-weight:800;text-decoration:none;white-space:nowrap">',
+        'Перейти до ' + destLabel + ' →</a>',
+        '<button onclick="(function(){',
+          'localStorage.removeItem(\'' + KR_SESSION_KEY + '\');',
+          'sessionStorage.removeItem(\'' + KR_SESSION_KEY + '\');',
+          'localStorage.setItem(\'kr_signed_out\',\'1\');',
+          'this.closest(\'[data-kr-banner]\').remove();',
+        '}).call(this)" style="background:rgba(255,255,255,.12);color:white;border:none;padding:7px 14px;border-radius:7px;cursor:pointer;font-family:inherit;font-weight:700;white-space:nowrap">',
+        'Вийти та увійти по-новому</button>'
+      ].join('');
+      banner.setAttribute('data-kr-banner', '1');
+      document.body.prepend(banner);
+      // Зміщуємо контент вниз
+      document.body.style.paddingTop = banner.offsetHeight + 'px';
+    });
   } catch(e) {}
 })();
 

@@ -1803,9 +1803,11 @@ function toggleWish(btn) {
     Контакти
   </a>
   <div class="mobile-drawer-divider"></div>
-  <a href="auth.html" style="background:var(--orange);color:white;justify-content:center;font-family:'Nunito',sans-serif;font-weight:700">
-    Увійти в акаунт
-  </a>
+  <div id="mobileAuthBlock">
+    <a href="auth.html" style="background:var(--orange);color:white;justify-content:center;font-family:'Nunito',sans-serif;font-weight:700">
+      Увійти в акаунт
+    </a>
+  </div>
   <div class="mobile-drawer-social">
     <a href="https://www.instagram.com/kidsride.ua/" target="_blank" title="Instagram">
       <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
@@ -2355,6 +2357,36 @@ else document.addEventListener('DOMContentLoaded', initInstaFab);
     adminBtn.onmouseout = function() { this.style.background='rgba(27,42,74,.08)'; this.style.color='var(--navy)'; this.style.borderColor='var(--border)'; };
 
     hRight.insertBefore(adminBtn, hRight.firstChild);
+  } catch(e) {}
+})();
+
+// Мобільний drawer: замінюємо "Увійти в акаунт" для авторизованих
+(function() {
+  try {
+    const KEY = 'kr_admin_session';
+    const s = localStorage.getItem(KEY) || sessionStorage.getItem(KEY);
+    if (!s) return;
+    const session = JSON.parse(s);
+    if (!session.access_token) return;
+    if (session.expires_at && Date.now() / 1000 > session.expires_at) return;
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const block = document.getElementById('mobileAuthBlock');
+      if (!block) return;
+      const email = session.user?.email || '';
+      const name  = email.split('@')[0] || 'Профіль';
+
+      if (session.is_admin) {
+        block.innerHTML =
+          '<a href="admin.html" style="background:var(--navy);color:white;justify-content:center;font-family:\'Nunito\',sans-serif;font-weight:700;margin-bottom:6px">Адмін панель</a>' +
+          '<a href="#" onclick="localStorage.removeItem(\'kr_admin_session\');sessionStorage.removeItem(\'kr_admin_session\');localStorage.setItem(\'kr_signed_out\',\'1\');location.reload();return false;" ' +
+          'style="background:rgba(229,57,53,.08);color:#e53935;justify-content:center;font-family:\'Nunito\',sans-serif;font-weight:700;border:1.5px solid rgba(229,57,53,.2)">Вийти (' + name + ')</a>';
+      } else {
+        block.innerHTML =
+          '<a href="#" onclick="localStorage.removeItem(\'kr_admin_session\');sessionStorage.removeItem(\'kr_admin_session\');localStorage.setItem(\'kr_signed_out\',\'1\');location.reload();return false;" ' +
+          'style="background:rgba(229,57,53,.08);color:#e53935;justify-content:center;font-family:\'Nunito\',sans-serif;font-weight:700;border:1.5px solid rgba(229,57,53,.2)">Вийти (' + name + ')</a>';
+      }
+    });
   } catch(e) {}
 })();
 </script>
