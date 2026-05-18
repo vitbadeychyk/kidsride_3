@@ -1,6 +1,6 @@
 // Vercel Serverless Function: приймає заявку "Купити в 1 клік" та звичайні замовлення
 // Зберігає в Supabase (таблиця leads) і шле повідомлення в Telegram
-//
+
 export default async function handler(req, res) {
   // CORS (на випадок якщо викликається не з того ж origin)
   res.setHeader('Access-Control-Allow-Origin', '*');
