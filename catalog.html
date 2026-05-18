@@ -1764,6 +1764,24 @@ async function loadCategoryTree() {
   // Непризначені — НЕ показуємо ("Інші" прибрані)
 
   treeEl.innerHTML = html;
+
+  // За замовчуванням показуємо Джипи (якщо немає URL-фільтрів і ще не ініціалізовано)
+  if (!_autoJeepDone) {
+    const _urlPAuto = new URLSearchParams(location.search);
+    const _hasFilter = _urlPAuto.get('catId') || _urlPAuto.get('mainCatId') || _urlPAuto.get('parentId')
+      || _urlPAuto.get('cat') || _urlPAuto.get('type') || _urlPAuto.get('vehicleType')
+      || _urlPAuto.get('search') || _urlPAuto.get('brand');
+    if (!_hasFilter && !_activeCatIdFilter && !_activeParentIdFilter && !_activeVehicleType) {
+      _autoJeepDone = true;
+      const jeepProd = _availableProds.find(p => p.category === 'jeep');
+      if (jeepProd && jeepProd.category_id) {
+        const jeepSub = _allCategories.find(c => c.id === jeepProd.category_id);
+        if (jeepSub && jeepSub.main_category_id) {
+          selectVehicleType('jeep', jeepSub.main_category_id);
+        }
+      }
+    }
+  }
 }
 
 // Відкрити/закрити підкатегорії
@@ -1794,6 +1812,7 @@ function toggleParent(rowEl, parentId) {
 // Активний categoryId фільтр (числовий)
 let _activeCatIdFilter = 0;
 let _activeParentIdFilter = 0;
+let _autoJeepDone = false;
 
 function selectCategory(catId, parentId) {
   _activeCatIdFilter    = catId;
@@ -2372,8 +2391,8 @@ function updateDynamicFilters() {
   }
   const brandBlock = document.querySelector('.filter-block:has([data-group="brand"])');
   const hasCatSelection = _activeCatIdFilter || _activeParentIdFilter || _activeVehicleType;
-  // Показуємо бренди завжди (якщо є товари з брендами), динамічно фільтруємо за категорією
-  if (brandBlock) brandBlock.style.display = brandSet.length ? '' : 'none';
+  // Бренди — лише коли обрана категорія/тип
+  if (brandBlock) brandBlock.style.display = (brandSet.length && hasCatSelection) ? '' : 'none';
 
   // ── Напруга акумулятора — лише для категорії "Електромобілі" ─────────────
   // Визначаємо чи активна категорія є "Електромобілі" (або її підкатегорія/тип)
