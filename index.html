@@ -599,7 +599,6 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
 
 /* ── PROMO POPUP MODAL ── */
 @keyframes promoIn{from{opacity:0;transform:translateY(32px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
-@keyframes shimmerSlide{0%{transform:translateX(-100%)}100%{transform:translateX(200%)}}
 @keyframes truckRoll{0%{transform:translateX(-80px)}70%{transform:translateX(0)}80%{transform:translateX(-6px)}90%{transform:translateX(3px)}100%{transform:translateX(0)}}
 @keyframes dotPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.7)}}
 
@@ -666,31 +665,58 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
 .promo-title{
   font-family:'Nunito',sans-serif;font-weight:900;
   font-size:clamp(20px,5.5vw,26px);color:#fff;line-height:1.18;
-  margin-bottom:6px;
+  margin-bottom:0;
 }
-.promo-subtitle{font-size:13px;color:rgba(255,255,255,.65);line-height:1.5}
+
+/* ─ Condition warning ─ */
+.promo-condition{
+  background:linear-gradient(90deg,#fff3ee,#fff8f5);
+  border-top:3px solid #FF6B35;
+  border-bottom:1px solid #ffd5c2;
+  padding:12px 20px;
+  display:flex;align-items:flex-start;gap:10px;
+}
+.promo-condition-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+.promo-condition-title{font-size:13px;font-weight:800;color:#b83a00;margin-bottom:3px}
+.promo-condition-text{font-size:12px;color:#7a3500;line-height:1.5}
 
 /* ─ Body ─ */
-.promo-body{padding:20px 24px 24px}
+.promo-body{padding:18px 22px 20px}
+.promo-steps-label{
+  font-size:11px;font-weight:700;color:#9ca3af;
+  text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;
+}
+
+/* ─ Step boxes ─ */
+.promo-step{
+  border-radius:14px;padding:14px 16px;margin-bottom:10px;
+}
+.promo-step-ig{
+  border:2px solid #e84393;
+  background:linear-gradient(135deg,#fff0f8,#fff5fc);
+}
+.promo-step-code{
+  border:1.5px solid #e8eaf0;
+  background:#f8f9fc;
+}
+.promo-step-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.promo-step-num{
+  width:26px;height:26px;border-radius:50%;
+  color:#fff;display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:900;flex-shrink:0;
+}
+.promo-step-num-ig{background:linear-gradient(135deg,#f09433,#dc2743,#bc1888)}
+.promo-step-num-code{background:#FF6B35}
+.promo-step-title{font-weight:800;font-size:13.5px;color:#1B2A4A}
 
 /* Code block */
 .promo-code-wrap{
-  background:#f8f9fc;border:1.5px solid #e8eaf0;
-  border-radius:14px;padding:16px 18px;margin-bottom:16px;
   display:flex;align-items:center;justify-content:space-between;gap:12px;
 }
-.promo-code-left{}
-.promo-code-label{font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+.promo-code-label{font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px}
 .promo-code-val{
   font-family:'Nunito',sans-serif;font-weight:900;
-  font-size:clamp(24px,7vw,30px);color:#FF6B35;letter-spacing:.1em;
-  position:relative;display:inline-block;overflow:hidden;
-}
-.promo-code-val::after{
-  content:'';position:absolute;inset:0;
-  background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.7) 50%,transparent 100%);
-  transform:translateX(-100%);
-  animation:shimmerSlide 2.5s 1s ease-in-out infinite;
+  font-size:clamp(22px,6vw,28px);color:#FF6B35;letter-spacing:.1em;
 }
 .promo-copy-btn{
   flex-shrink:0;display:flex;align-items:center;gap:6px;
@@ -704,20 +730,21 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
 
 /* Delivery info */
 .promo-info{
-  display:flex;align-items:center;gap:10px;
+  display:flex;align-items:flex-start;gap:10px;
   background:#f0faf4;border:1px solid #d1f0dd;border-radius:12px;
-  padding:11px 14px;margin-bottom:16px;font-size:12.5px;color:#1e7e44;line-height:1.45;
+  padding:11px 14px;margin-bottom:14px;font-size:12px;color:#1e7e44;line-height:1.45;
 }
-.promo-info svg{flex-shrink:0;width:18px;height:18px;stroke:#1e7e44}
+.promo-info svg{flex-shrink:0;width:18px;height:18px;stroke:#1e7e44;margin-top:1px}
 
 /* Instagram CTA */
 .promo-btn-ig{
   display:flex;align-items:center;justify-content:center;gap:9px;
-  width:100%;padding:13px 20px;border-radius:13px;
+  width:100%;padding:12px 18px;border-radius:11px;
   background:linear-gradient(90deg,#f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%);
-  color:#fff;font-family:'Nunito',sans-serif;font-weight:800;font-size:14.5px;
+  color:#fff;font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;
   text-decoration:none;transition:all .22s;
   box-shadow:0 4px 18px rgba(188,24,136,.3);
+  box-sizing:border-box;
 }
 .promo-btn-ig:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(188,24,136,.42)}
 .promo-btn-ig svg{width:18px;height:18px;flex-shrink:0}
@@ -725,15 +752,16 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
 .promo-btn-skip{
   display:block;width:100%;text-align:center;
   font-size:12px;color:#9ca3af;cursor:pointer;
-  padding:10px 4px 0;background:none;border:none;font-family:'Manrope',sans-serif;
+  padding:4px 4px 0;background:none;border:none;font-family:'Manrope',sans-serif;
   transition:color .2s;
 }
 .promo-btn-skip:hover{color:#6b7280}
 
 @media(max-width:480px){
   .promo-header{padding:22px 20px 18px}
-  .promo-body{padding:16px 18px 20px}
+  .promo-body{padding:14px 16px 18px}
   .promo-modal{border-radius:20px}
+  .promo-condition{padding:10px 16px}
 }
 </style>
 </head>
@@ -773,34 +801,59 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
       </div>
       <!-- Title -->
       <div class="promo-title">Отримай безкоштовну<br>доставку Новою Поштою</div>
-      <div class="promo-subtitle">Підпишись на Instagram @kidsride.ua і&nbsp;введи промокод при оформленні</div>
+    </div>
+
+    <!-- ─ Condition warning banner ─ -->
+    <div class="promo-condition">
+      <span class="promo-condition-icon">⚠️</span>
+      <div>
+        <div class="promo-condition-title">Важлива умова активації промокоду</div>
+        <div class="promo-condition-text">Промокод <strong>діє виключно для підписників</strong> нашої Instagram&#8209;сторінки. Без підписки код не спрацює при оформленні.</div>
+      </div>
     </div>
 
     <!-- ─ White body ─ -->
     <div class="promo-body">
-      <!-- Code block -->
-      <div class="promo-code-wrap">
-        <div class="promo-code-left">
-          <div class="promo-code-label">Ваш промокод</div>
-          <div class="promo-code-val" id="promoCodeDisplay">KIDSFREE</div>
+      <div class="promo-steps-label">Як отримати безкоштовну доставку:</div>
+
+      <!-- Step 1: Instagram -->
+      <div class="promo-step promo-step-ig">
+        <div class="promo-step-header">
+          <div class="promo-step-num promo-step-num-ig">1</div>
+          <div class="promo-step-title">Підпишись на наш Instagram</div>
         </div>
-        <button class="promo-copy-btn" onclick="promoCodeCopy()" id="promoCopyBtn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-          Копіювати
-        </button>
+        <a href="https://www.instagram.com/kidsride.ua/" target="_blank" rel="noopener" class="promo-btn-ig" onclick="promoIgClick()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+          Підписатися на @kidsride.ua
+        </a>
       </div>
+
+      <!-- Step 2: Promo code -->
+      <div class="promo-step promo-step-code">
+        <div class="promo-step-header">
+          <div class="promo-step-num promo-step-num-code">2</div>
+          <div class="promo-step-title">Введи промокод при оформленні</div>
+        </div>
+        <div class="promo-code-wrap">
+          <div>
+            <div class="promo-code-label">Ваш промокод</div>
+            <div class="promo-code-val" id="promoCodeDisplay">KIDSFREE</div>
+          </div>
+          <button class="promo-copy-btn" onclick="promoCodeCopy()" id="promoCopyBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Копіювати
+          </button>
+        </div>
+      </div>
+
       <!-- Green info -->
       <div class="promo-info">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M5 12l5 5L20 7"/>
         </svg>
-        Безкоштовна доставка Новою Поштою на будь-який товар — просто введи код у кошику.
+        Безкоштовна доставка Новою Поштою на будь-який товар &mdash; просто введи код у кошику.
       </div>
-      <!-- Instagram CTA -->
-      <a href="https://www.instagram.com/kidsride.ua/" target="_blank" rel="noopener" class="promo-btn-ig" onclick="promoIgClick()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
-        Підписатися на @kidsride.ua
-      </a>
+
       <button class="promo-btn-skip" onclick="closePromoModal()">Закрити &mdash; використаю пізніше</button>
     </div>
 
