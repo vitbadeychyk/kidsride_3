@@ -401,8 +401,42 @@ const KR = {
     return Math.round(n).toLocaleString('uk-UA') + ' ₴';
   },
 
+
+  // ── STRIPE SYNC ──────────────────────────────────────────────────────────
+  _applyStripe(s) {
+    var el = document.getElementById('kr-stripe-css');
+    if (!el) {
+      el = document.createElement('style');
+      el.id = 'kr-stripe-css';
+      document.head.appendChild(el);
+    }
+    el.textContent = '.header,.header#hdr{border-top:' + s.h + 'px solid ' + s.c + ' !important}';
+    try { localStorage.setItem('kr_stripe', JSON.stringify(s)); } catch(e) {}
+  },
+
+  async initStripe() {
+    // Apply cached value immediately (fast, avoids waiting for network)
+    try {
+      const cached = JSON.parse(localStorage.getItem('kr_stripe') || '{"h":12,"c":"#1B2A4A"}');
+      this._applyStripe(cached);
+    } catch(e) {}
+    // Fetch from Supabase — source of truth shared across all devices
+    try {
+      const res = await fetch(this._SUPA_URL + '/rest/v1/settings?select=value&key=eq.site_stripe', {
+        headers: { 'apikey': this._SUPA_KEY, 'Authorization': 'Bearer ' + this._SUPA_KEY }
+      });
+      if (res.ok) {
+        const rows = await res.json();
+        if (rows && rows[0] && rows[0].value) {
+          this._applyStripe(JSON.parse(rows[0].value));
+        }
+      }
+    } catch(e) {}
+  },
+
   // ── INIT ──────────────────────────────────────────────────────────────────
   init() {
+    this.initStripe();
     this.injectWishStyles();
     this.updateCartBadge();
     this.updateWishBadge();

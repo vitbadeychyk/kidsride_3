@@ -460,7 +460,7 @@ tr:hover td{background:rgba(240,242,248,.5)}
       Перерахунок цін
     </div>
     <div class="nav-item" onclick="showPanel('design',this)">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2"/></svg>
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
       Дизайн сайту
     </div>
   </div>
@@ -1239,44 +1239,39 @@ tr:hover td{background:rgba(240,242,248,.5)}
       <div class="section-header">
         <h2 class="section-title">Дизайн <span>сайту</span></h2>
       </div>
-
       <div style="max-width:520px">
-        <!-- Preview -->
         <div id="stripePreview" style="height:12px;background:#1B2A4A;border-radius:4px;margin-bottom:28px;transition:all .2s"></div>
 
-        <!-- Color -->
         <div class="f-group" style="margin-bottom:22px">
           <label class="f-label" style="font-weight:700;margin-bottom:10px;display:block">Колір полоси</label>
-          <div style="display:flex;align-items:center;gap:14px">
+          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
             <input type="color" id="stripeColor" value="#1B2A4A"
-              style="width:56px;height:40px;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;padding:3px;background:none"
-              oninput="updateStripePreview()">
+              style="width:52px;height:40px;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;padding:3px"
+              oninput="document.getElementById('stripeColorText').value=this.value;updateStripePreview()">
             <input type="text" id="stripeColorText" value="#1B2A4A" maxlength="7"
-              style="width:110px;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px;font-size:14px;font-weight:700;font-family:'Manrope',sans-serif;color:var(--navy);outline:none"
-              oninput="document.getElementById('stripeColor').value=this.value;updateStripePreview()"
-              placeholder="#1B2A4A">
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <button onclick="setStripeColor('#1B2A4A')" title="Темно-синій" style="width:28px;height:28px;background:#1B2A4A;border:none;border-radius:6px;cursor:pointer"></button>
-              <button onclick="setStripeColor('#FF6B35')" title="Помаранчевий" style="width:28px;height:28px;background:#FF6B35;border:none;border-radius:6px;cursor:pointer"></button>
-              <button onclick="setStripeColor('#10B981')" title="Зелений" style="width:28px;height:28px;background:#10B981;border:none;border-radius:6px;cursor:pointer"></button>
-              <button onclick="setStripeColor('#EF4444')" title="Червоний" style="width:28px;height:28px;background:#EF4444;border:none;border-radius:6px;cursor:pointer"></button>
-              <button onclick="setStripeColor('#8B5CF6')" title="Фіолетовий" style="width:28px;height:28px;background:#8B5CF6;border:none;border-radius:6px;cursor:pointer"></button>
-              <button onclick="setStripeColor('#F59E0B')" title="Жовтий" style="width:28px;height:28px;background:#F59E0B;border:none;border-radius:6px;cursor:pointer"></button>
+              style="width:100px;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px;font-size:14px;font-weight:700;font-family:'Manrope',sans-serif;color:var(--navy);outline:none"
+              oninput="document.getElementById('stripeColor').value=this.value;updateStripePreview()" placeholder="#1B2A4A">
+            <div style="display:flex;gap:7px;flex-wrap:wrap">
+              <button onclick="setStripeColor('#1B2A4A')" title="Темно-синій" style="width:28px;height:28px;background:#1B2A4A;border:none;border-radius:6px;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.2)"></button>
+              <button onclick="setStripeColor('#FF6B35')" title="Помаранчевий" style="width:28px;height:28px;background:#FF6B35;border:none;border-radius:6px;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.2)"></button>
+              <button onclick="setStripeColor('#10B981')" title="Зелений" style="width:28px;height:28px;background:#10B981;border:none;border-radius:6px;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.2)"></button>
+              <button onclick="setStripeColor('#EF4444')" title="Червоний" style="width:28px;height:28px;background:#EF4444;border:none;border-radius:6px;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.2)"></button>
+              <button onclick="setStripeColor('#8B5CF6')" title="Фіолетовий" style="width:28px;height:28px;background:#8B5CF6;border:none;border-radius:6px;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.2)"></button>
+              <button onclick="setStripeColor('#F59E0B')" title="Жовтий" style="width:28px;height:28px;background:#F59E0B;border:none;border-radius:6px;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.2)"></button>
             </div>
           </div>
         </div>
 
-        <!-- Thickness -->
         <div class="f-group" style="margin-bottom:28px">
           <label class="f-label" style="font-weight:700;margin-bottom:10px;display:block">
-            Товщина полоси: <span id="stripeHeightVal" style="color:var(--orange)">12</span> px
+            Товщина: <span id="stripeHeightVal" style="color:var(--orange)">12</span> px
           </label>
-          <div style="display:flex;align-items:center;gap:14px">
+          <div style="display:flex;align-items:center;gap:12px">
             <input type="range" id="stripeHeight" min="2" max="30" value="12" step="1"
               style="flex:1;accent-color:var(--navy);cursor:pointer"
-              oninput="document.getElementById('stripeHeightVal').textContent=this.value;updateStripePreview()">
+              oninput="document.getElementById('stripeHeightVal').textContent=this.value;document.getElementById('stripeHeightNum').value=this.value;updateStripePreview()">
             <input type="number" id="stripeHeightNum" min="2" max="30" value="12"
-              style="width:70px;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px;font-size:14px;font-weight:700;font-family:'Manrope',sans-serif;color:var(--navy);outline:none;text-align:center"
+              style="width:65px;padding:9px 10px;border:1.5px solid var(--border);border-radius:9px;font-size:14px;font-weight:700;font-family:'Manrope',sans-serif;color:var(--navy);outline:none;text-align:center"
               oninput="document.getElementById('stripeHeight').value=this.value;document.getElementById('stripeHeightVal').textContent=this.value;updateStripePreview()">
             <span style="font-size:13px;color:var(--text-muted)">px</span>
           </div>
@@ -1288,13 +1283,12 @@ tr:hover td{background:rgba(240,242,248,.5)}
           </div>
         </div>
 
-        <!-- Save -->
         <button onclick="saveStripeSettings()" class="btn btn-primary" style="width:100%;justify-content:center;font-size:15px;padding:13px">
           <svg viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-          Зберегти та застосувати
+          Зберегти — застосується на всіх пристроях
         </button>
         <div id="stripeSaveMsg" style="display:none;margin-top:12px;padding:10px 14px;background:#ECFDF5;border:1px solid #10B981;border-radius:9px;color:#065F46;font-size:13px;font-weight:600;text-align:center">
-          ✓ Збережено! Зміни видно на всіх сторінках сайту.
+          ✓ Збережено! Зміни з'являться на всіх пристроях після перезавантаження сторінки.
         </div>
       </div>
     </div>
@@ -7157,59 +7151,78 @@ function promoResetSeen() {
   });
 })();
 
-// ── STRIPE DESIGN ────────────────────────────────────────────────────────
-function _getStripeSettings(){
-  try{ return JSON.parse(localStorage.getItem('kr_stripe')||'{"h":12,"c":"#1B2A4A"}'); }catch(e){ return {h:12,c:'#1B2A4A'}; }
-}
+// ── STRIPE DESIGN PANEL ──────────────────────────────────────────────────
 function updateStripePreview(){
   var h = parseInt(document.getElementById('stripeHeight')?.value||12);
   var c = document.getElementById('stripeColor')?.value||'#1B2A4A';
-  document.getElementById('stripeColorText').value = c;
-  document.getElementById('stripeHeightNum').value = h;
-  document.getElementById('stripeHeightVal').textContent = h;
   var prev = document.getElementById('stripePreview');
-  if(prev){ prev.style.height = h+'px'; prev.style.background = c; }
+  if(prev){ prev.style.height=h+'px'; prev.style.background=c; }
 }
 function setStripeColor(c){
-  document.getElementById('stripeColor').value = c;
-  document.getElementById('stripeColorText').value = c;
+  var el = document.getElementById('stripeColor');
+  var txt = document.getElementById('stripeColorText');
+  if(el) el.value=c; if(txt) txt.value=c;
   updateStripePreview();
 }
 function setStripeHeight(h){
-  document.getElementById('stripeHeight').value = h;
-  document.getElementById('stripeHeightNum').value = h;
+  var el = document.getElementById('stripeHeight');
+  var num = document.getElementById('stripeHeightNum');
+  var lbl = document.getElementById('stripeHeightVal');
+  if(el) el.value=h; if(num) num.value=h; if(lbl) lbl.textContent=h;
   updateStripePreview();
 }
-function saveStripeSettings(){
+async function saveStripeSettings(){
   var h = parseInt(document.getElementById('stripeHeight')?.value||12);
   var c = document.getElementById('stripeColor')?.value||'#1B2A4A';
-  localStorage.setItem('kr_stripe', JSON.stringify({h:h,c:c}));
-  // Apply live on this page too
+  var val = JSON.stringify({h:h,c:c});
+  // 1. Save to localStorage (instant for this device)
+  try{ localStorage.setItem('kr_stripe', val); }catch(e){}
+  // 2. Save to Supabase (syncs ALL devices)
+  try{
+    await sbFetch('settings?on_conflict=key', {
+      method: 'POST',
+      headers: { Prefer: 'resolution=merge-duplicates,return=representation' },
+      body: JSON.stringify([{key:'site_stripe', value:val}])
+    });
+  }catch(e){ console.warn('Stripe save to Supabase failed:', e); }
+  // 3. Apply on this page immediately
   var el = document.getElementById('kr-stripe-css');
-  if(el) el.textContent = '.header,.header#hdr{border-top:'+h+'px solid '+c+' !important}';
+  if(!el){ el=document.createElement('style'); el.id='kr-stripe-css'; document.head.appendChild(el); }
+  el.textContent = '.header,.header#hdr{border-top:'+h+'px solid '+c+' !important}';
+  // 4. Show success
   var msg = document.getElementById('stripeSaveMsg');
-  if(msg){ msg.style.display='block'; setTimeout(function(){ msg.style.display='none'; }, 3500); }
+  if(msg){ msg.style.display='block'; setTimeout(()=>msg.style.display='none', 4000); }
 }
 function loadStripePanel(){
-  var s = _getStripeSettings();
-  document.getElementById('stripeColor').value = s.c;
-  document.getElementById('stripeColorText').value = s.c;
-  document.getElementById('stripeHeight').value = s.h;
-  document.getElementById('stripeHeightNum').value = s.h;
-  document.getElementById('stripeHeightVal').textContent = s.h;
-  updateStripePreview();
+  // Try Supabase first, fall back to localStorage
+  var supa_url = 'https://xczrzdbikkycgpnvolib.supabase.co';
+  var supa_key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
+  fetch(supa_url+'/rest/v1/settings?select=value&key=eq.site_stripe', {
+    headers:{'apikey':supa_key,'Authorization':'Bearer '+supa_key}
+  }).then(r=>r.json()).then(rows=>{
+    var s = (rows&&rows[0]&&rows[0].value) ? JSON.parse(rows[0].value)
+          : JSON.parse(localStorage.getItem('kr_stripe')||'{"h":12,"c":"#1B2A4A"}');
+    setStripeColor(s.c); setStripeHeight(s.h);
+  }).catch(()=>{
+    var s = JSON.parse(localStorage.getItem('kr_stripe')||'{"h":12,"c":"#1B2A4A"}');
+    setStripeColor(s.c); setStripeHeight(s.h);
+  });
 }
-// Hook into showPanel to init design panel when opened
-var _origShowPanel = typeof showPanel !== 'undefined' ? showPanel : null;
-document.addEventListener('DOMContentLoaded', function(){
-  var origSP = window.showPanel;
-  if(origSP){
-    window.showPanel = function(name, el){
-      origSP(name, el);
-      if(name === 'design') loadStripePanel();
+// Hook showPanel to load stripe data when design panel is opened
+(function(){
+  var orig = window.showPanel;
+  if(orig) window.showPanel = function(name, el){
+    orig(name, el);
+    if(name==='design') loadStripePanel();
+  };
+  else document.addEventListener('DOMContentLoaded', function(){
+    var orig2 = window.showPanel;
+    if(orig2) window.showPanel = function(name, el){
+      orig2(name, el);
+      if(name==='design') loadStripePanel();
     };
-  }
-});
+  });
+})();
 
 </script>
 </body>
