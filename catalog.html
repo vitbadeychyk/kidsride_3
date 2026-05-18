@@ -1725,6 +1725,22 @@ async function loadCategoryTree() {
             ${cnt ? `<span class="ctree-cnt">${cnt}</span>` : ''}
           </div>`;
       });
+      // Після типів транспорту — підкатегорії з БД, чиї товари не є транспортними типами
+      // (наприклад "Запчастини")
+      subs.forEach(sub => {
+        const cnt = prodCountMap[sub.id] || 0;
+        if (!cnt) return;
+        const subProds = _availableProds.filter(p => p.category_id === sub.id);
+        const allAreVehicleTypes = subProds.length > 0 && subProds.every(p => p.category && TYPE_UA_TREE[p.category]);
+        if (allAreVehicleTypes) return; // вже представлені типами вище
+        const isActive = _activeCatIdFilter === sub.id;
+        html += `
+          <div class="ctree-sub-row${isActive?' active':''}" onclick="selectCategory(${sub.id},0)">
+            <span class="ctree-dot"></span>
+            <span class="ctree-label">${sub.name}</span>
+            ${cnt ? `<span class="ctree-cnt">${cnt}</span>` : ''}
+          </div>`;
+      });
     } else {
       // Звичайні підкатегорії з БД
       subs.forEach(sub => {
@@ -2143,6 +2159,9 @@ function _getActiveCategoryIds() {
 
 function applyFiltersAndRender() {
   const grid = document.getElementById('productsGrid');
+
+  // Оновити панель фільтрів (бренди, напруга, вік) відповідно до поточної категорії
+  updateDynamicFilters();
 
   // Застосувати фільтри
   filteredProducts = allProducts.filter(p => {
