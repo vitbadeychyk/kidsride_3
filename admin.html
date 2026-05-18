@@ -1313,6 +1313,7 @@ tr:hover td{background:rgba(240,242,248,.5)}
         <button class="settings-tab" onclick="switchSettingsTab('seo',this)">🔍 SEO</button>
         <button class="settings-tab" onclick="switchSettingsTab('export',this)">📊 Дані</button>
         <button class="settings-tab" onclick="switchSettingsTab('security',this)">🔐 Безпека</button>
+          <button class="settings-tab" onclick="switchSettingsTab('catalog',this)">🗂️ Каталог</button>
       </div>
 
       <!-- TAB: STORE -->
@@ -1634,12 +1635,38 @@ CREATE POLICY "admin_seo" ON settings_seo USING (auth.role()='authenticated') WI
           <div class="f-group"><label class="f-label">Project URL</label><input type="text" value="${SUPABASE_URL}" readonly style="padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:13px;background:var(--bg);color:var(--text-muted);width:100%;font-family:monospace"></div>
           <div class="f-group" style="margin-top:12px"><label class="f-label">Anon Key (тільки читання)</label><input type="password" id="cfg_sb_key_display" value="${SUPABASE_KEY}" readonly style="padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:13px;background:var(--bg);color:var(--text-muted);width:100%;font-family:monospace"></div>
         </div>
+
+        <!-- TAB: CATALOG DEFAULT -->
+        <div class="settings-section" id="stab-catalog">
+          <div class="import-card" style="margin-bottom:16px">
+            <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:8px;color:var(--navy)">Вигляд каталогу за замовчуванням</h3>
+            <p style="font-size:13px;color:var(--text-muted);margin-bottom:18px;line-height:1.6">Оберіть які типи транспорту показувати <strong>при відкритті каталогу</strong> (до вибору покупцем будь-якого фільтру). Кнопка «Скинути фільтри» також повертатиме до цих типів.</p>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px" id="catalogDefaultTypesList">
+              <!-- rendered by JS -->
+            </div>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+              <button class="btn btn-primary btn-sm" onclick="saveCatalogDefault()">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                Зберегти налаштування
+              </button>
+              <span id="catalogDefaultSavedMsg" style="display:none;font-size:12px;color:var(--green);font-weight:700">&#10003; Збережено!</span>
+            </div>
+          </div>
+          <div class="import-card" style="background:var(--bg-soft)">
+            <h4 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;color:var(--navy);margin-bottom:8px">Як це працює</h4>
+            <ul style="font-size:12px;color:var(--text-muted);line-height:1.8;margin:0;padding-left:18px">
+              <li>Якщо обрано <strong>один тип</strong> — покупці бачать лише його товари при відкритті каталогу</li>
+              <li>Якщо обрано <strong>кілька типів</strong> — показуються товари всіх обраних типів</li>
+              <li>Якщо <strong>нічого не обрано</strong> — відображається весь каталог</li>
+              <li>Покупець може вільно змінити фільтр — це лише початковий вигляд сторінки</li>
+            </ul>
+          </div>
+        </div>
+
       </div>
 
-    </div>
-
-  </div><!-- /content -->
-</div><!-- /main -->
+    </div><!-- /content -->
+  </div><!-- /main -->
 
 <!-- MODALS -->
 <!-- Order modal -->
@@ -4963,7 +4990,58 @@ function _applyStoredTheme() {
   document.head.appendChild(s);
 })();
 
-// ── SETTINGS STORAGE (localStorage fallback) ─────────────────
+
+  // ── CATALOG DEFAULT SETTINGS ──────────────────────────────────
+  const CATALOG_VEHICLE_TYPES = [
+    { code: 'jeep',    label: 'Джипи',             icon: '🚙' },
+    { code: 'quad',    label: 'Квадроцикли',        icon: '🏎️' },
+    { code: 'moto',    label: 'Мотоцикли',          icon: '🏍️' },
+    { code: 'car',     label: 'Машини',             icon: '🚘' },
+    { code: 'tractor', label: 'Трактори',           icon: '🚜' },
+    { code: 'walker',  label: 'Каталки-толокари',   icon: '🧸' },
+    { code: 'truck',   label: 'Вантажівки',         icon: '🚛' },
+    { code: 'buggy',   label: 'Баггі',              icon: '🏁' },
+  ];
+
+  function renderCatalogDefaultTypes() {
+    const container = document.getElementById('catalogDefaultTypesList');
+    if (!container) return;
+    const cfg = loadSettings();
+    const selected = (cfg.catalogDefault && cfg.catalogDefault.vehicleTypes) || ['jeep'];
+    container.innerHTML = CATALOG_VEHICLE_TYPES.map(t => {
+      const isChecked = selected.includes(t.code);
+      return `<label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1.5px solid ${isChecked ? 'var(--orange)' : 'var(--border)'};border-radius:var(--r-sm);cursor:pointer;background:${isChecked ? 'rgba(255,107,53,.06)' : 'white'};transition:all .2s;user-select:none" onclick="toggleCatalogDefaultType('${t.code}',this)">
+        <input type="checkbox" id="cdt_${t.code}" ${isChecked ? 'checked' : ''} style="width:16px;height:16px;accent-color:var(--orange);cursor:pointer" onclick="event.stopPropagation();toggleCatalogDefaultType('${t.code}',this.closest('label'))">
+        <span style="font-size:18px">${t.icon}</span>
+        <span style="font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;color:var(--navy)">${t.label}</span>
+      </label>`;
+    }).join('');
+  }
+
+  function toggleCatalogDefaultType(code, labelEl) {
+    const cb = document.getElementById('cdt_' + code);
+    if (!cb) return;
+    const newChecked = !cb.checked;
+    cb.checked = newChecked;
+    if (labelEl) {
+      labelEl.style.borderColor = newChecked ? 'var(--orange)' : 'var(--border)';
+      labelEl.style.background  = newChecked ? 'rgba(255,107,53,.06)' : 'white';
+    }
+  }
+
+  function saveCatalogDefault() {
+    const selected = CATALOG_VEHICLE_TYPES
+      .filter(t => document.getElementById('cdt_' + t.code)?.checked)
+      .map(t => t.code);
+    _cacheSettings({ catalogDefault: { vehicleTypes: selected } });
+    const msg = document.getElementById('catalogDefaultSavedMsg');
+    if (msg) {
+      msg.style.display = 'inline';
+      setTimeout(() => { msg.style.display = 'none'; }, 3000);
+    }
+  }
+
+  // ── SETTINGS STORAGE (localStorage fallback) ─────────────────
 const SETTINGS_KEY = 'kr_admin_settings';
 function loadSettings() {
   try { return JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); } catch(e) { return {}; }
@@ -5235,6 +5313,9 @@ async function renderSettings() {
   const lcfg = loadSettings();
   _setCheck('cfg_auto_logout', lcfg.cfg_auto_logout);
   _setCheck('cfg_log_actions', lcfg.cfg_log_actions !== undefined ? lcfg.cfg_log_actions : 'true');
+
+  // Catalog default tab
+  renderCatalogDefaultTypes();
 
   // Browser notification status
   const permEl = document.getElementById('notifPermStatus');
