@@ -1,28 +1,18 @@
 -- ══════════════════════════════════════════════════════════════
--- KidsRide — Міграція таблиці ostatok
--- Додає нові поля: sell_price, old_price, images, active
---
+-- KidsRide — Додає поле category_id у таблицю ostatok
 -- Запусти один раз у Supabase → SQL Editor
 -- ══════════════════════════════════════════════════════════════
 
--- 1. Ціна продажу (що показується покупцю)
 ALTER TABLE ostatok
-  ADD COLUMN IF NOT EXISTS sell_price numeric(10,2) DEFAULT NULL;
+  ADD COLUMN IF NOT EXISTS category_id integer REFERENCES categories(id) ON DELETE SET NULL;
 
--- 2. Стара ціна / РРЦ (перекреслена ціна)
-ALTER TABLE ostatok
-  ADD COLUMN IF NOT EXISTS old_price numeric(10,2) DEFAULT NULL;
-
--- 3. Масив URL фото (до 15 посилань)
-ALTER TABLE ostatok
-  ADD COLUMN IF NOT EXISTS images text[] DEFAULT NULL;
-
--- 4. Статус: чи показувати товар на сайті (за замовч. true)
-ALTER TABLE ostatok
-  ADD COLUMN IF NOT EXISTS active boolean NOT NULL DEFAULT true;
+-- Індекс для швидкого пошуку за підкатегорією
+CREATE INDEX IF NOT EXISTS ostatok_category_id_idx
+  ON ostatok (category_id)
+  WHERE category_id IS NOT NULL;
 
 -- ══════════════════════════════════════════════════════════════
--- Перевірка — має показати всі нові поля:
+-- Перевірка:
 -- SELECT column_name, data_type FROM information_schema.columns
 -- WHERE table_name = 'ostatok' ORDER BY ordinal_position;
 -- ══════════════════════════════════════════════════════════════
