@@ -222,13 +222,23 @@ nav a:hover{color:var(--navy);background:var(--bg-soft)}
 .h-phone-sep{width:1px;height:22px;background:var(--border);flex-shrink:0;margin:0 2px}
 @media(max-width:1024px){.h-phone-link .h-phone-text{display:none}}
 @media(max-width:640px){.h-phone-link{width:40px;height:40px;padding:0;justify-content:center}}
-.top-stripe{height:14px;background:#1B2A4A;width:100%;flex-shrink:0}
+.header,.header#hdr{border-top:12px solid #1B2A4A}
 </style>
+<script>
+(function(){
+  try{
+    var s=JSON.parse(localStorage.getItem('kr_stripe')||'{"h":12,"c":"#1B2A4A"}');
+    var el=document.createElement('style');
+    el.id='kr-stripe-css';
+    el.textContent='.header,.header#hdr{border-top:'+s.h+'px solid '+s.c+' !important}';
+    document.head.appendChild(el);
+  }catch(e){}
+})();
+</script>
 </head>
 <body>
 <script src="shared.js"></script>
 
-<div class="top-stripe"></div>
 <!-- HEADER -->
 <header class="header" id="hdr">
   <a href="index.html" class="logo">

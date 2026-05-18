@@ -337,7 +337,7 @@ nav a.active{color:var(--orange)}
 .h-phone-sep{width:1px;height:22px;background:var(--border);flex-shrink:0;margin:0 2px}
 @media(max-width:1024px){.h-phone-link .h-phone-text{display:none}}
 @media(max-width:640px){.h-phone-link{width:40px;height:40px;padding:0;justify-content:center}}
-.top-stripe{height:14px;background:#1B2A4A;width:100%;flex-shrink:0}
+.header,.header#hdr{border-top:12px solid #1B2A4A}
 
 @media(max-width:480px){
   .h-phone-sep{display:none}
@@ -350,11 +350,21 @@ nav a.active{color:var(--orange)}
 .page-size-select:focus{outline:none;border-color:var(--orange)}
 @media(max-width:900px){.page-size-select{padding:8px 28px 8px 10px;font-size:12px}}
 </style>
+<script>
+(function(){
+  try{
+    var s=JSON.parse(localStorage.getItem('kr_stripe')||'{"h":12,"c":"#1B2A4A"}');
+    var el=document.createElement('style');
+    el.id='kr-stripe-css';
+    el.textContent='.header,.header#hdr{border-top:'+s.h+'px solid '+s.c+' !important}';
+    document.head.appendChild(el);
+  }catch(e){}
+})();
+</script>
 </head>
 <body>
 <script src="shared.js"></script>
 
-<div class="top-stripe"></div>
 <!-- HEADER -->
 <header class="header" id="hdr">
   <a href="index.html" class="logo">
@@ -2254,7 +2264,7 @@ function applyFiltersAndRender() {
       && !activeFilters.types.length && !activeFilters.ages.length
       && !activeFilters.brands.length && !activeFilters.voltages.length && !activeFilters.search;
     const _displayCount = _noFilter
-      ? (allProducts || []).filter(p => !(p.stock != null && p.stock <= 0 && !(Number(p.preorderDays) > 0))).length
+      ? (allProducts||[]).filter(p=>!(p.stock!=null&&p.stock<=0&&!(Number(p.preorderDays)>0))).length
       : filteredProducts.length;
     countEl.textContent = _displayCount + ' товарів';
   }
@@ -2299,11 +2309,7 @@ function applyFiltersAndRender() {
 let PAGE_SIZE = 50;
 let currentPage = 1;
 
-function changePageSize(n) {
-  PAGE_SIZE = parseInt(n, 10) || 50;
-  currentPage = 1;
-  applyFiltersAndRender();
-}
+function changePageSize(n){PAGE_SIZE=parseInt(n,10)||50;currentPage=1;applyFiltersAndRender();}
 
 function goToPage(n) {
   currentPage = Math.max(1, n);
