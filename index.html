@@ -2411,7 +2411,7 @@ else document.addEventListener('DOMContentLoaded', initInstaFab);
   // Замініть цей URL на URL вашого задеплоєного API сервера
   // Наприклад: 'https://your-app.replit.app/api'
   // Або залиште '/api' якщо сайт розміщений на тому ж домені
-  var IG_API = 'https://9458861c-90ae-4517-9554-94db45069cb9-00-1tufu4jcuwq0x.spock.replit.dev/api';
+  var IG_API = '';
 
   var HEART_SVG = '<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
   var VIDEO_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
@@ -2439,7 +2439,7 @@ else document.addEventListener('DOMContentLoaded', initInstaFab);
     var grid = document.getElementById('ig-grid');
     if (!grid) return;
 
-    fetch(IG_API + '/instagram/posts?limit=20')
+    fetch('/api/instagram')
       .then(function(r) { return r.json(); })
       .then(function(json) {
         var posts = json.data || [];
