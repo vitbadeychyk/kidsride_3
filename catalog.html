@@ -1766,19 +1766,19 @@ async function loadCategoryTree() {
   treeEl.innerHTML = html;
 
   // За замовчуванням показуємо Джипи (якщо немає URL-фільтрів і ще не ініціалізовано)
+  // Тихо фільтруємо — без виділення категорій у дереві, без зміни заголовка
   if (!_autoJeepDone) {
     const _urlPAuto = new URLSearchParams(location.search);
     const _hasFilter = _urlPAuto.get('catId') || _urlPAuto.get('mainCatId') || _urlPAuto.get('parentId')
       || _urlPAuto.get('cat') || _urlPAuto.get('type') || _urlPAuto.get('vehicleType')
       || _urlPAuto.get('search') || _urlPAuto.get('brand');
     if (!_hasFilter && !_activeCatIdFilter && !_activeParentIdFilter && !_activeVehicleType) {
-      _autoJeepDone = true;
-      const jeepProd = _availableProds.find(p => p.category === 'jeep');
-      if (jeepProd && jeepProd.category_id) {
-        const jeepSub = _allCategories.find(c => c.id === jeepProd.category_id);
-        if (jeepSub && jeepSub.main_category_id) {
-          selectVehicleType('jeep', jeepSub.main_category_id);
-        }
+      const hasJeep = _availableProds.some(p => p.category === 'jeep');
+      if (hasJeep) {
+        _autoJeepDone = true;
+        _activeVehicleType = 'jeep';
+        currentPage = 1;
+        applyFiltersAndRender();
       }
     }
   }

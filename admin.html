@@ -6571,7 +6571,7 @@ function paRenderTable() {
       <td><a href="${_escHtml(href)}" target="_blank" style="color:var(--navy);font-weight:600;text-decoration:none;hover:color:var(--orange)">${_escHtml(p.name)}</a>
         <div style="margin-top:4px;height:4px;background:var(--border);border-radius:2px"><div style="width:${pct}%;height:100%;background:var(--orange);border-radius:2px"></div></div>
       </td>
-      <td style="font-size:12px;color:#FF6B35;font-weight:700;cursor:pointer;text-decoration:underline;text-decoration-style:dotted" onclick="_openSkuChart(${JSON.stringify(p.id||'')},${JSON.stringify(p.name)},${JSON.stringify(p.sku)})" title="Натисніть для детальної аналітики">${_escHtml(p.sku)}</td>
+      <td style="font-size:12px;color:#FF6B35;font-weight:700;cursor:pointer;text-decoration:underline;text-decoration-style:dotted" onclick="_openSkuChart('${String(p.id||'').replace(/\\/g,'\\\\').replace(/'/g,'\\\'').replace(/"/g,'&quot;')}','${p.name.replace(/\\/g,'\\\\').replace(/'/g,'\\\'').replace(/"/g,'&quot;')}','${p.sku.replace(/\\/g,'\\\\').replace(/'/g,'\\\'').replace(/"/g,'&quot;')}')" title="Натисніть для детальної аналітики">${_escHtml(p.sku)}</td>
       <td style="font-weight:700;color:var(--navy)">${p.views}</td>
       <td>${p.sessions}</td>
       <td style="font-size:12px">${last}</td>
