@@ -405,25 +405,65 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
 @media(max-width:1024px){
   .header{padding:0 24px}
   nav{display:none}
-  .hero-content{grid-template-columns:1fr;padding:0 24px 72px}
+
+  /* Hero: fixed compact height to eliminate empty space */
+  .hero{height:580px !important;min-height:580px !important;max-height:580px !important}
+
+  /* Stacked layout: image on top, text below — NO overlap */
+  .hero-slide{align-items:flex-start !important;overflow:hidden}
+  .hero-content{
+    display:flex !important;
+    flex-direction:column !important;
+    grid-template-columns:unset !important;
+    padding:16px 20px 56px !important;
+    gap:0 !important;
+    align-items:stretch !important;
+    height:100%;
+    box-sizing:border-box;
+  }
+
+  /* Image card: full width strip at the TOP */
   .hero-img-wrap{
-    position:absolute !important;
-    right:16px;top:16px;
-    width:130px;height:94px;
+    position:static !important;
+    order:-1 !important;
+    width:100% !important;
+    height:160px !important;
     animation:none !important;
-    pointer-events:none;
+    pointer-events:auto !important;
+    margin:0 0 14px 0 !important;
+    flex-shrink:0;
   }
   .hero-img-card{
-    width:100% !important;max-width:none !important;
-    height:100% !important;aspect-ratio:unset !important;
-    border-radius:12px !important;
-    border:1px solid rgba(255,255,255,.18) !important;
-    backdrop-filter:blur(6px) !important;
+    width:100% !important;
+    max-width:none !important;
+    height:100% !important;
+    aspect-ratio:unset !important;
+    border-radius:14px !important;
+    border:1px solid rgba(255,255,255,.15) !important;
   }
   .hero-float-tag{display:none !important}
-  .hero-h1{font-size:clamp(26px,7vw,44px) !important}
-  .hero-p{font-size:15px !important}
-  .hero-btns .btn{font-size:13px !important;padding:11px 18px !important}
+
+  /* Tighter text for mobile */
+  .hero-chip{margin-bottom:8px !important;padding:5px 12px !important;font-size:11px !important}
+  .hero-h1{font-size:clamp(22px,6.5vw,38px) !important;line-height:1.12 !important;margin-bottom:6px !important}
+  .hero-p{font-size:14px !important;line-height:1.5 !important;margin-bottom:10px !important;opacity:.85 !important}
+  .hero-btns{gap:8px !important}
+  .hero-btns .btn{font-size:13px !important;padding:10px 16px !important}
+  .hero-stats{margin-top:10px !important;padding-top:10px !important;gap:20px !important}
+  .stat-n{font-size:24px !important}
+  .stat-l{font-size:11px !important}
+
+  /* Navigation arrows — bottom corners, small */
+  #heroPrev{
+    left:14px !important;top:auto !important;bottom:14px !important;
+    transform:none !important;width:34px !important;height:34px !important;font-size:15px !important;
+  }
+  #heroNext{
+    right:14px !important;top:auto !important;bottom:14px !important;
+    transform:none !important;width:34px !important;height:34px !important;font-size:15px !important;
+  }
+  .hero-pagination{left:50% !important;transform:translateX(-50%) !important;bottom:22px !important}
+
   .benefits-grid{grid-template-columns:repeat(2,1fr)}
   .products-grid{grid-template-columns:repeat(2,1fr)}
   .age-grid{grid-template-columns:repeat(3,1fr)}
@@ -432,25 +472,16 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
   .ig-grid{grid-template-columns:repeat(3,1fr)}
   .f-grid{grid-template-columns:1fr 1fr}
   .section,.section-sm{padding:40px 24px}
-  /* Navigation arrows — move to bottom corners on mobile */
-  #heroPrev{
-    left:16px !important;top:auto !important;bottom:16px !important;
-    transform:none !important;width:38px !important;height:38px !important;font-size:16px !important;
-  }
-  #heroNext{
-    right:16px !important;top:auto !important;bottom:16px !important;
-    transform:none !important;width:38px !important;height:38px !important;font-size:16px !important;
-  }
-  .hero-pagination{left:50% !important;transform:translateX(-50%) !important;bottom:26px !important}
 }
 @media(max-width:640px){
   .benefits-grid,.products-grid{grid-template-columns:1fr}
   .age-grid{grid-template-columns:1fr}
   .ig-grid{grid-template-columns:repeat(2,1fr)}
   .f-grid{grid-template-columns:1fr}
-  .hero-img-wrap{width:100px !important;height:72px !important;right:12px !important;top:12px !important}
-  .hero-h1{font-size:clamp(24px,8vw,38px) !important}
-  .hero-stats{gap:18px !important}
+  .hero{height:520px !important;min-height:520px !important;max-height:520px !important}
+  .hero-img-wrap{height:140px !important}
+  .hero-h1{font-size:clamp(20px,7vw,32px) !important}
+  .hero-stats{gap:14px !important}
   .stat-n{font-size:22px !important}
 }
 
@@ -565,8 +596,8 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
 @keyframes promoIn{from{opacity:0;transform:scale(.88) translateY(24px)}to{opacity:1;transform:scale(1) translateY(0)}}
 @keyframes truckDrive{0%{transform:translateX(-130px)}60%{transform:translateX(0)}75%{transform:translateX(-8px)}85%{transform:translateX(4px)}100%{transform:translateX(0)}}
 @keyframes truckBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
-@keyframes bannerReveal{0%,55%{opacity:0;transform:scaleX(0)}60%{opacity:1;transform:scaleX(1)}100%{opacity:1;transform:scaleX(1)}}
-@keyframes codeAppear{0%,65%{opacity:0;transform:translateY(12px)}75%{opacity:1;transform:translateY(0)}100%{opacity:1;transform:translateY(0)}}
+@keyframes bannerReveal{0%{opacity:0;transform:scaleX(0)}50%{opacity:1;transform:scaleX(1)}100%{opacity:1;transform:scaleX(1)}}
+@keyframes codeAppear{0%{opacity:0;transform:translateY(8px)}40%{opacity:1;transform:translateY(0)}100%{opacity:1;transform:translateY(0)}}
 @keyframes sparkle{0%{opacity:0;transform:scale(0) rotate(0deg)}50%{opacity:1;transform:scale(1.2) rotate(180deg)}100%{opacity:0;transform:scale(0) rotate(360deg)}}
 @keyframes starFloat{0%{transform:translateY(0) rotate(0)}100%{transform:translateY(-40px) rotate(20deg);opacity:0}}
 @keyframes giftPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
@@ -672,12 +703,11 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
 .promo-code-val{
   font-family:'Nunito',sans-serif;font-weight:900;
   font-size:clamp(28px,8vw,36px);
-  background:linear-gradient(135deg,#FF6B35,#e91e8c 50%,#7c3aed);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  color:#FF6B35;
   letter-spacing:.12em;
-  animation:codeAppear 1.5s .3s both;
   display:block;margin-bottom:4px;
   position:relative;
+  text-shadow:0 2px 12px rgba(255,107,53,.25);
 }
 .promo-code-shimmer{
   position:absolute;top:0;left:-100%;width:60%;height:100%;
@@ -2585,31 +2615,19 @@ else document.addEventListener('DOMContentLoaded', initInstaFab);
 
 <script>
 /* ===== PROMO POPUP MODAL ===== */
+/* Shows every time the homepage loads — 1 second delay, no cooldown */
 (function() {
   var PROMO_SETTINGS_KEY = 'kr_promo_settings';
-  var PROMO_SEEN_KEY = 'kr_promo_seen_date';
-  var PROMO_DELAY_MS = 3000;
+  var PROMO_DELAY_MS = 1000;
 
   function getPromoSettings() {
     try { return JSON.parse(localStorage.getItem(PROMO_SETTINGS_KEY) || '{}'); } catch(e) { return {}; }
   }
 
-  function shouldShowPromo() {
-    var cfg = getPromoSettings();
-    if (cfg.enabled === false) return false;
-    try {
-      var lastSeen = localStorage.getItem(PROMO_SEEN_KEY);
-      if (lastSeen) {
-        var diff = Date.now() - parseInt(lastSeen, 10);
-        if (diff < 24 * 60 * 60 * 1000) return false;
-      }
-    } catch(e) {}
-    return true;
-  }
-
   function addStars() {
     var container = document.getElementById('promoStars');
     if (!container) return;
+    container.innerHTML = '';
     var positions = [
       {left:'8%',top:'12%',delay:'0s',dur:'2.8s'},
       {left:'85%',top:'8%',delay:'.4s',dur:'3.2s'},
@@ -2639,11 +2657,11 @@ else document.addEventListener('DOMContentLoaded', initInstaFab);
       overlay.classList.add('open');
       document.body.style.overflow = 'hidden';
     }
-    try { localStorage.setItem(PROMO_SEEN_KEY, Date.now().toString()); } catch(e) {}
   }
 
   function initPromoModal() {
-    if (!shouldShowPromo()) return;
+    var cfg = getPromoSettings();
+    if (cfg.enabled === false) return;
     setTimeout(showPromoModal, PROMO_DELAY_MS);
   }
 
