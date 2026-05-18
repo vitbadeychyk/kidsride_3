@@ -1,161 +1,149 @@
-// Vercel Serverless Function: проксі до Нової Пошти.
-// Ключ зберігається на сервері в env-змінній NP_API_KEY (можна також NOVAPOSHTA_API_KEY).
-// Фронтенд надсилає сюди JSON виду:
-//   { modelName, calledMethod, methodProperties }
-// Ця функція додає apiKey і пересилає запит у https://api.novaposhta.ua/v2.0/json/
-
-const NP_URL = 'https://api.novaposhta.ua/v2.0/json/';
-
-// Прості ліміти/таймаути
-const REQUEST_TIMEOUT_MS = 12000;
-
-// Білий список методів НП — щоб ніхто не використав ваш ключ для довільних викликів
-const ALLOWED = {
-  Address: new Set([
-    'getCities',
-    'getAreas',
-    'getSettlements',
-    'searchSettlements',
-    'searchSettlementStreets',
-    'getStreet',
-    'getWarehouses',
-    'getWarehouseTypes',
-  ]),
-  AddressGeneral: new Set([
-    'getCities',
-    'getAreas',
-    'getSettlements',
-    'searchSettlements',
-    'searchSettlementStreets',
-    'getStreet',
-    'getWarehouses',
-    'getWarehouseTypes',
-  ]),
-  Common: new Set([
-    'getTimeIntervals',
-    'getCargoTypes',
-    'getServiceTypes',
-    'getTypesOfCounterparties',
-    'getPaymentForms',
-    'getOwnershipFormsList',
-  ]),
-  InternetDocument: new Set([
-    'getDocumentPrice',
-    'getDocumentDeliveryDate',
-  ]),
-  TrackingDocument: new Set([
-    'getStatusDocuments',
-  ]),
-};
+// Vercel Serverless Function: приймає заявку "Купити в 1 клік" та звичайні замовлення
+// Зберігає в Supabase (таблиця leads) і шле повідомлення в Telegram
 
 export default async function handler(req, res) {
-  // CORS
+  // CORS (на випадок якщо викликається не з того ж origin)
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   if (req.method !== 'POST') {
-    return res.status(405).json({ success: false, errors: ['Method not allowed'] });
-  }
-
-  const apiKey = process.env.NP_API_KEY || process.env.NOVAPOSHTA_API_KEY;
-  if (!apiKey) {
-    return res.status(500).json({
-      success: false,
-      errors: ['NP_API_KEY не задано у змінних середовища Vercel'],
-    });
+    return res.status(405).json({ ok: false, error: 'Method not allowed' });
   }
 
   try {
-    const body = typeof req.body === 'string'
-      ? JSON.parse(req.body || '{}')
-      : (req.body || {});
+    const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
+    const { phone, name, productId, productName, productPrice, productBrand, source, comment, items } = body;
 
-    const modelName = String(body.modelName || '').trim();
-    const calledMethod = String(body.calledMethod || '').trim();
-    const methodProperties = (body.methodProperties && typeof body.methodProperties === 'object')
-      ? body.methodProperties
-      : {};
-
-    if (!modelName || !calledMethod) {
-      return res.status(400).json({
-        success: false,
-        errors: ['modelName та calledMethod є обовʼязковими'],
-      });
+    // Валідація номера: лишаємо тільки цифри/+, перевіряємо довжину
+    const phoneClean = String(phone || '').replace(/[^\d+]/g, '');
+    if (!phoneClean || phoneClean.replace(/\+/g, '').length < 7) {
+      return res.status(400).json({ ok: false, error: 'Невірний номер телефону' });
     }
 
-    if (!ALLOWED[modelName] || !ALLOWED[modelName].has(calledMethod)) {
-      return res.status(400).json({
-        success: false,
-        errors: [`Метод ${modelName}.${calledMethod} не дозволений`],
-      });
-    }
+    const SUPABASE_URL = process.env.SUPABASE_URL;
+    const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+    const TG_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+    const TG_CHAT  = process.env.TELEGRAM_CHAT_ID;
 
-    // Захист від занадто великих payload-ів
-    try {
-      const payloadSize = JSON.stringify(methodProperties).length;
-      if (payloadSize > 10000) {
-        return res.status(413).json({
-          success: false,
-          errors: ['methodProperties занадто великий'],
-        });
-      }
-    } catch {}
-
-    const upstreamBody = {
-      apiKey,
-      modelName,
-      calledMethod,
-      methodProperties,
+    const lead = {
+      phone:         phoneClean.slice(0, 30),
+      name:          name ? String(name).slice(0, 100) : null,
+      product_id:    productId ? String(productId).slice(0, 100) : null,
+      product_name:  productName ? String(productName).slice(0, 200) : null,
+      product_price: (productPrice != null && !isNaN(Number(productPrice))) ? Number(productPrice) : null,
+      product_brand: productBrand ? String(productBrand).slice(0, 100) : null,
+      source:        source ? String(source).slice(0, 50) : 'quick_order',
+      status:        'new',
+      comment:       comment ? String(comment).slice(0, 1000) : null,
+      items:         Array.isArray(items) ? items.slice(0, 50) : null
     };
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-
-    let upstream;
-    try {
-      upstream = await fetch(NP_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(upstreamBody),
-        signal: controller.signal,
-      });
-    } catch (e) {
-      clearTimeout(timeoutId);
-      if (e?.name === 'AbortError') {
-        return res.status(504).json({
-          success: false,
-          errors: ['Нова Пошта не відповіла вчасно'],
+    // 1) Зберегти в Supabase
+    let saved = false, saveError = null;
+    if (SUPABASE_URL && SUPABASE_KEY) {
+      try {
+        const r = await fetch(`${SUPABASE_URL}/rest/v1/leads`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify(lead)
         });
-      }
-      return res.status(502).json({
-        success: false,
-        errors: ['Помилка звернення до Нової Пошти: ' + (e?.message || 'unknown')],
-      });
-    }
-    clearTimeout(timeoutId);
-
-    const text = await upstream.text();
-    let data;
-    try {
-      data = JSON.parse(text);
-    } catch {
-      return res.status(502).json({
-        success: false,
-        errors: ['Невалідна відповідь від Нової Пошти'],
-        raw: text?.slice(0, 500),
-      });
+        if (r.ok) saved = true;
+        else saveError = await r.text();
+      } catch (e) { saveError = e.message; }
+    } else {
+      saveError = 'SUPABASE_URL / SUPABASE_KEY не задані';
     }
 
-    // Невелике кешування на CDN, щоб не спалювати квоту на повторюваних запитах
-    res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600');
+    // 2) Telegram
+    let sent = false, tgError = null;
+    if (TG_TOKEN && TG_CHAT) {
+      const text = formatTelegram(lead);
+      try {
+        const r = await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: TG_CHAT,
+            text,
+            parse_mode: 'HTML',
+            disable_web_page_preview: true
+          })
+        });
+        if (r.ok) sent = true;
+        else tgError = await r.text();
+      } catch (e) { tgError = e.message; }
+    } else {
+      tgError = 'TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID не задані';
+    }
 
-    return res.status(upstream.ok ? 200 : upstream.status).json(data);
+    // Якщо обидва канали впали — повідомляємо помилку
+    if (!saved && !sent) {
+      return res.status(500).json({ ok: false, error: 'Не вдалось обробити заявку', saveError, tgError });
+    }
+
+    return res.status(200).json({ ok: true, saved, sent });
   } catch (e) {
-    return res.status(500).json({
-      success: false,
-      errors: [e?.message || 'Server error'],
-    });
+    return res.status(500).json({ ok: false, error: e.message || 'Server error' });
   }
+}
+
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[<>&]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]));
+}
+
+function formatTelegram(l) {
+  const sourceLabel = {
+    quick_order: '⚡ Купити в 1 клік',
+    product_page: '📄 Сторінка товару',
+    catalog: '🛒 З каталогу',
+    checkout: '🧾 Оформлення замовлення',
+    cart: '🛍 Кошик'
+  }[l.source] || l.source;
+
+  const lines = [
+    '🔔 <b>НОВА ЗАЯВКА</b>',
+    `<i>${esc(sourceLabel)}</i>`,
+    ''
+  ];
+  lines.push(`📞 <b>Телефон:</b> <code>${esc(l.phone)}</code>`);
+  if (l.name) lines.push(`👤 <b>Ім'я:</b> ${esc(l.name)}`);
+
+  if (l.product_name) {
+    lines.push('');
+    lines.push(`🛒 <b>Товар:</b> ${esc(l.product_name)}`);
+    if (l.product_brand) lines.push(`🏷 <b>Бренд:</b> ${esc(l.product_brand)}`);
+    if (l.product_price) lines.push(`💰 <b>Ціна:</b> ${Number(l.product_price).toLocaleString('uk-UA')} ₴`);
+    if (l.product_id) lines.push(`🔖 <b>ID:</b> <code>${esc(l.product_id)}</code>`);
+  }
+
+  if (Array.isArray(l.items) && l.items.length) {
+    lines.push('');
+    lines.push(`🧾 <b>Товари (${l.items.length}):</b>`);
+    let total = 0;
+    l.items.slice(0, 20).forEach((it, i) => {
+      const qty = Number(it.qty || it.quantity || 1);
+      const price = Number(it.price || 0);
+      total += qty * price;
+      lines.push(`  ${i + 1}. ${esc(it.name || it.title || 'товар')} × ${qty} = ${(qty * price).toLocaleString('uk-UA')} ₴`);
+    });
+    if (total) lines.push(`<b>Разом:</b> ${total.toLocaleString('uk-UA')} ₴`);
+  }
+
+  if (l.comment) {
+    lines.push('');
+    lines.push(`💬 <b>Коментар:</b> ${esc(l.comment)}`);
+  }
+
+  lines.push('');
+  const time = new Date().toLocaleString('uk-UA', { timeZone: 'Europe/Kyiv', hour12: false });
+  lines.push(`🕒 ${esc(time)} (Київ)`);
+
+  return lines.join('\n');
 }

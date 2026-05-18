@@ -1669,15 +1669,14 @@ async function loadCategoryTree() {
     const vehicleTypes = [...new Set(parentProds.map(p => p.category).filter(c => c && TYPE_UA_TREE[c]))]
       .sort((a,b) => (TYPE_UA_TREE[a]||a).localeCompare(TYPE_UA_TREE[b]||b,'uk'));
 
-    // Використовувати типи замість підкатегорій якщо:
-    // — 2+ різних типи І (підкатегорій <= 1 АБО всі підкатегорії мають таку саму назву як батько)
+    // Використовувати типи замість підкатегорій якщо є 2+ різних типів транспорту в товарах.
+    // Це завжди пріоритетніше, ніж показ підкатегорій із БД (назви типу "Запчастини" не відповідають типам).
     const subNamesRedundant = subs.every(s => s.name.toLowerCase().includes(parent.name.toLowerCase()) || parent.name.toLowerCase().includes(s.name.toLowerCase()));
-    const useVehicleTypes   = vehicleTypes.length >= 2 && (subs.length <= 1 || subNamesRedundant);
+    const useVehicleTypes   = vehicleTypes.length >= 2;
 
     // ── Якщо єдина підкатегорія має ту саму назву що й батько — рендеримо як
     //    пряме посилання (без розкривного списку і стрілки).
-    //    Виняток: якщо є типи транспорту для показу (напр. Електромобілі) —
-    //    тоді залишаємо стандартний розкривний список з типами.
+    //    Виняток: якщо є типи транспорту для показу — залишаємо список з типами.
     const isSingleSameName = subs.length === 1 && subNamesRedundant && !useVehicleTypes;
     if (isSingleSameName) {
       const sub      = subs[0];
@@ -2334,17 +2333,27 @@ function updateDynamicFilters() {
   }
   const brandBlock = document.querySelector('.filter-block:has([data-group="brand"])');
   const hasCatSelection = _activeCatIdFilter || _activeParentIdFilter || _activeVehicleType;
-  if (brandBlock) brandBlock.style.display = (brandSet.length && hasCatSelection) ? '' : 'none';
+  // Показуємо бренди завжди (якщо є товари з брендами), динамічно фільтруємо за категорією
+  if (brandBlock) brandBlock.style.display = brandSet.length ? '' : 'none';
 
-  // ── Напруга акумулятора ───────────────────────────────────────────────────
-  // Показуємо ТІЛЬКИ якщо товари в категорії мають електричні типи транспорту
-  // (джип, квадроцикл, мото, машина, трактор, вантажівка, баггі)
-  // і є 2+ різних значень voltage (не просто один дефолтний '12V')
-  // Показуємо фільтр акумулятора лише якщо: 1) обрана категорія, 2) є товари з даними voltage
+  // ── Напруга акумулятора — лише для категорії "Електромобілі" ─────────────
+  // Визначаємо чи активна категорія є "Електромобілі" (або її підкатегорія/тип)
+  const _isElectricCategory = (() => {
+    let parentId = _activeParentIdFilter;
+    if (!parentId && _activeCatIdFilter) {
+      const cat = _allCategories.find(c => c.id === _activeCatIdFilter);
+      if (cat) parentId = cat.main_category_id;
+    }
+    if (parentId) {
+      const parent = _mainCategories.find(c => c.id === parentId);
+      return parent && /електромобіл/i.test(parent.name);
+    }
+    return false;
+  })();
     const voltageSet = [...new Set(
       catProds.map(p => String(p.voltage||'').toUpperCase().replace(/\s+/g,'')).filter(v => v && /^\d+V$/i.test(v))
     )].sort();
-    const showVoltage = hasCatSelection && voltageSet.length >= 1;
+    const showVoltage = _isElectricCategory && voltageSet.length >= 1;
     const voltBody = document.querySelector('#filterBlockVoltage .filter-body');
   if (voltBody && showVoltage) {
     const prevChecked = _getCheckedLabels('voltage');
