@@ -406,8 +406,8 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
   .header{padding:0 24px}
   nav{display:none}
 
-  /* Hero: fixed compact height to eliminate empty space */
-  .hero{height:580px !important;min-height:580px !important;max-height:580px !important}
+  /* Hero: auto height on mobile so image isn't cropped */
+  .hero{height:auto !important;min-height:0 !important;max-height:none !important}
 
   /* Stacked layout: image on top, text below — NO overlap */
   .hero-slide{align-items:flex-start !important;overflow:hidden}
@@ -422,12 +422,12 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
     box-sizing:border-box;
   }
 
-  /* Image card: full width strip at the TOP */
+  /* Image card: full width strip at the TOP — no crop */
   .hero-img-wrap{
     position:static !important;
     order:-1 !important;
     width:100% !important;
-    height:160px !important;
+    height:auto !important;
     animation:none !important;
     pointer-events:auto !important;
     margin:0 0 14px 0 !important;
@@ -436,10 +436,16 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
   .hero-img-card{
     width:100% !important;
     max-width:none !important;
-    height:100% !important;
+    height:auto !important;
     aspect-ratio:unset !important;
     border-radius:14px !important;
     border:1px solid rgba(255,255,255,.15) !important;
+  }
+  .hero-img-card img{
+    object-fit:contain !important;
+    height:auto !important;
+    max-height:240px !important;
+    background:rgba(255,255,255,.03);
   }
   .hero-float-tag{display:none !important}
 
@@ -478,8 +484,8 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
   .age-grid{grid-template-columns:1fr}
   .ig-grid{grid-template-columns:repeat(2,1fr)}
   .f-grid{grid-template-columns:1fr}
-  .hero{height:520px !important;min-height:520px !important;max-height:520px !important}
-  .hero-img-wrap{height:140px !important}
+  .hero{height:auto !important;min-height:0 !important;max-height:none !important}
+  .hero-img-wrap{height:auto !important}
   .hero-h1{font-size:clamp(20px,7vw,32px) !important}
   .hero-stats{gap:14px !important}
   .stat-n{font-size:22px !important}
@@ -2662,6 +2668,7 @@ else document.addEventListener('DOMContentLoaded', initInstaFab);
   function initPromoModal() {
     var cfg = getPromoSettings();
     if (cfg.enabled === false) return;
+    if (new URLSearchParams(location.search).has('nopopup')) return;
     setTimeout(showPromoModal, PROMO_DELAY_MS);
   }
 
