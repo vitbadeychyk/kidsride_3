@@ -405,8 +405,25 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
 @media(max-width:1024px){
   .header{padding:0 24px}
   nav{display:none}
-  .hero-content{grid-template-columns:1fr;padding:0 32px}
-  .hero-img-wrap{display:none}
+  .hero-content{grid-template-columns:1fr;padding:0 24px 72px}
+  .hero-img-wrap{
+    position:absolute !important;
+    right:16px;top:16px;
+    width:130px;height:94px;
+    animation:none !important;
+    pointer-events:none;
+  }
+  .hero-img-card{
+    width:100% !important;max-width:none !important;
+    height:100% !important;aspect-ratio:unset !important;
+    border-radius:12px !important;
+    border:1px solid rgba(255,255,255,.18) !important;
+    backdrop-filter:blur(6px) !important;
+  }
+  .hero-float-tag{display:none !important}
+  .hero-h1{font-size:clamp(26px,7vw,44px) !important}
+  .hero-p{font-size:15px !important}
+  .hero-btns .btn{font-size:13px !important;padding:11px 18px !important}
   .benefits-grid{grid-template-columns:repeat(2,1fr)}
   .products-grid{grid-template-columns:repeat(2,1fr)}
   .age-grid{grid-template-columns:repeat(3,1fr)}
@@ -415,12 +432,26 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
   .ig-grid{grid-template-columns:repeat(3,1fr)}
   .f-grid{grid-template-columns:1fr 1fr}
   .section,.section-sm{padding:40px 24px}
+  /* Navigation arrows — move to bottom corners on mobile */
+  #heroPrev{
+    left:16px !important;top:auto !important;bottom:16px !important;
+    transform:none !important;width:38px !important;height:38px !important;font-size:16px !important;
+  }
+  #heroNext{
+    right:16px !important;top:auto !important;bottom:16px !important;
+    transform:none !important;width:38px !important;height:38px !important;font-size:16px !important;
+  }
+  .hero-pagination{left:50% !important;transform:translateX(-50%) !important;bottom:26px !important}
 }
 @media(max-width:640px){
   .benefits-grid,.products-grid{grid-template-columns:1fr}
   .age-grid{grid-template-columns:1fr}
   .ig-grid{grid-template-columns:repeat(2,1fr)}
   .f-grid{grid-template-columns:1fr}
+  .hero-img-wrap{width:100px !important;height:72px !important;right:12px !important;top:12px !important}
+  .hero-h1{font-size:clamp(24px,8vw,38px) !important}
+  .hero-stats{gap:18px !important}
+  .stat-n{font-size:22px !important}
 }
 
 /* ── MOBILE BURGER ── */
@@ -529,9 +560,227 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
 .h-phone-sep{width:1px;height:22px;background:var(--border);flex-shrink:0;margin:0 2px}
 @media(max-width:1024px){.h-phone-link .h-phone-text{display:none}}
 @media(max-width:640px){.h-phone-link{width:40px;height:40px;padding:0;justify-content:center}}
+
+/* ── PROMO POPUP MODAL ── */
+@keyframes promoIn{from{opacity:0;transform:scale(.88) translateY(24px)}to{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes truckDrive{0%{transform:translateX(-130px)}60%{transform:translateX(0)}75%{transform:translateX(-8px)}85%{transform:translateX(4px)}100%{transform:translateX(0)}}
+@keyframes truckBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes bannerReveal{0%,55%{opacity:0;transform:scaleX(0)}60%{opacity:1;transform:scaleX(1)}100%{opacity:1;transform:scaleX(1)}}
+@keyframes codeAppear{0%,65%{opacity:0;transform:translateY(12px)}75%{opacity:1;transform:translateY(0)}100%{opacity:1;transform:translateY(0)}}
+@keyframes sparkle{0%{opacity:0;transform:scale(0) rotate(0deg)}50%{opacity:1;transform:scale(1.2) rotate(180deg)}100%{opacity:0;transform:scale(0) rotate(360deg)}}
+@keyframes starFloat{0%{transform:translateY(0) rotate(0)}100%{transform:translateY(-40px) rotate(20deg);opacity:0}}
+@keyframes giftPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+@keyframes promoRoadMove{from{background-position:0 0}to{background-position:-80px 0}}
+@keyframes shimmer{0%{left:-100%}100%{left:200%}}
+
+.promo-overlay{
+  display:none;position:fixed;inset:0;z-index:9999;
+  background:rgba(10,12,30,.72);
+  backdrop-filter:blur(8px);
+  align-items:center;justify-content:center;
+  padding:20px;
+}
+.promo-overlay.open{display:flex}
+.promo-modal{
+  position:relative;
+  width:100%;max-width:460px;
+  border-radius:28px;
+  overflow:hidden;
+  animation:promoIn .55s cubic-bezier(.34,1.56,.64,1) both;
+  box-shadow:0 40px 100px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.12);
+}
+.promo-bg{
+  background:linear-gradient(135deg,#FF6B35 0%,#e91e8c 45%,#7c3aed 100%);
+  padding:32px 28px 28px;
+  position:relative;overflow:hidden;
+}
+.promo-bg::before{
+  content:'';position:absolute;inset:0;
+  background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='30' cy='30' r='1.5' fill='rgba(255,255,255,.08)'/%3E%3C/svg%3E");
+  background-size:30px 30px;
+}
+.promo-close{
+  position:absolute;top:14px;right:14px;
+  width:32px;height:32px;border-radius:50%;
+  background:rgba(255,255,255,.2);border:none;
+  color:white;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:700;line-height:1;
+  transition:all .2s;z-index:10;
+  backdrop-filter:blur(6px);
+}
+.promo-close:hover{background:rgba(255,255,255,.38);transform:scale(1.1)}
+.promo-close-icon{font-size:18px;line-height:1;color:white;user-select:none}
+.promo-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);
+  border-radius:100px;padding:6px 14px;
+  font-size:12px;font-weight:700;color:white;
+  margin-bottom:14px;letter-spacing:.04em;text-transform:uppercase;
+  backdrop-filter:blur(6px);
+}
+.promo-title{
+  font-family:'Nunito',sans-serif;font-weight:900;
+  font-size:clamp(22px,6vw,30px);color:white;line-height:1.15;
+  margin-bottom:6px;position:relative;z-index:2;
+}
+.promo-subtitle{
+  font-size:14px;color:rgba(255,255,255,.88);line-height:1.5;
+  margin-bottom:20px;position:relative;z-index:2;
+}
+/* Truck animation scene */
+.promo-truck-scene{
+  position:relative;height:72px;margin-bottom:16px;overflow:hidden;
+  background:rgba(0,0,0,.18);border-radius:12px;
+}
+.promo-road{
+  position:absolute;bottom:0;left:0;right:0;height:6px;
+  background:repeating-linear-gradient(90deg,rgba(255,255,255,.5) 0px,rgba(255,255,255,.5) 20px,transparent 20px,transparent 40px);
+  animation:promoRoadMove 0.4s linear infinite;
+}
+.promo-truck{
+  position:absolute;bottom:6px;left:0;
+  animation:truckDrive 1.5s cubic-bezier(.25,.46,.45,.94) .3s both, truckBounce 0.35s ease-in-out 1.8s infinite;
+}
+.promo-truck svg{width:64px;height:44px}
+.promo-delivery-banner{
+  position:absolute;right:12px;top:50%;transform:translateY(-50%) scaleX(0);transform-origin:right center;
+  background:white;border-radius:8px;padding:6px 14px;
+  font-family:'Nunito',sans-serif;font-weight:900;font-size:13px;color:#FF6B35;
+  white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.25);
+  animation:bannerReveal 1.5s .3s both;
+  transform-origin:right center;
+}
+/* Code ticket */
+.promo-ticket{
+  background:white;border-radius:18px;
+  margin:0 0 18px;padding:18px 22px;
+  position:relative;overflow:hidden;
+  box-shadow:0 12px 32px rgba(0,0,0,.22);
+}
+.promo-ticket::before,.promo-ticket::after{
+  content:'';position:absolute;top:50%;transform:translateY(-50%);
+  width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#FF6B35,#e91e8c 60%,#7c3aed);
+}
+.promo-ticket::before{left:-12px}
+.promo-ticket::after{right:-12px}
+.promo-ticket-dashed{
+  border-top:2px dashed rgba(107,114,128,.25);
+  margin:10px 0 12px;
+}
+.promo-code-label{font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px}
+.promo-code-val{
+  font-family:'Nunito',sans-serif;font-weight:900;
+  font-size:clamp(28px,8vw,36px);
+  background:linear-gradient(135deg,#FF6B35,#e91e8c 50%,#7c3aed);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  letter-spacing:.12em;
+  animation:codeAppear 1.5s .3s both;
+  display:block;margin-bottom:4px;
+  position:relative;
+}
+.promo-code-shimmer{
+  position:absolute;top:0;left:-100%;width:60%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.6),transparent);
+  animation:shimmer 2.5s 1.8s ease-in-out infinite;
+}
+.promo-code-desc{font-size:12px;color:#6b7280;line-height:1.4}
+/* CTA buttons */
+.promo-actions{display:flex;flex-direction:column;gap:10px;position:relative;z-index:2}
+.promo-btn-ig{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  padding:14px 24px;border-radius:14px;
+  background:linear-gradient(90deg,#f09433,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888);
+  color:white;font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;
+  text-decoration:none;transition:all .25s cubic-bezier(.34,1.56,.64,1);
+  box-shadow:0 6px 20px rgba(188,24,136,.4);
+}
+.promo-btn-ig:hover{transform:translateY(-2px) scale(1.02);box-shadow:0 10px 28px rgba(188,24,136,.55)}
+.promo-btn-ig svg{width:20px;height:20px;flex-shrink:0}
+.promo-btn-skip{
+  text-align:center;font-size:12px;color:rgba(255,255,255,.65);
+  cursor:pointer;padding:4px;transition:color .2s;background:none;border:none;font-family:'Manrope',sans-serif;
+}
+.promo-btn-skip:hover{color:rgba(255,255,255,.9)}
+/* Stars decoration */
+.promo-stars{position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;overflow:hidden}
+.promo-star{position:absolute;font-size:14px;animation:starFloat 3s ease-out infinite;opacity:.7}
+@media(max-width:480px){
+  .promo-bg{padding:24px 20px 20px}
+  .promo-ticket{padding:14px 16px}
+  .promo-modal{max-width:96vw;border-radius:22px}
+}
 </style>
 </head>
 <body>
+
+<!-- PROMO MODAL -->
+<div class="promo-overlay" id="promoOverlay" onclick="promoOverlayClick(event)">
+  <div class="promo-modal" id="promoModal">
+    <div class="promo-bg">
+      <!-- Stars decoration -->
+      <div class="promo-stars" id="promoStars"></div>
+      <!-- Close button -->
+      <button class="promo-close" onclick="closePromoModal()" aria-label="Закрити">
+        <span class="promo-close-icon">&#x2715;</span>
+      </button>
+      <!-- Badge -->
+      <div class="promo-badge">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        Спецпропозиція для підписників
+      </div>
+      <!-- Title -->
+      <div class="promo-title">Безкоштовна доставка<br>на будь-який товар!</div>
+      <div class="promo-subtitle">Підпишись на Instagram @kidsride.ua і введи промокод при оформленні замовлення</div>
+      <!-- Truck animation -->
+      <div class="promo-truck-scene">
+        <div class="promo-truck">
+          <svg viewBox="0 0 80 55" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Truck body -->
+            <rect x="2" y="14" width="50" height="28" rx="4" fill="white" fill-opacity="0.9"/>
+            <rect x="2" y="14" width="50" height="28" rx="4" stroke="rgba(255,255,255,0.4)" stroke-width="1"/>
+            <!-- Cab -->
+            <rect x="52" y="20" width="22" height="22" rx="4" fill="white" fill-opacity="0.8"/>
+            <!-- Cab window -->
+            <rect x="56" y="24" width="12" height="10" rx="2" fill="#7c3aed" fill-opacity="0.7"/>
+            <!-- Wheels -->
+            <circle cx="16" cy="44" r="7" fill="#1B2A4A"/>
+            <circle cx="16" cy="44" r="4" fill="rgba(255,255,255,0.3)"/>
+            <circle cx="40" cy="44" r="7" fill="#1B2A4A"/>
+            <circle cx="40" cy="44" r="4" fill="rgba(255,255,255,0.3)"/>
+            <circle cx="63" cy="44" r="7" fill="#1B2A4A"/>
+            <circle cx="63" cy="44" r="4" fill="rgba(255,255,255,0.3)"/>
+            <!-- NP logo on truck body -->
+            <rect x="8" y="20" width="36" height="16" rx="2" fill="#FF6B35" fill-opacity="0.8"/>
+            <text x="26" y="31" text-anchor="middle" font-family="Nunito,sans-serif" font-weight="900" font-size="7" fill="white">KIDSRIDE</text>
+            <!-- Exhaust -->
+            <rect x="73" y="16" width="4" height="8" rx="2" fill="rgba(255,255,255,0.5)"/>
+          </svg>
+        </div>
+        <div class="promo-delivery-banner">🎁 Безкоштовна доставка!</div>
+        <div class="promo-road"></div>
+      </div>
+      <!-- Code ticket -->
+      <div class="promo-ticket">
+        <div class="promo-code-label">Ваш промокод</div>
+        <div style="position:relative;overflow:hidden;border-radius:6px">
+          <div class="promo-code-val" id="promoCodeDisplay">KIDSFREE</div>
+          <div class="promo-code-shimmer"></div>
+        </div>
+        <div class="promo-ticket-dashed"></div>
+        <div class="promo-code-desc">Введи промокод у кошику або при оформленні замовлення. Безкоштовна доставка Новою Поштою на будь-який товар.</div>
+      </div>
+      <!-- Actions -->
+      <div class="promo-actions">
+        <a href="https://www.instagram.com/kidsride.ua/" target="_blank" rel="noopener" class="promo-btn-ig" onclick="promoIgClick()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+          Підписатися на @kidsride.ua
+        </a>
+        <button class="promo-btn-skip" onclick="closePromoModal()">Закрити &mdash; використаю пізніше</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- HEADER -->
 <header class="header" id="hdr">
@@ -2332,6 +2581,98 @@ function closeInstaFab(e) {
 }
 if (document.readyState !== 'loading') initInstaFab();
 else document.addEventListener('DOMContentLoaded', initInstaFab);
+</script>
+
+<script>
+/* ===== PROMO POPUP MODAL ===== */
+(function() {
+  var PROMO_SETTINGS_KEY = 'kr_promo_settings';
+  var PROMO_SEEN_KEY = 'kr_promo_seen_date';
+  var PROMO_DELAY_MS = 3000;
+
+  function getPromoSettings() {
+    try { return JSON.parse(localStorage.getItem(PROMO_SETTINGS_KEY) || '{}'); } catch(e) { return {}; }
+  }
+
+  function shouldShowPromo() {
+    var cfg = getPromoSettings();
+    if (cfg.enabled === false) return false;
+    try {
+      var lastSeen = localStorage.getItem(PROMO_SEEN_KEY);
+      if (lastSeen) {
+        var diff = Date.now() - parseInt(lastSeen, 10);
+        if (diff < 24 * 60 * 60 * 1000) return false;
+      }
+    } catch(e) {}
+    return true;
+  }
+
+  function addStars() {
+    var container = document.getElementById('promoStars');
+    if (!container) return;
+    var positions = [
+      {left:'8%',top:'12%',delay:'0s',dur:'2.8s'},
+      {left:'85%',top:'8%',delay:'.4s',dur:'3.2s'},
+      {left:'15%',top:'55%',delay:'.8s',dur:'2.5s'},
+      {left:'78%',top:'48%',delay:'1.2s',dur:'3.5s'},
+      {left:'50%',top:'5%',delay:'.6s',dur:'2.9s'},
+      {left:'92%',top:'70%',delay:'1s',dur:'2.7s'},
+    ];
+    var icons = ['✦','★','✧','⭐','✨','💫'];
+    positions.forEach(function(p, i) {
+      var el = document.createElement('span');
+      el.className = 'promo-star';
+      el.textContent = icons[i % icons.length];
+      el.style.cssText = 'left:'+p.left+';top:'+p.top+';animation-delay:'+p.delay+';animation-duration:'+p.dur;
+      container.appendChild(el);
+    });
+  }
+
+  function showPromoModal() {
+    var cfg = getPromoSettings();
+    var code = cfg.promo_code || 'KIDSFREE';
+    var el = document.getElementById('promoCodeDisplay');
+    if (el) el.textContent = code;
+    addStars();
+    var overlay = document.getElementById('promoOverlay');
+    if (overlay) {
+      overlay.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+    try { localStorage.setItem(PROMO_SEEN_KEY, Date.now().toString()); } catch(e) {}
+  }
+
+  function initPromoModal() {
+    if (!shouldShowPromo()) return;
+    setTimeout(showPromoModal, PROMO_DELAY_MS);
+  }
+
+  if (document.readyState !== 'loading') initPromoModal();
+  else document.addEventListener('DOMContentLoaded', initPromoModal);
+})();
+
+function closePromoModal() {
+  var overlay = document.getElementById('promoOverlay');
+  if (overlay) {
+    overlay.style.opacity = '0';
+    overlay.style.transition = 'opacity .3s';
+    setTimeout(function() { overlay.classList.remove('open'); overlay.style.opacity = ''; overlay.style.transition = ''; document.body.style.overflow = ''; }, 300);
+  }
+}
+function promoOverlayClick(e) {
+  if (e.target === document.getElementById('promoOverlay')) closePromoModal();
+}
+function promoIgClick() {
+  try {
+    var hist = JSON.parse(localStorage.getItem('kr_promo_ig_clicks') || '[]');
+    hist.unshift({ date: new Date().toISOString(), action: 'ig_click' });
+    localStorage.setItem('kr_promo_ig_clicks', JSON.stringify(hist.slice(0, 50)));
+  } catch(e) {}
+  setTimeout(closePromoModal, 600);
+}
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closePromoModal();
+});
 </script>
 
 <script>

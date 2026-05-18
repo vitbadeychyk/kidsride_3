@@ -1766,7 +1766,22 @@ async function loadCategoryTree() {
   treeEl.innerHTML = html;
 
   // За замовчуванням показуємо Джипи (якщо немає URL-фільтрів і ще не ініціалізовано)
-  // Дефолтний фільтр застосовано синхронно у renderCatalog() через _applyDefaultCatalogFilter()
+  // Тихо фільтруємо — без виділення категорій у дереві, без зміни заголовка
+  if (!_autoJeepDone) {
+    const _urlPAuto = new URLSearchParams(location.search);
+    const _hasFilter = _urlPAuto.get('catId') || _urlPAuto.get('mainCatId') || _urlPAuto.get('parentId')
+      || _urlPAuto.get('cat') || _urlPAuto.get('type') || _urlPAuto.get('vehicleType')
+      || _urlPAuto.get('search') || _urlPAuto.get('brand');
+    if (!_hasFilter && !_activeCatIdFilter && !_activeParentIdFilter && !_activeVehicleType) {
+      const hasJeep = _availableProds.some(p => p.category === 'jeep');
+      if (hasJeep) {
+        _autoJeepDone = true;
+        _activeVehicleType = 'jeep';
+        currentPage = 1;
+        applyFiltersAndRender();
+      }
+    }
+  }
 }
 
 // Відкрити/закрити підкатегорії
@@ -1798,13 +1813,11 @@ function toggleParent(rowEl, parentId) {
 let _activeCatIdFilter = 0;
 let _activeParentIdFilter = 0;
 let _autoJeepDone = false;
-let _activeDefaultVehicleTypes = []; // масив типів з адмін-налаштувань
 
 function selectCategory(catId, parentId) {
   _activeCatIdFilter    = catId;
   _activeParentIdFilter = parentId;
   _activeVehicleType    = ''; // скидаємо тип при виборі категорії
-  _activeDefaultVehicleTypes = []; // скидаємо дефолтний фільтр
 
   // Оновити активні класи без повного перемалювання дерева
   document.querySelectorAll('.cat-tree-all, .ctree-parent-row, .ctree-sub-row').forEach(el => el.classList.remove('active'));
@@ -1855,7 +1868,6 @@ function selectVehicleType(code, parentId) {
   _activeCatIdFilter    = 0;
   _activeParentIdFilter = parentId;
   _activeVehicleType    = code;
-  _activeDefaultVehicleTypes = []; // скидаємо дефолтний фільтр
 
   // Оновити активні класи в дереві
   document.querySelectorAll('.cat-tree-all, .ctree-parent-row, .ctree-sub-row').forEach(el => el.classList.remove('active'));
@@ -2081,32 +2093,7 @@ function renderCard(p) {
     </div>`;
 }
 
-
-  // ── АДМІН ДЕФОЛТ ДЛЯ КАТАЛОГУ ──────────────────────────────────────────────
-  function _getAdminCatalogDefault() {
-    try {
-      const cfg = JSON.parse(localStorage.getItem('kr_admin_settings') || '{}');
-      const def = cfg.catalogDefault;
-      if (def && Array.isArray(def.vehicleTypes) && def.vehicleTypes.length) return def.vehicleTypes;
-    } catch(_) {}
-    return ['jeep']; // за замовчуванням — джипи
-  }
-
-  // Застосовує дефолтний фільтр синхронно (до першого рендеру).
-  // Повертає true якщо фільтр застосовано.
-  function _applyDefaultCatalogFilter() {
-    const params = new URLSearchParams(location.search);
-    const hasUrl = params.get('catId') || params.get('mainCatId') || params.get('parentId')
-      || params.get('cat') || params.get('type') || params.get('vehicleType')
-      || params.get('search') || params.get('brand');
-    if (hasUrl || _activeCatIdFilter || _activeParentIdFilter || _activeVehicleType) return false;
-    const types = _getAdminCatalogDefault();
-    if (!types || !types.length) return false;
-    _activeDefaultVehicleTypes = types;
-    return true;
-  }
-
-  // ── RENDER CATALOG ──────────────────────────────────────────────────────────
+// ── RENDER CATALOG ──────────────────────────────────────────────────────────
 let allProducts = [];
 let filteredProducts = [];
 let activeFilters = { types: [], ages: [], brands: [], voltages: [], priceMin: 0, priceMax: 999999, search: '' };
@@ -2139,7 +2126,6 @@ async function renderCatalog() {
     if (countEl) countEl.textContent = allProducts.length + ' товарів';
     updateDynamicFilters();
     applyUrlFilters();
-    _applyDefaultCatalogFilter(); // застосовуємо дефолт СИНХРОННО до першого рендеру
     // Дерево будуємо вже з allProducts заповненим
     loadCategoryTree();
     applyFiltersAndRender();
@@ -2176,7 +2162,6 @@ async function renderCatalog() {
 
   updateDynamicFilters();
   applyUrlFilters();
-  _applyDefaultCatalogFilter(); // застосовуємо дефолт СИНХРОННО до першого рендеру
   // Дерево ПІСЛЯ того як allProducts заповнений
   loadCategoryTree();
   applyFiltersAndRender();
@@ -2207,8 +2192,7 @@ function applyFiltersAndRender() {
     if (activeCatIds.length && !activeCatIds.includes(p.category_id)) return false;
     // Фільтр по типу транспорту (з дерева або окремого блоку)
     if (_activeVehicleType && p.category !== _activeVehicleType) return false;
-    if (!_activeVehicleType && _activeDefaultVehicleTypes.length && !_activeDefaultVehicleTypes.includes(p.category)) return false;
-    if (!_activeVehicleType && !_activeDefaultVehicleTypes.length && activeFilters.types.length && !activeFilters.types.includes(p.category)) return false;
+    if (!_activeVehicleType && activeFilters.types.length && !activeFilters.types.includes(p.category)) return false;
     if (activeFilters.ages.length) {
       const ageRanges = { '1-3': [1,3], '3-6': [3,6], '6-10': [6,10] };
       const pAges = String(p.age || '').split('-').map(Number);
@@ -2351,7 +2335,6 @@ function _getCategoryProducts() {
   const ids  = _getActiveCategoryIds();
   let prods  = ids.length ? base.filter(p => ids.includes(p.category_id)) : base;
   if (_activeVehicleType) prods = prods.filter(p => p.category === _activeVehicleType);
-  else if (_activeDefaultVehicleTypes.length) prods = prods.filter(p => _activeDefaultVehicleTypes.includes(p.category));
   return prods;
 }
 
@@ -2407,7 +2390,7 @@ function updateDynamicFilters() {
     }).join('');
   }
   const brandBlock = document.querySelector('.filter-block:has([data-group="brand"])');
-  const hasCatSelection = _activeCatIdFilter || _activeParentIdFilter || _activeVehicleType || _activeDefaultVehicleTypes.length;
+  const hasCatSelection = _activeCatIdFilter || _activeParentIdFilter || _activeVehicleType;
   // Бренди — лише коли обрана категорія/тип
   if (brandBlock) brandBlock.style.display = (brandSet.length && hasCatSelection) ? '' : 'none';
 
@@ -2623,8 +2606,6 @@ function resetFilters() {
   _activeCatIdFilter    = 0;
   _activeParentIdFilter = 0;
   _activeVehicleType    = '';
-  _activeDefaultVehicleTypes = [];
-  _applyDefaultCatalogFilter(); // відновити адмін-дефолт (джипи або інший обраний тип)
   document.querySelectorAll('.filter-option.checked').forEach(o => o.classList.remove('checked'));
   const searchInput = document.getElementById('searchInput');
   if (searchInput) searchInput.value = '';

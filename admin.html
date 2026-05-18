@@ -1313,7 +1313,7 @@ tr:hover td{background:rgba(240,242,248,.5)}
         <button class="settings-tab" onclick="switchSettingsTab('seo',this)">🔍 SEO</button>
         <button class="settings-tab" onclick="switchSettingsTab('export',this)">📊 Дані</button>
         <button class="settings-tab" onclick="switchSettingsTab('security',this)">🔐 Безпека</button>
-          <button class="settings-tab" onclick="switchSettingsTab('catalog',this)">🗂️ Каталог</button>
+        <button class="settings-tab" onclick="switchSettingsTab('promo',this);renderPromoHistory()">🎁 Промо</button>
       </div>
 
       <!-- TAB: STORE -->
@@ -1635,38 +1635,72 @@ CREATE POLICY "admin_seo" ON settings_seo USING (auth.role()='authenticated') WI
           <div class="f-group"><label class="f-label">Project URL</label><input type="text" value="${SUPABASE_URL}" readonly style="padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:13px;background:var(--bg);color:var(--text-muted);width:100%;font-family:monospace"></div>
           <div class="f-group" style="margin-top:12px"><label class="f-label">Anon Key (тільки читання)</label><input type="password" id="cfg_sb_key_display" value="${SUPABASE_KEY}" readonly style="padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:13px;background:var(--bg);color:var(--text-muted);width:100%;font-family:monospace"></div>
         </div>
+      </div>
 
-        <!-- TAB: CATALOG DEFAULT -->
-        <div class="settings-section" id="stab-catalog">
-          <div class="import-card" style="margin-bottom:16px">
-            <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:8px;color:var(--navy)">Вигляд каталогу за замовчуванням</h3>
-            <p style="font-size:13px;color:var(--text-muted);margin-bottom:18px;line-height:1.6">Оберіть які типи транспорту показувати <strong>при відкритті каталогу</strong> (до вибору покупцем будь-якого фільтру). Кнопка «Скинути фільтри» також повертатиме до цих типів.</p>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px" id="catalogDefaultTypesList">
-              <!-- rendered by JS -->
-            </div>
-            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-              <button class="btn btn-primary btn-sm" onclick="saveCatalogDefault()">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-                Зберегти налаштування
-              </button>
-              <span id="catalogDefaultSavedMsg" style="display:none;font-size:12px;color:var(--green);font-weight:700">&#10003; Збережено!</span>
-            </div>
+      <!-- TAB: PROMO -->
+      <div class="settings-section" id="stab-promo">
+        <div class="import-card" style="margin-bottom:16px">
+          <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:18px;color:var(--navy)">🎁 Промо-попап: безкоштовна доставка</h3>
+          <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;line-height:1.6">Анімований попап із промокодом з'являється на головній сторінці через 3 секунди після завантаження. Показується раз на добу. Покупець натискає «Підписатися на Instagram», отримує промокод і вводить його при замовленні.</p>
+          <label style="display:flex;align-items:center;gap:12px;margin-bottom:20px;font-size:14px;font-weight:700;cursor:pointer;color:var(--navy)" onclick="togglePromoEnabled()">
+            <span id="promoToggleTrack" style="display:block;width:44px;height:24px;border-radius:12px;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0">
+              <span id="promoToggleThumb" style="position:absolute;top:2px;width:20px;height:20px;background:white;border-radius:50%;transition:left .2s;box-shadow:0 1px 4px rgba(0,0,0,.2)"></span>
+            </span>
+            <span id="promoEnabledLabel">Показувати промо-попап на сайті</span>
+          </label>
+          <div class="f-group" style="margin-bottom:14px">
+            <label class="f-label">Промокод <span style="color:var(--orange)">*</span></label>
+            <input id="cfg_promo_code" type="text" value="KIDSFREE" placeholder="KIDSFREE" maxlength="32" style="text-transform:uppercase;font-family:'Nunito',sans-serif;font-weight:800;font-size:16px;letter-spacing:.08em" oninput="this.value=this.value.toUpperCase()">
+            <div style="font-size:11px;color:var(--text-muted);margin-top:5px">Тільки латиниця, великі літери. Покупці вводять код при оформленні замовлення.</div>
           </div>
-          <div class="import-card" style="background:var(--bg-soft)">
-            <h4 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;color:var(--navy);margin-bottom:8px">Як це працює</h4>
-            <ul style="font-size:12px;color:var(--text-muted);line-height:1.8;margin:0;padding-left:18px">
-              <li>Якщо обрано <strong>один тип</strong> — покупці бачать лише його товари при відкритті каталогу</li>
-              <li>Якщо обрано <strong>кілька типів</strong> — показуються товари всіх обраних типів</li>
-              <li>Якщо <strong>нічого не обрано</strong> — відображається весь каталог</li>
-              <li>Покупець може вільно змінити фільтр — це лише початковий вигляд сторінки</li>
-            </ul>
+          <div class="f-group" style="margin-bottom:14px">
+            <label class="f-label">Посилання на Instagram</label>
+            <input id="cfg_promo_ig" type="text" value="https://www.instagram.com/kidsride.ua/" placeholder="https://www.instagram.com/kidsride.ua/">
+          </div>
+          <div class="f-group" style="margin-bottom:18px">
+            <label class="f-label">Заголовок попапу</label>
+            <input id="cfg_promo_title" type="text" value="Безкоштовна доставка на будь-який товар!" placeholder="Безкоштовна доставка на будь-який товар!">
+          </div>
+          <button class="btn btn-primary" onclick="savePromoSettings()" style="min-width:180px">
+            <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13"/><polyline points="7 3 7 8 15 8"/></svg>
+            Зберегти налаштування
+          </button>
+        </div>
+
+        <div class="import-card" style="margin-bottom:16px">
+          <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:14px;color:var(--navy)">👁️ Попередній перегляд</h3>
+          <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px">Скинь лічильник «вже бачив» — і попап покажеться знову при наступному відкритті сайту.</p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn btn-outline btn-sm" onclick="promoResetSeen()">
+              <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.18"/></svg>
+              Скинути «вже бачив»
+            </button>
+            <a href="index.html" target="_blank" class="btn btn-outline btn-sm" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px">
+              <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              Відкрити сайт
+            </a>
           </div>
         </div>
 
-      </div>
+        <div class="import-card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+            <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;color:var(--navy);margin:0">📋 Історія промокодів</h3>
+            <button class="btn btn-outline btn-sm" style="border-color:var(--danger);color:var(--danger)" onclick="clearPromoHistory()">
+              <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+              Очистити
+            </button>
+          </div>
+          <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">Зберігається локально в браузері адміна.</p>
+          <div id="promoHistoryTable" style="border:1px solid var(--border);border-radius:var(--r-sm);overflow:hidden">
+            <div style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px">Перейдіть на вкладку «Промо» для завантаження.</div>
+          </div>
+        </div>
+      </div><!-- /stab-promo -->
 
-    </div><!-- /content -->
-  </div><!-- /main -->
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
 
 <!-- MODALS -->
 <!-- Order modal -->
@@ -4990,58 +5024,7 @@ function _applyStoredTheme() {
   document.head.appendChild(s);
 })();
 
-
-  // ── CATALOG DEFAULT SETTINGS ──────────────────────────────────
-  const CATALOG_VEHICLE_TYPES = [
-    { code: 'jeep',    label: 'Джипи',             icon: '🚙' },
-    { code: 'quad',    label: 'Квадроцикли',        icon: '🏎️' },
-    { code: 'moto',    label: 'Мотоцикли',          icon: '🏍️' },
-    { code: 'car',     label: 'Машини',             icon: '🚘' },
-    { code: 'tractor', label: 'Трактори',           icon: '🚜' },
-    { code: 'walker',  label: 'Каталки-толокари',   icon: '🧸' },
-    { code: 'truck',   label: 'Вантажівки',         icon: '🚛' },
-    { code: 'buggy',   label: 'Баггі',              icon: '🏁' },
-  ];
-
-  function renderCatalogDefaultTypes() {
-    const container = document.getElementById('catalogDefaultTypesList');
-    if (!container) return;
-    const cfg = loadSettings();
-    const selected = (cfg.catalogDefault && cfg.catalogDefault.vehicleTypes) || ['jeep'];
-    container.innerHTML = CATALOG_VEHICLE_TYPES.map(t => {
-      const isChecked = selected.includes(t.code);
-      return `<label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1.5px solid ${isChecked ? 'var(--orange)' : 'var(--border)'};border-radius:var(--r-sm);cursor:pointer;background:${isChecked ? 'rgba(255,107,53,.06)' : 'white'};transition:all .2s;user-select:none" onclick="toggleCatalogDefaultType('${t.code}',this)">
-        <input type="checkbox" id="cdt_${t.code}" ${isChecked ? 'checked' : ''} style="width:16px;height:16px;accent-color:var(--orange);cursor:pointer" onclick="event.stopPropagation();toggleCatalogDefaultType('${t.code}',this.closest('label'))">
-        <span style="font-size:18px">${t.icon}</span>
-        <span style="font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;color:var(--navy)">${t.label}</span>
-      </label>`;
-    }).join('');
-  }
-
-  function toggleCatalogDefaultType(code, labelEl) {
-    const cb = document.getElementById('cdt_' + code);
-    if (!cb) return;
-    const newChecked = !cb.checked;
-    cb.checked = newChecked;
-    if (labelEl) {
-      labelEl.style.borderColor = newChecked ? 'var(--orange)' : 'var(--border)';
-      labelEl.style.background  = newChecked ? 'rgba(255,107,53,.06)' : 'white';
-    }
-  }
-
-  function saveCatalogDefault() {
-    const selected = CATALOG_VEHICLE_TYPES
-      .filter(t => document.getElementById('cdt_' + t.code)?.checked)
-      .map(t => t.code);
-    _cacheSettings({ catalogDefault: { vehicleTypes: selected } });
-    const msg = document.getElementById('catalogDefaultSavedMsg');
-    if (msg) {
-      msg.style.display = 'inline';
-      setTimeout(() => { msg.style.display = 'none'; }, 3000);
-    }
-  }
-
-  // ── SETTINGS STORAGE (localStorage fallback) ─────────────────
+// ── SETTINGS STORAGE (localStorage fallback) ─────────────────
 const SETTINGS_KEY = 'kr_admin_settings';
 function loadSettings() {
   try { return JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); } catch(e) { return {}; }
@@ -5313,9 +5296,6 @@ async function renderSettings() {
   const lcfg = loadSettings();
   _setCheck('cfg_auto_logout', lcfg.cfg_auto_logout);
   _setCheck('cfg_log_actions', lcfg.cfg_log_actions !== undefined ? lcfg.cfg_log_actions : 'true');
-
-  // Catalog default tab
-  renderCatalogDefaultTypes();
 
   // Browser notification status
   const permEl = document.getElementById('notifPermStatus');
@@ -6971,6 +6951,130 @@ function _skuDrawLineChart(elId,labels,counts,fmtFn){
 
 function _closeSkuChart(){document.getElementById('_skuModal').style.display='none';}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')_closeSkuChart();});
+</script>
+
+<script>
+/* ===== PROMO SETTINGS ===== */
+var PROMO_SETTINGS_KEY = 'kr_promo_settings';
+var PROMO_HISTORY_KEY  = 'kr_promo_history';
+var PROMO_SEEN_KEY     = 'kr_promo_seen_date';
+var _promoEnabled = true;
+
+function getPromoSettings() {
+  try { return JSON.parse(localStorage.getItem(PROMO_SETTINGS_KEY) || '{}'); } catch(e) { return {}; }
+}
+function getPromoHistory() {
+  try { return JSON.parse(localStorage.getItem(PROMO_HISTORY_KEY) || '[]'); } catch(e) { return []; }
+}
+
+function updatePromoToggleUI(enabled) {
+  var track = document.getElementById('promoToggleTrack');
+  var thumb = document.getElementById('promoToggleThumb');
+  if (!track || !thumb) return;
+  track.style.background = enabled ? 'var(--orange)' : '#cbd5e0';
+  track.style.boxShadow  = enabled ? '0 2px 8px rgba(255,107,53,.4)' : 'none';
+  thumb.style.left = enabled ? '22px' : '2px';
+}
+
+function togglePromoEnabled() {
+  _promoEnabled = !_promoEnabled;
+  updatePromoToggleUI(_promoEnabled);
+}
+
+function loadPromoSettingsUI() {
+  var cfg = getPromoSettings();
+  _promoEnabled = cfg.enabled !== false;
+  updatePromoToggleUI(_promoEnabled);
+  var codeEl = document.getElementById('cfg_promo_code');
+  if (codeEl && cfg.promo_code) codeEl.value = cfg.promo_code;
+  var igEl = document.getElementById('cfg_promo_ig');
+  if (igEl && cfg.ig_url) igEl.value = cfg.ig_url;
+  var titleEl = document.getElementById('cfg_promo_title');
+  if (titleEl && cfg.title) titleEl.value = cfg.title;
+}
+
+function savePromoSettings() {
+  var code  = (document.getElementById('cfg_promo_code')?.value || 'KIDSFREE').toUpperCase().trim();
+  var ig    = document.getElementById('cfg_promo_ig')?.value || 'https://www.instagram.com/kidsride.ua/';
+  var title = document.getElementById('cfg_promo_title')?.value || 'Безкоштовна доставка на будь-який товар!';
+
+  var prev = getPromoSettings();
+  var codeChanged = prev.promo_code && prev.promo_code !== code;
+
+  var cfg = { enabled: _promoEnabled, promo_code: code, ig_url: ig, title: title, updated_at: new Date().toISOString() };
+  localStorage.setItem(PROMO_SETTINGS_KEY, JSON.stringify(cfg));
+
+  // Log to history whenever code changes or first save
+  var hist = getPromoHistory();
+  if (!prev.promo_code || codeChanged || !hist.length) {
+    hist.unshift({
+      code: code,
+      enabled: _promoEnabled,
+      date: new Date().toISOString(),
+      prev_code: prev.promo_code || null,
+    });
+    localStorage.setItem(PROMO_HISTORY_KEY, JSON.stringify(hist.slice(0, 100)));
+  }
+
+  renderPromoHistory();
+  if (typeof showToast === 'function') showToast('Промо-налаштування збережено! ✅', 'success');
+}
+
+function renderPromoHistory() {
+  var el = document.getElementById('promoHistoryTable');
+  if (!el) return;
+  var hist = getPromoHistory();
+  if (!hist.length) {
+    el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px">Зміни ще не вносились. Збережіть налаштування — запис з\'явиться тут.</div>';
+    return;
+  }
+  var rows = hist.map(function(h, i) {
+    var d = new Date(h.date);
+    var dateStr = d.toLocaleDateString('uk-UA',{day:'2-digit',month:'2-digit',year:'numeric'}) + ' ' + d.toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'});
+    var prev = h.prev_code ? '<span style="color:var(--text-muted);font-size:11px;text-decoration:line-through">' + h.prev_code + '</span> → ' : '';
+    var statusBadge = h.enabled
+      ? '<span style="background:#d1fae5;color:#065f46;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px">УВІМК.</span>'
+      : '<span style="background:#fee2e2;color:#991b1b;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px">ВИМК.</span>';
+    var bg = i % 2 === 0 ? 'white' : 'var(--bg)';
+    return '<div style="display:grid;grid-template-columns:1fr 140px 80px;align-items:center;gap:12px;padding:10px 14px;background:'+bg+';border-bottom:1px solid var(--border-light)">'
+      + '<div style="font-family:\'Nunito\',sans-serif;font-weight:800;font-size:14px;color:var(--navy)">' + prev + h.code + '</div>'
+      + '<div style="font-size:12px;color:var(--text-muted)">' + dateStr + '</div>'
+      + '<div>' + statusBadge + '</div>'
+      + '</div>';
+  });
+  // Header
+  el.innerHTML = '<div style="display:grid;grid-template-columns:1fr 140px 80px;gap:12px;padding:8px 14px;background:var(--bg);border-bottom:1px solid var(--border);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">'
+    + '<div>Промокод</div><div>Дата</div><div>Статус</div></div>'
+    + rows.join('');
+}
+
+function clearPromoHistory() {
+  if (!confirm('Очистити всю історію промокодів? Цю дію не можна скасувати.')) return;
+  localStorage.removeItem(PROMO_HISTORY_KEY);
+  renderPromoHistory();
+  if (typeof showToast === 'function') showToast('Історію очищено', 'info');
+}
+
+function promoResetSeen() {
+  try { localStorage.removeItem(PROMO_SEEN_KEY); } catch(e) {}
+  if (typeof showToast === 'function') showToast('Лічильник скинуто — попап покажеться знову при наступному відкритті сайту', 'success');
+}
+
+// Load promo settings whenever settings panel opens
+(function() {
+  var origSwitch = window.switchSettingsTab;
+  window.switchSettingsTab = function(tab, btn) {
+    if (typeof origSwitch === 'function') origSwitch(tab, btn);
+    if (tab === 'promo') {
+      loadPromoSettingsUI();
+      renderPromoHistory();
+    }
+  };
+  // Also init on page load if promo section is somehow active
+  document.addEventListener('DOMContentLoaded', function() {
+    loadPromoSettingsUI();
+  });
+})();
 </script>
 </body>
 </html>
