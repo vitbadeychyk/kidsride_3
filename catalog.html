@@ -1730,8 +1730,6 @@ async function loadCategoryTree() {
       subs.forEach(sub => {
         const cnt = prodCountMap[sub.id] || 0;
         if (!cnt) return;
-        // Приховуємо підкатегорію з тією ж назвою що й батько — вона вже представлена типами вище
-        if (sub.name.toLowerCase() === parent.name.toLowerCase()) return;
         const subProds = _availableProds.filter(p => p.category_id === sub.id);
         const allAreVehicleTypes = subProds.length > 0 && subProds.every(p => p.category && TYPE_UA_TREE[p.category]);
         if (allAreVehicleTypes) return; // вже представлені типами вище
@@ -2203,27 +2201,11 @@ function applyFiltersAndRender() {
 
   // Сортування
   const sortVal = document.getElementById('sortSelect')?.value || 'popular';
-
-  // Запчастини завжди в кінці (якщо не обрана спеціально категорія "Запчастини")
-  const _partsCatIds = (_allCategories || []).filter(c => /запчастин/i.test(c.name)).map(c => c.id);
-  const _viewingPartsOnly = _partsCatIds.length && _partsCatIds.includes(_activeCatIdFilter);
-
-  function _sortArr(arr) {
-    if (sortVal === 'price_asc') arr.sort((a,b) => a.price - b.price);
-    else if (sortVal === 'price_desc') arr.sort((a,b) => b.price - a.price);
-    else if (sortVal === 'name_az') arr.sort((a,b) => (a.name||'').localeCompare(b.name||'','uk'));
-    else if (sortVal === 'name_za') arr.sort((a,b) => (b.name||'').localeCompare(a.name||'','uk'));
-    else if (sortVal === 'new') arr.sort((a,b) => (b.addedAt||0) - (a.addedAt||0));
-    return arr;
-  }
-
-  if (_partsCatIds.length && !_viewingPartsOnly) {
-    const transport = filteredProducts.filter(p => !_partsCatIds.includes(p.category_id));
-    const parts     = filteredProducts.filter(p =>  _partsCatIds.includes(p.category_id));
-    filteredProducts = [..._sortArr(transport), ..._sortArr(parts)];
-  } else {
-    _sortArr(filteredProducts);
-  }
+  if (sortVal === 'price_asc') filteredProducts.sort((a,b) => a.price - b.price);
+  else if (sortVal === 'price_desc') filteredProducts.sort((a,b) => b.price - a.price);
+  else if (sortVal === 'name_az') filteredProducts.sort((a,b) => (a.name||'').localeCompare(b.name||'','uk'));
+  else if (sortVal === 'name_za') filteredProducts.sort((a,b) => (b.name||'').localeCompare(a.name||'','uk'));
+  else if (sortVal === 'new') filteredProducts.sort((a,b) => (b.addedAt||0) - (a.addedAt||0));
 
   // Оновити лічильник
   const countEl = document.getElementById('catalogCount');
