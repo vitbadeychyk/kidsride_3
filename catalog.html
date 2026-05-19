@@ -1344,6 +1344,7 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 // Кеш категорій для дерева
 let _allCategories    = [];
 let _mainCategories   = [];
+let _sparePartsCatIds = null; // Set<category_id> of spare-parts subcategories
 let _activeVehicleType = ''; // код типу транспорту: 'jeep','quad','moto' тощо
 
 function _getCatIcon(name) {
@@ -1535,7 +1536,24 @@ async function loadCategoryTree() {
 
   // Непризначені — НЕ показуємо ("Інші" прибрані)
 
-  treeEl.innerHTML = html;
+    // Визначаємо підкатегорії запчастин/аксесуарів по назві — щоб сортувати їх в кінець
+    {
+      const _SPARE_PAT = /запчастин|аксесуар|деталь|адаптер|ремонт|запас|spare|accessor|part/i;
+      const spIds = new Set((_allCategories||[]).filter(c=>_SPARE_PAT.test(c.name||'')).map(c=>c.id));
+      // Запасний варіант: підкатегорії де жоден товар не є транспортним засобом (за p.category)
+      if(spIds.size===0&&(allProducts||[]).length>0){
+        const _VCH=new Set(['jeep','car','quad','moto','tractor','truck','buggy','walker']);
+        const cvf={};
+        (allProducts||[]).forEach(p=>{if(p.category_id==null)return;if(_VCH.has(p.category))cvf[p.category_id]=(cvf[p.category_id]||0)+1;else cvf['_s_'+p.category_id]=(cvf['_s_'+p.category_id]||0)+1;});
+        (_allCategories||[]).forEach(c=>{if(!cvf[c.id]&&cvf['_s_'+c.id])spIds.add(c.id);});
+      }
+      _sparePartsCatIds = spIds.size>0 ? spIds : null;
+      console.info('[KR] spare-parts catIds:', [...spIds]);
+    }
+    // Повторний рендер: тепер знаємо які категорії — запчастини
+    applyFiltersAndRender();
+
+    treeEl.innerHTML = html;
 
 }
 
@@ -1880,9 +1898,7 @@ async function renderCatalog() {
   if (cached && cached.length > 0 && !_hasSearchParam) {
     // ── Є кеш і немає пошукового запиту: показуємо одразу ───────────────────
     allProducts = cached;
-      // Транспортні засоби завжди перед запчастинами у базовому масиві
-      { const _VC_BASE=new Set(['jeep','car','quad','moto','tractor','truck','buggy','walker']); allProducts.sort((a,b)=>{const av=_VC_BASE.has(a.category),bv=_VC_BASE.has(b.category);return av===bv?0:av?-1:1;}); }
-    // Динамічне оновлення діапазону ціни
+// Динамічне оновлення діапазону ціни
     { const prices=(allProducts||[]).filter(p=>p.price>0).map(p=>p.price);
       if(prices.length){
         const pMin=Math.floor(Math.min(...prices)),pMax=Math.ceil(Math.max(...prices));
@@ -1903,9 +1919,7 @@ async function renderCatalog() {
     loadProductsFromSupabase().then(freshProds => {
       if (freshProds && freshProds.length > 0) {
         allProducts = freshProds.filter(p => p.active !== false);
-          // Транспортні засоби завжди перед запчастинами у базовому масиві
-          { const _VC_BASE=new Set(['jeep','car','quad','moto','tractor','truck','buggy','walker']); allProducts.sort((a,b)=>{const av=_VC_BASE.has(a.category),bv=_VC_BASE.has(b.category);return av===bv?0:av?-1:1;}); }
-    // Динамічне оновлення діапазону ціни
+// Динамічне оновлення діапазону ціни
     { const prices=(allProducts||[]).filter(p=>p.price>0).map(p=>p.price);
       if(prices.length){
         const pMin=Math.floor(Math.min(...prices)),pMax=Math.ceil(Math.max(...prices));
@@ -1937,9 +1951,7 @@ async function renderCatalog() {
   // ВАЖЛИВО: спочатку товари, потім дерево — щоб кількості і типи були правильні
   const products = await loadProductsFromSupabase();
   allProducts = (products || []).filter(p => p.active !== false);
-    // Транспортні засоби завжди перед запчастинами у базовому масиві
-    { const _VC_BASE=new Set(['jeep','car','quad','moto','tractor','truck','buggy','walker']); allProducts.sort((a,b)=>{const av=_VC_BASE.has(a.category),bv=_VC_BASE.has(b.category);return av===bv?0:av?-1:1;}); }
-    // Динамічне оновлення діапазону ціни
+// Динамічне оновлення діапазону ціни
     { const prices=(allProducts||[]).filter(p=>p.price>0).map(p=>p.price);
       if(prices.length){
         const pMin=Math.floor(Math.min(...prices)),pMax=Math.ceil(Math.max(...prices));
@@ -2013,18 +2025,22 @@ function applyFiltersAndRender() {
     return true;
   });
 
-  // Коли жоден фільтр не обраний: показуємо лише транспортні засоби (приховуємо запчастини/аксесуари)
-  {
-    const _noActiveFilter = !_activeCatIdFilter && !_activeParentIdFilter && !_activeVehicleType
-      && !activeFilters.types.length && !activeFilters.ages.length
-      && !activeFilters.brands.length && !activeFilters.voltages.length && !activeFilters.search;
-    if (_noActiveFilter) {
-      const _VC = new Set(['jeep','car','quad','moto','tractor','truck','buggy','walker']);
-      filteredProducts = filteredProducts.filter(p => _VC.has(p.category));
+  // Транспортні засоби — ЗАВЖДИ ПЕРШИМИ, запчастини та аксесуари — В КІНЦІ
+    // Використовуємо category_id (надійно) або category string як запасний варіант
+    {
+      const _VCH2 = new Set(['jeep','car','quad','moto','tractor','truck','buggy','walker']);
+      const _isSpare = (p) => {
+        if (_sparePartsCatIds && p.category_id != null) return _sparePartsCatIds.has(p.category_id);
+        return !_VCH2.has(p.category); // запасний варіант
+      };
+      filteredProducts.sort((a, b) => {
+        const as = _isSpare(a), bs = _isSpare(b);
+        if (as === bs) return 0;
+        return as ? 1 : -1; // транспорт перший, запчастини останніми
+      });
     }
-  }
 
-  // Сортування
+    // Сортування
   const sortVal = document.getElementById('sortSelect')?.value || 'popular';
   if (sortVal === 'price_asc') filteredProducts.sort((a,b) => a.price - b.price);
   else if (sortVal === 'price_desc') filteredProducts.sort((a,b) => b.price - a.price);
@@ -2032,16 +2048,7 @@ function applyFiltersAndRender() {
   else if (sortVal === 'name_za') filteredProducts.sort((a,b) => (b.name||'').localeCompare(a.name||'','uk'));
   else if (sortVal === 'new') filteredProducts.sort((a,b) => (b.addedAt||0) - (a.addedAt||0));
 
-  // Стабільне сортування: деталі/запчастини — завжди в кінці, для всіх типів транспорту
-  {
-    const _VEHICLE_CATS = new Set(['jeep','car','quad','moto','tractor','truck','buggy','walker']);
-    filteredProducts.sort((a, b) => {
-      const aIsVehicle = _VEHICLE_CATS.has(a.category);
-      const bIsVehicle = _VEHICLE_CATS.has(b.category);
-      if (aIsVehicle === bIsVehicle) return 0;
-      return aIsVehicle ? -1 : 1;
-    });
-  }
+  // (сортування в кінець виконано вище)
 
   // Оновити лічильник
   const countEl = document.getElementById('catalogCount');
