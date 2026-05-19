@@ -473,9 +473,13 @@ tr:hover td{background:rgba(240,242,248,.5)}
       <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
       Перерахунок цін
     </div>
-    <div class="nav-item" onclick="showPanel('design',this)">
+    <div class="nav-item" onclick="showPanel('design',this);loadStripePanel()">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
       Дизайн сайту
+    </div>
+    <div class="nav-item" onclick="showPanel('blocks',this);loadBlocksPanel()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      Розділи сторінки
     </div>
   </div>
 
@@ -7272,21 +7276,7 @@ function loadStripePanel(){
     setStripeColor(s.c); setStripeHeight(s.h);
   });
 }
-// Hook showPanel to load stripe data when design panel is opened
-(function(){
-  var orig = window.showPanel;
-  if(orig) window.showPanel = function(name, el){
-    orig(name, el);
-    if(name==='design') loadStripePanel();
-  };
-  else document.addEventListener('DOMContentLoaded', function(){
-    var orig2 = window.showPanel;
-    if(orig2) window.showPanel = function(name, el){
-      orig2(name, el);
-      if(name==='design') loadStripePanel();
-    };
-  });
-})();
+
 
 
 // ── STRIPE DESIGN ────────────────────────────────────────────────────────
