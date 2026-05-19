@@ -434,6 +434,38 @@ const KR = {
     } catch(e) {}
   },
 
+  // ── GLOBAL SEARCH (universal overlay for any page) ────────────────────────
+  openGlobalSearch() {
+    let overlay = document.getElementById('_krSearchOverlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = '_krSearchOverlay';
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding-top:80px;backdrop-filter:blur(4px)';
+      overlay.innerHTML = `
+        <div style="background:white;border-radius:16px;padding:20px;width:calc(100% - 32px);max-width:560px;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+          <div style="display:flex;gap:10px">
+            <input id="_krSearchInput" type="text" placeholder="Пошук електромобілів, моделей, брендів…"
+              style="flex:1;padding:13px 16px;border:2px solid #e5e7eb;border-radius:10px;font-size:15px;font-family:inherit;outline:none;transition:border-color .2s"
+              onfocus="this.style.borderColor='#ff6b35'" onblur="this.style.borderColor='#e5e7eb'">
+            <button onclick="KR._doSearch()" style="padding:13px 20px;background:#ff6b35;color:white;border:none;border-radius:10px;font-weight:700;font-size:14px;cursor:pointer;white-space:nowrap;font-family:inherit">Знайти</button>
+          </div>
+          <button onclick="document.getElementById('_krSearchOverlay').style.display='none'" style="margin-top:12px;width:100%;padding:9px;background:#f3f4f6;border:none;border-radius:8px;color:#6b7280;font-size:13px;cursor:pointer;font-family:inherit">Закрити</button>
+        </div>`;
+      overlay.addEventListener('click', e => { if (e.target === overlay) overlay.style.display = 'none'; });
+      document.body.appendChild(overlay);
+      const inp = overlay.querySelector('#_krSearchInput');
+      inp.addEventListener('keydown', e => { if (e.key === 'Enter') KR._doSearch(); });
+      document.addEventListener('keydown', e => { if (e.key === 'Escape') overlay.style.display = 'none'; });
+    }
+    overlay.style.display = 'flex';
+    setTimeout(() => { const inp = document.getElementById('_krSearchInput'); if (inp) inp.focus(); }, 50);
+  },
+  _doSearch() {
+    const inp = document.getElementById('_krSearchInput');
+    const q = (inp ? inp.value : '').trim();
+    if (q) window.location.href = 'catalog.html?search=' + encodeURIComponent(q);
+  },
+
   // ── INIT ──────────────────────────────────────────────────────────────────
   init() {
     this.initStripe();
