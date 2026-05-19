@@ -1892,8 +1892,12 @@ async function renderCatalog() {
     if (raw) cached = JSON.parse(raw);
   } catch(_) {}
 
-  if (cached && cached.length > 0) {
-    // ── Є кеш: показуємо одразу ──────────────────────────────────────────────
+  // Якщо в URL є параметр search — не використовуємо кеш, щоб одразу показати
+  // актуальні результати (кеш може бути застарілим і не мати нових товарів).
+  const _hasSearchParam = !!new URLSearchParams(location.search).get('search');
+
+  if (cached && cached.length > 0 && !_hasSearchParam) {
+    // ── Є кеш і немає пошукового запиту: показуємо одразу ───────────────────
     allProducts = cached;
     const countEl = document.getElementById('catalogCount');
     if (countEl) countEl.textContent = allProducts.length + ' товарів';
