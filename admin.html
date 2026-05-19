@@ -1311,45 +1311,8 @@ tr:hover td{background:rgba(240,242,248,.5)}
       </div>
     </div>
 
-    <!-- ═══ DESIGN ═══ -->
-    <div class="panel" id="panel-design">
-      <div class="section-header"><h2 class="section-title">Дизайн <span>сайту</span></h2></div>
-      <div style="max-width:520px">
-        <div id="stripePreview" style="height:12px;background:#1B2A4A;border-radius:4px;margin-bottom:28px;transition:all .2s"></div>
-        <div class="f-group" style="margin-bottom:22px">
-          <label class="f-label" style="font-weight:700;margin-bottom:10px;display:block">Колір полоси</label>
-          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
-            <input type="color" id="stripeColor" value="#1B2A4A" style="width:52px;height:40px;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;padding:3px" oninput="document.getElementById('stripeColorText').value=this.value;updateStripePreview()">
-            <input type="text" id="stripeColorText" value="#1B2A4A" maxlength="7" style="width:100px;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px;font-size:14px;font-weight:700;font-family:'Manrope',sans-serif;color:var(--navy);outline:none" oninput="document.getElementById('stripeColor').value=this.value;updateStripePreview()" placeholder="#1B2A4A">
-            <div style="display:flex;gap:7px;flex-wrap:wrap">
-              <button onclick="setStripeColor('#1B2A4A')" style="width:28px;height:28px;background:#1B2A4A;border:none;border-radius:6px;cursor:pointer"></button>
-              <button onclick="setStripeColor('#FF6B35')" style="width:28px;height:28px;background:#FF6B35;border:none;border-radius:6px;cursor:pointer"></button>
-              <button onclick="setStripeColor('#10B981')" style="width:28px;height:28px;background:#10B981;border:none;border-radius:6px;cursor:pointer"></button>
-              <button onclick="setStripeColor('#EF4444')" style="width:28px;height:28px;background:#EF4444;border:none;border-radius:6px;cursor:pointer"></button>
-              <button onclick="setStripeColor('#8B5CF6')" style="width:28px;height:28px;background:#8B5CF6;border:none;border-radius:6px;cursor:pointer"></button>
-              <button onclick="setStripeColor('#F59E0B')" style="width:28px;height:28px;background:#F59E0B;border:none;border-radius:6px;cursor:pointer"></button>
-            </div>
-          </div>
-        </div>
-        <div class="f-group" style="margin-bottom:28px">
-          <label class="f-label" style="font-weight:700;margin-bottom:10px;display:block">Товщина: <span id="stripeHeightVal" style="color:var(--orange)">12</span> px</label>
-          <div style="display:flex;align-items:center;gap:12px">
-            <input type="range" id="stripeHeight" min="2" max="30" value="12" style="flex:1;accent-color:var(--navy);cursor:pointer" oninput="document.getElementById('stripeHeightVal').textContent=this.value;document.getElementById('stripeHeightNum').value=this.value;updateStripePreview()">
-            <input type="number" id="stripeHeightNum" min="2" max="30" value="12" style="width:65px;padding:9px 10px;border:1.5px solid var(--border);border-radius:9px;font-size:14px;font-weight:700;font-family:'Manrope',sans-serif;color:var(--navy);outline:none;text-align:center" oninput="document.getElementById('stripeHeight').value=this.value;document.getElementById('stripeHeightVal').textContent=this.value;updateStripePreview()">
-          </div>
-          <div style="display:flex;gap:8px;margin-top:10px">
-            <button onclick="setStripeHeight(4)"  style="padding:5px 12px;border:1.5px solid var(--border);border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;background:var(--bg-soft)">4px</button>
-            <button onclick="setStripeHeight(8)"  style="padding:5px 12px;border:1.5px solid var(--border);border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;background:var(--bg-soft)">8px</button>
-            <button onclick="setStripeHeight(12)" style="padding:5px 12px;border:1.5px solid var(--border);border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;background:var(--bg-soft)">12px</button>
-            <button onclick="setStripeHeight(20)" style="padding:5px 12px;border:1.5px solid var(--border);border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;background:var(--bg-soft)">20px</button>
-          </div>
-        </div>
-        <button onclick="saveStripeSettings()" class="btn btn-primary" style="width:100%;justify-content:center;font-size:15px;padding:13px">Зберегти — застосується на всіх пристроях</button>
-        <div id="stripeSaveMsg" style="display:none;margin-top:12px;padding:10px 14px;background:#ECFDF5;border:1px solid #10B981;border-radius:9px;color:#065F46;font-size:13px;font-weight:600;text-align:center">✓ Збережено!</div>
-      </div>
-    </div>
 
-    <!-- ═══ BLOCKS ═══ -->
+
     <div class="panel" id="panel-blocks">
       <div class="section-header"><h2 class="section-title">Розділи <span>головної сторінки</span></h2></div>
       <p style="color:var(--text-muted);font-size:14px;margin-bottom:24px;max-width:560px">Перетягніть або натисніть стрілки ▲▼ щоб змінити порядок розділів. Зміни з'являться на всіх пристроях після збереження.</p>
@@ -2520,7 +2483,7 @@ async function sbUpdateOrderStatus(id, status, ttn = null) {
 // Date init moved to initAdmin()
 
 // ── NAVIGATION ────────────────────────────────────────────────────────────
-const pageTitles={dashboard:'Dashboard',analytics:'Аналітика відвідувань','product-analytics':'Аналітика товарів',orders:'Замовлення',products:'Товари',carousel:'Карусель сайту',import:'Імпорт товарів',reviews:'Відгуки',ostatok:'Залишок (власний склад)',categories:'Категорії товарів',settings:'Налаштування',reports:'Звіти та аналітика',prices:'Перерахунок цін'};
+const pageTitles={dashboard:'Dashboard',analytics:'Аналітика відвідувань','product-analytics':'Аналітика товарів',orders:'Замовлення',products:'Товари',carousel:'Карусель сайту',import:'Імпорт товарів',reviews:'Відгуки',ostatok:'Залишок (власний склад)',categories:'Категорії товарів',settings:'Налаштування',reports:'Звіти та аналітика',prices:'Перерахунок цін',design:'Дизайн сайту',blocks:'Розділи сторінки'};
 
 function showPanel(id, navEl) {
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
@@ -2537,6 +2500,8 @@ function showPanel(id, navEl) {
   if(id==='ostatok')     loadOstatokPanel();
   if(id==='categories')  loadCategories();
   if(id==='prices')      loadPricesPanel();
+  if(id==='blocks')      loadBlocksPanel();
+  if(id==='design')      loadStripePanel();
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   if(navEl) navEl.classList.add('active');
   document.getElementById('pageTitle').textContent = pageTitles[id]||id;
@@ -7261,21 +7226,6 @@ async function saveStripeSettings(){
   var msg = document.getElementById('stripeSaveMsg');
   if(msg){ msg.style.display='block'; setTimeout(()=>msg.style.display='none', 4000); }
 }
-function loadStripePanel(){
-  // Try Supabase first, fall back to localStorage
-  var supa_url = 'https://xczrzdbikkycgpnvolib.supabase.co';
-  var supa_key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
-  fetch(supa_url+'/rest/v1/settings?select=value&key=eq.site_stripe', {
-    headers:{'apikey':supa_key,'Authorization':'Bearer '+supa_key}
-  }).then(r=>r.json()).then(rows=>{
-    var s = (rows&&rows[0]&&rows[0].value) ? JSON.parse(rows[0].value)
-          : JSON.parse(localStorage.getItem('kr_stripe')||'{"h":12,"c":"#1B2A4A"}');
-    setStripeColor(s.c); setStripeHeight(s.h);
-  }).catch(()=>{
-    var s = JSON.parse(localStorage.getItem('kr_stripe')||'{"h":12,"c":"#1B2A4A"}');
-    setStripeColor(s.c); setStripeHeight(s.h);
-  });
-}
 
 
 
@@ -7337,8 +7287,8 @@ function _renderBlocks(){
       +'<div style="width:28px;text-align:center;font-size:16px;flex-shrink:0">'+def.icon+'</div>'
       +'<div style="flex:1"><div style="font-weight:700;font-size:14px;color:var(--navy);font-family:Manrope,sans-serif">'+def.name+'</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px">'+def.desc+'</div></div>'
       +'<div style="display:flex;flex-direction:column;gap:3px;flex-shrink:0">'
-      +'<button onclick="_mvBlock(''+id+'',-1)" style="width:28px;height:22px;border:1.5px solid #e5e9f2;border-radius:5px;background:white;cursor:pointer;font-size:10px;color:#9ca3af">▲</button>'
-      +'<button onclick="_mvBlock(''+id+'',1)"  style="width:28px;height:22px;border:1.5px solid #e5e9f2;border-radius:5px;background:white;cursor:pointer;font-size:10px;color:#9ca3af">▼</button>'
+      +'<button onclick="_mvBlock(this.parentNode.parentNode.dataset.id,-1)" style="width:28px;height:22px;border:1.5px solid #e5e9f2;border-radius:5px;background:white;cursor:pointer;font-size:10px;color:#9ca3af">▲</button>'
+      +'<button onclick="_mvBlock(this.parentNode.parentNode.dataset.id,1)"  style="width:28px;height:22px;border:1.5px solid #e5e9f2;border-radius:5px;background:white;cursor:pointer;font-size:10px;color:#9ca3af">▼</button>'
       +'</div>';
     row.addEventListener('dragstart',function(e){_dragId=id;e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',id);setTimeout(function(){row.style.opacity='0.35';},0);});
     row.addEventListener('dragend',function(){row.style.opacity='1';row.style.background='';row.style.borderColor='';});
