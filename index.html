@@ -522,7 +522,7 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
 }
 @media(max-width:640px){
   .benefits-grid{grid-template-columns:1fr}
-  .products-grid{grid-template-columns:repeat(2,1fr)}
+  .products-grid{grid-template-columns:repeat(4,1fr)}
   .age-grid{grid-template-columns:1fr}
   .ig-grid{grid-template-columns:repeat(2,1fr)}
   .f-grid{grid-template-columns:1fr}
@@ -2513,7 +2513,9 @@ function renderSearchSuggestions(query) {
   const KR_VEHICLE_CATS = new Set(Object.keys(KR_CAT_EMOJI));
   let items;
   if (!q) {
-    items = products.slice(0, 6);
+    list.innerHTML = '';
+    empty.style.display = 'none';
+    return;
   } else {
     const scored = products
       .map(p => ({ p, s: krMatchScore(p, q) }))
