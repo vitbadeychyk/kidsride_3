@@ -181,6 +181,7 @@ table.cmp{width:100%;border-collapse:collapse;min-width:640px}
 .h-phone-sep{width:1px;height:22px;background:var(--border);flex-shrink:0;margin:0 2px}
 @media(max-width:1024px){.h-phone-link .h-phone-text{display:none}}
 @media(max-width:640px){.h-phone-link{width:40px;height:40px;padding:0;justify-content:center}}
+
 .header,.header#hdr{border-top:12px solid #1B2A4A}
 </style>
 <script>
@@ -192,6 +193,14 @@ table.cmp{width:100%;border-collapse:collapse;min-width:640px}
     el.textContent='.header,.header#hdr{border-top:'+s.h+'px solid '+s.c+' !important}';
     document.head.appendChild(el);
   }catch(e){}
+})();
+</script>
+<script>
+(function(){
+  try{var s=JSON.parse(localStorage.getItem('kr_stripe')||'{"h":12,"c":"#1B2A4A"}');
+  var el=document.createElement('style');el.id='kr-stripe-css';
+  el.textContent='.header,.header#hdr{border-top:'+s.h+'px solid '+s.c+' !important}';
+  document.head.appendChild(el);}catch(e){}
 })();
 </script>
 </head>

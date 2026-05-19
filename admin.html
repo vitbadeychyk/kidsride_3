@@ -378,6 +378,7 @@ tr:hover td{background:rgba(240,242,248,.5)}
 
 .spinner{width:32px;height:32px;border:3px solid var(--border);border-top:3px solid var(--orange);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+
 .header,.header#hdr{border-top:12px solid #1B2A4A}
 </style>
 
@@ -391,6 +392,14 @@ tr:hover td{background:rgba(240,242,248,.5)}
     el.textContent='.header,.header#hdr{border-top:'+s.h+'px solid '+s.c+' !important}';
     document.head.appendChild(el);
   }catch(e){}
+})();
+</script>
+<script>
+(function(){
+  try{var s=JSON.parse(localStorage.getItem('kr_stripe')||'{"h":12,"c":"#1B2A4A"}');
+  var el=document.createElement('style');el.id='kr-stripe-css';
+  el.textContent='.header,.header#hdr{border-top:'+s.h+'px solid '+s.c+' !important}';
+  document.head.appendChild(el);}catch(e){}
 })();
 </script>
 </head>
