@@ -2577,5 +2577,71 @@ function _ytEmbedFromUrl(url){
   if (document.readyState!=='loading') _krLoadProducts();
   else document.addEventListener('DOMContentLoaded', _krLoadProducts);
   </script>
+<script>
+  // ── SEARCH OVERLAY ──────────────────────────────────────────────────────────
+  const KR_SUPABASE_URL_SR=(typeof SUPABASE_URL!=='undefined'?SUPABASE_URL:'https://xczrzdbikkycgpnvolib.supabase.co');
+  const KR_SUPABASE_KEY_SR=(typeof SUPABASE_KEY!=='undefined'?SUPABASE_KEY:'');
+  const KR_CAT_EMOJI={jeep:'🚙',car:'🚗',quad:'🏍️',moto:'🏍️',tractor:'🚜',truck:'🚚',buggy:'🛺',walker:'🛴'};
+  let KR_PRODUCTS_CACHE=null,KR_PRODUCTS_PROMISE=null;
+  async function krLoadAllProducts(){
+    if(KR_PRODUCTS_CACHE)return KR_PRODUCTS_CACHE;
+    if(KR_PRODUCTS_PROMISE)return KR_PRODUCTS_PROMISE;
+    KR_PRODUCTS_PROMISE=(async()=>{
+      try{
+        const h={'apikey':KR_SUPABASE_KEY_SR,'Authorization':'Bearer '+KR_SUPABASE_KEY_SR};
+        const base=KR_SUPABASE_URL_SR+'/rest/v1/products?select=id,name,brand,model_code,sku,category,price,images&active=eq.true&order=created_at.desc&limit=1000';
+        const pages=await Promise.all([0,1000,2000].map(off=>fetch(base+'&offset='+off,{headers:h}).then(r=>r.ok?r.json():[]).catch(()=>[])));
+        const data=pages.flat();
+        if(data.length){const seen=new Set();KR_PRODUCTS_CACHE=data.filter(p=>{if(!p||seen.has(p.id))return false;seen.add(p.id);return true;}).map(p=>({id:p.id,name:p.name||'',brand:p.brand||'',model:p.model_code||p.sku||'',sku:p.sku||'',category:p.category||'',price:parseFloat(p.price)||0,emoji:KR_CAT_EMOJI[p.category]||'🚗',photo:Array.isArray(p.images)&&p.images[0]?p.images[0]:null}));return KR_PRODUCTS_CACHE;}
+      }catch(e){console.warn('KR search:',e);}
+      KR_PRODUCTS_CACHE=[];return KR_PRODUCTS_CACHE;
+    })();return KR_PRODUCTS_PROMISE;
+  }
+  function openSearchOverlay(){
+    document.getElementById('searchOverlay').classList.add('open');
+    document.body.style.overflow='hidden';
+    setTimeout(()=>{const i=document.getElementById('searchOverlayInput');if(i){i.focus();renderSearchSuggestions(i.value);}},50);
+    krLoadAllProducts().then(()=>{const i=document.getElementById('searchOverlayInput');if(i)renderSearchSuggestions(i.value);});
+  }
+  function closeSearchOverlay(){document.getElementById('searchOverlay').classList.remove('open');document.body.style.overflow='';}
+  function krNormalize(s){return(s||'').toString().toLowerCase().replace(/[\s\-_/.,]+/g,'');}
+  function krMatchScore(p,q){
+    if(!q)return 1;const qN=krNormalize(q);
+    const fs=[p.name,p.brand,p.model,p.sku].map(x=>(x||'').toString());
+    const fl=fs.map(f=>f.toLowerCase()),fn=fs.map(krNormalize);
+    if(fn[2]&&fn[2].includes(qN))return 100;if(fn[3]&&fn[3].includes(qN))return 95;
+    if(fn[0].startsWith(qN))return 80;if(fl[0].includes(q))return 70;if(fn[0].includes(qN))return 65;if(fl[1].includes(q))return 50;
+    const ts=q.split(/\s+/).filter(Boolean);
+    if(ts.length>1){if(ts.every(t=>fl[0].includes(t)||fn[0].includes(krNormalize(t))))return 60;
+      if(ts.every(t=>fl.some(f=>f.includes(t))||fn.some(f=>f.includes(krNormalize(t)))))return 40;}
+    return 0;
+  }
+  function krFmtPrice(n){return n?new Intl.NumberFormat('uk-UA').format(Math.round(n))+' ₴':'';}
+  function renderSearchSuggestions(query){
+    const list=document.getElementById('searchSuggestions'),empty=document.getElementById('searchEmpty');
+    if(!list)return;const q=(query||'').trim(),products=KR_PRODUCTS_CACHE;
+    if(!products){list.innerHTML='<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:13px">Завантаження…</div>';if(empty)empty.style.display='none';krLoadAllProducts().then(()=>renderSearchSuggestions(query));return;}
+    const VC=new Set(Object.keys(KR_CAT_EMOJI));
+    if(!q){list.innerHTML='';if(empty)empty.style.display='none';return;}
+    const sc=products.map(p=>({p,s:krMatchScore(p,q)})).filter(x=>x.s>0);
+    const items=[...sc.filter(x=>VC.has(x.p.category)).sort((a,b)=>b.s-a.s).slice(0,6).map(x=>x.p),...sc.filter(x=>!VC.has(x.p.category)).sort((a,b)=>b.s-a.s).slice(0,4).map(x=>x.p)];
+    list.innerHTML='';
+    if(!items.length){if(empty){empty.style.display='block';const s=empty.querySelector('strong');if(s)s.textContent=q;}return;}
+    if(empty)empty.style.display='none';
+    items.forEach(p=>{
+      const a=document.createElement('a');
+      a.href=p.id?'product.html?id='+encodeURIComponent(p.id):'catalog.html?search='+encodeURIComponent(p.name);
+      a.className='search-sug';
+      const sub=[p.brand,p.sku].filter(Boolean).join(' · Арт: ');
+      const thumb=p.photo?'<img class="search-sug-img" src="'+p.photo+'" alt="" loading="lazy">':'<span style="width:44px;height:44px;border-radius:8px;background:#f5f7fa;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px">'+(p.emoji||'🚗')+'</span>';
+      a.innerHTML=thumb+'<span class="search-sug-name" style="display:flex;flex-direction:column;gap:2px;flex:1;min-width:0"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+p.name+'</span>'+(sub?'<span style="font-size:11px;color:var(--text-muted);font-weight:500">'+sub+'</span>':'')+'</span>'+(p.price?'<span style="font-size:13px;font-weight:800;color:var(--orange);margin-right:8px;white-space:nowrap">'+krFmtPrice(p.price)+'</span>':'')+'<svg class="search-sug-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>';
+      list.appendChild(a);
+    });
+  }
+  function submitSearch(e){if(e)e.preventDefault();const q=(document.getElementById('searchOverlayInput')?.value||'').trim();if(!q)return false;window.location.href='catalog.html?search='+encodeURIComponent(q);return false;}
+  if(document.readyState!=='loading')krLoadAllProducts();
+  else document.addEventListener('DOMContentLoaded',krLoadAllProducts);
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSearchOverlay();if((e.key==='k'||e.key==='K')&&(e.metaKey||e.ctrlKey)){e.preventDefault();openSearchOverlay();}});
+  </script>
 </body>
 </html>
