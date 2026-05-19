@@ -1017,7 +1017,7 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
 </section>
 
 <!-- MARQUEE -->
-<div class="marquee-bar">
+<div class="marquee-bar" data-block="marquee">
   <div class="m-track">
     <span class="m-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg> Доставка Новою Поштою</span>
     <span class="m-sep">✦</span>
@@ -1052,7 +1052,7 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
 </div>
 
 <!-- BENEFITS -->
-<section class="section" style="background:var(--bg)">
+<section class="section" data-block="benefits" style="background:var(--bg)">
   <div class="container">
     <div style="text-align:center;max-width:600px;margin:0 auto 28px">
       <div class="s-label">Чому обирають нас</div>
@@ -1124,7 +1124,7 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
 </section>
 
 <!-- PRODUCTS -->
-<section class="section products-section" id="catalog" style="background:var(--bg-warm)">
+<section class="section products-section" data-block="products" id="catalog" style="background:var(--bg-warm)">
   <div class="container">
     <div class="products-head">
       <div>
@@ -1248,12 +1248,12 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
 </section>
 
 <!-- AGE PICKER -->
-<section class="section" style="background:var(--bg);padding-top:56px;padding-bottom:56px">
+<section class="section" data-block="age-picker" style="background:var(--navy);padding-top:56px;padding-bottom:56px">
   <div class="container">
     <div style="max-width:680px;margin:0 auto;text-align:center">
-      <div class="s-label">Підбір електромобіля</div>
-      <h2 class="s-title" style="margin-bottom:16px">Знайди <em>ідеальний</em> варіант</h2>
-      <p class="s-desc" style="margin:0 auto 40px;max-width:520px;font-size:16px;line-height:1.7">
+      <div class="s-label" style="color:rgba(255,255,255,.55)">Підбір електромобіля</div>
+      <h2 class="s-title" style="margin-bottom:16px;color:#fff">Знайди <em style="color:var(--orange)">ідеальний</em> варіант</h2>
+      <p class="s-desc" style="margin:0 auto 40px;max-width:520px;font-size:16px;line-height:1.7;color:rgba(255,255,255,.75)">
         Не знаєш, який електромобіль підійде саме твоїй дитині?<br>
         Пройди короткий підбір за 3&nbsp;хвилини — запитаємо вік, вагу та побажання і підберемо ідеальну модель.
       </p>
@@ -1262,19 +1262,19 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
         Підібрати за 3 хвилини
       </a>
       <div style="margin-top:20px;display:flex;align-items:center;justify-content:center;gap:24px;flex-wrap:wrap">
-        <span style="font-size:13px;color:var(--text-muted);display:flex;align-items:center;gap:6px">
+        <span style="font-size:13px;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">
           <svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:var(--green);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><polyline points="20 6 9 17 4 12"/></svg>
           Вік та вага дитини
         </span>
-        <span style="font-size:13px;color:var(--text-muted);display:flex;align-items:center;gap:6px">
+        <span style="font-size:13px;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">
           <svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:var(--green);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><polyline points="20 6 9 17 4 12"/></svg>
           Тип покриття
         </span>
-        <span style="font-size:13px;color:var(--text-muted);display:flex;align-items:center;gap:6px">
+        <span style="font-size:13px;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">
           <svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:var(--green);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><polyline points="20 6 9 17 4 12"/></svg>
           Бюджет
         </span>
-        <span style="font-size:13px;color:var(--text-muted);display:flex;align-items:center;gap:6px">
+        <span style="font-size:13px;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">
           <svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:var(--green);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><polyline points="20 6 9 17 4 12"/></svg>
           Побажання по моделі
         </span>
@@ -1284,7 +1284,7 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
 </section>
 
 <!-- INSTAGRAM -->
-<section class="section-sm ig-section">
+<section class="section-sm ig-section" data-block="instagram">
   <div class="container">
     <div class="ig-head">
       <div class="s-label" style="justify-content:center">Ми в Instagram</div>
@@ -1309,7 +1309,7 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
 </section>
 
 <!-- REVIEWS -->
-<section class="section reviews-section" id="reviews" style="background:var(--bg-soft);scroll-margin-top:90px">
+<section class="section reviews-section" data-block="reviews" id="reviews" style="background:var(--bg-soft);scroll-margin-top:90px">
   <div class="container">
     <div class="reviews-top">
       <div>
@@ -1445,7 +1445,7 @@ function toggleReview(id) {
 </script>
 
 <!-- DELIVERY & PAYMENT -->
-<section class="section delivery-section" id="delivery-section">
+<section class="section delivery-section" data-block="delivery" id="delivery-section">
   <div class="container">
     <div class="delivery-grid">
       <div>
@@ -1473,7 +1473,7 @@ function toggleReview(id) {
 </section>
 
 <!-- WARRANTY -->
-<section class="section warranty-section" id="warranty-section">
+<section class="section warranty-section" data-block="warranty" id="warranty-section">
   <div class="container">
     <div class="warranty-grid">
       <div class="warranty-vis">
@@ -1499,7 +1499,7 @@ function toggleReview(id) {
 </section>
 
 <!-- FAQ -->
-<section class="section faq-section">
+<section class="section faq-section" data-block="faq">
   <div class="container">
     <div class="faq-layout">
       <div>
@@ -2813,5 +2813,66 @@ document.addEventListener('keydown', function(e) {
   }
 })();
 </script>
+
+<script>
+// ── HOMEPAGE BLOCK ORDER ──────────────────────────────────────────
+(function(){
+  var DEFAULT_ORDER = ['marquee','benefits','products','age-picker','instagram','reviews','delivery','warranty','faq'];
+  var SUPA_URL = 'https://xczrzdbikkycgpnvolib.supabase.co';
+  var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
+
+  function applyBlockOrder(order) {
+    if (!order || !order.length) return;
+    var body = document.body;
+    // Collect all block elements into a map
+    var map = {};
+    document.querySelectorAll('[data-block]').forEach(function(el) {
+      map[el.getAttribute('data-block')] = el;
+    });
+    // Find the first block to use as insertion anchor
+    var firstBlock = document.querySelector('[data-block]');
+    if (!firstBlock) return;
+    var parent = firstBlock.parentNode;
+    var anchor = firstBlock.previousSibling; // insert before this position
+
+    // Re-insert all blocks in the new order
+    order.forEach(function(id) {
+      if (map[id]) {
+        // Also move the preceding comment node if present
+        var prev = map[id].previousSibling;
+        if (prev && prev.nodeType === 8) { // comment node
+          parent.appendChild(prev);
+        }
+        parent.appendChild(map[id]);
+      }
+    });
+  }
+
+  function loadAndApplyOrder() {
+    // Try localStorage cache first
+    try {
+      var cached = localStorage.getItem('kr_blocks_order');
+      if (cached) applyBlockOrder(JSON.parse(cached));
+    } catch(e) {}
+    // Then fetch from Supabase (source of truth)
+    fetch(SUPA_URL + '/rest/v1/settings?select=value&key=eq.homepage_blocks', {
+      headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY}
+    }).then(function(r){ return r.json(); }).then(function(rows) {
+      if (rows && rows[0] && rows[0].value) {
+        var order = JSON.parse(rows[0].value);
+        localStorage.setItem('kr_blocks_order', JSON.stringify(order));
+        applyBlockOrder(order);
+      }
+    }).catch(function() {});
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadAndApplyOrder);
+  } else {
+    loadAndApplyOrder();
+  }
+})();
+</script>
+
 </body>
 </html>

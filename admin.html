@@ -472,6 +472,10 @@ tr:hover td{background:rgba(240,242,248,.5)}
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
       Дизайн сайту
     </div>
+    <div class="nav-item" onclick="showPanel('blocks',this)">
+      <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      Розділи сторінки
+    </div>
   </div>
 
   <div class="sidebar-section">
@@ -1300,6 +1304,46 @@ tr:hover td{background:rgba(240,242,248,.5)}
           ✓ Збережено! Зміни з'являться на всіх пристроях після перезавантаження сторінки.
         </div>
       </div>
+    </div>
+
+    <!-- ═══ BLOCKS (Розділи головної сторінки) ═══ -->
+    <div class="panel" id="panel-blocks">
+      <div class="section-header">
+        <h2 class="section-title">Розділи <span>головної сторінки</span></h2>
+      </div>
+      <p style="color:var(--text-muted);font-size:14px;margin-bottom:24px;max-width:560px">
+        Перетягніть розділи, щоб змінити їх порядок на головній сторінці. Зміни з'являться на всіх пристроях після збереження.
+      </p>
+
+      <div id="blocksReorderList" style="max-width:540px;display:flex;flex-direction:column;gap:8px;margin-bottom:28px">
+        <!-- populated by JS -->
+      </div>
+
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+        <button onclick="saveBlocksOrder()" class="btn btn-primary" style="font-size:15px;padding:12px 28px">
+          <svg viewBox="0 0 24 24" style="width:17px;height:17px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Зберегти порядок
+        </button>
+        <button onclick="resetBlocksOrder()" style="padding:12px 20px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg-soft);font-size:14px;font-weight:600;cursor:pointer;color:var(--text-muted)">
+          Скинути за замовчуванням
+        </button>
+        <div id="blocksSaveMsg" style="display:none;padding:8px 14px;background:#ECFDF5;border:1px solid #10B981;border-radius:9px;color:#065F46;font-size:13px;font-weight:600">
+          ✓ Збережено!
+        </div>
+      </div>
+
+      <style>
+        .block-row{display:flex;align-items:center;gap:12px;background:var(--bg-soft);border:1.5px solid var(--border);border-radius:12px;padding:14px 16px;cursor:grab;transition:all .15s;user-select:none}
+        .block-row:active{cursor:grabbing;box-shadow:0 6px 20px rgba(0,0,0,.12);transform:scale(1.01)}
+        .block-row.drag-over{border-color:var(--orange);background:#FFF5F0}
+        .block-row.dragging{opacity:.4}
+        .block-drag-handle{color:var(--text-muted);flex-shrink:0;display:flex;align-items:center}
+        .block-row-name{flex:1;font-family:'Manrope',sans-serif;font-weight:700;font-size:14px;color:var(--navy)}
+        .block-row-desc{font-size:12px;color:var(--text-muted);font-weight:500}
+        .block-row-arrows{display:flex;flex-direction:column;gap:3px}
+        .block-arrow{width:26px;height:22px;border:1.5px solid var(--border);border-radius:6px;background:white;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:11px;line-height:1}
+        .block-arrow:hover{border-color:var(--navy);color:var(--navy)}
+      </style>
     </div>
     <!-- ═══ REPORT PRINT MODAL ═══ -->
     <div id="reportPrintModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.6);overflow-y:auto;padding:20px">
@@ -7230,6 +7274,123 @@ function loadStripePanel(){
       orig2(name, el);
       if(name==='design') loadStripePanel();
     };
+  });
+})();
+
+
+// ── HOMEPAGE BLOCKS REORDER PANEL ───────────────────────────────────────
+var _BLOCK_DEFS = [
+  {id:'marquee',   name:'Рядок брендів',          desc:'Смуга логотипів виробників'},
+  {id:'benefits',  name:'Переваги KidsRide',       desc:'4 ключові переваги магазину'},
+  {id:'products',  name:'Хіти сезону',             desc:'Популярні товари з каталогу'},
+  {id:'age-picker',name:'Підбір електромобіля',    desc:'Блок «Знайди ідеальний варіант»'},
+  {id:'instagram', name:'Instagram',               desc:'Стрічка @kidsride.ua'},
+  {id:'reviews',   name:'Відгуки покупців',        desc:'Зірки та коментарі клієнтів'},
+  {id:'delivery',  name:'Доставка та оплата',      desc:'Умови доставки по Україні'},
+  {id:'warranty',  name:'Гарантія та сервіс',      desc:'12 місяців гарантії'},
+  {id:'faq',       name:'Часті запитання',         desc:'Відповіді на типові запитання'},
+];
+var _currentBlockOrder = _BLOCK_DEFS.map(b => b.id);
+var _dragSrcEl = null;
+
+function _renderBlocksList() {
+  var list = document.getElementById('blocksReorderList');
+  if (!list) return;
+  list.innerHTML = '';
+  _currentBlockOrder.forEach(function(id, idx) {
+    var def = _BLOCK_DEFS.find(b => b.id === id) || {id:id, name:id, desc:''};
+    var row = document.createElement('div');
+    row.className = 'block-row';
+    row.draggable = true;
+    row.dataset.blockId = id;
+    row.innerHTML =
+      '<div class="block-drag-handle"><svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><line x1="9" y1="6" x2="15" y2="6"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="18" x2="15" y2="18"/></svg></div>'
+      + '<div style="flex:1"><div class="block-row-name">' + def.name + '</div><div class="block-row-desc">' + def.desc + '</div></div>'
+      + '<div class="block-row-arrows">'
+      + '<button class="block-arrow" onclick="_moveBlock('' + id + '',-1)" title="Вгору">▲</button>'
+      + '<button class="block-arrow" onclick="_moveBlock('' + id + '',1)" title="Вниз">▼</button>'
+      + '</div>';
+    // Drag events
+    row.addEventListener('dragstart', function(e) {
+      _dragSrcEl = row;
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', id);
+      setTimeout(function(){row.classList.add('dragging');}, 0);
+    });
+    row.addEventListener('dragend', function() { row.classList.remove('dragging'); });
+    row.addEventListener('dragover', function(e) { e.preventDefault(); e.dataTransfer.dropEffect='move'; row.classList.add('drag-over'); });
+    row.addEventListener('dragleave', function() { row.classList.remove('drag-over'); });
+    row.addEventListener('drop', function(e) {
+      e.preventDefault(); row.classList.remove('drag-over');
+      if (_dragSrcEl === row) return;
+      var srcId = e.dataTransfer.getData('text/plain');
+      var srcIdx = _currentBlockOrder.indexOf(srcId);
+      var dstIdx = _currentBlockOrder.indexOf(id);
+      if (srcIdx < 0 || dstIdx < 0) return;
+      _currentBlockOrder.splice(srcIdx, 1);
+      _currentBlockOrder.splice(dstIdx, 0, srcId);
+      _renderBlocksList();
+    });
+    list.appendChild(row);
+  });
+}
+
+function _moveBlock(id, dir) {
+  var idx = _currentBlockOrder.indexOf(id);
+  var newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= _currentBlockOrder.length) return;
+  _currentBlockOrder.splice(idx, 1);
+  _currentBlockOrder.splice(newIdx, 0, id);
+  _renderBlocksList();
+}
+
+async function saveBlocksOrder() {
+  var val = JSON.stringify(_currentBlockOrder);
+  try { localStorage.setItem('kr_blocks_order', val); } catch(e) {}
+  try {
+    await sbFetch('settings?on_conflict=key', {
+      method: 'POST',
+      headers: { Prefer: 'resolution=merge-duplicates,return=representation' },
+      body: JSON.stringify([{key:'homepage_blocks', value: val}])
+    });
+  } catch(e) { console.warn('blocks save failed:', e); }
+  var msg = document.getElementById('blocksSaveMsg');
+  if (msg) { msg.style.display = 'block'; setTimeout(function(){msg.style.display='none';}, 3000); }
+}
+
+async function resetBlocksOrder() {
+  _currentBlockOrder = _BLOCK_DEFS.map(b => b.id);
+  _renderBlocksList();
+  await saveBlocksOrder();
+}
+
+function loadBlocksPanel() {
+  fetch('https://xczrzdbikkycgpnvolib.supabase.co/rest/v1/settings?select=value&key=eq.homepage_blocks', {
+    headers: {'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ'}
+  }).then(r => r.json()).then(rows => {
+    if (rows && rows[0] && rows[0].value) {
+      var order = JSON.parse(rows[0].value);
+      // Merge: keep any missing blocks at the end
+      var merged = order.filter(id => _BLOCK_DEFS.some(b => b.id === id));
+      _BLOCK_DEFS.forEach(function(b) { if (!merged.includes(b.id)) merged.push(b.id); });
+      _currentBlockOrder = merged;
+    }
+    _renderBlocksList();
+  }).catch(function() { _renderBlocksList(); });
+}
+
+// Hook showPanel
+(function() {
+  var _origSP2 = window.showPanel;
+  function hookShowPanel(fn) {
+    window.showPanel = function(name, el) {
+      fn(name, el);
+      if (name === 'blocks') loadBlocksPanel();
+    };
+  }
+  if (_origSP2) hookShowPanel(_origSP2);
+  else document.addEventListener('DOMContentLoaded', function() {
+    if (window.showPanel) hookShowPanel(window.showPanel);
   });
 })();
 
