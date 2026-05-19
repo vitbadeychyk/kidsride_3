@@ -156,7 +156,7 @@ nav a.active{color:var(--orange)}
 /* ── PRODUCTS ── */
 .products-section{background:var(--bg-warm)}
 .products-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:24px}
-.products-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:20px}
+.products-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:18px}
 
 .p-card{background:white;border-radius:var(--r);overflow:hidden;border:1.5px solid var(--border);transition:all .3s cubic-bezier(.34,1.56,.64,1);cursor:pointer}
 .p-card:hover{transform:translateY(-8px);box-shadow:var(--shadow-lg);border-color:transparent}
@@ -264,7 +264,7 @@ nav a.active{color:var(--orange)}
 .stars-row{display:flex;gap:3px;margin:6px 0 4px}
 .star svg{width:18px;height:18px;fill:#f59e0b;stroke:none}
 .rating-ct{font-size:13px;color:var(--text-muted)}
-.reviews-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:16px;align-items:stretch}
+.reviews-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;align-items:stretch}
 .reviews-grid .r-card:nth-child(n+7){display:none}
 .r-card{background:white;border-radius:14px;padding:18px 18px 16px;border:1.5px solid var(--border);height:100%;display:flex;flex-direction:column;min-width:0}
 .r-head{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px}
@@ -281,7 +281,7 @@ nav a.active{color:var(--orange)}
 .r-product{display:flex;align-items:center;gap:6px;padding:7px 10px;background:var(--bg-soft);border-radius:8px;margin-top:auto}
 .r-product-img{width:30px;height:30px;object-fit:cover;border-radius:6px;background:#e8ecf4}
 .r-product-name{font-size:11px;font-weight:600;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-@media(max-width:1180px){.reviews-grid{grid-template-columns:repeat(4,1fr)}.reviews-grid .r-card:nth-child(n+5){display:none}}
+@media(max-width:1180px){.reviews-grid{grid-template-columns:repeat(5,1fr)}.reviews-grid .r-card:nth-child(n+6){display:none}}
 @media(max-width:900px){.reviews-grid{grid-template-columns:repeat(3,1fr)}.reviews-grid .r-card:nth-child(n+4){display:none}}
 @media(max-width:640px){.reviews-grid{grid-template-columns:repeat(2,1fr);gap:12px}.reviews-grid .r-card:nth-child(n+3){display:none}}
 @media(max-width:440px){.reviews-grid{grid-template-columns:1fr}.reviews-grid .r-card:nth-child(n+2){display:none}}
@@ -474,7 +474,7 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
   .age-grid{grid-template-columns:repeat(3,1fr)}
   .delivery-grid,.warranty-grid{grid-template-columns:1fr;gap:48px}
   .faq-layout{grid-template-columns:1fr}
-  .ig-grid{grid-template-columns:repeat(3,1fr)}
+  .ig-grid{grid-template-columns:repeat(4,1fr)}
   .f-grid{grid-template-columns:1fr 1fr}
   .section,.section-sm{padding:40px 24px}
 }
@@ -1206,7 +1206,7 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
 
       async function loadFeatured() {
         try {
-          const r = await fetch('https://xczrzdbikkycgpnvolib.supabase.co/rest/v1/products?select=*&is_featured=eq.true&active=eq.true&order=created_at.desc&limit=6',
+          const r = await fetch('https://xczrzdbikkycgpnvolib.supabase.co/rest/v1/products?select=*&is_featured=eq.true&active=eq.true&order=created_at.desc&limit=10',
             { headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ'} });
           const products = r.ok ? await r.json() : [];
           if (products && products.length) {
@@ -1286,10 +1286,10 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
       <div class="ig-post ig-skeleton" style="background:linear-gradient(145deg,#fff8e1,#ffebb0)"></div>
       <div class="ig-post ig-skeleton" style="background:linear-gradient(145deg,#fce4ec,#f8bbd0)"></div>
       <div class="ig-post ig-skeleton" style="background:linear-gradient(145deg,#e8f5e9,#c8e6c9)"></div>
-      <div class="ig-post ig-skeleton" style="background:linear-gradient(145deg,#f0eeff,#d8ccff)"></div>
-      <div class="ig-post ig-skeleton" style="background:linear-gradient(145deg,#fef0e8,#fad8bc)"></div>
-    </div>
-    <div class="ig-cta">
+        <div class="ig-post ig-skeleton" style="background:linear-gradient(145deg,#f0e8ff,#d8b4fe)"></div>
+        <div class="ig-post ig-skeleton" style="background:linear-gradient(145deg,#fef9c3,#fde68a)"></div>
+      </div>
+      <div class="ig-cta">
       <a href="https://www.instagram.com/kidsride.ua/" target="_blank" class="btn btn-outline" style="font-size:15px;padding:13px 32px">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
         Підписатись на Instagram
@@ -1356,7 +1356,7 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
 
   try {
     const [reviewsRes, allRatingsRes] = await Promise.all([
-      fetch(SB_URL + '/rest/v1/reviews?select=*,products(id,name,images,category)&approved=eq.true&order=created_at.desc&limit=6', { headers }),
+      fetch(SB_URL + '/rest/v1/reviews?select=*,products(id,name,images,category)&approved=eq.true&order=created_at.desc&limit=10', { headers }),
       fetch(SB_URL + '/rest/v1/reviews?select=rating&approved=eq.true', { headers })
     ]);
 
@@ -2784,7 +2784,7 @@ document.addEventListener('keydown', function(e) {
 
         var html = '';
         var count = 0;
-        for (var i = 0; i < posts.length && count < 8; i++) {
+        for (var i = 0; i < posts.length && count < 6; i++) {
           var postHtml = buildPost(posts[i]);
           if (postHtml) { html += postHtml; count++; }
         }
