@@ -468,11 +468,11 @@ tr:hover td{background:rgba(240,242,248,.5)}
       <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
       Перерахунок цін
     </div>
-    <div class="nav-item" onclick="showPanel('design',this)">
+    <div class="nav-item" onclick="showPanel('design',this);loadStripePanel()">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
       Дизайн сайту
     </div>
-    <div class="nav-item" onclick="showPanel('blocks',this)">
+    <div class="nav-item" onclick="showPanel('blocks',this);loadBlocksPanel()">
       <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
       Розділи сторінки
     </div>
@@ -7379,20 +7379,7 @@ function loadBlocksPanel() {
   }).catch(function() { _renderBlocksList(); });
 }
 
-// Hook showPanel
-(function() {
-  var _origSP2 = window.showPanel;
-  function hookShowPanel(fn) {
-    window.showPanel = function(name, el) {
-      fn(name, el);
-      if (name === 'blocks') loadBlocksPanel();
-    };
-  }
-  if (_origSP2) hookShowPanel(_origSP2);
-  else document.addEventListener('DOMContentLoaded', function() {
-    if (window.showPanel) hookShowPanel(window.showPanel);
-  });
-})();
+
 
 </script>
 </body>
