@@ -156,7 +156,8 @@ nav a.active{color:var(--orange)}
 /* ── PRODUCTS ── */
 .products-section{background:var(--bg-warm)}
 .products-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:24px}
-.products-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+.products-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:20px}
+@media(min-width:1025px) and (max-width:1400px){.products-grid{grid-template-columns:repeat(4,1fr)}}
 
 .p-card{background:white;border-radius:var(--r);overflow:hidden;border:1.5px solid var(--border);transition:all .3s cubic-bezier(.34,1.56,.64,1);cursor:pointer}
 .p-card:hover{transform:translateY(-8px);box-shadow:var(--shadow-lg);border-color:transparent}
@@ -264,8 +265,8 @@ nav a.active{color:var(--orange)}
 .stars-row{display:flex;gap:3px;margin:6px 0 4px}
 .star svg{width:18px;height:18px;fill:#f59e0b;stroke:none}
 .rating-ct{font-size:13px;color:var(--text-muted)}
-.reviews-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;align-items:stretch}
-.reviews-grid .r-card:nth-child(n+6){display:none}
+.reviews-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:16px;align-items:stretch}
+.reviews-grid .r-card:nth-child(n+7){display:none}
 .r-card{background:white;border-radius:14px;padding:18px 18px 16px;border:1.5px solid var(--border);height:100%;display:flex;flex-direction:column;min-width:0}
 .r-head{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px}
 .r-avatar{width:36px;height:36px;border-radius:50%;object-fit:cover;background:var(--bg-soft);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:var(--navy);font-family:'Nunito',sans-serif;flex-shrink:0}
@@ -281,6 +282,7 @@ nav a.active{color:var(--orange)}
 .r-product{display:flex;align-items:center;gap:6px;padding:7px 10px;background:var(--bg-soft);border-radius:8px;margin-top:auto}
 .r-product-img{width:30px;height:30px;object-fit:cover;border-radius:6px;background:#e8ecf4}
 .r-product-name{font-size:11px;font-weight:600;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+@media(max-width:1400px){.reviews-grid{grid-template-columns:repeat(5,1fr)}.reviews-grid .r-card:nth-child(n+6){display:none}}
 @media(max-width:1180px){.reviews-grid{grid-template-columns:repeat(4,1fr)}.reviews-grid .r-card:nth-child(n+5){display:none}}
 @media(max-width:900px){.reviews-grid{grid-template-columns:repeat(3,1fr)}.reviews-grid .r-card:nth-child(n+4){display:none}}
 @media(max-width:640px){.reviews-grid{grid-template-columns:repeat(2,1fr);gap:12px}.reviews-grid .r-card:nth-child(n+3){display:none}}
@@ -344,7 +346,7 @@ nav a.active{color:var(--orange)}
 /* ── INSTAGRAM ── */
 .ig-section{background:var(--bg-soft)}
 .ig-head{text-align:center;margin-bottom:24px}
-.ig-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:20px}
+.ig-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:12px;margin-bottom:20px}
 .ig-post{aspect-ratio:1;border-radius:var(--r-sm);overflow:hidden;position:relative;cursor:pointer}
 .ig-post img{width:100%;height:100%;object-fit:cover;transition:transform .4s}
 .ig-post:hover img{transform:scale(1.06)}
@@ -474,7 +476,7 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
   .age-grid{grid-template-columns:repeat(3,1fr)}
   .delivery-grid,.warranty-grid{grid-template-columns:1fr;gap:48px}
   .faq-layout{grid-template-columns:1fr}
-  .ig-grid{grid-template-columns:repeat(3,1fr)}
+  .ig-grid{grid-template-columns:repeat(4,1fr)}
   .f-grid{grid-template-columns:1fr 1fr}
   .section,.section-sm{padding:40px 24px}
 }
@@ -921,18 +923,6 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
 </svg>
               </div>
               </div>
-              <div class="hero-float-tag hft-1">
-                <div class="hft-icon orange">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                </div>
-                <span>12V акумулятор</span>
-              </div>
-              <div class="hero-float-tag hft-2">
-                <div class="hft-icon green">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                </div>
-                <span>Гарантія 12 міс</span>
-              </div>
             </div>
           </div>
         </div>
@@ -1298,6 +1288,8 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
       <div class="ig-post ig-skeleton" style="background:linear-gradient(145deg,#fff8e1,#ffebb0)"></div>
       <div class="ig-post ig-skeleton" style="background:linear-gradient(145deg,#fce4ec,#f8bbd0)"></div>
       <div class="ig-post ig-skeleton" style="background:linear-gradient(145deg,#e8f5e9,#c8e6c9)"></div>
+      <div class="ig-post ig-skeleton" style="background:linear-gradient(145deg,#f0eeff,#d8ccff)"></div>
+      <div class="ig-post ig-skeleton" style="background:linear-gradient(145deg,#fef0e8,#fad8bc)"></div>
     </div>
     <div class="ig-cta">
       <a href="https://www.instagram.com/kidsride.ua/" target="_blank" class="btn btn-outline" style="font-size:15px;padding:13px 32px">
@@ -1366,7 +1358,7 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
 
   try {
     const [reviewsRes, allRatingsRes] = await Promise.all([
-      fetch(SB_URL + '/rest/v1/reviews?select=*,products(id,name,images,category)&approved=eq.true&order=created_at.desc&limit=5', { headers }),
+      fetch(SB_URL + '/rest/v1/reviews?select=*,products(id,name,images,category)&approved=eq.true&order=created_at.desc&limit=6', { headers }),
       fetch(SB_URL + '/rest/v1/reviews?select=rating&approved=eq.true', { headers })
     ]);
 
@@ -2794,7 +2786,7 @@ document.addEventListener('keydown', function(e) {
 
         var html = '';
         var count = 0;
-        for (var i = 0; i < posts.length && count < 6; i++) {
+        for (var i = 0; i < posts.length && count < 8; i++) {
           var postHtml = buildPost(posts[i]);
           if (postHtml) { html += postHtml; count++; }
         }
