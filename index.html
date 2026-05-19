@@ -470,7 +470,7 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
   .hero-pagination{left:50% !important;transform:translateX(-50%) !important;bottom:22px !important}
 
   .benefits-grid{grid-template-columns:repeat(2,1fr)}
-  .products-grid{grid-template-columns:repeat(2,1fr)}
+  .products-grid{grid-template-columns:repeat(4,1fr)}
   .age-grid{grid-template-columns:repeat(3,1fr)}
   .delivery-grid,.warranty-grid{grid-template-columns:1fr;gap:48px}
   .faq-layout{grid-template-columns:1fr}
@@ -479,7 +479,8 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
   .section,.section-sm{padding:40px 24px}
 }
 @media(max-width:640px){
-  .benefits-grid,.products-grid{grid-template-columns:1fr}
+  .benefits-grid{grid-template-columns:1fr}
+  .products-grid{grid-template-columns:repeat(2,1fr)}
   .age-grid{grid-template-columns:1fr}
   .ig-grid{grid-template-columns:repeat(2,1fr)}
   .f-grid{grid-template-columns:1fr}
@@ -1271,7 +1272,6 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
 
 <!-- INSTAGRAM -->
 <section class="section-sm ig-section" data-block="instagram">
-  <div class="container">
     <div class="ig-head">
       <div class="s-label" style="justify-content:center">Ми в Instagram</div>
       <h2 class="s-title" style="text-align:center">@<em>kidsride.ua</em></h2>
@@ -1293,12 +1293,10 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
         Підписатись на Instagram
       </a>
     </div>
-  </div>
 </section>
 
 <!-- REVIEWS -->
 <section class="section reviews-section" data-block="reviews" id="reviews" style="background:var(--bg-soft);scroll-margin-top:90px">
-  <div class="container">
     <div class="reviews-top">
       <div>
         <div class="s-label">Відгуки покупців</div>
@@ -1322,7 +1320,6 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
     <div class="reviews-grid" id="reviewsGrid">
       <div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--text-muted);font-size:14px">Завантаження відгуків…</div>
     </div>
-  </div>
 </section>
 <script>
 (async function loadReviews() {
