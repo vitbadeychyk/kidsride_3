@@ -572,11 +572,11 @@ nav a.active{color:var(--orange)}
       <div class="filter-body">
         <div class="price-inputs">
           <div class="price-inp-wrap">
-            <input class="price-inp" type="number" id="priceMin" value="664" min="664" max="86610" onchange="applyFilters()">
+            <input class="price-inp" type="number" id="priceMin" value="0" min="0" max="999999" onchange="applyFilters()">
             <span>від</span>
           </div>
           <div class="price-inp-wrap">
-            <input class="price-inp" type="number" id="priceMax" value="86610" min="664" max="86610" onchange="applyFilters()">
+            <input class="price-inp" type="number" id="priceMax" value="999999" min="0" max="999999" onchange="applyFilters()">
             <span>до</span>
           </div>
         </div>
@@ -762,8 +762,13 @@ function resetFilters() {
     const pm = document.getElementById('priceMin');
     const px = document.getElementById('priceMax');
     if (si) si.value = '';
-    if (pm) pm.value = 664;
-    if (px) px.value = 86610;
+    // Динамічно встановлюємо ціну з реальних даних
+      { const prices=(allProducts||[]).filter(p=>p.price>0).map(p=>p.price);
+        const pMin=prices.length?Math.floor(Math.min(...prices)):0;
+        const pMax=prices.length?Math.ceil(Math.max(...prices)):999999;
+        if(pm){pm.min=pMin;pm.value=pMin;pm.setAttribute('min',pMin);}
+        if(px){px.max=pMax;px.value=pMax;px.setAttribute('max',pMax);}
+      }
     // Скидаємо стан категорій (жодна не обрана після скидання)
     if (typeof _activeCatIdFilter !== 'undefined') { _activeCatIdFilter = 0; _activeParentIdFilter = 0; _activeVehicleType = ''; }
     if (typeof activeFilters !== 'undefined') {
@@ -1875,6 +1880,18 @@ async function renderCatalog() {
   if (cached && cached.length > 0 && !_hasSearchParam) {
     // ── Є кеш і немає пошукового запиту: показуємо одразу ───────────────────
     allProducts = cached;
+      // Транспортні засоби завжди перед запчастинами у базовому масиві
+      { const _VC_BASE=new Set(['jeep','car','quad','moto','tractor','truck','buggy','walker']); allProducts.sort((a,b)=>{const av=_VC_BASE.has(a.category),bv=_VC_BASE.has(b.category);return av===bv?0:av?-1:1;}); }
+    // Динамічне оновлення діапазону ціни
+    { const prices=(allProducts||[]).filter(p=>p.price>0).map(p=>p.price);
+      if(prices.length){
+        const pMin=Math.floor(Math.min(...prices)),pMax=Math.ceil(Math.max(...prices));
+        const pmEl=document.getElementById('priceMin'),pxEl=document.getElementById('priceMax');
+        if(pmEl){pmEl.min=pMin;pmEl.value=pMin;pmEl.setAttribute('min',pMin);}
+        if(pxEl){pxEl.max=pMax;pxEl.value=pMax;pxEl.setAttribute('max',pMax);}
+        activeFilters.priceMin=0; activeFilters.priceMax=999999;
+      }
+    }
     const countEl = document.getElementById('catalogCount');
     if (countEl) countEl.textContent = allProducts.length + ' товарів';
     updateDynamicFilters();
@@ -1886,6 +1903,18 @@ async function renderCatalog() {
     loadProductsFromSupabase().then(freshProds => {
       if (freshProds && freshProds.length > 0) {
         allProducts = freshProds.filter(p => p.active !== false);
+          // Транспортні засоби завжди перед запчастинами у базовому масиві
+          { const _VC_BASE=new Set(['jeep','car','quad','moto','tractor','truck','buggy','walker']); allProducts.sort((a,b)=>{const av=_VC_BASE.has(a.category),bv=_VC_BASE.has(b.category);return av===bv?0:av?-1:1;}); }
+    // Динамічне оновлення діапазону ціни
+    { const prices=(allProducts||[]).filter(p=>p.price>0).map(p=>p.price);
+      if(prices.length){
+        const pMin=Math.floor(Math.min(...prices)),pMax=Math.ceil(Math.max(...prices));
+        const pmEl=document.getElementById('priceMin'),pxEl=document.getElementById('priceMax');
+        if(pmEl){pmEl.min=pMin;pmEl.value=pMin;pmEl.setAttribute('min',pMin);}
+        if(pxEl){pxEl.max=pMax;pxEl.value=pMax;pxEl.setAttribute('max',pMax);}
+        activeFilters.priceMin=0; activeFilters.priceMax=999999;
+      }
+    }
         try { localStorage.setItem(PRODUCTS_CACHE_KEY, JSON.stringify(allProducts)); } catch(_) {}
         const el = document.getElementById('catalogCount');
         if (el) el.textContent = allProducts.length + ' товарів';
@@ -1908,6 +1937,18 @@ async function renderCatalog() {
   // ВАЖЛИВО: спочатку товари, потім дерево — щоб кількості і типи були правильні
   const products = await loadProductsFromSupabase();
   allProducts = (products || []).filter(p => p.active !== false);
+    // Транспортні засоби завжди перед запчастинами у базовому масиві
+    { const _VC_BASE=new Set(['jeep','car','quad','moto','tractor','truck','buggy','walker']); allProducts.sort((a,b)=>{const av=_VC_BASE.has(a.category),bv=_VC_BASE.has(b.category);return av===bv?0:av?-1:1;}); }
+    // Динамічне оновлення діапазону ціни
+    { const prices=(allProducts||[]).filter(p=>p.price>0).map(p=>p.price);
+      if(prices.length){
+        const pMin=Math.floor(Math.min(...prices)),pMax=Math.ceil(Math.max(...prices));
+        const pmEl=document.getElementById('priceMin'),pxEl=document.getElementById('priceMax');
+        if(pmEl){pmEl.min=pMin;pmEl.value=pMin;pmEl.setAttribute('min',pMin);}
+        if(pxEl){pxEl.max=pMax;pxEl.value=pMax;pxEl.setAttribute('max',pMax);}
+        activeFilters.priceMin=0; activeFilters.priceMax=999999;
+      }
+    }
   try { localStorage.setItem(PRODUCTS_CACHE_KEY, JSON.stringify(allProducts)); } catch(_) {}
 
   const countEl = document.getElementById('catalogCount');
@@ -1946,11 +1987,6 @@ function applyFiltersAndRender() {
     // Фільтр по типу транспорту (з дерева або окремого блоку)
     if (_activeVehicleType && p.category !== _activeVehicleType) return false;
     if (!_activeVehicleType && activeFilters.types.length && !activeFilters.types.includes(p.category)) return false;
-    // Якщо жодна категорія/тип не обрані — показуємо лише транспортні засоби (без запчастин і аксесуарів)
-    const _VEH_ONLY = new Set(['jeep','car','quad','moto','tractor','truck','buggy','walker']);
-    if (!_activeVehicleType && !activeFilters.types.length && !activeCatIds.length && !_activeParentIdFilter) {
-      if (!_VEH_ONLY.has(p.category)) return false;
-    }
     if (activeFilters.ages.length) {
       const ageRanges = { '1-3': [1,3], '3-6': [3,6], '6-10': [6,10] };
       const pAges = String(p.age || '').split('-').map(Number);
