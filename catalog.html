@@ -1167,9 +1167,21 @@ function closeDrawer() {
 
 // Search toggle
 function toggleSearch() {
-  // Could expand a search overlay
-  document.getElementById('sidebar').querySelector('#searchInput').focus();
-  window.scrollTo({ top: 140, behavior: 'smooth' });
+  const sidebar = document.getElementById('sidebar');
+  const sidebarVisible = sidebar && window.getComputedStyle(sidebar).display !== 'none';
+  if (sidebarVisible) {
+    const inp = document.getElementById('searchInput');
+    if (inp) {
+      inp.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => inp.focus(), 200);
+    }
+  } else {
+    openDrawer();
+    setTimeout(() => {
+      const inp = document.getElementById('searchInput');
+      if (inp) inp.focus();
+    }, 350);
+  }
 }
 
 // Wire product cards & "Детальніше" buttons → product.html
@@ -1990,20 +2002,12 @@ function applyFiltersAndRender() {
 
   // Стабільне сортування: деталі/запчастини — завжди в кінці, для всіх типів транспорту
   {
-    const _DETAILS_RE = /деталь|запчастин|аксесу|доповнен/i;
-    const _subNameCache = {};
-    const _getSubName = (catId) => {
-      if (!catId) return '';
-      if (_subNameCache[catId] !== undefined) return _subNameCache[catId];
-      const sub = _allCategories.find(c => c.id === catId);
-      _subNameCache[catId] = sub ? sub.name : '';
-      return _subNameCache[catId];
-    };
+    const _VEHICLE_CATS = new Set(['jeep','car','quad','moto','tractor','truck','buggy','walker']);
     filteredProducts.sort((a, b) => {
-      const aIsDetails = _DETAILS_RE.test(_getSubName(a.category_id));
-      const bIsDetails = _DETAILS_RE.test(_getSubName(b.category_id));
-      if (aIsDetails === bIsDetails) return 0;
-      return aIsDetails ? 1 : -1;
+      const aIsVehicle = _VEHICLE_CATS.has(a.category);
+      const bIsVehicle = _VEHICLE_CATS.has(b.category);
+      if (aIsVehicle === bIsVehicle) return 0;
+      return aIsVehicle ? -1 : 1;
     });
   }
 

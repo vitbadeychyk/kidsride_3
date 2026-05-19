@@ -2093,7 +2093,9 @@ async function buildColorVariants(currentSku, currentId, supaUrl, supaKey, model
 
   arr.forEach(v => {
     const isCur = v.id === currentId;
-    const mainImg = (Array.isArray(v.images) && v.images[0]) ? v.images[0] : '';
+    let _imgs = v.images;
+    if (typeof _imgs === 'string') { try { _imgs = JSON.parse(_imgs); } catch(e) { _imgs = []; } }
+    const mainImg = (Array.isArray(_imgs) && _imgs[0] && typeof _imgs[0] === 'string' && _imgs[0].startsWith('http')) ? _imgs[0] : '';
     const inStock = (typeof v.stock === 'number') ? v.stock > 0 : true;
     const sfx = (String(v.sku||'').match(/-(\d+)\s*$/)||[])[1] || '?';
     const colorName = (v.color && String(v.color).trim())
@@ -2117,7 +2119,7 @@ async function buildColorVariants(currentSku, currentId, supaUrl, supaKey, model
       + 'transition:all .2s;display:flex;align-items:center;justify-content:center;'
       + (isCur ? 'box-shadow:0 0 0 3px rgba(255,107,53,.15);' : '');
     if (mainImg){
-      tile.innerHTML = '<img src="' + mainImg + '" alt="" style="width:100%;height:100%;object-fit:contain;padding:5px;box-sizing:border-box" loading="lazy">';
+      tile.innerHTML = '<img src="' + mainImg + '" alt="" style="width:100%;height:100%;object-fit:contain;padding:5px;box-sizing:border-box" loading="eager">';
     } else {
       tile.innerHTML = '<span style="font-family:Nunito,sans-serif;font-weight:800;color:var(--text-muted);font-size:22px">' + sfx + '</span>';
     }

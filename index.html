@@ -2009,7 +2009,7 @@ function toggleWish(btn) {
   <div class="search-modal">
     <form class="search-form" onsubmit="return submitSearch(event)" autocomplete="off">
       <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-      <input type="text" id="searchOverlayInput" placeholder="Шукати електромобіль, бренд, модель…" oninput="renderSearchSuggestions(this.value)" />
+      <input type="text" id="searchOverlayInput" placeholder="Шукати електромобіль, бренд, модель…" oninput="renderSearchSuggestions(this.value)" onkeyup="renderSearchSuggestions(this.value)" />
       <span class="search-kbd">ESC</span>
       <button type="button" class="search-close" onclick="closeSearchOverlay()" aria-label="Закрити пошук">
         <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -2508,6 +2508,7 @@ function renderSearchSuggestions(query) {
   if (!products) {
     list.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:13px">Завантаження каталогу…</div>';
     empty.style.display = 'none';
+    krLoadAllProducts().then(() => renderSearchSuggestions(query));
     return;
   }
   const KR_VEHICLE_CATS = new Set(Object.keys(KR_CAT_EMOJI));
