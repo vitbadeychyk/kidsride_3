@@ -1696,7 +1696,7 @@ console.log('[KidsRide] product.html v3.9 — працюють: копіюван
         active: cached.active
       };
       applyProductData(cnorm);
-      if (cnorm.sku || cnorm.model_code) buildColorVariants(cnorm.sku, cnorm.id, SUPA_URL, SUPA_KEY, cnorm.model_code, cnorm.category_id);
+      if (cnorm.sku || cnorm.model_code) buildColorVariants(cnorm.sku, cnorm.id, SUPA_URL, SUPA_KEY, cnorm.model_code, cnorm.category_id, cnorm.category);
     }
 
     if (!id) return;
@@ -1732,7 +1732,7 @@ console.log('[KidsRide] product.html v3.9 — працюють: копіюван
     applyProductData(p);
     renderProductDescription(p);
     renderProductSpecs(p);
-    if (p.sku || p.model_code) await buildColorVariants(p.sku, p.id, SUPA_URL, SUPA_KEY, p.model_code, p.category_id);
+    if (p.sku || p.model_code) await buildColorVariants(p.sku, p.id, SUPA_URL, SUPA_KEY, p.model_code, p.category_id, p.category);
     // ─ Відгуки з Supabase (по реальному product_id) ─
     loadReviewsFromSupabase(p.id);
     // ─ Трекінг перегляду ─
@@ -2143,7 +2143,7 @@ async function switchToVariant(id, supaUrl, supaKey){
 
   // Перебудовуємо рядок кольорів — тепер вже з новим активним товаром
   if (p.sku || p.model_code){
-    await buildColorVariants(p.sku, p.id, supaUrl, supaKey, p.model_code, p.category_id);
+    await buildColorVariants(p.sku, p.id, supaUrl, supaKey, p.model_code, p.category_id, p.category);
   }
 
   // Оновлюємо адресу в браузері (без перезавантаження)
@@ -2175,7 +2175,7 @@ window.addEventListener('popstate', () => {
 //      (це дозволяє об'єднати, наприклад, M 4259EBLR-1/-2/-3 і M 4259EBLRS-3 через код "4259").
 //   2) Якщо model_code порожній — fallback на старий пошук за префіксом артикула:
 //      "M 4259EBLR-1" → "M 4259EBLR-*".
-async function buildColorVariants(currentSku, currentId, supaUrl, supaKey, modelCode, categoryId){
+async function buildColorVariants(currentSku, currentId, supaUrl, supaKey, modelCode, categoryId, currentCategory){
   // Дозволяємо викликати без явних креденшіалів — беремо з KR або літералів
   supaUrl = supaUrl || (window.KR && KR._SUPA_URL) || 'https://xczrzdbikkycgpnvolib.supabase.co';
   supaKey = supaKey || (window.KR && KR._SUPA_KEY) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
@@ -2231,17 +2231,20 @@ async function buildColorVariants(currentSku, currentId, supaUrl, supaKey, model
     return added;
   }
 
-  // category_id поточного товару — використовується для фільтрації нижче
+  // category_id поточного товару
   const catId = categoryId != null ? String(categoryId).trim() : '';
-  // Фільтр лише для найширшої стратегії (цифри в SKU) — блокує випадкові
-  // збіги (напр. басейн 26368 ≠ автомобіль M 6368EBLR), але НЕ застосовується
-  // до стратегій 1/2, щоб запчастини з тим самим model_code/SKU-префіксом завжди потрапляли
-  const strictCatFilter = catId ? '&category_id=eq.' + encodeURIComponent(catId) : '';
+  const catFilter = catId ? '&category_id=eq.' + encodeURIComponent(catId) : '';
 
-  // ── Стратегія 1: за model_code (якщо є) — БЕЗ фільтра category_id ──────
-  // Запчастини мають той самий model_code, але іншу category_id → вони мають з'являтись
+  // Категорії транспортних засобів — визначають, чи поточний товар є ТЗ
+  const _VEHICLE_CATS = new Set(['jeep','car','quad','moto','tractor','truck','buggy','walker']);
+  const isCurrentVehicle = _VEHICLE_CATS.has(String(currentCategory || '').toLowerCase());
+
+  // ── Стратегія 1: за model_code + category_id (кольорові варіанти тієї ж категорії) ──
+  // Фільтр category_id запобігає об'єднанню різних типів товарів (наприклад мольберт+сани+ляльковий будинок)
+  // навіть якщо у них однаковий model_code.
   if (code){
     const qsBase = 'products?model_code=eq.' + encodeURIComponent(code)
+      + catFilter
       + '&active=eq.true'
       + '&select=';
     const data = await _fetchVariants(qsBase);
@@ -2249,7 +2252,24 @@ async function buildColorVariants(currentSku, currentId, supaUrl, supaKey, model
     if (added) usedStrategies.push('model_code=' + code + ' (+' + added + ')');
   }
 
-  // ── Стратегія 2: за префіксом артикула (формат "PREFIX-N") — БЕЗ фільтра category_id
+  // ── Стратегія 1б: запчастини для транспортних засобів ───────────────────
+  // Запускається ЛИШЕ якщо поточний товар є транспортним засобом.
+  // Додатково вибирає товари з тим самим model_code, але НЕ-транспортної категорії
+  // (аксесуари, запчастини) — їх category_id відрізняється, тому стратегія 1 їх не бачить.
+  if (code && isCurrentVehicle){
+    const qsBase = 'products?model_code=eq.' + encodeURIComponent(code)
+      + '&active=eq.true'
+      + '&select=';
+    const data = await _fetchVariants(qsBase);
+    // Залишаємо лише НЕ-транспортні товари (запчастини, аксесуари)
+    const parts = Array.isArray(data)
+      ? data.filter(v => !_VEHICLE_CATS.has(String(v.category || '').toLowerCase()))
+      : [];
+    const added = _mergeIn(parts);
+    if (added) usedStrategies.push('spare parts model_code=' + code + ' (+' + added + ')');
+  }
+
+  // ── Стратегія 2: за префіксом артикула (формат "PREFIX-N") ─────────────
   {
     const m = String(currentSku || '').match(/^(.*?)-(\d+)\s*$/);
     if (m){
@@ -2257,6 +2277,7 @@ async function buildColorVariants(currentSku, currentId, supaUrl, supaKey, model
       if (prefix){
         const pattern = prefix + '-*';
         const qsBase = 'products?sku=ilike.' + encodeURIComponent(pattern)
+          + catFilter
           + '&active=eq.true'
           + '&select=';
         const data = await _fetchVariants(qsBase);
@@ -2268,16 +2289,14 @@ async function buildColorVariants(currentSku, currentId, supaUrl, supaKey, model
   }
 
   // ── Стратегія 3: за числовим кодом моделі, що міститься в SKU ──────────
-  // Найширша стратегія: "M 4259EBLR-1" → шукає '*4259*'.
-  // Саме вона може підхопити неспоріднені товари (напр. басейн зі схожим числом у SKU),
-  // тому тут ЗАСТОСОВУЄМО фільтр category_id — щоб показувались лише товари тієї ж категорії.
-  // Запчастини потраплять через стратегії 1/2 (де фільтра немає).
+  // Найширша стратегія — завжди з фільтром category_id, щоб не підхопити
+  // сторонні товари (наприклад басейн, SKU якого містить ті ж цифри).
   {
     const digits = (String(currentSku||'').match(/\d{3,}/g) || [])
       .sort((a,b) => b.length - a.length)[0];
     if (digits){
       const qsBase = 'products?sku=ilike.' + encodeURIComponent('*' + digits + '*')
-        + strictCatFilter
+        + catFilter
         + '&active=eq.true'
         + '&select=';
       const data = await _fetchVariants(qsBase);
@@ -2287,20 +2306,6 @@ async function buildColorVariants(currentSku, currentId, supaUrl, supaKey, model
   }
 
   let arr = Array.from(merged.values());
-
-  // ── Фінальна JS-фільтрація ───────────────────────────────────────────────
-  // Транспортні засоби з іншою category_id — виключаємо (чужорідний товар,
-  // напр. басейн, якому випадково проставили той самий model_code).
-  // Запчастини та аксесуари (не транспортний засіб) — залишаємо завжди.
-  if (catId) {
-    const _VEHICLE_CATS = new Set(['jeep','car','quad','moto','tractor','truck','buggy','walker']);
-    arr = arr.filter(v => {
-      const isVehicle = _VEHICLE_CATS.has(String(v.category || '').toLowerCase());
-      if (!isVehicle) return true; // запчастина / аксесуар — показуємо завжди
-      const vCatId = v.category_id != null ? String(v.category_id) : '';
-      return !vCatId || vCatId === catId; // авто — лише якщо та сама category_id
-    });
-  }
 
   if (arr.length === 0) {
     console.warn('[KidsRide variants] жодної моделі не знайдено. Заповніть поле "Код моделі для кольорів" в адмінці (напр. 4259) для всіх варіантів.');
