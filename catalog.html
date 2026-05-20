@@ -116,7 +116,7 @@ nav a.active{color:var(--orange)}
 
 /* Search in sidebar */
 .sidebar-search{position:relative;margin-bottom:20px}
-.sidebar-search input{width:100%;padding:10px 14px 10px 38px;border:1.5px solid var(--border);border-radius:9px;font-family:'Manrope',sans-serif;font-size:13px;color:var(--navy);background:var(--bg-soft);transition:border-color .2s}
+.sidebar-search input{width:100%;box-sizing:border-box;padding:10px 14px 10px 38px;border:1.5px solid var(--border);border-radius:9px;font-family:'Manrope',sans-serif;font-size:13px;color:var(--navy);background:var(--bg-soft);transition:border-color .2s;min-width:0}
 .sidebar-search input:focus{outline:none;border-color:var(--orange);background:white}
 .sidebar-search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:14px;height:14px;stroke:var(--text-muted);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
@@ -260,8 +260,9 @@ nav a.active{color:var(--orange)}
 .empty-desc{font-size:14px;line-height:1.6;margin-bottom:24px}
 
 /* ── MOBILE FILTER BTN ── */
-.mobile-filter-btn{display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:500;background:var(--navy);color:white;border:none;cursor:pointer;border-radius:100px;padding:13px 26px;font-family:'Nunito',sans-serif;font-weight:700;font-size:14px;box-shadow:0 8px 32px rgba(27,42,74,.35);white-space:nowrap}
-.mobile-filter-btn svg{width:16px;height:16px;stroke:white;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+@keyframes filterGlow{0%,100%{box-shadow:0 8px 32px rgba(255,107,53,.4)}50%{box-shadow:0 8px 32px rgba(255,107,53,.4),0 0 0 7px rgba(255,107,53,.2),0 0 0 14px rgba(255,107,53,.08)}}
+.mobile-filter-btn{display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:500;background:var(--orange);color:white;border:none;cursor:pointer;border-radius:100px;padding:14px 28px;font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;box-shadow:0 8px 32px rgba(255,107,53,.4);white-space:nowrap;gap:8px;animation:filterGlow 2.2s ease-in-out infinite}
+.mobile-filter-btn svg{width:16px;height:16px;stroke:white;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
 
 /* ── DRAWER (mobile sidebar) ── */
 .drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:800;opacity:0;pointer-events:none;transition:opacity .3s}
@@ -365,9 +366,33 @@ nav a.active{color:var(--orange)}
   width:100% !important;
   border:none !important;
   border-radius:0 !important;
-  padding:0 4px !important;
+  padding:0 18px !important;
   top:auto !important;
 }
+
+/* ── MOBILE DRAWER: category & filter sizes ── */
+#sidebar.in-drawer .cat-tree-all{padding:11px 8px 11px 8px}
+#sidebar.in-drawer .ctree-parent-row{padding:11px 12px 11px 6px}
+#sidebar.in-drawer .ctree-sub-row{padding:9px 8px 9px 8px}
+#sidebar.in-drawer .ctree-label{font-size:15px}
+#sidebar.in-drawer .ctree-sub-row .ctree-label{font-size:14px}
+#sidebar.in-drawer .ctree-cnt{font-size:12px;padding:2px 8px}
+#sidebar.in-drawer .ctree-parent-icon{font-size:18px}
+#sidebar.in-drawer .filter-title{font-size:15px;padding:2px 0}
+#sidebar.in-drawer .filter-label{font-size:14px}
+#sidebar.in-drawer .filter-option{padding:10px 0}
+#sidebar.in-drawer .filter-cnt{font-size:12px;padding:2px 8px}
+#sidebar.in-drawer .filter-block{margin-bottom:22px}
+#sidebar.in-drawer .ctree-divider{margin:14px 0 12px}
+
+/* ── SKELETON LOADING ── */
+@keyframes skeletonShimmer{0%{background-position:-600px 0}100%{background-position:600px 0}}
+.skel-card{background:white;border-radius:16px;border:1px solid var(--border,#e5e8ef);overflow:hidden}
+.skel-line{background:linear-gradient(90deg,#f0f2f7 25%,#e6e9f4 50%,#f0f2f7 75%);background-size:600px 100%;animation:skeletonShimmer 1.5s ease-in-out infinite;border-radius:6px}
+
+/* ── DRAWER HEIGHT FIX (keyboard-safe) ── */
+.drawer{height:100dvh}
+@supports not (height:100dvh){.drawer{height:100vh;height:-webkit-fill-available}}
 /* ── PHONE IN HEADER ── */
 .h-phone-link{display:inline-flex;align-items:center;gap:7px;text-decoration:none;color:var(--navy);font-family:'Nunito',sans-serif;font-weight:700;font-size:13.5px;padding:8px 12px;border-radius:10px;transition:all .2s;white-space:nowrap}
 .h-phone-link:hover{background:rgba(255,107,53,.07);color:var(--orange)}
@@ -651,10 +676,14 @@ nav a.active{color:var(--orange)}
   <!-- PRODUCTS -->
   <main class="products-area">
     <div class="products-grid" id="productsGrid">
-      <div style="grid-column:1/-1;text-align:center;padding:60px 24px;color:var(--text-muted)">
-        <div style="width:40px;height:40px;border:3px solid var(--border,#e5e8ef);border-top-color:var(--orange,#FF6B35);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 16px"></div>
-        <div style="font-size:14px">Завантаження товарів...</div>
-      </div>
+      <div class="skel-card"><div class="skel-line" style="height:190px;border-radius:0"></div><div style="padding:14px 16px"><div class="skel-line" style="height:13px;width:80%;margin-bottom:8px"></div><div class="skel-line" style="height:11px;width:55%;margin-bottom:14px"></div><div class="skel-line" style="height:22px;width:45%;margin-bottom:12px"></div><div class="skel-line" style="height:38px;border-radius:10px"></div></div></div>
+      <div class="skel-card"><div class="skel-line" style="height:190px;border-radius:0"></div><div style="padding:14px 16px"><div class="skel-line" style="height:13px;width:75%;margin-bottom:8px"></div><div class="skel-line" style="height:11px;width:60%;margin-bottom:14px"></div><div class="skel-line" style="height:22px;width:50%;margin-bottom:12px"></div><div class="skel-line" style="height:38px;border-radius:10px"></div></div></div>
+      <div class="skel-card"><div class="skel-line" style="height:190px;border-radius:0"></div><div style="padding:14px 16px"><div class="skel-line" style="height:13px;width:85%;margin-bottom:8px"></div><div class="skel-line" style="height:11px;width:50%;margin-bottom:14px"></div><div class="skel-line" style="height:22px;width:42%;margin-bottom:12px"></div><div class="skel-line" style="height:38px;border-radius:10px"></div></div></div>
+      <div class="skel-card"><div class="skel-line" style="height:190px;border-radius:0"></div><div style="padding:14px 16px"><div class="skel-line" style="height:13px;width:70%;margin-bottom:8px"></div><div class="skel-line" style="height:11px;width:65%;margin-bottom:14px"></div><div class="skel-line" style="height:22px;width:48%;margin-bottom:12px"></div><div class="skel-line" style="height:38px;border-radius:10px"></div></div></div>
+      <div class="skel-card"><div class="skel-line" style="height:190px;border-radius:0"></div><div style="padding:14px 16px"><div class="skel-line" style="height:13px;width:78%;margin-bottom:8px"></div><div class="skel-line" style="height:11px;width:52%;margin-bottom:14px"></div><div class="skel-line" style="height:22px;width:44%;margin-bottom:12px"></div><div class="skel-line" style="height:38px;border-radius:10px"></div></div></div>
+      <div class="skel-card"><div class="skel-line" style="height:190px;border-radius:0"></div><div style="padding:14px 16px"><div class="skel-line" style="height:13px;width:82%;margin-bottom:8px"></div><div class="skel-line" style="height:11px;width:58%;margin-bottom:14px"></div><div class="skel-line" style="height:22px;width:46%;margin-bottom:12px"></div><div class="skel-line" style="height:38px;border-radius:10px"></div></div></div>
+      <div class="skel-card"><div class="skel-line" style="height:190px;border-radius:0"></div><div style="padding:14px 16px"><div class="skel-line" style="height:13px;width:72%;margin-bottom:8px"></div><div class="skel-line" style="height:11px;width:62%;margin-bottom:14px"></div><div class="skel-line" style="height:22px;width:53%;margin-bottom:12px"></div><div class="skel-line" style="height:38px;border-radius:10px"></div></div></div>
+      <div class="skel-card"><div class="skel-line" style="height:190px;border-radius:0"></div><div style="padding:14px 16px"><div class="skel-line" style="height:13px;width:77%;margin-bottom:8px"></div><div class="skel-line" style="height:11px;width:57%;margin-bottom:14px"></div><div class="skel-line" style="height:22px;width:41%;margin-bottom:12px"></div><div class="skel-line" style="height:38px;border-radius:10px"></div></div></div>
     </div>
 
     <!-- PAGINATION -->
@@ -1264,12 +1293,21 @@ function openDrawer() {
     sidebar.classList.add('in-drawer');
     sidebar._inDrawer = true;
   }
+  // Fix drawer height to current visible height (prevents keyboard-open shrink on iOS)
+  const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+  drawer.style.height = vh + 'px';
   drawer.classList.add('open');
   document.getElementById('drawerOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
+  // Listen for visual viewport resize (keyboard appearing/disappearing) and re-lock
+  if (window.visualViewport) {
+    drawer._vpHandler = () => { drawer.style.height = window.visualViewport.height + 'px'; };
+    window.visualViewport.addEventListener('resize', drawer._vpHandler);
+  }
 }
 function closeDrawer() {
   const sidebar = document.getElementById('sidebar');
+  const drawer  = document.getElementById('drawer');
   if (sidebar && sidebar._inDrawer) {
     if (sidebar._origParent) {
       sidebar._origParent.insertBefore(sidebar, sidebar._origNextSib || null);
@@ -1277,7 +1315,12 @@ function closeDrawer() {
     sidebar.classList.remove('in-drawer');
     sidebar._inDrawer = false;
   }
-  document.getElementById('drawer').classList.remove('open');
+  drawer.classList.remove('open');
+  drawer.style.height = '';
+  if (window.visualViewport && drawer._vpHandler) {
+    window.visualViewport.removeEventListener('resize', drawer._vpHandler);
+    drawer._vpHandler = null;
+  }
   document.getElementById('drawerOverlay').classList.remove('open');
   document.body.style.overflow = '';
 }
@@ -1973,12 +2016,9 @@ async function renderCatalog() {
     return;
   }
 
-  // ── Немає кешу: показуємо лоадер, чекаємо товари, тоді будуємо дерево ────
-  grid.innerHTML = `
-    <div style="grid-column:1/-1;text-align:center;padding:60px 24px;color:var(--text-muted)">
-      <div style="width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--orange);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 16px"></div>
-      <div style="font-size:14px">Завантаження товарів...</div>
-    </div>`;
+  // ── Немає кешу: показуємо скелетон, чекаємо товари, тоді будуємо дерево ────
+  const _sk = (w1,w2,w3) => `<div class="skel-card"><div class="skel-line" style="height:190px;border-radius:0"></div><div style="padding:14px 16px"><div class="skel-line" style="height:13px;width:${w1}%;margin-bottom:8px"></div><div class="skel-line" style="height:11px;width:${w2}%;margin-bottom:14px"></div><div class="skel-line" style="height:22px;width:${w3}%;margin-bottom:12px"></div><div class="skel-line" style="height:38px;border-radius:10px"></div></div></div>`;
+  grid.innerHTML = _sk(80,55,45)+_sk(75,60,50)+_sk(85,50,42)+_sk(70,65,48)+_sk(78,52,44)+_sk(82,58,46)+_sk(72,62,53)+_sk(77,57,41);
 
   // ВАЖЛИВО: спочатку товари, потім дерево — щоб кількості і типи були правильні
   const products = await loadProductsFromSupabase();
