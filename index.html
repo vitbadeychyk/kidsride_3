@@ -452,8 +452,10 @@ nav a.active{color:var(--orange)}
 .ig-cta{text-align:center}
 
 /* ── FOOTER ── */
-footer{background:var(--navy);color:white;padding:48px 48px 0}
-.f-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:48px;max-width:1280px;margin:0 auto;padding-bottom:56px;border-bottom:1px solid rgba(255,255,255,.08)}
+footer{background:var(--navy);color:white;padding:48px 32px 0}
+.f-grid{display:flex;justify-content:space-between;align-items:flex-start;gap:40px;max-width:none;padding-bottom:56px;border-bottom:1px solid rgba(255,255,255,.08)}
+.f-brand{max-width:340px}
+.f-contacts{min-width:220px;text-align:left}
 .f-brand-desc{font-size:14px;color:rgba(255,255,255,.5);line-height:1.65;margin:16px 0 24px}
 .f-socials{display:flex;gap:8px}
 .f-soc{width:38px;height:38px;background:rgba(255,255,255,.07);border-radius:10px;display:flex;align-items:center;justify-content:center;text-decoration:none;border:1px solid rgba(255,255,255,.1);transition:all .2s}
@@ -1655,52 +1657,27 @@ function toggleReview(id) {
 <!-- FOOTER -->
 <footer id="contacts-section" data-block="contacts">
   <div class="f-grid">
-    <div>
+    <div class="f-brand">
       <a href="/" class="logo footer-logo" style="margin-bottom:16px;display:inline-flex;color:#fff">
         <div class="logo-mark"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect x="9" y="11" width="14" height="10" rx="2"/><circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/></svg></div>
         <span style="color:inherit">Kids<span style="color:var(--orange)">Ride</span></span>
       </a>
       <p class="f-brand-desc">Преміум дитячі електромобілі з доставкою по всій Україні. Гарантія 12 місяців, офіційний сервіс.</p>
       <div class="f-socials">
-        <a href="https://www.instagram.com/kidsride.ua/" class="f-soc"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
-        
-        
-        <a href="#" class="f-soc"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></a>
+        <a href="https://www.instagram.com/kidsride.ua/" target="_blank" class="f-soc"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+        <a href="https://t.me/kids_ride" target="_blank" class="f-soc"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></a>
       </div>
     </div>
-    <div style="display:none">
-      <div class="f-col-t">Каталог</div>
-      <div class="f-links">
-        <a href="catalog.html">Всі електромобілі</a>
-        <a href="#">Джипи</a>
-        <a href="#">Квадроцикли</a>
-        <a href="#">Мотоцикли</a>
-        <a href="#">Трактори</a>
-        <a href="#">Каталки-толокари</a>
-        <a href="#">Запчастини</a>
-      </div>
-    </div>
-    <div style="display:none">
-      <div class="f-col-t">Покупцям</div>
-      <div class="f-links">
-        <a href="#">Доставка та оплата</a>
-        <a href="#">Гарантія та сервіс</a>
-        <a href="#">Підбір за віком</a>
-        <a href="#">Калькулятор підбору</a>
-        <a href="#">Повернення</a>
-        <a href="#">FAQ</a>
-      </div>
-    </div>
-    <div>
+    <div class="f-contacts">
       <div class="f-col-t">Контакти</div>
       <div class="f-links">
         <a href="tel:+380980707348">+380 98 070 73 48</a>
         <a href="https://t.me/kids_ride" target="_blank">Telegram</a>
-        <a href="https://www.instagram.com/kidsride.ua/">Instagram</a>
+        <a href="https://www.instagram.com/kidsride.ua/" target="_blank">Instagram</a>
         <a href="#">Пн–Нд: 9:00–21:00</a>
       </div>
       <div style="margin-top:24px">
-        <a href="auth.html" class="btn btn-primary" style="width:100%;justify-content:center;font-size:13px">Зв'язатись з нами</a>
+        <a href="https://t.me/kids_ride" target="_blank" class="btn btn-primary" style="width:100%;justify-content:center;font-size:13px">Зв'язатись з нами</a>
       </div>
     </div>
   </div>
