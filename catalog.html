@@ -1513,32 +1513,41 @@ function _dispatchTreeAction(row) {
   }
 }
 
-async function loadCategoryTree() {
-  const treeEl = document.getElementById('catTree');
-  if (!treeEl) return;
-
-  // Якщо категорії вже завантажені — не робимо повторний Supabase fetch,
-  // просто перебудовуємо HTML з поточного стану (уникаємо race-condition).
-  if (!_mainCategories.length || !_allCategories.length) {
-    try {
-      const headers = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY };
-      const [mcRes, catRes] = await Promise.all([
-        fetch(SUPABASE_URL + '/rest/v1/main_categories?select=id,name&active=eq.true&order=sort_order.asc,name.asc', { headers }),
-        fetch(SUPABASE_URL + '/rest/v1/categories?select=id,name,main_category_id&active=eq.true&order=name.asc', { headers })
-      ]);
-      if (!mcRes.ok || !catRes.ok) throw new Error('HTTP error');
-      _mainCategories = await mcRes.json() || [];
-      _allCategories  = await catRes.json() || [];
-    } catch(e) {
-      treeEl.innerHTML = '<div class="cat-tree-loading" style="color:var(--text-muted)">—</div>';
-      return;
+// ── CATEGORIES CACHE ─────────────────────────────────────────────────────────
+const CATS_CACHE_KEY = 'kidsride_cats_v1';
+function _loadCatsFromStorage() {
+  try {
+    const raw = localStorage.getItem(CATS_CACHE_KEY);
+    if (!raw) return false;
+    const d = JSON.parse(raw);
+    if (d && d.main && d.cats) {
+      _mainCategories = d.main;
+      _allCategories  = d.cats;
+      return true;
     }
-  }
+  } catch(_) {}
+  return false;
+}
+function _saveCatsToStorage() {
+  try { localStorage.setItem(CATS_CACHE_KEY, JSON.stringify({ main: _mainCategories, cats: _allCategories })); } catch(_) {}
+}
 
+async function _fetchCategoriesFromSupabase() {
+  const headers = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY };
+  const [mcRes, catRes] = await Promise.all([
+    fetch(SUPABASE_URL + '/rest/v1/main_categories?select=id,name&active=eq.true&order=sort_order.asc,name.asc', { headers }),
+    fetch(SUPABASE_URL + '/rest/v1/categories?select=id,name,main_category_id&active=eq.true&order=name.asc', { headers })
+  ]);
+  if (!mcRes.ok || !catRes.ok) throw new Error('HTTP error');
+  _mainCategories = await mcRes.json() || [];
+  _allCategories  = await catRes.json() || [];
+  return true;
+}
+
+function _renderCategoryTree(treeEl) {
   const parents  = _mainCategories;
   const children = _allCategories.filter(c => c.main_category_id);
 
-  // Рахуємо тільки доступні товари (в наявності або під замовлення) — щоб цифри збігались з сіткою
   const _availableProds = (allProducts || []).filter(p => !(p.stock != null && p.stock <= 0 && !(Number(p.preorderDays) > 0)));
   const prodCountMap = {};
   _availableProds.forEach(p => {
@@ -1551,7 +1560,6 @@ async function loadCategoryTree() {
 
   let html = '';
 
-  // "Всі товари"
   html += `
     <div class="cat-tree-all${!_activeCatId && !_activeParentId && !_activeCatIdFilter ? ' active' : ''}" data-action="selectCat" data-catid="0" data-parentid="0">
       <span class="ctree-label" style="font-weight:700">Всі товари</span>
@@ -1561,7 +1569,7 @@ async function loadCategoryTree() {
   if (!parents.length) {
     _allCategories.forEach(c => {
       const cnt = prodCountMap[c.id] || 0;
-      if (!cnt) return; // не показуємо порожні підкатегорії
+      if (!cnt) return;
       const isActive = _activeCatIdFilter === c.id;
       html += `
         <div class="ctree-sub-row${isActive?' active':''}" data-action="selectCat" data-catid="${c.id}" data-parentid="0">
@@ -1574,33 +1582,20 @@ async function loadCategoryTree() {
     return;
   }
 
-  // Маппінг кодів → українські назви
   const TYPE_UA_TREE = {
     'jeep':'Джипи','quad':'Квадроцикли','moto':'Мотоцикли','car':'Машини',
     'tractor':'Трактори','walker':'Каталки-толокари','truck':'Вантажівки','buggy':'Баггі'
   };
 
-  // Дерево з основними категоріями
   parents.forEach(parent => {
     const subs = children.filter(c => c.main_category_id === parent.id);
-
-    // Продукти поточної основної категорії
     const subIds = subs.map(c => c.id);
     const parentProds = _availableProds.filter(p => subIds.includes(p.category_id));
-
-    // Типи транспорту у цій категорії
     const vehicleTypes = [...new Set(parentProds.map(p => p.category).filter(c => c && TYPE_UA_TREE[c]))]
       .sort((a,b) => (TYPE_UA_TREE[a]||a).localeCompare(TYPE_UA_TREE[b]||b,'uk'));
-
-    // Використовувати типи замість підкатегорій якщо є 2+ різних типів транспорту в товарах.
-    // Це завжди пріоритетніше, ніж показ підкатегорій із БД (назви типу "Запчастини" не відповідають типам).
     const subNamesRedundant = subs.every(s => s.name.toLowerCase().includes(parent.name.toLowerCase()) || parent.name.toLowerCase().includes(s.name.toLowerCase()));
     const useVehicleTypes   = vehicleTypes.length >= 2;
-
-    // ── Якщо єдина підкатегорія має ту саму назву що й батько — рендеримо як
-    //    пряме посилання (без розкривного списку і стрілки).
-    //    Виняток: якщо є типи транспорту для показу — залишаємо список з типами.
-    const isSingleSameName = subs.length === 1 && subNamesRedundant && !useVehicleTypes;
+    const isSingleSameName  = subs.length === 1 && subNamesRedundant && !useVehicleTypes;
     if (isSingleSameName) {
       const sub      = subs[0];
       const cnt      = prodCountMap[sub.id] || 0;
@@ -1612,16 +1607,14 @@ async function loadCategoryTree() {
           ${cnt ? `<span class="ctree-cnt">${cnt}</span>` : ''}
         </div>
       </div>`;
-      return; // перейти до наступного батька
+      return;
     }
-
     const isParentActive    = _activeParentIdFilter === parent.id;
     const hasActiveSub      = subs.some(c => c.id === _activeCatIdFilter);
     const hasActiveVehicle  = isParentActive && _activeVehicleType !== '';
     const isOpen            = isParentActive || hasActiveSub;
     const parentCnt         = parentProds.length ||
                               subs.reduce((s,c) => s + (prodCountMap[c.id] || 0), 0);
-
     html += `
       <div class="ctree-parent">
         <div class="ctree-parent-row${isParentActive || hasActiveSub ? ' active' : ''}" data-action="toggleParent" data-parentid="${parent.id}">
@@ -1634,9 +1627,7 @@ async function loadCategoryTree() {
             <span class="ctree-dot"></span>
             <span class="ctree-label" style="color:var(--text-muted)">Всі в категорії</span>
           </div>`;
-
     if (useVehicleTypes) {
-      // Показуємо типи транспорту як віртуальні підкатегорії
       vehicleTypes.forEach(code => {
         const label    = TYPE_UA_TREE[code] || code;
         const cnt      = parentProds.filter(p => p.category === code).length;
@@ -1648,15 +1639,13 @@ async function loadCategoryTree() {
             ${cnt ? `<span class="ctree-cnt">${cnt}</span>` : ''}
           </div>`;
       });
-      // Після типів транспорту — підкатегорії з БД, чиї товари не є транспортними типами
-      // (наприклад "Запчастини")
       subs.forEach(sub => {
         const cnt = prodCountMap[sub.id] || 0;
         if (!cnt) return;
         const subProds = _availableProds.filter(p => p.category_id === sub.id);
         const allAreVehicleTypes = subProds.length > 0 && subProds.every(p => p.category && TYPE_UA_TREE[p.category]);
         const isRedundantName = sub.name.toLowerCase().includes(parent.name.toLowerCase()) || parent.name.toLowerCase().includes(sub.name.toLowerCase());
-        if (allAreVehicleTypes || isRedundantName) return; // вже представлені типами або дублює батьківську назву
+        if (allAreVehicleTypes || isRedundantName) return;
         const isActive = _activeCatIdFilter === sub.id;
         html += `
           <div class="ctree-sub-row${isActive?' active':''}" data-action="selectCat" data-catid="${sub.id}" data-parentid="0">
@@ -1666,7 +1655,6 @@ async function loadCategoryTree() {
           </div>`;
       });
     } else {
-      // Звичайні підкатегорії з БД
       subs.forEach(sub => {
         const cnt      = prodCountMap[sub.id] || 0;
         const isActive = _activeCatIdFilter === sub.id;
@@ -1678,33 +1666,59 @@ async function loadCategoryTree() {
           </div>`;
       });
     }
-
     html += `
         </div>
       </div>`;
   });
 
-  // Непризначені — НЕ показуємо ("Інші" прибрані)
-
-    // Визначаємо підкатегорії запчастин/аксесуарів по назві — щоб сортувати їх в кінець
-    {
-      const _SPARE_PAT = /запчастин|аксесуар|деталь|адаптер|ремонт|запас|spare|accessor|part/i;
-      const spIds = new Set((_allCategories||[]).filter(c=>_SPARE_PAT.test(c.name||'')).map(c=>c.id));
-      // Запасний варіант: підкатегорії де жоден товар не є транспортним засобом (за p.category)
-      if(spIds.size===0&&(allProducts||[]).length>0){
-        const _VCH=new Set(['jeep','car','quad','moto','tractor','truck','buggy','walker']);
-        const cvf={};
-        (allProducts||[]).forEach(p=>{if(p.category_id==null)return;if(_VCH.has(p.category))cvf[p.category_id]=(cvf[p.category_id]||0)+1;else cvf['_s_'+p.category_id]=(cvf['_s_'+p.category_id]||0)+1;});
-        (_allCategories||[]).forEach(c=>{if(!cvf[c.id]&&cvf['_s_'+c.id])spIds.add(c.id);});
-      }
-      _sparePartsCatIds = spIds.size>0 ? spIds : null;
-      console.info('[KR] spare-parts catIds:', [...spIds]);
+  // Визначаємо підкатегорії запчастин/аксесуарів по назві — щоб сортувати їх в кінець
+  {
+    const _SPARE_PAT = /запчастин|аксесуар|деталь|адаптер|ремонт|запас|spare|accessor|part/i;
+    const spIds = new Set((_allCategories||[]).filter(c=>_SPARE_PAT.test(c.name||'')).map(c=>c.id));
+    if(spIds.size===0&&(allProducts||[]).length>0){
+      const _VCH=new Set(['jeep','car','quad','moto','tractor','truck','buggy','walker']);
+      const cvf={};
+      (allProducts||[]).forEach(p=>{if(p.category_id==null)return;if(_VCH.has(p.category))cvf[p.category_id]=(cvf[p.category_id]||0)+1;else cvf['_s_'+p.category_id]=(cvf['_s_'+p.category_id]||0)+1;});
+      (_allCategories||[]).forEach(c=>{if(!cvf[c.id]&&cvf['_s_'+c.id])spIds.add(c.id);});
     }
-    // Повторний рендер: тепер знаємо які категорії — запчастини
-    applyFiltersAndRender();
+    _sparePartsCatIds = spIds.size>0 ? spIds : null;
+  }
 
-    treeEl.innerHTML = html;
+  treeEl.innerHTML = html;
+}
 
+async function loadCategoryTree() {
+  const treeEl = document.getElementById('catTree');
+  if (!treeEl) return;
+
+  // Якщо категорії вже в пам'яті — одразу будуємо дерево (не йдемо в Supabase).
+  if (_mainCategories.length && _allCategories.length) {
+    // fallthrough to render
+  } else {
+    // Спочатку перевіряємо localStorage-кеш для миттєвого відображення
+    const fromCache = _loadCatsFromStorage();
+    if (fromCache) {
+      // Рендеримо дерево з кешу відразу, потім оновлюємо у фоні
+      _renderCategoryTree(treeEl);
+      // Оновлюємо категорії у фоні, без блокування
+      _fetchCategoriesFromSupabase().then(ok => {
+        if (ok) _saveCatsToStorage();
+      }).catch(() => {});
+      return;
+    }
+    // Немає кешу — завантажуємо з Supabase (блокуємо тільки цей перший раз)
+    try {
+      await _fetchCategoriesFromSupabase();
+      _saveCatsToStorage();
+    } catch(e) {
+      treeEl.innerHTML = '<div class="cat-tree-loading" style="color:var(--text-muted)">—</div>';
+      return;
+    }
+  }
+
+  _renderCategoryTree(treeEl);
+  // Повторний рендер після визначення spare-parts категорій
+  applyFiltersAndRender();
 }
 
 // Відкрити/закрити підкатегорії
@@ -1833,7 +1847,7 @@ async function loadProductsFromSupabase() {
     let from = 0;
     while (true) {
       const res = await fetch(
-        SUPABASE_URL + '/rest/v1/products?select=*&active=eq.true&order=created_at.desc',
+        SUPABASE_URL + '/rest/v1/products?select=id,sku,model_code,color,name,brand,price,old_price,category,category_id,voltage,age_range,stock,preorder_days,badge,img_type,images,active,created_at&active=eq.true&order=created_at.desc',
         {
           headers: {
             'apikey': SUPABASE_KEY,
@@ -2116,23 +2130,35 @@ async function renderCatalog() {
     return;
   }
 
-  // ── Немає кешу: показуємо скелетон, чекаємо товари, тоді будуємо дерево ────
+  // ── Немає кешу: показуємо скелетон, запускаємо товари + категорії ПАРАЛЕЛЬНО ──
   const _sk = (w1,w2,w3) => `<div class="skel-card"><div class="skel-line" style="height:190px;border-radius:0"></div><div style="padding:14px 16px"><div class="skel-line" style="height:13px;width:${w1}%;margin-bottom:8px"></div><div class="skel-line" style="height:11px;width:${w2}%;margin-bottom:14px"></div><div class="skel-line" style="height:22px;width:${w3}%;margin-bottom:12px"></div><div class="skel-line" style="height:38px;border-radius:10px"></div></div></div>`;
   grid.innerHTML = _sk(80,55,45)+_sk(75,60,50)+_sk(85,50,42)+_sk(70,65,48)+_sk(78,52,44)+_sk(82,58,46)+_sk(72,62,53)+_sk(77,57,41);
 
-  // ВАЖЛИВО: спочатку товари, потім дерево — щоб кількості і типи були правильні
-  const products = await loadProductsFromSupabase();
+  // Запускаємо товари та категорії одночасно — категорії завантажаться першими
+  // і покажуться без затримки (без підрахунку товарів — він з'явиться після)
+  const catsAlreadyCached = _loadCatsFromStorage();
+  if (catsAlreadyCached) {
+    // Категорії є в кеші — показуємо дерево одразу (без лічильників, вони будуть після)
+    const treeEl = document.getElementById('catTree');
+    if (treeEl) _renderCategoryTree(treeEl);
+  }
+
+  // Завантажуємо товари і категорії паралельно
+  const [products] = await Promise.all([
+    loadProductsFromSupabase(),
+    catsAlreadyCached ? Promise.resolve() : _fetchCategoriesFromSupabase().then(() => _saveCatsToStorage()).catch(() => {})
+  ]);
+
   allProducts = (products || []).filter(p => p.active !== false);
-// Динамічне оновлення діапазону ціни
-    { const prices=(allProducts||[]).filter(p=>p.price>0).map(p=>p.price);
-      if(prices.length){
-        const pMin=Math.floor(Math.min(...prices)),pMax=Math.ceil(Math.max(...prices));
-        const pmEl=document.getElementById('priceMin'),pxEl=document.getElementById('priceMax');
-        if(pmEl){pmEl.min=pMin;pmEl.value=pMin;pmEl.setAttribute('min',pMin);}
-        if(pxEl){pxEl.max=pMax;pxEl.value=pMax;pxEl.setAttribute('max',pMax);}
-        activeFilters.priceMin=0; activeFilters.priceMax=999999;
-      }
+  { const prices=(allProducts||[]).filter(p=>p.price>0).map(p=>p.price);
+    if(prices.length){
+      const pMin=Math.floor(Math.min(...prices)),pMax=Math.ceil(Math.max(...prices));
+      const pmEl=document.getElementById('priceMin'),pxEl=document.getElementById('priceMax');
+      if(pmEl){pmEl.min=pMin;pmEl.value=pMin;pmEl.setAttribute('min',pMin);}
+      if(pxEl){pxEl.max=pMax;pxEl.value=pMax;pxEl.setAttribute('max',pMax);}
+      activeFilters.priceMin=0; activeFilters.priceMax=999999;
     }
+  }
   try { localStorage.setItem(PRODUCTS_CACHE_KEY, JSON.stringify(allProducts)); } catch(_) {}
 
   const countEl = document.getElementById('catalogCount');
@@ -2140,7 +2166,7 @@ async function renderCatalog() {
 
   updateDynamicFilters();
   applyUrlFilters();
-  // Дерево ПІСЛЯ того як allProducts заповнений
+  // Дерево з актуальними лічильниками (тепер allProducts заповнений)
   loadCategoryTree();
   applyFiltersAndRender();
 }
