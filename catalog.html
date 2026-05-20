@@ -163,8 +163,7 @@ nav a.active{color:var(--orange)}
 .ctree-label{font-size:13px;font-weight:600;color:var(--text);flex:1;line-height:1.2}
 .ctree-cnt{font-size:11px;color:var(--text-muted);background:var(--bg-soft);border-radius:4px;padding:1px 7px;font-weight:600;flex-shrink:0}
 .ctree-subs{padding-left:24px;display:none}
-.ctree-subs.open{display:block;animation:ctreeOpen .18s ease}
-@keyframes ctreeOpen{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.ctree-subs.open{display:block}
 .ctree-sub-row{display:flex;align-items:center;gap:6px;padding:5px 6px 5px 4px;cursor:pointer;border-radius:6px;transition:background .15s;margin-bottom:1px;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .ctree-sub-row:hover{background:var(--bg-soft)}
 .ctree-sub-row.active{background:rgba(255,107,53,.08)}
@@ -1463,22 +1462,70 @@ function _getCatIcon(name) {
   return '📦';
 }
 
+// Делеговані touchend/click слухачі для дерева — реєструються один раз.
+// Замість onclick атрибутів використовуємо data-action + data-* атрибути.
+function wireTreeEvents() {
+  const treeEl = document.getElementById('catTree');
+  if (!treeEl || treeEl._wired) return;
+  treeEl._wired = true;
+
+  let _tsX = 0, _tsY = 0, _lastTouch = 0;
+
+  treeEl.addEventListener('touchstart', function(e) {
+    const t = e.touches[0];
+    _tsX = t.clientX;
+    _tsY = t.clientY;
+  }, { passive: true });
+
+  treeEl.addEventListener('touchend', function(e) {
+    const t = e.changedTouches[0];
+    if (Math.abs(t.clientX - _tsX) > 10 || Math.abs(t.clientY - _tsY) > 10) return; // прокрутка
+    const row = e.target.closest('[data-action]');
+    if (!row) return;
+    e.preventDefault(); // блокуємо ghost click (~300 мс)
+    _lastTouch = Date.now();
+    _dispatchTreeAction(row);
+  }, { passive: false });
+
+  treeEl.addEventListener('click', function(e) {
+    if (Date.now() - _lastTouch < 600) return; // вже оброблено touchend
+    const row = e.target.closest('[data-action]');
+    if (!row) return;
+    _dispatchTreeAction(row);
+  });
+}
+
+function _dispatchTreeAction(row) {
+  const action = row.dataset.action;
+  if (action === 'selectCat') {
+    selectCategory(+row.dataset.catid, +row.dataset.parentid);
+  } else if (action === 'selectVehicleType') {
+    selectVehicleType(row.dataset.vtype, +row.dataset.parent);
+  } else if (action === 'toggleParent') {
+    toggleParent(row, +row.dataset.parentid);
+  }
+}
+
 async function loadCategoryTree() {
   const treeEl = document.getElementById('catTree');
   if (!treeEl) return;
 
-  try {
-    const headers = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY };
-    const [mcRes, catRes] = await Promise.all([
-      fetch(SUPABASE_URL + '/rest/v1/main_categories?select=id,name&active=eq.true&order=sort_order.asc,name.asc', { headers }),
-      fetch(SUPABASE_URL + '/rest/v1/categories?select=id,name,main_category_id&active=eq.true&order=name.asc', { headers })
-    ]);
-    if (!mcRes.ok || !catRes.ok) throw new Error('HTTP error');
-    _mainCategories = await mcRes.json() || [];
-    _allCategories  = await catRes.json() || [];
-  } catch(e) {
-    treeEl.innerHTML = '<div class="cat-tree-loading" style="color:var(--text-muted)">—</div>';
-    return;
+  // Якщо категорії вже завантажені — не робимо повторний Supabase fetch,
+  // просто перебудовуємо HTML з поточного стану (уникаємо race-condition).
+  if (!_mainCategories.length || !_allCategories.length) {
+    try {
+      const headers = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY };
+      const [mcRes, catRes] = await Promise.all([
+        fetch(SUPABASE_URL + '/rest/v1/main_categories?select=id,name&active=eq.true&order=sort_order.asc,name.asc', { headers }),
+        fetch(SUPABASE_URL + '/rest/v1/categories?select=id,name,main_category_id&active=eq.true&order=name.asc', { headers })
+      ]);
+      if (!mcRes.ok || !catRes.ok) throw new Error('HTTP error');
+      _mainCategories = await mcRes.json() || [];
+      _allCategories  = await catRes.json() || [];
+    } catch(e) {
+      treeEl.innerHTML = '<div class="cat-tree-loading" style="color:var(--text-muted)">—</div>';
+      return;
+    }
   }
 
   const parents  = _mainCategories;
@@ -1499,7 +1546,7 @@ async function loadCategoryTree() {
 
   // "Всі товари"
   html += `
-    <div class="cat-tree-all${!_activeCatId && !_activeParentId && !_activeCatIdFilter ? ' active' : ''}" onclick="selectCategory(0,0)">
+    <div class="cat-tree-all${!_activeCatId && !_activeParentId && !_activeCatIdFilter ? ' active' : ''}" data-action="selectCat" data-catid="0" data-parentid="0">
       <span class="ctree-label" style="font-weight:700">Всі товари</span>
       <span class="ctree-cnt">${_availableProds.length}</span>
     </div>`;
@@ -1510,7 +1557,7 @@ async function loadCategoryTree() {
       if (!cnt) return; // не показуємо порожні підкатегорії
       const isActive = _activeCatIdFilter === c.id;
       html += `
-        <div class="ctree-sub-row${isActive?' active':''}" onclick="selectCategory(${c.id},0)">
+        <div class="ctree-sub-row${isActive?' active':''}" data-action="selectCat" data-catid="${c.id}" data-parentid="0">
           <span class="ctree-dot"></span>
           <span class="ctree-label">${c.name}</span>
           <span class="ctree-cnt">${cnt}</span>
@@ -1553,7 +1600,7 @@ async function loadCategoryTree() {
       const isActive = _activeCatIdFilter === sub.id;
       html += `
       <div class="ctree-parent">
-        <div class="ctree-parent-row${isActive ? ' active' : ''}" onclick="selectCategory(${sub.id},0)" style="cursor:pointer">
+        <div class="ctree-parent-row${isActive ? ' active' : ''}" data-action="selectCat" data-catid="${sub.id}" data-parentid="0" style="cursor:pointer">
           <span class="ctree-label">${parent.name}</span>
           ${cnt ? `<span class="ctree-cnt">${cnt}</span>` : ''}
         </div>
@@ -1570,13 +1617,13 @@ async function loadCategoryTree() {
 
     html += `
       <div class="ctree-parent">
-        <div class="ctree-parent-row${isParentActive || hasActiveSub ? ' active' : ''}" onclick="toggleParent(this,${parent.id})">
+        <div class="ctree-parent-row${isParentActive || hasActiveSub ? ' active' : ''}" data-action="toggleParent" data-parentid="${parent.id}">
           <svg class="ctree-chevron${isOpen?' open':''}" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
           <span class="ctree-label">${parent.name}</span>
           ${parentCnt ? `<span class="ctree-cnt">${parentCnt}</span>` : ''}
         </div>
         <div class="ctree-subs${isOpen?' open':''}">
-          <div class="ctree-sub-row${isParentActive && !hasActiveSub && !hasActiveVehicle ? ' active' : ''}" onclick="selectCategory(0,${parent.id})">
+          <div class="ctree-sub-row${isParentActive && !hasActiveSub && !hasActiveVehicle ? ' active' : ''}" data-action="selectCat" data-catid="0" data-parentid="${parent.id}">
             <span class="ctree-dot"></span>
             <span class="ctree-label" style="color:var(--text-muted)">Всі в категорії</span>
           </div>`;
@@ -1588,7 +1635,7 @@ async function loadCategoryTree() {
         const cnt      = parentProds.filter(p => p.category === code).length;
         const isActive = isParentActive && _activeVehicleType === code;
         html += `
-          <div class="ctree-sub-row${isActive?' active':''}" data-vtype="${code}" data-parent="${parent.id}" onclick="selectVehicleType('${code}',${parent.id})">
+          <div class="ctree-sub-row${isActive?' active':''}" data-action="selectVehicleType" data-vtype="${code}" data-parent="${parent.id}">
             <span class="ctree-dot"></span>
             <span class="ctree-label">${label}</span>
             ${cnt ? `<span class="ctree-cnt">${cnt}</span>` : ''}
@@ -1605,7 +1652,7 @@ async function loadCategoryTree() {
         if (allAreVehicleTypes || isRedundantName) return; // вже представлені типами або дублює батьківську назву
         const isActive = _activeCatIdFilter === sub.id;
         html += `
-          <div class="ctree-sub-row${isActive?' active':''}" onclick="selectCategory(${sub.id},0)">
+          <div class="ctree-sub-row${isActive?' active':''}" data-action="selectCat" data-catid="${sub.id}" data-parentid="0">
             <span class="ctree-dot"></span>
             <span class="ctree-label">${sub.name}</span>
             ${cnt ? `<span class="ctree-cnt">${cnt}</span>` : ''}
@@ -1617,7 +1664,7 @@ async function loadCategoryTree() {
         const cnt      = prodCountMap[sub.id] || 0;
         const isActive = _activeCatIdFilter === sub.id;
         html += `
-          <div class="ctree-sub-row${isActive?' active':''}" onclick="selectCategory(${sub.id},0)">
+          <div class="ctree-sub-row${isActive?' active':''}" data-action="selectCat" data-catid="${sub.id}" data-parentid="0">
             <span class="ctree-dot"></span>
             <span class="ctree-label">${sub.name}</span>
             ${cnt ? `<span class="ctree-cnt">${cnt}</span>` : ''}
@@ -1692,10 +1739,10 @@ function selectCategory(catId, parentId) {
   if (!catId && !parentId) {
     document.querySelector('.cat-tree-all')?.classList.add('active');
   } else if (catId) {
-    document.querySelector(`.ctree-sub-row[onclick="selectCategory(${catId},0)"]`)?.classList.add('active');
+    document.querySelector(`.ctree-sub-row[data-action="selectCat"][data-catid="${catId}"]`)?.classList.add('active');
   } else if (parentId) {
-    document.querySelector(`.ctree-parent-row[onclick="toggleParent(this,${parentId})"]`)?.classList.add('active');
-    document.querySelector(`.ctree-sub-row[onclick="selectCategory(0,${parentId})"]`)?.classList.add('active');
+    document.querySelector(`.ctree-parent-row[data-action="toggleParent"][data-parentid="${parentId}"]`)?.classList.add('active');
+    document.querySelector(`.ctree-sub-row[data-action="selectCat"][data-catid="0"][data-parentid="${parentId}"]`)?.classList.add('active');
   }
 
   // Оновити breadcrumb і заголовок
@@ -1739,12 +1786,11 @@ function selectVehicleType(code, parentId) {
 
   // Оновити активні класи в дереві
   document.querySelectorAll('.cat-tree-all, .ctree-parent-row, .ctree-sub-row').forEach(el => el.classList.remove('active'));
-  // Виділити підрядок типу транспорту (пошук по data-атрибуту для надійності)
-  const subRow = document.querySelector(`.ctree-sub-row[data-vtype="${code}"][data-parent="${parentId}"]`)
-    || document.querySelector(`.ctree-sub-row[onclick="selectVehicleType('${code}',${parentId})"]`);
+  // Виділити підрядок типу транспорту
+  const subRow = document.querySelector(`.ctree-sub-row[data-action="selectVehicleType"][data-vtype="${code}"][data-parent="${parentId}"]`);
   if (subRow) subRow.classList.add('active');
   // Виділити батьківський рядок (Електромобілі тощо)
-  const parentRow = document.querySelector(`.ctree-parent-row[onclick="toggleParent(this,${parentId})"]`);
+  const parentRow = document.querySelector(`.ctree-parent-row[data-action="toggleParent"][data-parentid="${parentId}"]`);
   if (parentRow) parentRow.classList.add('active');
 
   // Breadcrumb і заголовок
@@ -2659,6 +2705,7 @@ function showToastLocal(msg) {
 
 // Ініціалізація каталогу
 document.addEventListener('DOMContentLoaded', () => {
+  wireTreeEvents(); // делеговані touch/click слухачі для дерева категорій
   renderCatalog(); // async — завантажує з Supabase
   // Оновити badge кошика
   try {
