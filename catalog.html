@@ -995,7 +995,7 @@ function clearSearch() {
 
 // View toggle
 const _KR_VIEW_KEY = 'kr_catalog_view';
-let currentView = (function(){ try { return localStorage.getItem(_KR_VIEW_KEY) || 'list'; } catch(){ return 'list'; } })();
+let currentView = (function(){ try { return localStorage.getItem(_KR_VIEW_KEY) || 'list'; } catch(_){ return 'list'; } })();
 function setView(view, btn) {
   currentView = view;
   try { localStorage.setItem(_KR_VIEW_KEY, view); } catch(_) {}
