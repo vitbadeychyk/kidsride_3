@@ -282,13 +282,26 @@ nav a.active{color:var(--orange)}
 .mbb-price{font-family:'Nunito',sans-serif;font-weight:900;font-size:20px;color:var(--navy)}
 .mbb-actions{display:flex;gap:8px;flex:1;justify-content:flex-end}
 
-/* ── ZOOM OVERLAY ── */
-.zoom-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:2000;align-items:center;justify-content:center;cursor:zoom-out;backdrop-filter:blur(4px)}
+/* ── ZOOM OVERLAY (fullscreen lightbox) ── */
+.zoom-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:3000;flex-direction:column;align-items:center;justify-content:center;backdrop-filter:blur(6px)}
 .zoom-overlay.open{display:flex}
-.zoom-img{max-width:90vw;max-height:90vh;border-radius:var(--r)}
-.zoom-img svg{width:min(600px,90vw);height:auto}
-.zoom-close{position:absolute;top:20px;right:20px;width:40px;height:40px;background:rgba(255,255,255,.15);border:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff}
+.zoom-img{width:100vw;height:100svh;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.zoom-img img{max-width:100vw;max-height:100svh;object-fit:contain;user-select:none;-webkit-user-drag:none;padding:60px 0 80px}
+.zoom-img svg{width:min(500px,90vw);height:auto;padding:60px 0 80px}
+.zoom-close{position:fixed;top:14px;right:14px;width:42px;height:42px;background:rgba(255,255,255,.14);border:1.5px solid rgba(255,255,255,.22);border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;z-index:1;transition:background .2s}
+.zoom-close:hover{background:rgba(255,255,255,.28)}
 .zoom-close svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.zoom-nav{position:fixed;top:50%;transform:translateY(-50%);width:44px;height:44px;background:rgba(255,255,255,.14);border:1.5px solid rgba(255,255,255,.22);border-radius:50%;cursor:pointer;display:none;align-items:center;justify-content:center;color:#fff;font-size:26px;font-weight:600;line-height:1;padding:0 0 3px;z-index:1;transition:background .2s}
+.zoom-nav:hover{background:rgba(255,255,255,.28)}
+.zoom-nav.visible{display:flex}
+.zoom-nav-prev{left:14px}
+.zoom-nav-next{right:14px}
+.zoom-counter{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.7);font-family:'Nunito',sans-serif;font-size:13px;font-weight:600;letter-spacing:.04em;z-index:1;display:none}
+.zoom-counter.visible{display:block}
+.zoom-dots{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);display:none;gap:6px;z-index:1}
+.zoom-dots.visible{display:flex}
+.zoom-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.35);transition:background .2s;cursor:pointer}
+.zoom-dot.active{background:white}
 
 /* ── MOBILE BURGER ── */
 .mobile-burger{display:none;align-items:center;gap:8px;background:none;border:none;cursor:pointer;padding:6px 10px 6px 8px;border-radius:10px;transition:background .2s;font-family:'Nunito',sans-serif;font-weight:700;font-size:14px;color:var(--navy)}
@@ -334,6 +347,7 @@ nav a.active{color:var(--orange)}
   .header{height:58px;padding:0 16px}
   .h-right .btn{display:none}
   .h-phone-sep{display:none}
+  .h-phone-link{display:none}
   #compareBtn{display:none}
 
   /* Breadcrumb */
@@ -860,9 +874,12 @@ nav a.active{color:var(--orange)}
 </div>
 
 <!-- ZOOM OVERLAY -->
-<div class="zoom-overlay" id="zoomOverlay" onclick="closeZoom()">
-  <button class="zoom-close" onclick="closeZoom()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+<div class="zoom-overlay" id="zoomOverlay">
+  <button class="zoom-close" id="zoomClose" onclick="closeZoom()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  <button class="zoom-nav zoom-nav-prev" id="zoomPrev" onclick="zoomStep(-1)">&#8249;</button>
+  <button class="zoom-nav zoom-nav-next" id="zoomNext" onclick="zoomStep(+1)">&#8250;</button>
   <div class="zoom-img" id="zoomContent"></div>
+  <div class="zoom-dots" id="zoomDots"></div>
 </div>
 
 <!-- QUICK ORDER MODAL -->
@@ -1221,22 +1238,93 @@ function shareProduct() {
 }
 
 // Zoom — підтримує і статичний SVG, і динамічну фото-галерею
+// ── FULLSCREEN LIGHTBOX ───────────────────────────────────────────────────────
+const _zoom = { images: [], idx: 0 };
+
 function openZoom() {
-  let content = '';
-  const dynImg = document.getElementById('mainProductImg');
-  if (dynImg && dynImg.src) {
-    content = '<img src="' + dynImg.src + '" alt="" style="max-width:90vw;max-height:88vh;object-fit:contain;background:#fff;border-radius:12px;padding:16px;box-sizing:border-box">';
+  const g = window._gallery;
+  if (g && g.images && g.images.length > 0) {
+    _zoom.images = g.images;
+    _zoom.idx = g.idx || 0;
   } else {
-    const svg = document.getElementById('mainSvg');
-    if (svg) content = svg.outerHTML;
+    const dynImg = document.getElementById('mainProductImg');
+    if (dynImg && dynImg.src) _zoom.images = [dynImg.src];
+    _zoom.idx = 0;
   }
-  document.getElementById('zoomContent').innerHTML = content;
+  _zoomRender();
   document.getElementById('zoomOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
+
+  // Swipe support
+  let _tx = 0;
+  const overlay = document.getElementById('zoomOverlay');
+  overlay._tsX = 0;
+  overlay.ontouchstart = e => { overlay._tsX = e.touches[0].clientX; };
+  overlay.ontouchend = e => {
+    const dx = e.changedTouches[0].clientX - overlay._tsX;
+    if (Math.abs(dx) > 45) zoomStep(dx < 0 ? +1 : -1);
+  };
+  // Close on background click (not on nav buttons or close)
+  overlay.onclick = e => {
+    if (e.target === overlay || e.target === document.getElementById('zoomContent') || e.target.closest('.zoom-img')) closeZoom();
+  };
+  // Keyboard
+  document._zoomKeyHandler = e => {
+    if (e.key === 'ArrowLeft') zoomStep(-1);
+    if (e.key === 'ArrowRight') zoomStep(+1);
+    if (e.key === 'Escape') closeZoom();
+  };
+  document.addEventListener('keydown', document._zoomKeyHandler);
 }
+
+function _zoomRender() {
+  const imgs = _zoom.images;
+  const idx = _zoom.idx;
+  const content = document.getElementById('zoomContent');
+  const dots = document.getElementById('zoomDots');
+  const prev = document.getElementById('zoomPrev');
+  const next = document.getElementById('zoomNext');
+
+  if (imgs.length > 0) {
+    content.innerHTML = '<img src="' + imgs[idx] + '" alt="" draggable="false">';
+  } else {
+    const svg = document.getElementById('mainSvg');
+    content.innerHTML = svg ? svg.outerHTML : '';
+  }
+
+  const multi = imgs.length > 1;
+  prev.classList.toggle('visible', multi);
+  next.classList.toggle('visible', multi);
+
+  if (dots) {
+    if (multi && imgs.length <= 10) {
+      dots.classList.add('visible');
+      dots.innerHTML = imgs.map((_, i) =>
+        `<span class="zoom-dot${i === idx ? ' active' : ''}" onclick="zoomGoTo(${i})"></span>`
+      ).join('');
+    } else {
+      dots.classList.remove('visible');
+      dots.innerHTML = '';
+    }
+  }
+}
+
+function zoomGoTo(i) {
+  const imgs = _zoom.images;
+  if (!imgs.length) return;
+  _zoom.idx = ((i % imgs.length) + imgs.length) % imgs.length;
+  _zoomRender();
+}
+
+function zoomStep(dir) { zoomGoTo(_zoom.idx + dir); }
+
 function closeZoom() {
   document.getElementById('zoomOverlay').classList.remove('open');
   document.body.style.overflow = '';
+  if (document._zoomKeyHandler) {
+    document.removeEventListener('keydown', document._zoomKeyHandler);
+    document._zoomKeyHandler = null;
+  }
 }
 
 // Quick order

@@ -238,11 +238,19 @@ nav a.active{color:var(--orange)}
 .btn-quick svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
 /* LIST VIEW */
-.products-grid.list .p-card{display:grid;grid-template-columns:220px 1fr}
-.products-grid.list .p-img{aspect-ratio:unset;height:100%;min-height:160px}
-.products-grid.list .p-body{padding:20px 24px;display:flex;flex-direction:column;justify-content:space-between}
-.products-grid.list .p-name{-webkit-line-clamp:unset;font-size:17px}
-.products-grid.list .p-specs{gap:10px}
+.products-grid.list .p-card{display:grid;grid-template-columns:180px 1fr;min-height:unset}
+.products-grid.list .p-img-wrap{height:100%}
+.products-grid.list .p-img{aspect-ratio:unset;height:100%;min-height:140px;max-height:220px;background:#fff !important}
+.products-grid.list .p-img img{object-fit:contain !important;padding:8px}
+.products-grid.list .p-body{padding:14px 18px;display:flex;flex-direction:column;justify-content:space-between;min-height:140px}
+.products-grid.list .p-name{-webkit-line-clamp:unset;font-size:16px;margin-bottom:4px}
+.products-grid.list .p-specs{gap:8px;margin-bottom:8px}
+.products-grid.list .p-overlay{display:none}
+/* transparent link overlay — allows "open in new tab" on long-press */
+.p-card-link{position:absolute;inset:0;z-index:0;border-radius:var(--r)}
+.p-img-wrap,.p-body{position:relative;z-index:1}
+.p-wish,.p-compare{z-index:6}
+.p-badge{z-index:6}
 
 /* ── PAGINATION ── */
 .pagination{display:flex;align-items:center;justify-content:center;gap:6px;padding:32px 0 16px}
@@ -318,8 +326,12 @@ nav a.active{color:var(--orange)}
   .products-area{padding:12px 16px}
   .products-grid{grid-template-columns:repeat(2,1fr);gap:12px}
   .products-grid.list{grid-template-columns:1fr}
-  .products-grid.list .p-card{grid-template-columns:120px 1fr}
-  .products-grid.list .p-img{min-height:120px}
+  .products-grid.list .p-card{grid-template-columns:130px 1fr}
+  .products-grid.list .p-img{min-height:130px;max-height:160px}
+  .products-grid.list .p-body{padding:10px 12px;min-height:130px}
+  .products-grid.list .p-name{font-size:14px}
+  .products-grid.list .p-price{font-size:17px}
+  .products-grid.list .p-specs{display:none}
 
   /* Mobile filter button */
   .mobile-filter-btn{display:flex}
@@ -546,10 +558,10 @@ nav a.active{color:var(--orange)}
       <option value="new">Новинки</option>
     </select>
     <div class="view-btns">
-      <button class="view-btn active" onclick="setView('grid3',this)" title="3 колонки">
+      <button class="view-btn" id="viewBtnGrid" onclick="setView('grid3',this)" title="3 колонки">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="2" width="8" height="8" rx="1"/><rect x="14" y="2" width="8" height="8" rx="1"/><rect x="2" y="14" width="8" height="8" rx="1"/><rect x="14" y="14" width="8" height="8" rx="1"/></svg>
       </button>
-      <button class="view-btn" onclick="setView('list',this)" title="Список">
+      <button class="view-btn active" id="viewBtnList" onclick="setView('list',this)" title="Список">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
       </button>
     </div>
@@ -982,15 +994,34 @@ function clearSearch() {
 })();
 
 // View toggle
-let currentView = 'grid3';
+const _KR_VIEW_KEY = 'kr_catalog_view';
+let currentView = (function(){ try { return localStorage.getItem(_KR_VIEW_KEY) || 'list'; } catch(){ return 'list'; } })();
 function setView(view, btn) {
   currentView = view;
+  try { localStorage.setItem(_KR_VIEW_KEY, view); } catch(_) {}
   document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
+  if (btn) btn.classList.add('active');
   const grid = document.getElementById('productsGrid');
   grid.className = 'products-grid';
   if (view === 'list') grid.classList.add('list');
 }
+// Apply saved view on load
+(function(){
+  const grid = document.getElementById('productsGrid');
+  if (!grid) return;
+  if (currentView === 'list') {
+    grid.classList.add('list');
+    const lb = document.getElementById('viewBtnList');
+    const gb = document.getElementById('viewBtnGrid');
+    if (lb) lb.classList.add('active');
+    if (gb) gb.classList.remove('active');
+  } else {
+    const lb = document.getElementById('viewBtnList');
+    const gb = document.getElementById('viewBtnGrid');
+    if (lb) lb.classList.remove('active');
+    if (gb) gb.classList.add('active');
+  }
+})();
 
 // Cart
 let cartCount = 0;
@@ -2005,8 +2036,11 @@ function renderCard(p) {
     stockBadge = '<div style="font-size:11px;color:#16a34a;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:5px"><svg viewBox="0 0 8 8" style="width:8px;height:8px"><circle cx="4" cy="4" r="4" fill="#16a34a"/></svg>В наявності</div>';
   }
 
+  const productHref = p.id ? 'product.html?id=' + encodeURIComponent(p.id) : 'product.html';
+
   return `
     <div class="p-card reveal" data-id="${escAttr(p.id)}" data-category="${escAttr(p.category)}" data-age="${escAttr(p.age)}" data-voltage="${escAttr(p.voltage)}" data-price="${p.price}" data-brand="${escAttr(p.brand)}">
+      <a class="p-card-link" href="${productHref}" aria-label="${escAttr(p.name)}" onclick="if(typeof catOpenProduct==='function'){event.preventDefault();catOpenProduct('${escAttr(p.id)}');}"></a>
       <div class="p-img-wrap">
         <div class="p-img" style="background:${wrapBg}">
           ${visual}
