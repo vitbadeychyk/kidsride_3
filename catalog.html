@@ -149,11 +149,11 @@ nav a.active{color:var(--orange)}
 
 /* ── CATEGORY TREE ── */
 .cat-tree-loading{font-size:12px;color:var(--text-muted);padding:8px 0}
-.cat-tree-all{display:flex;align-items:center;gap:8px;padding:7px 0 7px 0;cursor:pointer;border-radius:7px;transition:background .15s;margin-bottom:2px}
+.cat-tree-all{display:flex;align-items:center;gap:8px;padding:7px 0 7px 0;cursor:pointer;border-radius:7px;transition:background .15s;margin-bottom:2px;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .cat-tree-all:hover{background:var(--bg-soft)}
 .cat-tree-all.active .ctree-label{color:var(--orange);font-weight:700}
 .ctree-parent{border-radius:8px;overflow:hidden;margin-bottom:4px}
-.ctree-parent-row{display:flex;align-items:center;gap:6px;padding:7px 8px 7px 4px;cursor:pointer;border-radius:8px;transition:background .15s;user-select:none}
+.ctree-parent-row{display:flex;align-items:center;gap:6px;padding:7px 8px 7px 4px;cursor:pointer;border-radius:8px;transition:background .15s;user-select:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .ctree-parent-row:hover{background:var(--bg-soft)}
 .ctree-parent-row.active{background:rgba(255,107,53,.08)}
 .ctree-parent-row.active .ctree-label{color:var(--orange);font-weight:700}
@@ -164,7 +164,7 @@ nav a.active{color:var(--orange)}
 .ctree-cnt{font-size:11px;color:var(--text-muted);background:var(--bg-soft);border-radius:4px;padding:1px 7px;font-weight:600;flex-shrink:0}
 .ctree-subs{padding-left:24px;overflow:hidden;max-height:0;transition:max-height .28s ease}
 .ctree-subs.open{max-height:600px}
-.ctree-sub-row{display:flex;align-items:center;gap:6px;padding:5px 6px 5px 4px;cursor:pointer;border-radius:6px;transition:background .15s;margin-bottom:1px}
+.ctree-sub-row{display:flex;align-items:center;gap:6px;padding:5px 6px 5px 4px;cursor:pointer;border-radius:6px;transition:background .15s;margin-bottom:1px;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .ctree-sub-row:hover{background:var(--bg-soft)}
 .ctree-sub-row.active{background:rgba(255,107,53,.08)}
 .ctree-sub-row.active .ctree-label{color:var(--orange);font-weight:700}
@@ -730,7 +730,7 @@ nav a.active{color:var(--orange)}
   </div>
   <!-- sidebar content is moved here dynamically via openDrawer() -->
   <div class="drawer-footer" id="drawerFooter">
-    <button class="drawer-show-btn" onclick="applyFiltersAndRender(); closeDrawer();">Показати товари</button>
+    <button class="drawer-show-btn" onclick="applyFilters(); closeDrawer();">Показати товари</button>
   </div>
 </div>
 
@@ -1587,7 +1587,7 @@ async function loadCategoryTree() {
         const cnt      = parentProds.filter(p => p.category === code).length;
         const isActive = isParentActive && _activeVehicleType === code;
         html += `
-          <div class="ctree-sub-row${isActive?' active':''}" onclick="selectVehicleType('${code}',${parent.id})">
+          <div class="ctree-sub-row${isActive?' active':''}" data-vtype="${code}" data-parent="${parent.id}" onclick="selectVehicleType('${code}',${parent.id})">
             <span class="ctree-dot"></span>
             <span class="ctree-label">${label}</span>
             ${cnt ? `<span class="ctree-cnt">${cnt}</span>` : ''}
@@ -1738,7 +1738,13 @@ function selectVehicleType(code, parentId) {
 
   // Оновити активні класи в дереві
   document.querySelectorAll('.cat-tree-all, .ctree-parent-row, .ctree-sub-row').forEach(el => el.classList.remove('active'));
-  document.querySelector(`.ctree-sub-row[onclick="selectVehicleType('${code}',${parentId})"]`)?.classList.add('active');
+  // Виділити підрядок типу транспорту (пошук по data-атрибуту для надійності)
+  const subRow = document.querySelector(`.ctree-sub-row[data-vtype="${code}"][data-parent="${parentId}"]`)
+    || document.querySelector(`.ctree-sub-row[onclick="selectVehicleType('${code}',${parentId})"]`);
+  if (subRow) subRow.classList.add('active');
+  // Виділити батьківський рядок (Електромобілі тощо)
+  const parentRow = document.querySelector(`.ctree-parent-row[onclick="toggleParent(this,${parentId})"]`);
+  if (parentRow) parentRow.classList.add('active');
 
   // Breadcrumb і заголовок
   const TYPE_UA_SEL = {
