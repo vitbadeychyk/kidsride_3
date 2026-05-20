@@ -3,8 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Джип M 3804EBLR — дитячий електромобіль з 4 моторами 45W, пультом 2.4G, шкіряним сидінням та колесами EVA. Купити з доставкою по Україні.">
-<title>Джип M 3804EBLR — KidsRide</title>
+<title>Дитячий електромобіль — KidsRide</title>
+<meta name="description" content="Купити дитячий електромобіль в KidsRide. Гарантія 12 місяців, доставка Новою Поштою по Україні.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://kidsride.ua/product.html" id="seo-canonical">
+<meta property="og:type" content="product" id="og-type">
+<meta property="og:title" content="Дитячий електромобіль — KidsRide" id="og-title">
+<meta property="og:description" content="Купити дитячий електромобіль в KidsRide. Гарантія 12 місяців, доставка по Україні." id="og-description">
+<meta property="og:image" content="https://kidsride.ua/opengraph.jpg" id="og-image">
+<meta property="og:url" content="https://kidsride.ua/product.html" id="og-url">
+<meta property="og:locale" content="uk_UA">
+<meta property="og:site_name" content="KidsRide">
+<meta property="product:price:amount" content="" id="og-price">
+<meta property="product:price:currency" content="UAH">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Дитячий електромобіль — KidsRide" id="tw-title">
+<meta name="twitter:description" content="Купити дитячий електромобіль в KidsRide. Гарантія 12 місяців, доставка по Україні." id="tw-description">
+<meta name="twitter:image" content="https://kidsride.ua/opengraph.jpg" id="tw-image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -1402,7 +1417,33 @@ function renderReviews(arr){
     if (ratingRow) ratingRow.style.display = 'none';
   }
   updateReviewCounts(cnt);
-}
+
+  // ── Schema.org: AggregateRating + Reviews ──
+  if (cnt) {
+    const sum = arr.reduce((s,x) => s + (Number(x.rating)||0), 0);
+    const avg = (sum / cnt).toFixed(1);
+    const existingSchema = document.getElementById('schema-product');
+    if (existingSchema) {
+      try {
+        const s = JSON.parse(existingSchema.textContent);
+        s.aggregateRating = {
+          "@type": "AggregateRating",
+          "ratingValue": avg,
+          "reviewCount": cnt,
+          "bestRating": "5",
+          "worstRating": "1"
+        };
+        s.review = arr.slice(0, 5).map(r => ({
+          "@type": "Review",
+          "author": { "@type": "Person", "name": r.author_name || 'Покупець' },
+          "reviewRating": { "@type": "Rating", "ratingValue": String(r.rating || 5) },
+          "reviewBody": r.text || '',
+          "datePublished": (r.created_at || '').substring(0, 10)
+        }));
+        existingSchema.textContent = JSON.stringify(s);
+      } catch(e) { console.warn('[SEO] schema update failed', e); }
+    }
+  }
 
 function updateReviewCounts(count) {
   document.querySelectorAll('.tab-cnt').forEach(el => {
@@ -1693,6 +1734,80 @@ function applyProductData(p){
     const crumb = document.querySelector('.breadcrumb-cur');
     if (crumb) crumb.textContent = p.name;
   }
+
+  // ── Динамічне SEO ──
+  (function updateSEO(p) {
+    const site = 'https://kidsride.ua';
+    const pageUrl = site + '/product.html?id=' + encodeURIComponent(p.id || '');
+    const CAT_LABELS = { jeep:'Джипи', quad:'Квадроцикли', moto:'Мотоцикли', car:'Машини', tractor:'Трактори', walker:'Каталки-толокари', truck:'Вантажівки', buggy:'Баггі' };
+    const catName = CAT_LABELS[p.category] || 'Електромобілі';
+    const inStock = (typeof p.stock === 'number' ? p.stock > 0 : true) && p.active !== false;
+    const imgUrl = (Array.isArray(p.images) && p.images[0]) ? p.images[0] : (site + '/opengraph.jpg');
+
+    // Генеруємо опис якщо немає в базі
+    const autoDesc = p.description && p.description.trim()
+      ? p.description.substring(0, 160)
+      : (p.name || '') + ' — ' + catName.toLowerCase() + ' для дітей'
+        + (p.age_range ? ' ' + p.age_range + ' років' : '')
+        + (p.voltage ? ', акумулятор ' + p.voltage : '')
+        + '. Купити з доставкою по Україні. Гарантія 12 місяців.';
+
+    // meta title / description / canonical
+    document.title = p.name + ' купити — KidsRide';
+    const setMeta = (sel, val) => { const el = document.querySelector(sel); if (el) el.setAttribute('content', val); };
+    setMeta('meta[name="description"]', autoDesc);
+    const canon = document.getElementById('seo-canonical');
+    if (canon) canon.setAttribute('href', pageUrl);
+
+    // Open Graph
+    const setId = (id, attr, val) => { const el = document.getElementById(id); if (el) el.setAttribute(attr, val); };
+    setId('og-title', 'content', p.name + ' — KidsRide');
+    setId('og-description', 'content', autoDesc);
+    setId('og-image', 'content', imgUrl);
+    setId('og-url', 'content', pageUrl);
+    setId('og-price', 'content', String(p.price || ''));
+    setId('tw-title', 'content', p.name + ' — KidsRide');
+    setId('tw-description', 'content', autoDesc);
+    setId('tw-image', 'content', imgUrl);
+
+    // Schema.org Product
+    const existingSchema = document.getElementById('schema-product');
+    if (existingSchema) existingSchema.remove();
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      "name": p.name || '',
+      "description": autoDesc,
+      "brand": { "@type": "Brand", "name": p.brand || 'KidsRide' },
+      "sku": p.sku || '',
+      "image": Array.isArray(p.images) ? p.images.filter(Boolean) : [imgUrl],
+      "url": pageUrl,
+      "category": catName,
+      "offers": {
+        "@type": "Offer",
+        "url": pageUrl,
+        "priceCurrency": "UAH",
+        "price": String(p.price || ''),
+        "availability": inStock ? "https://schema.org/InStock" : "https://schema.org/PreOrder",
+        "seller": { "@type": "Organization", "name": "KidsRide" },
+        "warranty": "P12M"
+      },
+      "breadcrumb": {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {"@type": "ListItem", "position": 1, "name": "Головна", "item": site + "/"},
+          {"@type": "ListItem", "position": 2, "name": "Каталог", "item": site + "/catalog.html"},
+          {"@type": "ListItem", "position": 3, "name": catName, "item": site + "/catalog.html?cat=" + encodeURIComponent(p.category || '')},
+          {"@type": "ListItem", "position": 4, "name": p.name, "item": pageUrl}
+        ]
+      }
+    };
+    const script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.id = 'schema-product';
+    script.textContent = JSON.stringify(schema);
+    document.head.appendChild(script);
+  })(p);
   // Категорія в хлібних крихтах — клікабельне посилання на каталог з фільтром
   if (p.category){
     const CAT_LABELS = { jeep:'Джипи', quad:'Квадроцикли', moto:'Мотоцикли', car:'Машини', tractor:'Трактори', walker:'Каталки-толокари', truck:'Вантажівки', buggy:'Баггі' };
