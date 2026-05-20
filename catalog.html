@@ -281,7 +281,7 @@ nav a.active{color:var(--orange)}
 .drawer-head h3{font-size:18px;color:var(--navy)}
 .drawer-close{width:36px;height:36px;border:none;background:var(--bg-soft);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted)}
 .drawer-footer{padding:12px 14px;border-top:1px solid var(--border);background:white;flex-shrink:0;position:sticky;bottom:0}
-.drawer-show-btn{width:100%;padding:14px;background:var(--orange);color:white;border:none;border-radius:12px;font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;cursor:pointer;letter-spacing:.3px;transition:background .2s}
+.drawer-show-btn{width:100%;padding:14px;background:var(--orange);color:white;border:none;border-radius:12px;font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;cursor:pointer;letter-spacing:.3px;transition:background .2s;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .drawer-show-btn:hover{background:#e55a1e}
 .drawer #sidebar{flex:1;overflow-y:auto;padding:20px}
 
@@ -882,7 +882,9 @@ function _getCheckedLabels(group) {
   });
 })();
 
-function applyFilters() {
+// (старий DOM-based applyFilters видалено — використовується версія нижче що викликає applyFiltersAndRender)
+
+function applyFilters_UNUSED_STUB() {
   const grid = document.getElementById('productsGrid');
   const q = (document.getElementById('searchInput')?.value || '').trim().toLowerCase();
 

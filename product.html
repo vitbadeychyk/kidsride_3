@@ -434,6 +434,9 @@ nav a.active{color:var(--orange)}
   .color-grid{gap:6px}
   .rev-head{flex-wrap:wrap}
   .rev-stars{margin-left:0}
+  /* Приховати текст "Меню" у бургері — звільнити місце для іконок кошика */
+  .mobile-burger > span:last-child{display:none}
+  .mobile-burger{padding:6px 8px}
 }
 /* ── PHONE IN HEADER ── */
 .h-phone-link{display:inline-flex;align-items:center;gap:7px;text-decoration:none;color:var(--navy);font-family:'Nunito',sans-serif;font-weight:700;font-size:13.5px;padding:8px 12px;border-radius:10px;transition:all .2s;white-space:nowrap}
