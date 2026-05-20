@@ -76,8 +76,8 @@
   --r:16px; --r-sm:10px; --r-lg:24px;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{font-family:'Manrope',sans-serif;color:var(--text);background:var(--bg);overflow-x:hidden}
+html{scroll-behavior:smooth;overflow-x:hidden;overscroll-behavior-x:none}
+body{font-family:'Manrope',sans-serif;color:var(--text);background:var(--bg);overflow-x:hidden;overscroll-behavior-x:none}
 h1,h2,h3,h4{font-family:'Nunito',sans-serif;font-weight:800}
 img{display:block;max-width:100%}
 
@@ -584,7 +584,10 @@ footer{background:var(--navy);color:white;padding:56px 40px 0}
   .products-grid .p-card:nth-child(n+5){display:none!important}
   .age-grid{grid-template-columns:1fr}
   .ig-grid{grid-template-columns:repeat(2,1fr)}
-  .f-grid{grid-template-columns:1fr}
+  .f-grid{grid-template-columns:1fr 1fr;gap:24px}
+  footer{padding:40px 16px 0}
+  .f-brand{max-width:none}
+  .f-contacts{min-width:0}
   .hero{height:auto !important;min-height:0 !important;max-height:none !important}
   .hero-img-wrap{height:auto !important}
   .hero-h1{font-size:clamp(20px,7vw,32px) !important}

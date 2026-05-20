@@ -1723,6 +1723,25 @@ function _renderCategoryTree(treeEl) {
   }
 
   treeEl.innerHTML = html;
+
+  // Якщо є дефолтний тип транспорту без parentId — знаходимо його в DOM і активуємо
+  if (_activeVehicleType && !_activeParentIdFilter) {
+    const vtRow = treeEl.querySelector(`.ctree-sub-row[data-action="selectVehicleType"][data-vtype="${_activeVehicleType}"]`);
+    if (vtRow) {
+      vtRow.classList.add('active');
+      const pid = parseInt(vtRow.dataset.parent || '0');
+      if (pid) {
+        _activeParentIdFilter = pid;
+        const pRow = treeEl.querySelector(`.ctree-parent-row[data-parentid="${pid}"]`);
+        if (pRow) {
+          pRow.classList.add('active');
+          const subsEl = pRow.nextElementSibling;
+          if (subsEl) subsEl.classList.add('open');
+          pRow.querySelector('.ctree-chevron')?.classList.add('open');
+        }
+      }
+    }
+  }
 }
 
 async function loadCategoryTree() {
@@ -2548,10 +2567,20 @@ function applyUrlFilters() {
   } else {
     _activeCatIdFilter    = 0;
     _activeParentIdFilter = 0;
-    if (bcCur)  bcCur.textContent = 'Каталог';
-    if (titleEl) titleEl.textContent = 'Каталог товарів';
-    if (bcCats) bcCats.style.display = 'none';
-    if (bcSep2) bcSep2.style.display = 'none';
+    // Дефолт: без URL-параметрів — показуємо Джипи
+    const _hasExplicitParam = !!(params.get('search') || params.get('cat') || params.get('type') || params.get('category'));
+    if (!_hasExplicitParam) {
+      _activeVehicleType = 'jeep';
+      if (bcCur)   bcCur.textContent = 'Джипи';
+      if (titleEl) titleEl.textContent = 'Джипи';
+      if (bcCats)  bcCats.style.display = '';
+      if (bcSep2)  bcSep2.style.display = '';
+    } else {
+      if (bcCur)  bcCur.textContent = 'Каталог';
+      if (titleEl) titleEl.textContent = 'Каталог товарів';
+      if (bcCats) bcCats.style.display = 'none';
+      if (bcSep2) bcSep2.style.display = 'none';
+    }
   }
 
   // ── Стара логіка: ?cat=jeep,car (для зворотної сумісності)
