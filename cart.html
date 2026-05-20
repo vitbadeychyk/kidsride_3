@@ -582,7 +582,7 @@ window.addEventListener('scroll', () => {
 
 // ── HELPERS ───────────────────────────────────────────────────────────────
 function escHtml(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function formatPrice(n) { return Number(n||0).toLocaleString('uk-UA') + ' ₴'; }
+function formatPrice(n) { return Number(n||0).toLocaleString('uk-UA') + ' грн'; }
 function plural(n, one, few, many) {
   if (n % 10 === 1 && n % 100 !== 11) return one;
   if ([2,3,4].includes(n % 10) && ![12,13,14].includes(n % 100)) return few;
@@ -991,7 +991,7 @@ checkMobilePrices();
       if(ts.every(t=>fl.some(f=>f.includes(t))||fn.some(f=>f.includes(krNormalize(t)))))return 40;}
     return 0;
   }
-  function krFmtPrice(n){return n?new Intl.NumberFormat('uk-UA').format(Math.round(n))+' ₴':'';}
+  function krFmtPrice(n){return n?new Intl.NumberFormat('uk-UA').format(Math.round(n))+' грн':'';}
   function renderSearchSuggestions(query){
     const list=document.getElementById('searchSuggestions'),empty=document.getElementById('searchEmpty');
     if(!list)return;const q=(query||'').trim(),products=KR_PRODUCTS_CACHE;

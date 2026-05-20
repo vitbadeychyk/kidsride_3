@@ -338,6 +338,7 @@ nav a.active{color:var(--orange)}
 
   /* Breadcrumb */
   .breadcrumb{margin-top:58px;padding:10px 16px;font-size:11px}
+  #backToCatalogBar{padding:6px 16px}
 
   /* Page */
   .page{padding:16px 16px 100px}
@@ -541,9 +542,16 @@ nav a.active{color:var(--orange)}
   <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
   <a href="catalog.html">Каталог</a>
   <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-  <a href="catalog.html" class="breadcrumb-cat" id="breadcrumbCat">Джипи</a>
+  <a href="catalog.html" class="breadcrumb-cat" id="breadcrumbCat">Каталог</a>
   <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-  <span class="breadcrumb-cur">Джип M 3804EBLR-1</span>
+  <span class="breadcrumb-cur">Завантаження…</span>
+</div>
+<!-- Кнопка "Назад до каталогу" — показується тільки якщо є збережений контекст -->
+<div id="backToCatalogBar" style="display:none;background:white;border-bottom:1px solid var(--border);padding:8px 40px">
+  <button id="backToCatalogBtn" onclick="krGoBack()" style="display:inline-flex;align-items:center;gap:6px;background:none;border:none;cursor:pointer;font-family:'Manrope',sans-serif;font-size:13px;font-weight:600;color:var(--text-muted);padding:4px 0;transition:color .2s" onmouseover="this.style.color='var(--orange)'" onmouseout="this.style.color='var(--text-muted)'">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><polyline points="15 18 9 12 15 6"/></svg>
+    <span id="backToCatalogLabel">Назад до каталогу</span>
+  </button>
 </div>
 
 <!-- PAGE -->
@@ -1809,11 +1817,23 @@ function applyProductData(p){
     script.textContent = JSON.stringify(schema);
     document.head.appendChild(script);
   })(p);
-  // Категорія в хлібних крихтах — клікабельне посилання на каталог з фільтром
-  if (p.category){
+  // Категорія в хлібних крихтах — беремо збережений контекст каталогу,
+  // або fallback на тип транспорту продукту
+  {
+    const _ret = (() => { try { return JSON.parse(sessionStorage.getItem('kr_catalog_return') || 'null'); } catch {} return null; })();
     const CAT_LABELS = { jeep:'Джипи', quad:'Квадроцикли', moto:'Мотоцикли', car:'Машини', tractor:'Трактори', walker:'Каталки-толокари', truck:'Вантажівки', buggy:'Баггі' };
     const catEl = document.getElementById('breadcrumbCat');
-    if (catEl){
+    if (_ret && _ret.catLabel) {
+      if (catEl) {
+        catEl.textContent = _ret.catLabel;
+        catEl.href = _ret.url || 'catalog.html';
+      }
+      // Показуємо кнопку "← Назад"
+      const bar = document.getElementById('backToCatalogBar');
+      const lbl = document.getElementById('backToCatalogLabel');
+      if (bar) bar.style.display = '';
+      if (lbl) lbl.textContent = '← ' + _ret.catLabel;
+    } else if (p.category && catEl) {
       catEl.textContent = CAT_LABELS[p.category] || 'Каталог';
       catEl.href = 'catalog.html?cat=' + encodeURIComponent(p.category);
     }
@@ -2759,5 +2779,25 @@ function _ytEmbedFromUrl(url){
   else document.addEventListener('DOMContentLoaded',krLoadAllProducts);
   document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSearchOverlay();if((e.key==='k'||e.key==='K')&&(e.metaKey||e.ctrlKey)){e.preventDefault();openSearchOverlay();}});
   </script>
+<script>
+// Навігація назад до каталогу з відновленням позиції прокрутки
+function krGoBack() {
+  try {
+    const ret = JSON.parse(sessionStorage.getItem('kr_catalog_return') || 'null');
+    if (ret && ret.url) {
+      // Передаємо scrollY через sessionStorage — catalog.html відновить після завантаження
+      sessionStorage.setItem('kr_catalog_restore_scroll', String(ret.scrollY || 0));
+      window.location.href = ret.url;
+      return;
+    }
+  } catch {}
+  // Fallback: просто назад
+  if (document.referrer && document.referrer.includes('catalog')) {
+    history.back();
+  } else {
+    window.location.href = 'catalog.html';
+  }
+}
+</script>
 </body>
 </html>

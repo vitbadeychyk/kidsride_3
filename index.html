@@ -858,6 +858,25 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
 })();
 </script>
 <script>
+// Preload першого слайду зі збереженого кешу (щоб зображення показувалось одразу)
+(function(){
+  try {
+    var slides = JSON.parse(localStorage.getItem('kr_slides') || 'null');
+    if (!Array.isArray(slides) || !slides.length) return;
+    var sorted = slides.filter(function(x){return x.enabled !== false;})
+      .sort(function(a,b){return (a.sort_order||0)-(b.sort_order||0);});
+    var img = sorted[0] && sorted[0].image;
+    if (!img) return;
+    var link = document.createElement('link');
+    link.rel = 'preload';
+    link.as = 'image';
+    link.href = img;
+    link.setAttribute('fetchpriority', 'high');
+    document.head.appendChild(link);
+  } catch(e) {}
+})();
+</script>
+<script>
 (function(){
   try{var s=JSON.parse(localStorage.getItem('kr_stripe')||'{"h":12,"c":"#1B2A4A"}');
   var el=document.createElement('style');el.id='kr-stripe-css';

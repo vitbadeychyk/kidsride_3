@@ -1032,6 +1032,13 @@ function openProduct(card) {
     return;
   }
   // Fallback: мінімальні дані з картки
+  try {
+    sessionStorage.setItem('kr_catalog_return', JSON.stringify({
+      url: window.location.href,
+      scrollY: window.scrollY,
+      catLabel: (typeof _currentCatLabel === 'function') ? _currentCatLabel() : 'Каталог'
+    }));
+  } catch {}
   const product = getCardProduct(card);
   if (product) {
     try { sessionStorage.setItem('kr_active_product', JSON.stringify(product)); } catch{}
@@ -1918,10 +1925,30 @@ function escAttr(s) {
 }
 
 // Відкрити сторінку товару зі збереженням контексту
+function _currentCatLabel() {
+  const CAT_LABELS = {jeep:'Джипи',quad:'Квадроцикли',moto:'Мотоцикли',car:'Машини',tractor:'Трактори',walker:'Каталки-толокари',truck:'Вантажівки',buggy:'Баггі'};
+  if (_activeVehicleType) return CAT_LABELS[_activeVehicleType] || _activeVehicleType;
+  if (_activeParentIdFilter) {
+    const par = (_mainCategories || []).find(c => c.id === _activeParentIdFilter);
+    if (par) return par.name;
+  }
+  if (_activeCatIdFilter) {
+    const cat = (_allCategories || []).find(c => c.id === _activeCatIdFilter);
+    if (cat) return cat.name;
+  }
+  return 'Каталог';
+}
+
 function catOpenProduct(id) {
   try {
     const p = (allProducts || []).find(x => String(x.id) === String(id));
     if (p) sessionStorage.setItem('kr_active_product', JSON.stringify(p));
+    // Зберігаємо стан каталогу для кнопки "Назад" і відновлення позиції прокрутки
+    sessionStorage.setItem('kr_catalog_return', JSON.stringify({
+      url: window.location.href,
+      scrollY: window.scrollY,
+      catLabel: _currentCatLabel()
+    }));
   } catch {}
   window.location.href = 'product.html?id=' + encodeURIComponent(id);
 }
@@ -2138,12 +2165,16 @@ function applyFiltersAndRender() {
   filteredProducts = allProducts.filter(p => {
     // Приховуємо товар, тільки якщо немає в наявності І не доступний під замовлення
     if (p.stock != null && p.stock <= 0 && !(Number(p.preorderDays) > 0)) return false;
-    // Фільтр по категорії з дерева (category_id)
-    const activeCatIds = _getActiveCategoryIds();
-    if (activeCatIds.length && !activeCatIds.includes(p.category_id)) return false;
-    // Фільтр по типу транспорту (з дерева або окремого блоку)
-    if (_activeVehicleType && p.category !== _activeVehicleType) return false;
-    if (!_activeVehicleType && activeFilters.types.length && !activeFilters.types.includes(p.category)) return false;
+    // Коли активний пошук — показуємо всі товари що відповідають запиту,
+    // ігноруючи категорійні фільтри (пошук працює глобально).
+    if (!activeFilters.search) {
+      // Фільтр по категорії з дерева (category_id)
+      const activeCatIds = _getActiveCategoryIds();
+      if (activeCatIds.length && !activeCatIds.includes(p.category_id)) return false;
+      // Фільтр по типу транспорту (з дерева або окремого блоку)
+      if (_activeVehicleType && p.category !== _activeVehicleType) return false;
+      if (!_activeVehicleType && activeFilters.types.length && !activeFilters.types.includes(p.category)) return false;
+    }
     if (activeFilters.ages.length) {
       const ageRanges = { '1-3': [1,3], '3-6': [3,6], '6-10': [6,10] };
       const pAges = String(p.age || '').split('-').map(Number);
@@ -2707,6 +2738,20 @@ function showToastLocal(msg) {
 document.addEventListener('DOMContentLoaded', () => {
   wireTreeEvents(); // делеговані touch/click слухачі для дерева категорій
   renderCatalog(); // async — завантажує з Supabase
+  // Відновлення позиції прокрутки після повернення з товару
+  try {
+    const savedY = sessionStorage.getItem('kr_catalog_restore_scroll');
+    if (savedY !== null) {
+      sessionStorage.removeItem('kr_catalog_restore_scroll');
+      const y = parseInt(savedY) || 0;
+      if (y > 0) {
+        // Чекаємо поки контент завантажиться, потім прокручуємо
+        const _restoreScroll = () => window.scrollTo({ top: y, behavior: 'instant' });
+        setTimeout(_restoreScroll, 400);
+        setTimeout(_restoreScroll, 900); // другий спроба на випадок повільного рендеру
+      }
+    }
+  } catch {}
   // Оновити badge кошика
   try {
     const cart = JSON.parse(localStorage.getItem('kr_cart') || '[]');
