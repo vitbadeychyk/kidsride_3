@@ -1295,6 +1295,15 @@ function openDrawer() {
     sidebar.classList.add('in-drawer');
     sidebar._inDrawer = true;
   }
+  // Clear search input every time the drawer is opened
+  const searchInput = document.getElementById('searchInput');
+  if (searchInput) searchInput.value = '';
+  activeFilters.search = '';
+  try {
+    const url = new URL(location.href);
+    url.searchParams.delete('search');
+    history.replaceState(null, '', url.toString());
+  } catch(e) {}
   // Fix drawer height to current visible height (prevents keyboard-open shrink on iOS)
   const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
   drawer.style.height = vh + 'px';
