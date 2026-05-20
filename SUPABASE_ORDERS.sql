@@ -26,6 +26,9 @@ create table if not exists public.orders (
   payment_method_label        text        not null default '',
   comment                     text        not null default '',
   subtotal                    numeric     not null default 0,
+  discount_amount             numeric              default null,
+  promo_code                  text                 default null,
+  promo_type                  text                 default null,
   total                       numeric     not null default 0,
   items_count                 integer     not null default 0,
   status                      text        not null default 'Новий',
@@ -37,6 +40,7 @@ create table if not exists public.orders (
 create index if not exists orders_created_at_idx on public.orders (created_at desc);
 create index if not exists orders_status_idx     on public.orders (status);
 create index if not exists orders_phone_idx      on public.orders (customer_phone);
+create index if not exists orders_promo_code_idx on public.orders (promo_code) where promo_code is not null;
 
 -- ── ORDER_ITEMS ───────────────────────────────────────────────────────────
 create table if not exists public.order_items (
