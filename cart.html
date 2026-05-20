@@ -478,9 +478,16 @@ nav a:hover{color:var(--navy);background:var(--bg-soft)}
           <svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
           Промокод
         </div>
-        <div class="promo-row">
-          <input class="promo-input" type="text" id="promoInput" placeholder="Введіть промокод" oninput="this.value=this.value.toUpperCase()">
+        <div id="promoInputRow" class="promo-row">
+          <input class="promo-input" type="text" id="promoInput" placeholder="Введіть промокод"
+            oninput="this.value=this.value.toUpperCase()"
+            onkeydown="if(event.key==='Enter')applyPromo()">
           <button class="promo-apply" onclick="applyPromo()">Застосувати</button>
+        </div>
+        <div id="promoAppliedBadge" style="display:none;align-items:center;gap:6px;margin-top:10px;font-size:12px;font-weight:700;color:#065f46;padding:9px 12px;background:#d1fae5;border-radius:8px;border:1px solid #6ee7b7">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <span id="promoAppliedText">Промокод застосовано</span>
+          <button onclick="removePromoCart()" style="margin-left:auto;background:none;border:none;cursor:pointer;font-size:11px;color:#065f46;text-decoration:underline;font-weight:600;padding:0">✕ Скасувати</button>
         </div>
         <div id="promoMsg" style="display:none"></div>
       </div>
@@ -572,8 +579,7 @@ let cartData = [];
 try { cartData = JSON.parse(localStorage.getItem('kr_cart') || '[]'); } catch(e) { cartData = []; }
 if (!Array.isArray(cartData)) cartData = [];
 
-let promoDiscount = 0;
-const promoCode = 'KIDSRIDE10';
+let _cartPromo = null; // { code, name, type, discount_percent }
 
 // Header scroll
 window.addEventListener('scroll', () => {
@@ -743,7 +749,14 @@ async function asyncLoadCartImages() {
 function recalc() {
   const subtotal = cartData.reduce((s,p) => s + (Number(p.price)||0) * (Number(p.qty)||1), 0);
   const totalQty = cartData.reduce((s,p) => s + (Number(p.qty)||1), 0);
+
+  // Знижка по промокоду
+  let promoDiscount = 0;
+  if (_cartPromo && _cartPromo.type === 'discount' && Number(_cartPromo.discount_percent) > 0) {
+    promoDiscount = Math.round(subtotal * Number(_cartPromo.discount_percent) / 100);
+  }
   const grand = subtotal - promoDiscount;
+
   const sumQty = document.getElementById('sumQty');
   if (sumQty) sumQty.textContent = totalQty;
   const sumItems = document.getElementById('sumItems');
@@ -756,11 +769,26 @@ function recalc() {
   if (cnt) cnt.textContent = totalQty + ' ' + plural(totalQty, 'товар', 'товари', 'товарів');
   const inst = document.getElementById('installmentHint');
   if (inst) inst.textContent = 'від ' + formatPrice(Math.ceil(grand / 4)) + ' × 4 платежі';
+
+  // Рядок знижки
+  const pr = document.getElementById('promoRow');
+  const sp = document.getElementById('sumPromo');
   if (promoDiscount > 0) {
-    const pr = document.getElementById('promoRow');
     if (pr) pr.style.display = 'flex';
-    const sp = document.getElementById('sumPromo');
     if (sp) sp.textContent = '−' + formatPrice(promoDiscount);
+  } else {
+    if (pr) pr.style.display = 'none';
+  }
+
+  // Доставка
+  const delEl = document.getElementById('sumDelivery');
+  const noteEl = document.querySelector('.sum-note');
+  if (_cartPromo && _cartPromo.type === 'free_delivery') {
+    if (delEl) { delEl.textContent = 'Безкоштовна 🎁'; delEl.style.color = 'var(--green)'; }
+    if (noteEl) noteEl.style.display = 'none';
+  } else {
+    if (delEl) { delEl.textContent = 'за тарифами НП'; delEl.style.color = 'var(--orange)'; }
+    if (noteEl) noteEl.style.display = '';
   }
 }
 
@@ -853,20 +881,103 @@ function showEmptyCart() {
   if (mc) mc.style.display = 'none';
 }
 
-function applyPromo() {
-  const val = document.getElementById('promoInput').value.trim();
-  const msg = document.getElementById('promoMsg');
-  msg.style.display = 'block';
-  if (val === promoCode) {
-    const subtotal = cartData.reduce((s,p) => s + (Number(p.price)||0) * (Number(p.qty)||1), 0);
-    promoDiscount = Math.round(subtotal * 0.1);
-    msg.innerHTML = `<div class="promo-ok"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Промокод застосовано! Знижка 10%</div>`;
-    recalc();
-  } else if (val === '') {
+async function applyPromo() {
+  const input = document.getElementById('promoInput');
+  const msg   = document.getElementById('promoMsg');
+  const btn   = document.querySelector('.promo-apply');
+  if (!input || !msg) return;
+
+  const code = input.value.trim().toUpperCase();
+  if (!code) {
+    msg.style.display = 'block';
     msg.innerHTML = '<div style="font-size:12px;color:var(--red);margin-top:8px">Введіть промокод</div>';
-  } else {
-    msg.innerHTML = '<div style="font-size:12px;color:var(--red);margin-top:8px">Промокод не знайдено або вичерпано</div>';
+    return;
   }
+
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const url = _SUPA_URL_CART + '/rest/v1/promo_codes'
+      + '?code=eq.' + encodeURIComponent(code)
+      + '&status=eq.active'
+      + '&start_date=lte.' + today
+      + '&end_date=gte.'   + today
+      + '&select=code,name,type,discount_percent&limit=1';
+
+    const r = await fetch(url, {
+      headers: { 'apikey': _SUPA_KEY_CART, 'Authorization': 'Bearer ' + _SUPA_KEY_CART }
+    });
+    if (!r.ok) throw new Error('fetch');
+    const data = await r.json();
+
+    if (!Array.isArray(data) || !data.length) {
+      _cartPromo = null;
+      msg.style.display = 'block';
+      msg.innerHTML = '<div style="font-size:12px;color:var(--red);margin-top:8px">Промокод не знайдено або прострочений ❌</div>';
+      recalc();
+      return;
+    }
+
+    const promo = data[0];
+    _cartPromo = promo;
+    recalc();
+
+    // Ховаємо рядок вводу, показуємо бейдж
+    const promoRow = document.getElementById('promoInputRow');
+    const badge    = document.getElementById('promoAppliedBadge');
+    const badgeTxt = document.getElementById('promoAppliedText');
+    if (promoRow) promoRow.style.display = 'none';
+    if (badge)    badge.style.display    = 'flex';
+    if (badgeTxt) {
+      if (promo.type === 'free_delivery') {
+        badgeTxt.textContent = 'Промокод «' + promo.code + '» — безкоштовна доставка 🚚';
+      } else {
+        badgeTxt.textContent = 'Промокод «' + promo.code + '» — знижка ' + promo.discount_percent + '% 🎁';
+      }
+    }
+    msg.style.display = 'none';
+
+    // Тост-підтвердження
+    _cartPromoToast(promo);
+
+  } catch(e) {
+    msg.style.display = 'block';
+    msg.innerHTML = '<div style="font-size:12px;color:var(--red);margin-top:8px">Помилка перевірки. Спробуйте ще раз.</div>';
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Застосувати'; }
+  }
+}
+
+function removePromoCart() {
+  _cartPromo = null;
+  const input    = document.getElementById('promoInput');
+  const promoRow = document.getElementById('promoInputRow');
+  const badge    = document.getElementById('promoAppliedBadge');
+  const msg      = document.getElementById('promoMsg');
+  if (input)    input.value = '';
+  if (promoRow) promoRow.style.display = 'flex';
+  if (badge)    badge.style.display    = 'none';
+  if (msg)      msg.style.display      = 'none';
+  recalc();
+}
+
+function _cartPromoToast(promo) {
+  const t = document.createElement('div');
+  t.style.cssText = 'position:fixed;top:80px;right:24px;z-index:9999;background:white;border-radius:14px;padding:16px 20px;'
+    + 'box-shadow:0 8px 32px rgba(27,42,74,.18);max-width:300px;display:flex;align-items:flex-start;gap:12px;'
+    + 'transform:translateX(120%);transition:transform .4s cubic-bezier(.22,1,.36,1)';
+  const icon  = promo.type === 'free_delivery' ? '🚚' : '🎁';
+  const title = promo.type === 'free_delivery' ? 'Безкоштовна доставка!' : 'Знижку застосовано!';
+  const body  = promo.type === 'free_delivery'
+    ? 'Промокод «' + promo.code + '» — доставка НП безкоштовна'
+    : 'Промокод «' + promo.code + '» — знижка ' + promo.discount_percent + '% на весь кошик';
+  t.innerHTML = '<div style="font-size:24px;line-height:1;flex-shrink:0">' + icon + '</div>'
+    + '<div><div style="font-family:\'Nunito\',sans-serif;font-weight:800;font-size:14px;color:#1B2A4A;margin-bottom:3px">' + title + '</div>'
+    + '<div style="font-size:12px;color:#6b7280;line-height:1.5">' + body + '</div></div>';
+  document.body.appendChild(t);
+  requestAnimationFrame(() => { t.style.transform = 'translateX(0)'; });
+  setTimeout(() => { t.style.transform = 'translateX(120%)'; setTimeout(() => t.remove(), 420); }, 4500);
 }
 
 function goCheckout() {
@@ -881,6 +992,12 @@ function goCheckout() {
     return;
   }
   cartData = fresh;
+  // Зберігаємо застосований промокод щоб checkout.html міг його показати
+  if (_cartPromo) {
+    localStorage.setItem('kr_cart_promo', JSON.stringify(_cartPromo));
+  } else {
+    localStorage.removeItem('kr_cart_promo');
+  }
   window.location.href = 'checkout.html';
 }
 
