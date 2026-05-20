@@ -384,6 +384,8 @@ nav a.active{color:var(--orange)}
 #sidebar.in-drawer .filter-cnt{font-size:12px;padding:2px 8px}
 #sidebar.in-drawer .filter-block{margin-bottom:22px}
 #sidebar.in-drawer .ctree-divider{margin:14px 0 12px}
+/* Fix: prevent iOS Safari auto-zoom when search input is focused in drawer */
+#sidebar.in-drawer .sidebar-search input{font-size:16px}
 
 /* ── SKELETON LOADING ── */
 @keyframes skeletonShimmer{0%{background-position:-600px 0}100%{background-position:600px 0}}
@@ -1323,6 +1325,15 @@ function closeDrawer() {
   }
   document.getElementById('drawerOverlay').classList.remove('open');
   document.body.style.overflow = '';
+  // Fix: reset iOS Safari zoom that was triggered by the search input focus
+  try {
+    const mv = document.querySelector('meta[name="viewport"]');
+    if (mv) {
+      const orig = mv.getAttribute('content');
+      mv.setAttribute('content', orig + ',maximum-scale=1');
+      setTimeout(() => mv.setAttribute('content', orig), 300);
+    }
+  } catch(e) {}
 }
 
 // Search toggle
@@ -2483,6 +2494,16 @@ function applyFilters() {
   activeFilters.priceMin = min;
   activeFilters.priceMax = max;
   activeFilters.search = document.getElementById('searchInput')?.value.trim() || '';
+  // Fix: persist search in URL so browser back-navigation restores it
+  try {
+    const url = new URL(location.href);
+    if (activeFilters.search) {
+      url.searchParams.set('search', activeFilters.search);
+    } else {
+      url.searchParams.delete('search');
+    }
+    history.replaceState(null, '', url.toString());
+  } catch(e) {}
   currentPage = 1;
   applyFiltersAndRender();
 }
@@ -2504,6 +2525,12 @@ function resetFilters() {
   if (titleEl) titleEl.textContent = 'Каталог товарів';
   const bcCur = document.getElementById('bcCurrent');
   if (bcCur) bcCur.textContent = 'Каталог';
+  // Clear search from URL
+  try {
+    const url = new URL(location.href);
+    url.searchParams.delete('search');
+    history.replaceState(null, '', url.toString());
+  } catch(e) {}
   applyFiltersAndRender();
   loadCategoryTree(); // оновити активний стан у дереві
 }
