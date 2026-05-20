@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>KidsRide — Дитячі електромобілі з доставкою по Україні</title>
 <meta name="description" content="Купити дитячий електромобіль в Україні. Джипи, квадроцикли, мотоцикли від 1 до 10 років. Гарантія 12 місяців, доставка Новою Поштою, оплата частинами ПриватБанк. 500+ задоволених родин.">
 <meta name="keywords" content="дитячий електромобіль, купити електромобіль для дітей, дитячий джип електро, квадроцикл дитячий, електромобіль Україна">
@@ -2978,6 +2978,16 @@ document.addEventListener('keydown', function(e) {
     loadAndApplyOrder();
   }
 })();
+</script>
+
+<script>
+// Блокування pinch-to-zoom (iOS Safari ігнорує user-scalable=no з iOS 10+)
+document.addEventListener('gesturestart',  function(e){ e.preventDefault(); }, {passive: false});
+document.addEventListener('gesturechange', function(e){ e.preventDefault(); }, {passive: false});
+document.addEventListener('gestureend',    function(e){ e.preventDefault(); }, {passive: false});
+document.addEventListener('touchmove', function(e){
+  if (e.touches && e.touches.length > 1) { e.preventDefault(); }
+}, {passive: false});
 </script>
 
 </body>
