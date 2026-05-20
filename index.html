@@ -578,7 +578,8 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
 }
 @media(max-width:640px){
   .benefits-grid{grid-template-columns:1fr}
-  .products-grid{grid-template-columns:repeat(4,1fr)}
+  .products-grid{grid-template-columns:repeat(2,1fr)}
+  .products-grid .p-card:nth-child(n+5){display:none!important}
   .age-grid{grid-template-columns:1fr}
   .ig-grid{grid-template-columns:repeat(2,1fr)}
   .f-grid{grid-template-columns:1fr}
@@ -1304,7 +1305,7 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
 
       async function loadFeatured() {
         try {
-          const r = await fetch('https://xczrzdbikkycgpnvolib.supabase.co/rest/v1/products?select=*&is_featured=eq.true&active=eq.true&order=created_at.desc&limit=10',
+          const r = await fetch('https://xczrzdbikkycgpnvolib.supabase.co/rest/v1/products?select=*&is_featured=eq.true&active=eq.true&order=created_at.desc&limit=5',
             { headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ'} });
           const products = r.ok ? await r.json() : [];
           if (products && products.length) {
@@ -1315,7 +1316,7 @@ footer{background:var(--navy);color:white;padding:48px 48px 0}
         } catch(e) {}
         // Якщо немає is_featured товарів — показати перших 4 активних
         try {
-          const r2 = await fetch('https://xczrzdbikkycgpnvolib.supabase.co/rest/v1/products?select=*&active=eq.true&order=created_at.desc&limit=4',
+          const r2 = await fetch('https://xczrzdbikkycgpnvolib.supabase.co/rest/v1/products?select=*&active=eq.true&order=created_at.desc&limit=5',
             { headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ'} });
           const fallback = r2.ok ? await r2.json() : [];
           GRID.innerHTML = fallback.length
