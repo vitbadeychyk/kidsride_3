@@ -2851,7 +2851,7 @@ document.addEventListener('keydown', function(e) {
   var ALBUM_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M7 2v20M17 2v20M2 7h20M2 17h20"/></svg>';
 
   function buildPost(post) {
-    if (post.media_type === 'VIDEO') return null;
+    if (post.media_type !== 'IMAGE' && post.media_type !== 'CAROUSEL_ALBUM') return null;
     var imgUrl = post.media_url;
     if (!imgUrl) return null;
 
