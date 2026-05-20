@@ -1556,7 +1556,7 @@ console.log('[KidsRide] product.html v3.9 — працюють: копіюван
       if (stored) cached = JSON.parse(stored);
     } catch{}
     if (cached && cached.id && !id && !/^cat-|^default-/.test(cached.id)) id = cached.id;
-    if (cached && cached.id && (cached.sku || (Array.isArray(cached.images) && cached.images.length))) {
+    if (cached && cached.id && String(cached.id) === String(id) && (cached.sku || (Array.isArray(cached.images) && cached.images.length))) {
       // Уніфікуємо формат camelCase → snake_case для applyProductData
       const cnorm = {
         id: cached.id,
