@@ -2667,10 +2667,29 @@ else document.addEventListener('DOMContentLoaded', initInstaFab);
 /* Shows every time the homepage loads — 1 second delay, no cooldown */
 (function() {
   var PROMO_SETTINGS_KEY = 'kr_promo_settings';
-  var PROMO_DELAY_MS = 1000;
-
   function getPromoSettings() {
     try { return JSON.parse(localStorage.getItem(PROMO_SETTINGS_KEY) || '{}'); } catch(e) { return {}; }
+  }
+
+  function playPromoSound() {
+    try {
+      var ctx = new (window.AudioContext || window.webkitAudioContext)();
+      var notes = [523.25, 659.25, 783.99, 1046.5]; // C5, E5, G5, C6
+      notes.forEach(function(freq, i) {
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, ctx.currentTime);
+        var t = ctx.currentTime + i * 0.12;
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(0.22, t + 0.04);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.45);
+        osc.start(t);
+        osc.stop(t + 0.5);
+      });
+    } catch(e) {}
   }
 
   function addStars() {
@@ -2700,19 +2719,23 @@ else document.addEventListener('DOMContentLoaded', initInstaFab);
     var code = cfg.promo_code || 'KIDSFREE';
     var el = document.getElementById('promoCodeDisplay');
     if (el) el.textContent = code;
+    var titleEl = document.getElementById('promoModalTitle');
+    if (titleEl && cfg.title) titleEl.textContent = cfg.title;
     addStars();
     var overlay = document.getElementById('promoOverlay');
     if (overlay) {
       overlay.classList.add('open');
       document.body.style.overflow = 'hidden';
     }
+    playPromoSound();
   }
 
   function initPromoModal() {
     var cfg = getPromoSettings();
     if (cfg.enabled === false) return;
     if (new URLSearchParams(location.search).has('nopopup')) return;
-    setTimeout(showPromoModal, PROMO_DELAY_MS);
+    var delaySec = (cfg.popup_delay_sec != null && !isNaN(Number(cfg.popup_delay_sec))) ? Number(cfg.popup_delay_sec) : 3;
+    setTimeout(showPromoModal, delaySec * 1000);
   }
 
   if (document.readyState !== 'loading') initPromoModal();

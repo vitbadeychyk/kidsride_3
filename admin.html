@@ -1716,7 +1716,27 @@ CREATE POLICY "admin_appearance" ON settings_appearance USING (auth.role()='auth
 CREATE TABLE IF NOT EXISTS settings_seo (id int PRIMARY KEY DEFAULT 1, seo_title text, seo_description text, og_image text, ga_id text, fb_pixel text, site_url text, updated_at timestamptz DEFAULT now());
 INSERT INTO settings_seo (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
 ALTER TABLE settings_seo ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "admin_seo" ON settings_seo USING (auth.role()='authenticated') WITH CHECK (auth.role()='authenticated');</pre>
+CREATE POLICY "admin_seo" ON settings_seo USING (auth.role()='authenticated') WITH CHECK (auth.role()='authenticated');
+
+-- 7. Промокоди (для checkout)
+CREATE TABLE IF NOT EXISTS promo_codes (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  code text UNIQUE NOT NULL,
+  name text NOT NULL,
+  type text NOT NULL DEFAULT 'discount',
+  discount_percent numeric DEFAULT 0,
+  start_date date NOT NULL,
+  end_date date NOT NULL,
+  status text NOT NULL DEFAULT 'active',
+  usage_limit int DEFAULT NULL,
+  usage_count int NOT NULL DEFAULT 0,
+  created_at timestamptz DEFAULT now()
+);
+ALTER TABLE promo_codes ENABLE ROW LEVEL SECURITY;
+-- Публічне читання (checkout може перевіряти коди без авторизації)
+CREATE POLICY "public_read_promo" ON promo_codes FOR SELECT USING (true);
+-- Тільки адміни можуть створювати, оновлювати та видаляти
+CREATE POLICY "admin_write_promo" ON promo_codes FOR ALL USING (auth.role()='authenticated') WITH CHECK (auth.role()='authenticated');</pre>
         </div>
       </div>
 
@@ -1762,9 +1782,14 @@ CREATE POLICY "admin_seo" ON settings_seo USING (auth.role()='authenticated') WI
             <label class="f-label">Посилання на Instagram</label>
             <input id="cfg_promo_ig" type="text" value="https://www.instagram.com/kidsride.ua/" placeholder="https://www.instagram.com/kidsride.ua/">
           </div>
-          <div class="f-group" style="margin-bottom:18px">
+          <div class="f-group" style="margin-bottom:14px">
             <label class="f-label">Заголовок попапу</label>
             <input id="cfg_promo_title" type="text" value="Безкоштовна доставка на будь-який товар!" placeholder="Безкоштовна доставка на будь-який товар!">
+          </div>
+          <div class="f-group" style="margin-bottom:18px">
+            <label class="f-label">Затримка появи попапу (секунд)</label>
+            <input id="cfg_promo_delay" type="number" min="0" max="60" step="1" value="3" placeholder="3" style="width:120px">
+            <div style="font-size:11px;color:var(--text-muted);margin-top:5px">Через скільки секунд після завантаження головної з'являється попап (0 = одразу, рекомендовано 3–5)</div>
           </div>
           <button class="btn btn-primary" onclick="savePromoSettings()" style="min-width:180px">
             <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13"/><polyline points="7 3 7 8 15 8"/></svg>
@@ -1784,6 +1809,76 @@ CREATE POLICY "admin_seo" ON settings_seo USING (auth.role()='authenticated') WI
               <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
               Відкрити сайт
             </a>
+          </div>
+        </div>
+
+        <!-- PROMO CODES CRUD -->
+        <div class="import-card" style="margin-bottom:16px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+            <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;color:var(--navy);margin:0">🏷️ Промокоди</h3>
+            <button class="btn btn-primary btn-sm" onclick="openPromoCodeForm()">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Новий промокод
+            </button>
+          </div>
+          <p style="font-size:12px;color:var(--text-muted);margin-bottom:14px;line-height:1.6">
+            Промокоди зберігаються в Supabase (<code>promo_codes</code>). Покупці вводять їх при оформленні замовлення.<br>
+            Тип <b>free_delivery</b> — безкоштовна доставка; тип <b>discount</b> — знижка у відсотках на кошик.
+          </p>
+          <!-- Inline add/edit form -->
+          <div id="promoCodeForm" style="display:none;margin-bottom:16px;background:var(--bg-soft);border-radius:var(--r-sm);padding:16px;border:1.5px solid var(--orange)">
+            <div style="font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;color:var(--navy);margin-bottom:12px" id="promoCodeFormTitle">Новий промокод</div>
+            <input type="hidden" id="pcEditId">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+              <div class="f-group">
+                <label class="f-label">Код <span style="color:var(--orange)">*</span></label>
+                <input type="text" id="pcCode" placeholder="KIDSFREE" maxlength="32"
+                  style="text-transform:uppercase;font-family:'Nunito',sans-serif;font-weight:700;letter-spacing:.06em"
+                  oninput="this.value=this.value.toUpperCase()">
+              </div>
+              <div class="f-group">
+                <label class="f-label">Назва / опис <span style="color:var(--orange)">*</span></label>
+                <input type="text" id="pcName" placeholder="Безкоштовна доставка для підписників">
+              </div>
+              <div class="f-group">
+                <label class="f-label">Тип <span style="color:var(--orange)">*</span></label>
+                <select id="pcType" onchange="promoTypeToggle()" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:'Manrope',sans-serif;font-size:13px;color:var(--navy);outline:none">
+                  <option value="free_delivery">free_delivery — безкоштовна доставка</option>
+                  <option value="discount">discount — знижка у %</option>
+                </select>
+              </div>
+              <div class="f-group" id="pcDiscountWrap">
+                <label class="f-label">Знижка (%)</label>
+                <input type="number" id="pcDiscount" min="1" max="100" step="1" placeholder="10">
+              </div>
+              <div class="f-group">
+                <label class="f-label">Дата початку <span style="color:var(--orange)">*</span></label>
+                <input type="date" id="pcStartDate">
+              </div>
+              <div class="f-group">
+                <label class="f-label">Дата закінчення <span style="color:var(--orange)">*</span></label>
+                <input type="date" id="pcEndDate">
+              </div>
+              <div class="f-group">
+                <label class="f-label">Статус</label>
+                <select id="pcStatus" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:'Manrope',sans-serif;font-size:13px;color:var(--navy);outline:none">
+                  <option value="active">active — активний</option>
+                  <option value="inactive">inactive — вимкнений</option>
+                </select>
+              </div>
+              <div class="f-group">
+                <label class="f-label">Ліміт використань (0 = необмежено)</label>
+                <input type="number" id="pcUsageLimit" min="0" step="1" placeholder="0">
+              </div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-primary btn-sm" onclick="savePromoCode()">Зберегти</button>
+              <button class="btn btn-outline btn-sm" onclick="closePromoCodeForm()">Скасувати</button>
+            </div>
+          </div>
+          <!-- Table -->
+          <div id="promoCodesTable" style="border:1px solid var(--border);border-radius:var(--r-sm);overflow:hidden">
+            <div style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px">Завантаження…</div>
           </div>
         </div>
 
@@ -7098,17 +7193,21 @@ function loadPromoSettingsUI() {
   if (igEl && cfg.ig_url) igEl.value = cfg.ig_url;
   var titleEl = document.getElementById('cfg_promo_title');
   if (titleEl && cfg.title) titleEl.value = cfg.title;
+  var delayEl = document.getElementById('cfg_promo_delay');
+  if (delayEl && cfg.popup_delay_sec != null) delayEl.value = cfg.popup_delay_sec;
 }
 
 function savePromoSettings() {
   var code  = (document.getElementById('cfg_promo_code')?.value || 'KIDSFREE').toUpperCase().trim();
   var ig    = document.getElementById('cfg_promo_ig')?.value || 'https://www.instagram.com/kidsride.ua/';
   var title = document.getElementById('cfg_promo_title')?.value || 'Безкоштовна доставка на будь-який товар!';
+  var delay = parseInt(document.getElementById('cfg_promo_delay')?.value ?? '3', 10);
+  if (isNaN(delay) || delay < 0) delay = 3;
 
   var prev = getPromoSettings();
   var codeChanged = prev.promo_code && prev.promo_code !== code;
 
-  var cfg = { enabled: _promoEnabled, promo_code: code, ig_url: ig, title: title, updated_at: new Date().toISOString() };
+  var cfg = { enabled: _promoEnabled, promo_code: code, ig_url: ig, title: title, popup_delay_sec: delay, updated_at: new Date().toISOString() };
   localStorage.setItem(PROMO_SETTINGS_KEY, JSON.stringify(cfg));
 
   // Log to history whenever code changes or first save
@@ -7166,6 +7265,192 @@ function promoResetSeen() {
   try { localStorage.removeItem(PROMO_SEEN_KEY); } catch(e) {}
   if (typeof showToast === 'function') showToast('Лічильник скинуто — попап покажеться знову при наступному відкритті сайту', 'success');
 }
+
+// ── PROMO CODES CRUD ─────────────────────────────────────────────────────────
+var SUPA_URL_PC = 'https://xczrzdbikkycgpnvolib.supabase.co';
+var SUPA_KEY_PC = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
+
+function _pcAuthHeaders() {
+  var h = { 'apikey': SUPA_KEY_PC, 'Authorization': 'Bearer ' + SUPA_KEY_PC, 'Content-Type': 'application/json' };
+  try {
+    var sess = JSON.parse(localStorage.getItem('kr_admin_session') || '{}');
+    if (sess && sess.access_token) h['Authorization'] = 'Bearer ' + sess.access_token;
+  } catch(e) {}
+  return h;
+}
+
+async function loadPromoCodes() {
+  var el = document.getElementById('promoCodesTable');
+  if (!el) return;
+  el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px">Завантаження…</div>';
+  try {
+    var r = await fetch(SUPA_URL_PC + '/rest/v1/promo_codes?select=*&order=created_at.desc',
+      { headers: _pcAuthHeaders() });
+    if (!r.ok) {
+      var txt = await r.text().catch(() => '');
+      if (txt.includes('does not exist') || txt.includes('relation')) {
+        el.innerHTML = '<div style="padding:20px;text-align:center;font-size:13px;color:var(--text-muted)">Таблиця <code>promo_codes</code> ще не створена.<br>Виконайте SQL зі вкладки <b>«Дані»</b> у Supabase → SQL Editor.</div>';
+      } else {
+        el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--red);font-size:13px">Помилка завантаження: ' + r.status + '</div>';
+      }
+      return;
+    }
+    var codes = await r.json();
+    _renderPromoCodesTable(codes);
+  } catch(e) {
+    el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--red);font-size:13px">Помилка: ' + e.message + '</div>';
+  }
+}
+
+function _renderPromoCodesTable(codes) {
+  var el = document.getElementById('promoCodesTable');
+  if (!el) return;
+  if (!codes || !codes.length) {
+    el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px">Промокодів ще немає. Натисніть «Новий промокод», щоб додати перший.</div>';
+    return;
+  }
+  var today = new Date().toISOString().split('T')[0];
+  var rows = codes.map(function(c) {
+    var isActive = c.status === 'active' && c.start_date <= today && c.end_date >= today;
+    var statusBadge = isActive
+      ? '<span style="background:#d1fae5;color:#065f46;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px">АКТИВНИЙ</span>'
+      : '<span style="background:#fee2e2;color:#991b1b;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px">' + (c.status === 'inactive' ? 'ВИМК.' : 'ПРОСТРОЧЕНИЙ') + '</span>';
+    var typeBadge = c.type === 'free_delivery'
+      ? '<span style="background:#dbeafe;color:#1e40af;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px">ДОСТАВКА</span>'
+      : '<span style="background:#fef3c7;color:#92400e;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px">ЗНИЖКА ' + (c.discount_percent || 0) + '%</span>';
+    var usageStr = c.usage_limit ? (c.usage_count + '/' + c.usage_limit) : (c.usage_count + '/∞');
+    return '<div style="display:grid;grid-template-columns:1fr 90px 110px 110px 80px 70px;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);background:white" onmouseover="this.style.background=\'var(--bg-soft)\'" onmouseout="this.style.background=\'white\'">'
+      + '<div><div style="font-family:\'Nunito\',sans-serif;font-weight:800;font-size:13px;color:var(--navy)">' + _escHtmlAd(c.code) + '</div>'
+      + '<div style="font-size:11px;color:var(--text-muted);margin-top:2px">' + _escHtmlAd(c.name || '') + '</div></div>'
+      + '<div>' + typeBadge + '</div>'
+      + '<div style="font-size:11px;color:var(--text-muted)">' + (c.start_date || '—') + '<br>→ ' + (c.end_date || '—') + '</div>'
+      + '<div>' + statusBadge + '</div>'
+      + '<div style="font-size:12px;color:var(--text-muted);text-align:center">' + usageStr + '</div>'
+      + '<div style="display:flex;gap:5px">'
+      + '<button title="Редагувати" onclick="editPromoCode(' + JSON.stringify(c).replace(/'/g, '&#39;') + ')" style="background:var(--bg-soft);border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:5px 7px">'
+      + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--navy)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>'
+      + '</button>'
+      + '<button title="Видалити" onclick="deletePromoCode(\'' + c.id + '\',\'' + _escHtmlAd(c.code) + '\')" style="background:var(--bg-soft);border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:5px 7px">'
+      + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>'
+      + '</button></div>'
+      + '</div>';
+  });
+  var header = '<div style="display:grid;grid-template-columns:1fr 90px 110px 110px 80px 70px;gap:8px;padding:8px 14px;background:var(--bg-soft);border-bottom:1px solid var(--border);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">'
+    + '<div>Код / Назва</div><div>Тип</div><div>Період</div><div>Статус</div><div>Викор.</div><div>Дії</div></div>';
+  el.innerHTML = header + rows.join('');
+}
+
+function _escHtmlAd(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function openPromoCodeForm() {
+  document.getElementById('pcEditId').value = '';
+  document.getElementById('pcCode').value = '';
+  document.getElementById('pcName').value = '';
+  document.getElementById('pcType').value = 'free_delivery';
+  document.getElementById('pcDiscount').value = '';
+  document.getElementById('pcStartDate').value = new Date().toISOString().split('T')[0];
+  var end = new Date(); end.setFullYear(end.getFullYear() + 1);
+  document.getElementById('pcEndDate').value = end.toISOString().split('T')[0];
+  document.getElementById('pcStatus').value = 'active';
+  document.getElementById('pcUsageLimit').value = '';
+  document.getElementById('promoCodeFormTitle').textContent = 'Новий промокод';
+  promoTypeToggle();
+  document.getElementById('promoCodeForm').style.display = 'block';
+  document.getElementById('pcCode').focus();
+}
+
+function editPromoCode(c) {
+  document.getElementById('pcEditId').value = c.id || '';
+  document.getElementById('pcCode').value = c.code || '';
+  document.getElementById('pcName').value = c.name || '';
+  document.getElementById('pcType').value = c.type || 'free_delivery';
+  document.getElementById('pcDiscount').value = c.discount_percent || '';
+  document.getElementById('pcStartDate').value = c.start_date || '';
+  document.getElementById('pcEndDate').value = c.end_date || '';
+  document.getElementById('pcStatus').value = c.status || 'active';
+  document.getElementById('pcUsageLimit').value = c.usage_limit || '';
+  document.getElementById('promoCodeFormTitle').textContent = 'Редагувати промокод';
+  promoTypeToggle();
+  document.getElementById('promoCodeForm').style.display = 'block';
+  document.getElementById('promoCodeForm').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function closePromoCodeForm() {
+  document.getElementById('promoCodeForm').style.display = 'none';
+}
+
+function promoTypeToggle() {
+  var type = document.getElementById('pcType')?.value;
+  var wrap = document.getElementById('pcDiscountWrap');
+  if (wrap) wrap.style.display = type === 'discount' ? 'block' : 'none';
+}
+
+async function savePromoCode() {
+  var id       = document.getElementById('pcEditId').value.trim();
+  var code     = document.getElementById('pcCode').value.trim().toUpperCase();
+  var name     = document.getElementById('pcName').value.trim();
+  var type     = document.getElementById('pcType').value;
+  var discount = parseFloat(document.getElementById('pcDiscount').value) || 0;
+  var start    = document.getElementById('pcStartDate').value;
+  var end      = document.getElementById('pcEndDate').value;
+  var status   = document.getElementById('pcStatus').value;
+  var limit    = parseInt(document.getElementById('pcUsageLimit').value) || null;
+
+  if (!code) { if (typeof showToast === 'function') showToast('Вкажіть код промокоду', 'error'); return; }
+  if (!name) { if (typeof showToast === 'function') showToast('Вкажіть назву промокоду', 'error'); return; }
+  if (!start || !end) { if (typeof showToast === 'function') showToast('Вкажіть дати', 'error'); return; }
+  if (type === 'discount' && (!discount || discount <= 0)) { if (typeof showToast === 'function') showToast('Вкажіть відсоток знижки', 'error'); return; }
+
+  var body = { code, name, type, discount_percent: type === 'discount' ? discount : 0, start_date: start, end_date: end, status, usage_limit: limit };
+  var isEdit = !!id;
+  var url = SUPA_URL_PC + '/rest/v1/promo_codes' + (isEdit ? '?id=eq.' + encodeURIComponent(id) : '');
+  var method = isEdit ? 'PATCH' : 'POST';
+  var headers = _pcAuthHeaders();
+  if (!isEdit) headers['Prefer'] = 'return=minimal';
+
+  try {
+    var r = await fetch(url, { method, headers, body: JSON.stringify(body) });
+    if (!r.ok) {
+      var txt = await r.text().catch(() => '');
+      if (txt.includes('duplicate') || txt.includes('unique')) {
+        if (typeof showToast === 'function') showToast('Промокод з таким кодом вже існує', 'error');
+      } else {
+        if (typeof showToast === 'function') showToast('Помилка збереження: ' + (r.status), 'error');
+      }
+      return;
+    }
+    if (typeof showToast === 'function') showToast(isEdit ? 'Промокод оновлено ✅' : 'Промокод створено ✅', 'success');
+    closePromoCodeForm();
+    loadPromoCodes();
+  } catch(e) {
+    if (typeof showToast === 'function') showToast('Помилка: ' + e.message, 'error');
+  }
+}
+
+async function deletePromoCode(id, code) {
+  if (!confirm('Видалити промокод «' + code + '»? Цю дію не можна скасувати.')) return;
+  try {
+    var r = await fetch(SUPA_URL_PC + '/rest/v1/promo_codes?id=eq.' + encodeURIComponent(id),
+      { method: 'DELETE', headers: _pcAuthHeaders() });
+    if (!r.ok) { if (typeof showToast === 'function') showToast('Помилка видалення: ' + r.status, 'error'); return; }
+    if (typeof showToast === 'function') showToast('Промокод «' + code + '» видалено', 'info');
+    loadPromoCodes();
+  } catch(e) {
+    if (typeof showToast === 'function') showToast('Помилка: ' + e.message, 'error');
+  }
+}
+
+// Auto-load promo codes when promo tab opens
+(function() {
+  var origSwitch2 = window.switchSettingsTab;
+  window.switchSettingsTab = function(tab, btn) {
+    if (typeof origSwitch2 === 'function') origSwitch2(tab, btn);
+    if (tab === 'promo') loadPromoCodes();
+  };
+  document.addEventListener('DOMContentLoaded', function() {
+    if (document.getElementById('stab-promo') && document.getElementById('stab-promo').classList.contains('active')) loadPromoCodes();
+  });
+})();
 
 // Load promo settings whenever settings panel opens
 (function() {

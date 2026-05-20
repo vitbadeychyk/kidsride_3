@@ -597,7 +597,35 @@ a{text-decoration:none;color:inherit}
     <div class="os-items" id="osItems"></div>
     <div class="os-divider"></div>
     <div class="os-row"><span class="os-label">Товари</span><span class="os-val" id="osSubtotal">0 ₴</span></div>
-    <div class="os-row"><span class="os-label">Доставка</span><span class="os-val" style="color:var(--orange)">за тарифами НП</span></div>
+    <div class="os-row" id="osDiscountRow" style="display:none">
+      <span class="os-label" id="osDiscountLabel">Знижка</span>
+      <span class="os-val" id="osDiscountVal" style="color:var(--green);font-weight:700">–0 ₴</span>
+    </div>
+    <div class="os-row"><span class="os-label">Доставка</span><span class="os-val" id="osDelivery" style="color:var(--orange)">за тарифами НП</span></div>
+
+    <!-- PROMO CODE INPUT -->
+    <div style="margin:12px 0 4px">
+      <div id="promoInputRow" style="display:flex;gap:6px">
+        <input type="text" id="promoInput" placeholder="Промокод" maxlength="32"
+          style="flex:1;padding:9px 11px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;text-transform:uppercase;outline:none;color:var(--navy);letter-spacing:.05em;transition:border-color .2s"
+          oninput="this.value=this.value.toUpperCase()"
+          onkeydown="if(event.key==='Enter')applyPromoCode()"
+          onfocus="this.style.borderColor='var(--orange)'"
+          onblur="this.style.borderColor='var(--border)'">
+        <button onclick="applyPromoCode()" id="promoApplyBtn"
+          style="padding:9px 13px;background:var(--navy);color:white;border:none;border-radius:var(--r-sm);font-family:'Nunito',sans-serif;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;transition:background .2s;flex-shrink:0"
+          onmouseover="this.style.background='var(--orange)'" onmouseout="this.style.background='var(--navy)'">
+          Застосувати
+        </button>
+      </div>
+      <div id="promoAppliedBadge" style="display:none;align-items:center;gap:6px;margin-top:8px;font-size:12px;font-weight:700;color:var(--green);padding:8px 11px;background:#d1fae5;border-radius:6px;border:1px solid #6ee7b7">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        <span id="promoAppliedText">Промокод застосовано</span>
+        <button onclick="removePromoCode()" style="margin-left:auto;background:none;border:none;cursor:pointer;font-size:11px;color:#065f46;text-decoration:underline;font-weight:600">✕ Скасувати</button>
+      </div>
+      <div id="promoMsg" style="display:none;margin-top:7px;font-size:12px;padding:8px 11px;border-radius:6px;line-height:1.5"></div>
+    </div>
+
     <div class="os-divider"></div>
     <div class="os-total-row">
       <span class="os-total-label">Разом</span>
@@ -612,6 +640,9 @@ a{text-decoration:none;color:inherit}
 </div>
 
 <script>
+// ── PROMO CODE STATE ────────────────────────────────────────────────────────
+let _appliedPromo = null; // { code, type, discount_percent, name }
+
 // ── NP API ─────────────────────────────────────────────────────────────────
 // Ключ завантажується з Supabase settings_delivery; тут — запасне значення
 let NP_API_KEY = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
@@ -1260,7 +1291,9 @@ function buildOrderPayload(){
 
   const cart = (window.KR && KR.getCart) ? KR.getCart() : JSON.parse(localStorage.getItem('kr_cart') || '[]');
   const subtotal = cart.reduce((s,i) => s + Number(i.price||0) * Number(i.qty||1), 0);
-  const total    = subtotal; // доставка/знижки можна додати тут
+  const discountAmt = (_appliedPromo && _appliedPromo.type === 'discount' && _appliedPromo.discount_percent > 0)
+    ? Math.round(subtotal * _appliedPromo.discount_percent / 100) : 0;
+  const total = subtotal - discountAmt;
 
   // Локальний номер замовлення для відображення (БД може мати власний)
   const d = new Date();
@@ -1285,6 +1318,9 @@ function buildOrderPayload(){
     payment_method_label: getPayName(),
     comment,
     subtotal,
+    discount_amount: discountAmt || null,
+    promo_code: _appliedPromo ? _appliedPromo.code : null,
+    promo_type: _appliedPromo ? _appliedPromo.type : null,
     total,
     items_count: cart.reduce((s,i) => s + Number(i.qty||1), 0),
     status: 'Новий'
@@ -1560,7 +1596,113 @@ function renderOrderSummary(){
 
   if (titleEl) titleEl.setAttribute('data-count', String(totalQty));
   if (subEl) subEl.textContent = _fmtPriceCk(subtotal);
-  if (totEl) totEl.textContent = _fmtPriceCk(subtotal);
+  recalcSidebar();
+}
+
+// ── PROMO CODE SYSTEM ──────────────────────────────────────────────────────
+async function applyPromoCode() {
+  const input = document.getElementById('promoInput');
+  if (!input) return;
+  const code = input.value.trim().toUpperCase();
+  if (!code) { _showPromoMsg('Введіть промокод', 'error'); return; }
+  const btn = document.getElementById('promoApplyBtn');
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const url = SUPA_URL + '/rest/v1/promo_codes?code=eq.' + encodeURIComponent(code)
+      + '&status=eq.active&start_date=lte.' + today + '&end_date=gte.' + today
+      + '&select=code,name,type,discount_percent&limit=1';
+    const r = await fetch(url, { headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY } });
+    if (!r.ok) throw new Error('fetch');
+    const data = await r.json();
+    if (!Array.isArray(data) || !data.length) {
+      _appliedPromo = null;
+      _showPromoMsg('Промокод недійсний або прострочений ❌', 'error');
+      recalcSidebar();
+      return;
+    }
+    const promo = data[0];
+    _appliedPromo = promo;
+    recalcSidebar();
+    if (promo.type === 'free_delivery') {
+      const del = document.getElementById('osDelivery');
+      if (del) { del.textContent = 'Безкоштовна доставка 🎁'; del.style.color = 'var(--green)'; }
+      _showPromoMsg('', '');
+      _promoToast('🚚 Безкоштовна доставка!', 'Промокод «' + promo.code + '» застосовано — доставка НП безкоштовна.');
+    } else {
+      _showPromoMsg('', '');
+      _promoToast('🎁 Знижку застосовано!', 'Промокод «' + promo.code + '» — знижка ' + promo.discount_percent + '% на весь кошик!');
+    }
+    document.getElementById('promoInputRow').style.display = 'none';
+    const badge = document.getElementById('promoAppliedBadge');
+    if (badge) { badge.style.display = 'flex'; }
+    document.getElementById('promoAppliedText').textContent = 'Промокод «' + promo.code + '» застосовано';
+  } catch(e) {
+    _showPromoMsg('Помилка перевірки. Спробуйте ще раз.', 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Застосувати'; }
+  }
+}
+function removePromoCode() {
+  _appliedPromo = null;
+  const input = document.getElementById('promoInput');
+  if (input) input.value = '';
+  const row = document.getElementById('promoInputRow');
+  if (row) row.style.display = 'flex';
+  const badge = document.getElementById('promoAppliedBadge');
+  if (badge) badge.style.display = 'none';
+  const msg = document.getElementById('promoMsg');
+  if (msg) msg.style.display = 'none';
+  const del = document.getElementById('osDelivery');
+  if (del) { del.textContent = 'за тарифами НП'; del.style.color = 'var(--orange)'; }
+  recalcSidebar();
+}
+function _showPromoMsg(msg, type) {
+  const el = document.getElementById('promoMsg');
+  if (!el) return;
+  if (!msg) { el.style.display = 'none'; return; }
+  el.style.display = 'block';
+  el.textContent = msg;
+  if (type === 'error') {
+    el.style.background = '#fee2e2'; el.style.color = '#991b1b'; el.style.border = '1px solid #fca5a5';
+  } else {
+    el.style.background = '#d1fae5'; el.style.color = '#065f46'; el.style.border = '1px solid #6ee7b7';
+  }
+}
+function _promoToast(title, body) {
+  const t = document.createElement('div');
+  t.style.cssText = 'position:fixed;top:80px;right:24px;z-index:9999;background:white;border-radius:14px;padding:16px 20px;'
+    + 'box-shadow:0 8px 32px rgba(27,42,74,.18);max-width:320px;display:flex;align-items:flex-start;gap:12px;'
+    + 'transform:translateX(120%);transition:transform .4s cubic-bezier(.22,1,.36,1)';
+  t.innerHTML = '<div style="font-size:24px;line-height:1;flex-shrink:0">' + title.split(' ')[0] + '</div>'
+    + '<div><div style="font-family:\'Nunito\',sans-serif;font-weight:800;font-size:14px;color:#1B2A4A;margin-bottom:3px">'
+    + title.replace(/^\S+\s/, '') + '</div>'
+    + '<div style="font-size:12px;color:#6b7280;line-height:1.5">' + body + '</div></div>';
+  document.body.appendChild(t);
+  requestAnimationFrame(() => { t.style.transform = 'translateX(0)'; });
+  setTimeout(() => { t.style.transform = 'translateX(120%)'; setTimeout(() => t.remove(), 420); }, 4500);
+}
+function recalcSidebar() {
+  let cart = [];
+  try { cart = (window.KR && KR.getCart) ? KR.getCart() : JSON.parse(localStorage.getItem('kr_cart') || '[]'); } catch(e) {}
+  const subtotal = cart.reduce((s, i) => s + Number(i.price||0) * Number(i.qty||1), 0);
+  const subEl    = document.getElementById('osSubtotal');
+  const totEl    = document.getElementById('osTotal');
+  const discRow  = document.getElementById('osDiscountRow');
+  const discVal  = document.getElementById('osDiscountVal');
+  const discLbl  = document.getElementById('osDiscountLabel');
+  if (subEl) subEl.textContent = _fmtPriceCk(subtotal);
+  if (_appliedPromo && _appliedPromo.type === 'discount' && Number(_appliedPromo.discount_percent) > 0) {
+    const pct = Number(_appliedPromo.discount_percent);
+    const amt = Math.round(subtotal * pct / 100);
+    if (discRow) discRow.style.display = 'flex';
+    if (discVal) discVal.textContent = '–' + _fmtPriceCk(amt);
+    if (discLbl) discLbl.textContent = 'Знижка ' + pct + '%';
+    if (totEl) totEl.textContent = _fmtPriceCk(subtotal - amt);
+  } else {
+    if (discRow) discRow.style.display = 'none';
+    if (totEl) totEl.textContent = _fmtPriceCk(subtotal);
+  }
 }
 
 // ── АВТОЗАПОВНЕННЯ ДАНИХ КОРИСТУВАЧА ───────────────────────────────────────
