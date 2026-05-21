@@ -402,6 +402,102 @@ const KR = {
   },
 
 
+  // ── BRAND LOGO (логотип/назва по всьому сайту) ──────────────────────────
+
+  // Застосувати логотип та назву магазину до всіх елементів на сторінці
+  applyBrandLogo(logoUrl, shopName) {
+    const name = shopName || 'KidsRide';
+
+    // 1. Замінити .logo-mark на img якщо є URL логотипу
+    document.querySelectorAll('.logo-mark').forEach(mark => {
+      if (logoUrl) {
+        mark.innerHTML = '<img src="' + logoUrl + '" alt="' + name + '" style="width:100%;height:100%;object-fit:contain;display:block;border-radius:0;padding:3px">';
+        mark.style.background = 'transparent';
+        mark.style.boxShadow = 'none';
+        mark.style.border = '2px solid rgba(255,107,53,0.2)';
+        mark.style.borderRadius = '9px';
+      }
+    });
+
+    // 2. Оновити назву в header/footer .logo (типова структура: Kids<span>Ride</span>)
+    document.querySelectorAll('a.logo, a.logo.footer-logo').forEach(el => {
+      const textNode = el.querySelector('span:not([class])') || el.querySelector('span');
+      if (textNode && shopName) {
+        // Замінюємо лише якщо це текстовий логотип "KidsRide"
+        const parent = textNode.parentNode;
+        if (parent.classList.contains('logo') || parent.tagName === 'A') {
+          // Шукаємо текст з назвою
+          Array.from(parent.childNodes).forEach(node => {
+            if (node.nodeType === 3 && node.textContent.trim() === 'Kids') {
+              node.textContent = name.replace(/ride$/i,'');
+            }
+          });
+          const orange = parent.querySelector('span:not([style])');
+          if (orange) orange.textContent = name.match(/[A-Z][a-z]+$/)?.[0] || 'Ride';
+        }
+      }
+    });
+
+    // 3. Оновити .logo-text (адмінка sidebar)
+    document.querySelectorAll('.logo-text').forEach(el => {
+      el.innerHTML = name;
+    });
+
+    // 4. Оновити .mobile-drawer-logo
+    document.querySelectorAll('.mobile-drawer-logo').forEach(el => {
+      if (shopName) el.innerHTML = '<span style="color:inherit">' + name + '</span>';
+    });
+
+    // 5. Оновити favicon (вкладка браузера)
+    if (logoUrl) {
+      let link = document.querySelector("link[rel~='icon']");
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.head.appendChild(link);
+      }
+      link.href = logoUrl;
+      link.type = logoUrl.toLowerCase().endsWith('.svg') ? 'image/svg+xml' : 'image/png';
+
+      // Apple touch icon теж
+      let apple = document.querySelector("link[rel='apple-touch-icon']");
+      if (!apple) {
+        apple = document.createElement('link');
+        apple.rel = 'apple-touch-icon';
+        document.head.appendChild(apple);
+      }
+      apple.href = logoUrl;
+    }
+  },
+
+  // Завантажити бренд з Supabase і застосувати по всьому сайту
+  async initBrand() {
+    // Спочатку швидко з localStorage кешу
+    try {
+      const cached = JSON.parse(localStorage.getItem('kr_brand') || '{}');
+      if (cached.logo_url || cached.shop_name) {
+        this.applyBrandLogo(cached.logo_url, cached.shop_name);
+      }
+    } catch(e) {}
+
+    // Потім синхронізуємо з Supabase (джерело правди для всіх пристроїв)
+    try {
+      const res = await fetch(this._SUPA_URL + '/rest/v1/settings_store?id=eq.1&select=logo_url,shop_name', {
+        headers: { 'apikey': this._SUPA_KEY, 'Authorization': 'Bearer ' + this._SUPA_KEY }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data[0]) {
+          const b = data[0];
+          try { localStorage.setItem('kr_brand', JSON.stringify(b)); } catch(e) {}
+          if (b.logo_url || b.shop_name) {
+            this.applyBrandLogo(b.logo_url, b.shop_name);
+          }
+        }
+      }
+    } catch(e) {}
+  },
+
   // ── STRIPE SYNC ──────────────────────────────────────────────────────────
   _applyStripe(s) {
     var el = document.getElementById('kr-stripe-css');
@@ -468,6 +564,7 @@ const KR = {
 
   // ── INIT ──────────────────────────────────────────────────────────────────
   init() {
+    this.initBrand();
     this.initStripe();
     this.injectWishStyles();
     this.updateCartBadge();
