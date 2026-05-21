@@ -968,11 +968,11 @@ footer{background:var(--navy);color:white;padding:56px 40px 0}
 
 <!-- HEADER -->
 <header class="header" id="hdr">
-  <a href="index.html" class="logo">
-    <div class="logo-mark">
+  <a href="index.html" class="logo" data-logo-wrap>
+    <div class="logo-mark" data-logo-mark>
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect x="9" y="11" width="14" height="10" rx="2"/><circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/></svg>
     </div>
-    <span style="color:inherit">Kids<span>Ride</span></span>
+    <span style="color:inherit" data-logo-name>Kids<span>Ride</span></span>
   </a>
   <nav>
     <a href="index.html" class="active">Головна</a>
@@ -1667,9 +1667,9 @@ function toggleReview(id) {
 <footer id="contacts-section" data-block="contacts">
   <div class="f-grid">
     <div class="f-brand">
-      <a href="/" class="logo footer-logo" style="margin-bottom:16px;display:inline-flex;color:#fff">
-        <div class="logo-mark"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect x="9" y="11" width="14" height="10" rx="2"/><circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/></svg></div>
-        <span style="color:inherit">Kids<span style="color:var(--orange)">Ride</span></span>
+      <a href="/" class="logo footer-logo" style="margin-bottom:16px;display:inline-flex;color:#fff" data-logo-wrap>
+        <div class="logo-mark" data-logo-mark><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect x="9" y="11" width="14" height="10" rx="2"/><circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/></svg></div>
+        <span style="color:inherit" data-logo-name>Kids<span style="color:var(--orange)">Ride</span></span>
       </a>
       <p class="f-brand-desc">Преміум дитячі електромобілі з доставкою по всій Україні. Гарантія 12 місяців, офіційний сервіс.</p>
     </div>
@@ -2088,7 +2088,7 @@ function toggleWish(btn) {
 <div class="mobile-drawer-overlay" id="mobileOverlay" onclick="closeMobileMenu()"></div>
 <div class="mobile-drawer" id="mobileDrawer">
   <div class="mobile-drawer-head">
-    <div class="mobile-drawer-logo"><span style="color:inherit">Kids<span>Ride</span></span></div>
+    <div class="mobile-drawer-logo" data-logo-name>Kids<span>Ride</span></div>
     <button class="mobile-drawer-close" onclick="closeMobileMenu()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     </button>
