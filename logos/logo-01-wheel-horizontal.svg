@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 80" fill="none">
+  <!-- Wheel mark -->
+  <circle cx="40" cy="40" r="34" stroke="#1B2A4A" stroke-width="5"/>
+  <circle cx="40" cy="40" r="20" stroke="#FF6B35" stroke-width="4"/>
+  <circle cx="40" cy="40" r="6" fill="#1B2A4A"/>
+  <line x1="40" y1="6" x2="40" y2="20" stroke="#1B2A4A" stroke-width="4" stroke-linecap="round"/>
+  <line x1="40" y1="60" x2="40" y2="74" stroke="#1B2A4A" stroke-width="4" stroke-linecap="round"/>
+  <line x1="6" y1="40" x2="20" y2="40" stroke="#1B2A4A" stroke-width="4" stroke-linecap="round"/>
+  <line x1="60" y1="40" x2="74" y2="40" stroke="#1B2A4A" stroke-width="4" stroke-linecap="round"/>
+  <line x1="16" y1="16" x2="26" y2="26" stroke="#1B2A4A" stroke-width="3.5" stroke-linecap="round"/>
+  <line x1="54" y1="54" x2="64" y2="64" stroke="#1B2A4A" stroke-width="3.5" stroke-linecap="round"/>
+  <line x1="64" y1="16" x2="54" y2="26" stroke="#1B2A4A" stroke-width="3.5" stroke-linecap="round"/>
+  <line x1="26" y1="54" x2="16" y2="64" stroke="#1B2A4A" stroke-width="3.5" stroke-linecap="round"/>
+  <!-- Wordmark -->
+  <text x="90" y="52" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-weight="800" font-size="36" letter-spacing="-0.5" fill="#1B2A4A">Kids</text>
+  <text x="193" y="52" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-weight="800" font-size="36" letter-spacing="-0.5" fill="#FF6B35">Ride</text>
+</svg>

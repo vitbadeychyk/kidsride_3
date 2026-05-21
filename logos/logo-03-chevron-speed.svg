@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 80" fill="none">
+  <!-- Speed chevron -->
+  <path d="M8 8 L50 40 L8 72" stroke="#FF6B35" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M26 8 L68 40 L26 72" stroke="#1B2A4A" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Wordmark stacked -->
+  <text x="88" y="34" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-weight="800" font-size="28" letter-spacing="4" fill="#1B2A4A">KIDS</text>
+  <text x="88" y="66" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-weight="800" font-size="28" letter-spacing="4" fill="#FF6B35">RIDE</text>
+  <!-- Separator line -->
+  <line x1="88" y1="40" x2="316" y2="40" stroke="#e0e4ea" stroke-width="1"/>
+</svg>

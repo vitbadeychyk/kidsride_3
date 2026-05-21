@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 180" fill="none">
+  <!-- Crown mark – clean geometric -->
+  <path d="M34 100 L34 54 L66 76 L100 36 L134 76 L166 54 L166 100 Z" fill="#FF6B35"/>
+  <rect x="30" y="100" width="140" height="14" rx="4" fill="#1B2A4A"/>
+  <!-- Crown gems -->
+  <circle cx="100" cy="44" r="8" fill="white"/>
+  <circle cx="60" cy="76" r="6" fill="white"/>
+  <circle cx="140" cy="76" r="6" fill="white"/>
+  <!-- Wordmark -->
+  <text x="100" y="140" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-weight="900" font-size="36" letter-spacing="-1.5" fill="#1B2A4A" text-anchor="middle">KidsRide</text>
+  <!-- Accent dot on i -->
+  <circle cx="100" cy="148" r="3.5" fill="#FF6B35"/>
+  <rect x="42" y="152" width="116" height="2.5" rx="1.25" fill="#FF6B35" opacity="0.4"/>
+</svg>

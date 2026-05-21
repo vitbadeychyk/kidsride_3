@@ -5382,22 +5382,9 @@ function handleLogoFileSelect(input) {
   if (btn) { btn.disabled = false; btn.style.cursor = 'pointer'; btn.style.opacity = '1'; }
 }
 
-// Завантажити файл логотипу в Supabase Storage
+// Завантажити файл логотипу — конвертуємо в base64 data URL і зберігаємо в БД
 async function uploadLogoFile() {
   if (!_logoSelectedFile) { showToast('Спочатку оберіть файл', 'error'); return; }
-
-  const SB_URL = 'https://xczrzdbikkycgpnvolib.supabase.co';
-  const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
-
-  // Отримати токен авторизованого користувача
-  let authToken = SB_KEY;
-  try {
-    const sess = JSON.parse(localStorage.getItem('kr_admin_session') || '{}');
-    if (sess.access_token) authToken = sess.access_token;
-  } catch(e) {}
-
-  const ext = _logoSelectedFile.name.split('.').pop().toLowerCase();
-  const fileName = 'logos/store-logo-' + Date.now() + '.' + ext;
 
   const progress = document.getElementById('logoUploadProgress');
   const bar = document.getElementById('logoUploadBar');
@@ -5405,47 +5392,64 @@ async function uploadLogoFile() {
   const btn = document.getElementById('logoUploadBtn');
 
   if (progress) progress.style.display = 'block';
-  if (bar) bar.style.width = '30%';
-  if (statusEl) statusEl.textContent = 'Завантаження файлу...';
-  if (btn) { btn.disabled = true; btn.textContent = 'Завантаження...'; }
+  if (bar) bar.style.width = '20%';
+  if (statusEl) statusEl.textContent = 'Обробка файлу...';
+  if (btn) { btn.disabled = true; btn.textContent = 'Обробка...'; }
 
   try {
-    const res = await fetch(SB_URL + '/storage/v1/object/product-images/' + fileName, {
-      method: 'POST',
-      headers: {
-        'apikey': SB_KEY,
-        'Authorization': 'Bearer ' + authToken,
-        'Content-Type': _logoSelectedFile.type,
-        'Cache-Control': '3600',
-        'x-upsert': 'true'
-      },
-      body: _logoSelectedFile
-    });
+    const isSvg = _logoSelectedFile.type === 'image/svg+xml'
+                  || _logoSelectedFile.name.toLowerCase().endsWith('.svg');
 
-    if (bar) bar.style.width = '80%';
+    let dataUrl;
 
-    if (!res.ok) {
-      const errText = await res.text();
-      throw new Error('HTTP ' + res.status + ': ' + errText.slice(0, 100));
+    if (isSvg) {
+      // SVG — читаємо як текст і кодуємо в data URL
+      const text = await _logoSelectedFile.text();
+      if (bar) bar.style.width = '60%';
+      dataUrl = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(text)));
+    } else {
+      // PNG / JPG / WebP — стискаємо до max 800px через canvas
+      if (bar) bar.style.width = '40%';
+      dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = e => {
+          const img = new Image();
+          img.onload = () => {
+            const MAX = 800;
+            const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+            const canvas = document.createElement('canvas');
+            canvas.width  = Math.round(img.width  * scale);
+            canvas.height = Math.round(img.height * scale);
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL('image/png', 0.92));
+          };
+          img.onerror = () => reject(new Error('Не вдалося прочитати зображення'));
+          img.src = e.target.result;
+        };
+        reader.onerror = () => reject(new Error('Помилка читання файлу'));
+        reader.readAsDataURL(_logoSelectedFile);
+      });
     }
 
-    const publicUrl = SB_URL + '/storage/v1/object/public/product-images/' + fileName;
+    if (bar) bar.style.width = '90%';
+
+    // Встановити data URL в поле і оновити прев'ю
+    const urlInput = document.getElementById('cfg_logo_url');
+    if (urlInput) urlInput.value = dataUrl;
+    updateLogoPreview(dataUrl);
 
     if (bar) bar.style.width = '100%';
-    if (statusEl) statusEl.textContent = '✓ Завантажено успішно!';
+    if (statusEl) statusEl.textContent = '✓ Файл готовий!';
     if (btn) { btn.textContent = 'Завантажити'; btn.disabled = false; btn.style.opacity = '1'; }
 
-    // Встановити URL в поле та оновити прев'ю
-    const urlInput = document.getElementById('cfg_logo_url');
-    if (urlInput) urlInput.value = publicUrl;
-    updateLogoPreview(publicUrl);
     _logoSelectedFile = null;
     const fileInput = document.getElementById('logoFileInput');
     if (fileInput) fileInput.value = '';
     const fileLabel = document.getElementById('logoFileName');
     if (fileLabel) fileLabel.textContent = 'Обрати файл (PNG, SVG, JPG)';
 
-    showToast('Логотип завантажено! Натисніть "Зберегти" щоб застосувати.', 'success');
+    showToast('Логотип готовий! Натисніть "Зберегти налаштування" щоб застосувати.', 'success');
 
     setTimeout(() => {
       if (progress) progress.style.display = 'none';
@@ -5456,7 +5460,7 @@ async function uploadLogoFile() {
     if (bar) bar.style.width = '0%';
     if (progress) progress.style.display = 'none';
     if (btn) { btn.textContent = 'Завантажити'; btn.disabled = false; btn.style.opacity = '1'; }
-    showToast('Помилка завантаження: ' + err.message, 'error');
+    showToast('Помилка: ' + err.message, 'error');
     console.error('[Logo upload error]', err);
   }
 }

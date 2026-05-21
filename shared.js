@@ -408,65 +408,66 @@ const KR = {
   applyBrandLogo(logoUrl, shopName) {
     const name = shopName || 'KidsRide';
 
-    // 1. Замінити .logo-mark на img якщо є URL логотипу
-    document.querySelectorAll('.logo-mark').forEach(mark => {
-      if (logoUrl) {
-        mark.innerHTML = '<img src="' + logoUrl + '" alt="' + name + '" style="width:100%;height:100%;object-fit:contain;display:block;border-radius:0;padding:3px">';
-        mark.style.background = 'transparent';
-        mark.style.boxShadow = 'none';
-        mark.style.border = '2px solid rgba(255,107,53,0.2)';
-        mark.style.borderRadius = '9px';
-      }
-    });
-
-    // 2. Оновити назву в header/footer .logo (типова структура: Kids<span>Ride</span>)
-    document.querySelectorAll('a.logo, a.logo.footer-logo').forEach(el => {
-      const textNode = el.querySelector('span:not([class])') || el.querySelector('span');
-      if (textNode && shopName) {
-        // Замінюємо лише якщо це текстовий логотип "KidsRide"
-        const parent = textNode.parentNode;
-        if (parent.classList.contains('logo') || parent.tagName === 'A') {
-          // Шукаємо текст з назвою
-          Array.from(parent.childNodes).forEach(node => {
-            if (node.nodeType === 3 && node.textContent.trim() === 'Kids') {
-              node.textContent = name.replace(/ride$/i,'');
-            }
-          });
-          const orange = parent.querySelector('span:not([style])');
-          if (orange) orange.textContent = name.match(/[A-Z][a-z]+$/)?.[0] || 'Ride';
-        }
-      }
-    });
-
-    // 3. Оновити .logo-text (адмінка sidebar)
-    document.querySelectorAll('.logo-text').forEach(el => {
-      el.innerHTML = name;
-    });
-
-    // 4. Оновити .mobile-drawer-logo
-    document.querySelectorAll('.mobile-drawer-logo').forEach(el => {
-      if (shopName) el.innerHTML = '<span style="color:inherit">' + name + '</span>';
-    });
-
-    // 5. Оновити favicon (вкладка браузера)
     if (logoUrl) {
-      let link = document.querySelector("link[rel~='icon']");
-      if (!link) {
-        link = document.createElement('link');
-        link.rel = 'icon';
-        document.head.appendChild(link);
-      }
-      link.href = logoUrl;
-      link.type = logoUrl.toLowerCase().endsWith('.svg') ? 'image/svg+xml' : 'image/png';
+      // ── РЕЖИМ COMBINED LOGO: зображення вже містить символ + текст ──────
+      // Хедер/Контент: замінюємо весь вміст <a class="logo"> на один <img>
+      document.querySelectorAll('a.logo:not(.footer-logo)').forEach(anchor => {
+        if (!anchor.dataset.krOrig) anchor.dataset.krOrig = anchor.innerHTML;
+        anchor.innerHTML = '<img src="' + logoUrl + '" alt="' + name
+          + '" style="height:42px;width:auto;max-width:240px;object-fit:contain;display:block">';
+      });
 
-      // Apple touch icon теж
-      let apple = document.querySelector("link[rel='apple-touch-icon']");
-      if (!apple) {
-        apple = document.createElement('link');
-        apple.rel = 'apple-touch-icon';
-        document.head.appendChild(apple);
+      // Футер (темний фон — додаємо brightness filter щоб логотип читався)
+      document.querySelectorAll('a.footer-logo').forEach(anchor => {
+        if (!anchor.dataset.krOrig) anchor.dataset.krOrig = anchor.innerHTML;
+        anchor.innerHTML = '<img src="' + logoUrl + '" alt="' + name
+          + '" style="height:38px;width:auto;max-width:220px;object-fit:contain;display:block;filter:brightness(0) invert(1)">';
+      });
+
+      // Мобільне меню
+      document.querySelectorAll('.mobile-drawer-logo').forEach(el => {
+        if (!el.dataset.krOrig) el.dataset.krOrig = el.innerHTML;
+        el.innerHTML = '<img src="' + logoUrl + '" alt="' + name
+          + '" style="height:34px;width:auto;max-width:180px;object-fit:contain;display:block">';
+      });
+
+      // Адмінка sidebar
+      const sidebarMark = document.querySelector('.logo-mark');
+      const sidebarText = document.querySelector('.logo-text');
+      if (sidebarMark) {
+        if (!sidebarMark.dataset.krOrig) sidebarMark.dataset.krOrig = sidebarMark.innerHTML;
+        sidebarMark.innerHTML = '<img src="' + logoUrl + '" alt="' + name
+          + '" style="height:30px;width:auto;max-width:110px;object-fit:contain;display:block;filter:brightness(0) invert(1)">';
+        sidebarMark.style.cssText = 'background:transparent;box-shadow:none;border:none;width:auto;height:36px;border-radius:0;padding:0;flex-shrink:0';
       }
+      if (sidebarText) sidebarText.style.display = 'none';
+
+      // Favicon
+      let link = document.querySelector("link[rel~='icon']");
+      if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
+      link.href = logoUrl;
+      link.type = logoUrl.startsWith('data:image/svg') || logoUrl.endsWith('.svg') ? 'image/svg+xml' : 'image/png';
+      let apple = document.querySelector("link[rel='apple-touch-icon']");
+      if (!apple) { apple = document.createElement('link'); apple.rel = 'apple-touch-icon'; document.head.appendChild(apple); }
       apple.href = logoUrl;
+
+    } else {
+      // ── РЕЖИМ ВІДНОВЛЕННЯ: логотип скинуто — повертаємо оригінал ────────
+      document.querySelectorAll('a.logo').forEach(anchor => {
+        if (anchor.dataset.krOrig) { anchor.innerHTML = anchor.dataset.krOrig; delete anchor.dataset.krOrig; }
+      });
+      document.querySelectorAll('.mobile-drawer-logo').forEach(el => {
+        if (el.dataset.krOrig) { el.innerHTML = el.dataset.krOrig; delete el.dataset.krOrig; }
+        else el.innerHTML = '<span style="color:inherit">Kids<span>Ride</span></span>';
+      });
+      const sidebarMark = document.querySelector('.logo-mark');
+      const sidebarText = document.querySelector('.logo-text');
+      if (sidebarMark && sidebarMark.dataset.krOrig) {
+        sidebarMark.innerHTML = sidebarMark.dataset.krOrig;
+        sidebarMark.style.cssText = '';
+        delete sidebarMark.dataset.krOrig;
+      }
+      if (sidebarText) { sidebarText.style.display = ''; sidebarText.innerHTML = name; }
     }
   },
 

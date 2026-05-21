@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 90" fill="none">
+  <!-- Wordmark only - typographic logo with strong treatment -->
+  <text x="10" y="54" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-weight="900" font-size="50" letter-spacing="-2" fill="#1B2A4A">Kids</text>
+  <text x="148" y="54" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-weight="900" font-size="50" letter-spacing="-2" fill="#FF6B35">Ride</text>
+  <!-- Orange dot separator between words -->
+  <circle cx="147" cy="28" r="6" fill="#FF6B35"/>
+  <!-- Heavy underline with gap -->
+  <rect x="10" y="64" width="130" height="5" rx="2.5" fill="#1B2A4A"/>
+  <rect x="148" y="64" width="112" height="5" rx="2.5" fill="#FF6B35"/>
+  <!-- Subtle tagline -->
+  <text x="10" y="82" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-weight="400" font-size="9.5" letter-spacing="4" fill="#9ba5b4">ДИТЯЧИЙ ТРАНСПОРТ УКРАЇНИ</text>
+</svg>

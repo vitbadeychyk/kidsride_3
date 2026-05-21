@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <!-- Circle arc mark at top -->
+  <path d="M40 120 A68 68 0 1 1 160 120" stroke="#1B2A4A" stroke-width="8" fill="none" stroke-linecap="round"/>
+  <path d="M54 130 A54 54 0 1 1 146 130" stroke="#FF6B35" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <!-- K center mark -->
+  <line x1="86" y1="64" x2="86" y2="108" stroke="#1B2A4A" stroke-width="8" stroke-linecap="round"/>
+  <line x1="86" y1="86" x2="116" y2="64" stroke="#1B2A4A" stroke-width="8" stroke-linecap="round"/>
+  <line x1="86" y1="86" x2="116" y2="108" stroke="#1B2A4A" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="100" cy="86" r="5" fill="#FF6B35"/>
+  <!-- Wordmark -->
+  <text x="100" y="155" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-weight="800" font-size="30" letter-spacing="-1" fill="#1B2A4A" text-anchor="middle">KidsRide</text>
+  <text x="100" y="175" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-weight="300" font-size="9" letter-spacing="4.5" fill="#FF6B35" text-anchor="middle">ДИТЯЧИЙ ТРАНСПОРТ</text>
+</svg>

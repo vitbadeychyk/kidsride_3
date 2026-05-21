@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 80" fill="none">
+  <!-- Rounded rect badge on left -->
+  <rect x="0" y="0" width="72" height="80" rx="18" fill="#FF6B35"/>
+  <rect x="8" y="8" width="56" height="64" rx="12" fill="#1B2A4A"/>
+  <!-- Wheel inside badge -->
+  <circle cx="36" cy="40" r="18" stroke="#FF6B35" stroke-width="4" fill="none"/>
+  <circle cx="36" cy="40" r="5" fill="#FF6B35"/>
+  <line x1="36" y1="22" x2="36" y2="30" stroke="#FF6B35" stroke-width="3.5" stroke-linecap="round"/>
+  <line x1="36" y1="50" x2="36" y2="58" stroke="#FF6B35" stroke-width="3.5" stroke-linecap="round"/>
+  <line x1="18" y1="40" x2="26" y2="40" stroke="#FF6B35" stroke-width="3.5" stroke-linecap="round"/>
+  <line x1="46" y1="40" x2="54" y2="40" stroke="#FF6B35" stroke-width="3.5" stroke-linecap="round"/>
+  <line x1="23" y1="25" x2="28.5" y2="30.5" stroke="#FF6B35" stroke-width="3" stroke-linecap="round"/>
+  <line x1="43.5" y1="49.5" x2="49" y2="55" stroke="#FF6B35" stroke-width="3" stroke-linecap="round"/>
+  <line x1="49" y1="25" x2="43.5" y2="30.5" stroke="#FF6B35" stroke-width="3" stroke-linecap="round"/>
+  <line x1="28.5" y1="49.5" x2="23" y2="55" stroke="#FF6B35" stroke-width="3" stroke-linecap="round"/>
+  <!-- Wordmark -->
+  <text x="88" y="47" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-weight="800" font-size="40" letter-spacing="-1.5" fill="#1B2A4A">Kids<tspan fill="#FF6B35">Ride</tspan></text>
+</svg>
