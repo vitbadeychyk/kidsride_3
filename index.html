@@ -466,6 +466,8 @@ footer{background:var(--navy);color:white;padding:56px 40px 0}
 .f-links{display:flex;flex-direction:column;gap:10px}
 .f-links a{color:rgba(255,255,255,.5);text-decoration:none;font-size:14px;transition:color .2s}
 .f-links a:hover{color:var(--orange)}
+.f-soc-link{display:inline-flex!important;align-items:center;gap:7px}
+.f-soc-link svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;opacity:.7}
 .f-bot{max-width:1280px;margin:0 auto;padding:24px 0;display:flex;align-items:center;justify-content:center}
 .f-copy{font-size:13px;color:rgba(255,255,255,.3)}
 
@@ -583,10 +585,9 @@ footer{background:var(--navy);color:white;padding:56px 40px 0}
   .ig-grid{grid-template-columns:repeat(2,1fr)}
   footer{padding:28px 20px 0}
   .f-grid{flex-direction:column;gap:0;padding-bottom:0;border-bottom:none}
-  .f-brand{max-width:none;display:flex;align-items:center;justify-content:space-between;padding-bottom:18px;border-bottom:1px solid rgba(255,255,255,.1)}
+  .f-brand{max-width:none;display:flex;align-items:center;padding-bottom:18px;border-bottom:1px solid rgba(255,255,255,.1)}
   .f-brand .footer-logo{margin-bottom:0!important}
   .f-brand-desc{display:none}
-  .f-socials{margin:0}
   .f-contacts{min-width:0;width:100%;padding-top:20px;padding-bottom:24px;border-bottom:1px solid rgba(255,255,255,.08)}
   .f-col-t{font-size:13px;margin-bottom:12px}
   .f-links{flex-direction:row;flex-wrap:wrap;gap:6px 20px}
@@ -1671,17 +1672,13 @@ function toggleReview(id) {
         <span style="color:inherit">Kids<span style="color:var(--orange)">Ride</span></span>
       </a>
       <p class="f-brand-desc">Преміум дитячі електромобілі з доставкою по всій Україні. Гарантія 12 місяців, офіційний сервіс.</p>
-      <div class="f-socials">
-        <a href="https://www.instagram.com/kidsride.ua/" target="_blank" class="f-soc"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
-        <a href="https://t.me/kids_ride" target="_blank" class="f-soc"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></a>
-      </div>
     </div>
     <div class="f-contacts">
       <div class="f-col-t">Контакти</div>
       <div class="f-links">
         <a href="tel:+380980707348">+380 98 070 73 48</a>
-        <a href="https://t.me/kids_ride" target="_blank">Telegram</a>
-        <a href="https://www.instagram.com/kidsride.ua/" target="_blank">Instagram</a>
+        <a href="https://t.me/kids_ride" target="_blank" class="f-soc-link"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Telegram</a>
+        <a href="https://www.instagram.com/kidsride.ua/" target="_blank" class="f-soc-link"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>Instagram</a>
         <a href="#">Пн–Нд: 9:00–21:00</a>
       </div>
       <div style="margin-top:24px">

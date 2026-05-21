@@ -204,7 +204,15 @@ nav a.active{color:var(--orange)}
 .tab-panel.active{display:block}
 
 /* Description tab */
-.desc-text{font-size:15px;line-height:1.75;color:var(--text);margin-bottom:20px}
+.desc-text{font-size:15px;line-height:1.75;color:var(--text);margin-bottom:16px}
+.desc-age-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,107,53,.1);border:1.5px solid rgba(255,107,53,.25);color:var(--orange);font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;border-radius:20px;padding:5px 14px;margin-bottom:18px}
+.desc-age-badge svg{width:14px;height:14px;stroke:var(--orange);fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.desc-section-title{font-family:'Nunito',sans-serif;font-weight:800;font-size:16px;color:var(--navy);margin:24px 0 10px;padding-bottom:8px;border-bottom:2px solid var(--border);display:flex;align-items:center;gap:8px}
+.desc-section-title::before{content:'';display:block;width:3px;height:18px;background:var(--orange);border-radius:2px;flex-shrink:0}
+.desc-list{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;padding:0}
+.desc-list-item{display:flex;align-items:flex-start;gap:10px;font-size:14px;line-height:1.65;color:var(--text)}
+.desc-list-item::before{content:'';display:block;width:7px;height:7px;background:var(--orange);border-radius:50%;flex-shrink:0;margin-top:7px}
+.desc-highlight{background:var(--bg-soft);border-left:3px solid var(--orange);padding:12px 16px;border-radius:0 10px 10px 0;font-size:14px;line-height:1.65;color:var(--text);margin-bottom:16px}
 .desc-features{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:20px}
 .desc-feat{display:flex;align-items:flex-start;gap:12px;padding:14px;background:var(--bg-soft);border-radius:var(--r-sm)}
 .df-icon{width:36px;height:36px;border-radius:8px;background:rgba(255,107,53,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -1775,20 +1783,107 @@ function renderProductDescription(p){
   const featBox = document.getElementById('productFeatures');
   const desc = (p && typeof p.description === 'string') ? p.description.trim() : '';
   const short = (p && typeof p.short_desc === 'string') ? p.short_desc.trim() : '';
+
   if (wrap){
     wrap.innerHTML = '';
     if (desc || short){
-      // Об'єднуємо short_desc + description, розбиваємо на абзаци по \n\n або \n
-      const full = (short ? (short + '\n\n') : '') + desc;
-      const paragraphs = full.split(/\n{2,}|\r\n{2,}/).map(s => s.trim()).filter(Boolean);
-      paragraphs.forEach(par => {
-        // У межах абзацу одиничні \n залишаємо як <br>
-        const html = escHtml(par).replace(/\n/g, '<br>');
-        const pEl = document.createElement('p');
-        pEl.className = 'desc-text';
-        pEl.innerHTML = html;
-        wrap.appendChild(pEl);
+      const AGE_ICON = '<svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>';
+
+      // ── Нормалізуємо рядки ──
+      const full = (short ? (short + '\n') : '') + desc;
+      const lines = full.split(/\r?\n/).map(l => l.trim());
+
+      // ── Буфери для групування списків ──
+      let bulletBuffer = [];
+
+      function flushBullets(container){
+        if (!bulletBuffer.length) return;
+        const ul = document.createElement('ul');
+        ul.className = 'desc-list';
+        bulletBuffer.forEach(txt => {
+          const li = document.createElement('li');
+          li.className = 'desc-list-item';
+          li.innerHTML = escHtml(txt);
+          ul.appendChild(li);
+        });
+        container.appendChild(ul);
+        bulletBuffer = [];
+      }
+
+      // ── Чи схожий рядок на "вік" ──
+      function isAgeLine(line){
+        return /^від\s*\d|^\d+\s*(рок|міс|год|year|місяц|yo\b)/i.test(line) && line.length < 40;
+      }
+
+      // ── Чи це маркований рядок ──
+      function isBullet(line){
+        return /^[•\-\*–—]\s+/.test(line);
+      }
+
+      // ── Чи це заголовок розділу ──
+      function isSectionTitle(line){
+        return line.endsWith(':') && line.length < 100 && !/^[•\-\*–—]/.test(line);
+      }
+
+      let paraBuffer = [];
+
+      function flushPara(container){
+        if (!paraBuffer.length) return;
+        const p2 = document.createElement('p');
+        p2.className = 'desc-text';
+        p2.innerHTML = paraBuffer.join('<br>');
+        container.appendChild(p2);
+        paraBuffer = [];
+      }
+
+      lines.forEach((line, idx) => {
+        if (!line){ flushBullets(wrap); flushPara(wrap); return; }
+
+        // Вік-бейдж (лише перший, у перших 2 рядках)
+        if (idx < 3 && isAgeLine(line)){
+          flushBullets(wrap); flushPara(wrap);
+          const badge = document.createElement('div');
+          badge.className = 'desc-age-badge';
+          badge.innerHTML = AGE_ICON + escHtml(line);
+          wrap.appendChild(badge);
+          return;
+        }
+
+        // Маркований список
+        if (isBullet(line)){
+          flushPara(wrap);
+          bulletBuffer.push(line.replace(/^[•\-\*–—]\s+/, ''));
+          return;
+        }
+
+        // Заголовок розділу
+        if (isSectionTitle(line)){
+          flushBullets(wrap); flushPara(wrap);
+          const h = document.createElement('div');
+          h.className = 'desc-section-title';
+          h.appendChild(document.createTextNode(line.replace(/:$/, '')));
+          wrap.appendChild(h);
+          return;
+        }
+
+        // Рядок-цитата: починається з "У нашому магазині" або "Замовити"
+        if (/^(у нашому|замовити|наш магазин)/i.test(line)){
+          flushBullets(wrap); flushPara(wrap);
+          const hl = document.createElement('div');
+          hl.className = 'desc-highlight';
+          hl.innerHTML = escHtml(line);
+          wrap.appendChild(hl);
+          return;
+        }
+
+        // Звичайний текст — накопичуємо в абзац
+        flushBullets(wrap);
+        paraBuffer.push(escHtml(line));
       });
+
+      flushBullets(wrap);
+      flushPara(wrap);
+
     } else {
       wrap.innerHTML = '<p class="desc-text" style="color:var(--text-muted)">Опис товару поки не заповнений. Додайте його в адмінці у полі «Опис».</p>';
     }
