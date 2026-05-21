@@ -1940,7 +1940,7 @@ function renderProductSpecs(p){
 
   const specs = [
     { key:'sku',      label:'Артикул',              val: p.sku },
-    { key:'brand',    label:'Бренд',                val: p.brand },
+    { key:'brand',    label:'Бренд',                val: (p.brand && !/^без\s*бренд/i.test(p.brand)) ? p.brand : '' },
     { key:'cat',      label:'Тип',                  val: p.category ? (CAT_LABELS[p.category] || p.category) : '' },
     { key:'color',    label:'Колір',                val: p.color },
     { key:'age',      label:'Вік',                  val: p.age_range || p.age },
@@ -2088,9 +2088,12 @@ function applyProductData(p){
       catEl.href = 'catalog.html?cat=' + encodeURIComponent(p.category);
     }
   }
-  if (p.brand){
+  if (p.brand && !/^без\s*бренд/i.test(p.brand)){
     const b = document.querySelector('.meta-brand');
     if (b) b.textContent = String(p.brand).toUpperCase();
+  } else {
+    const b = document.querySelector('.meta-brand');
+    if (b) b.style.display = 'none';
   }
   if (p.sku){
     const s = document.querySelector('.meta-sku');

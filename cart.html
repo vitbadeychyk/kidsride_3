@@ -665,7 +665,7 @@ function renderCartItems() {
       <div class="cart-item" data-key="${safeKey}">
         <div class="ci-img">${imgHtml}</div>
         <div class="ci-info">
-          ${p.brand ? `<div class="ci-brand">${escHtml(p.brand)}</div>` : ''}
+          ${p.brand && !/^без\s*бренд/i.test(p.brand) ? `<div class="ci-brand">${escHtml(p.brand)}</div>` : ''}
           ${p.sku ? `<div class="ci-sku"><span class="ci-sku-label">Арт.</span><span class="ci-sku-val">${escHtml(p.sku)}</span></div>` : ''}
           <div class="ci-name"><a href="${escHtml(productHref)}">${escHtml(p.name || 'Товар')}</a></div>
           ${p.color ? `<div class="ci-color"><span class="ci-color-dot" style="background:${colorDot(p.color)}"></span>Колір: <strong>${escHtml(p.color)}</strong></div>` : ''}

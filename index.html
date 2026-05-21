@@ -1279,7 +1279,7 @@ footer{background:var(--navy);color:white;padding:56px 40px 0}
 
         const ageStr = p.age_range||p.age||'3–8 р.';
         const volt = p.voltage||'12V';
-        const brand = p.brand||'Bambi Racer';
+        const brand = (p.brand && !/^без\s*бренд/i.test(p.brand)) ? p.brand : '';
         const name = p.name||'';
         const price = parseFloat(p.price)||0;
         const oldPrice = parseFloat(p.old_price||p.oldPrice)||0;
@@ -1313,7 +1313,7 @@ footer{background:var(--navy);color:white;padding:56px 40px 0}
             </button>
           </div>
           <div class="p-body">
-            <div class="p-brand">${escH(brand)}</div>
+            ${brand ? `<div class="p-brand">${escH(brand)}</div>` : ''}
             <div class="p-name">${escH(name)}</div>
             <div class="p-specs">
               <span class="p-spec"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${escH(ageStr)}</span>
