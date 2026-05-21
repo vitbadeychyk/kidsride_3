@@ -466,86 +466,10 @@ const KR = {
     if (q) window.location.href = 'catalog.html?search=' + encodeURIComponent(q);
   },
 
-
-  // ── BRANDING / LOGO ──────────────────────────────────────────────────────
-  _KR_LOGO_PRESETS: [
-    { id: 'default', name: 'Екран',        svg: '<path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect x="9" y="11" width="14" height="10" rx="2"/><circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>' },
-    { id: 'star',    name: 'Зірка',        svg: '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>' },
-    { id: 'rocket',  name: 'Ракета',       svg: '<path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m3.5 14.5 2.5-2.5 7.5-7.5s4-4 8 0-4 8-4 8l-7.5 7.5-2.5 2.5"/>' },
-    { id: 'crown',   name: 'Корона',       svg: '<path d="M2 20h20M4 20V8l4 4 4-8 4 8 4-4v12"/>' },
-    { id: 'lightning', name: 'Блискавка', svg: '<path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>' },
-    { id: 'bicycle', name: 'Велосипед',    svg: '<circle cx="6" cy="15" r="4"/><circle cx="18" cy="15" r="4"/><path d="M6 15h6l3-6h3M9 9l3 6"/>' },
-    { id: 'gift',    name: 'Подарунок',    svg: '<polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>' },
-    { id: 'heart',   name: 'Серце',        svg: '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>' },
-    { id: 'wand',    name: 'Чарівна паличка', svg: '<path d="m15 4 5 5-11 11-5-5z"/><path d="M2 18l2 4M14 2l4 4M20 7l1.5-1.5M19 12l2-1M17 17l1.5 2"/>' },
-    { id: 'scooter', name: 'Самокат',      svg: '<circle cx="5" cy="17" r="3"/><circle cx="19" cy="17" r="3"/><path d="M5 17h8V8h3l3 9"/><path d="M13 8l2-5h2"/>' },
-    { id: 'shield',  name: 'Щит зі зіркою', svg: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polygon points="12 7 13.5 10.5 17 11 14.5 13.5 15.5 17 12 15 8.5 17 9.5 13.5 7 11 10.5 10.5 12 7"/>' },
-    { id: 'planet',  name: 'Планета',      svg: '<circle cx="12" cy="12" r="5"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>' },
-    { id: 'balloon', name: 'Кулька',       svg: '<path d="M12 22V16"/><circle cx="12" cy="10" r="8"/><path d="M8 16.93C4.5 15.5 2 12.5 2 10"/>' },
-    { id: 'paw',     name: 'Лапка',        svg: '<circle cx="8.5" cy="7.5" r="1.5"/><circle cx="15.5" cy="7.5" r="1.5"/><circle cx="5.5" cy="11.5" r="1.5"/><circle cx="18.5" cy="11.5" r="1.5"/><path d="M12 23c-3.5 0-6-2.5-6-5.5 0-2 1.5-3.5 4-4h4c2.5.5 4 2 4 4C18 20.5 15.5 23 12 23z"/>' },
-    { id: 'car',     name: 'Авто',         svg: '<path d="M5 17H3a1 1 0 0 1-1-1v-4l2-5h16l2 5v4a1 1 0 0 1-1 1h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/><path d="M5 9h14"/>' },
-  ],
-
-  loadSiteLogo() {
-    try {
-      const cached = localStorage.getItem('kr_branding');
-      if (cached) this._applyBranding(JSON.parse(cached));
-    } catch(e) {}
-    fetch(this._SUPA_URL + '/rest/v1/settings?select=value&key=eq.site_branding', {
-      headers: { 'apikey': this._SUPA_KEY, 'Authorization': 'Bearer ' + this._SUPA_KEY }
-    }).then(r => r.json()).then(rows => {
-      if (!rows || !rows[0] || !rows[0].value) return;
-      try {
-        const b = JSON.parse(rows[0].value);
-        localStorage.setItem('kr_branding', rows[0].value);
-        this._applyBranding(b);
-      } catch(e) {}
-    }).catch(() => {});
-  },
-
-  _applyBranding(b) {
-    if (!b) return;
-    const preset = this._KR_LOGO_PRESETS.find(p => p.id === b.presetId) || this._KR_LOGO_PRESETS[0];
-    const storeName = b.storeName || 'KidsRide';
-
-    if (b.mode === 'image' && b.imageUrl) {
-      document.querySelectorAll('[data-logo-wrap]').forEach(el => {
-        el.innerHTML = '<img src="' + b.imageUrl + '" alt="' + storeName + '" style="height:40px;width:auto;object-fit:contain;display:block;max-width:200px">';
-      });
-    } else {
-      const iconSvg = preset.svg;
-      document.querySelectorAll('[data-logo-mark]').forEach(el => {
-        el.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' + iconSvg + '</svg>';
-      });
-      const half = storeName === 'KidsRide' ? 4 : Math.ceil(storeName.length * 0.55);
-      const n1 = storeName.slice(0, half), n2 = storeName.slice(half);
-      document.querySelectorAll('[data-logo-name]').forEach(el => {
-        el.innerHTML = '<span style="color:inherit">' + n1 + '<span>' + n2 + '</span></span>';
-      });
-      if (b.bgColor) {
-        document.querySelectorAll('.logo-mark').forEach(el => {
-          el.style.background = b.bgColor;
-          el.style.boxShadow = '0 4px 12px ' + b.bgColor + '55';
-        });
-      }
-      this._updateFavicon(iconSvg, b.bgColor || '#FF6B35');
-    }
-  },
-
-  _updateFavicon(iconPaths, bg) {
-    const svg = '<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><rect width=\"32\" height=\"32\" rx=\"8\" fill=\"' + bg + '\"/><svg x=\"6\" y=\"6\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"white\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\">' + iconPaths + '</svg></svg>';
-    const safesvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="' + bg + '"/><svg x="6" y="6" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' + iconPaths + '</svg></svg>';
-    const url = 'data:image/svg+xml,' + encodeURIComponent(safesvg);
-    let el = document.querySelector('link[rel="icon"]') || document.querySelector('link[rel*="icon"]');
-    if (!el) { el = document.createElement('link'); el.rel = 'icon'; el.type = 'image/svg+xml'; document.head.appendChild(el); }
-    el.href = url;
-  },
-
   // ── INIT ──────────────────────────────────────────────────────────────────
   init() {
     this.initStripe();
     this.injectWishStyles();
-    this.loadSiteLogo();
     this.updateCartBadge();
     this.updateWishBadge();
     this.updateAuthUI();

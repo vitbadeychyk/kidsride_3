@@ -413,10 +413,10 @@ tr:hover td{background:rgba(240,242,248,.5)}
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-logo">
-    <div class="logo-mark" data-logo-mark>
+    <div class="logo-mark">
       <svg viewBox="0 0 24 24"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect x="9" y="11" width="14" height="10" rx="2"/><circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/></svg>
     </div>
-    <div class="logo-text" data-logo-name>Kids<span>Ride</span></div>
+    <div class="logo-text">Kids<span>Ride</span></div>
   </div>
 
   <div class="sidebar-section">
@@ -1419,7 +1419,6 @@ tr:hover td{background:rgba(240,242,248,.5)}
         <button class="settings-tab" onclick="switchSettingsTab('export',this)">📊 Дані</button>
         <button class="settings-tab" onclick="switchSettingsTab('security',this)">🔐 Безпека</button>
         <button class="settings-tab" onclick="switchSettingsTab('promo',this);renderPromoHistory()">🎁 Промо</button>
-        <button class="settings-tab" onclick="switchSettingsTab('branding',this);loadBrandingPanel()">🖼️ Логотип</button>
       </div>
 
       <!-- TAB: STORE -->
@@ -1896,88 +1895,7 @@ CREATE POLICY "admin_write_promo" ON promo_codes FOR ALL USING (auth.role()='aut
             <div style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px">Перейдіть на вкладку «Промо» для завантаження.</div>
           </div>
         </div>
-
       </div><!-- /stab-promo -->
-
-      <!-- TAB: BRANDING -->
-      <div class="settings-section" id="stab-branding">
-        <div class="import-card" style="margin-bottom:16px">
-          <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:6px;color:var(--navy)">Назва магазину</h3>
-          <p style="font-size:12px;color:var(--text-muted);margin-bottom:14px">Ця назва відображається поруч із логотипом на всіх сторінках сайту</p>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-            <div class="f-group">
-              <label class="f-label">Назва магазину</label>
-              <input id="cfg_branding_name" type="text" placeholder="KidsRide" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:'Manrope',sans-serif;font-size:13px;color:var(--navy);outline:none;box-sizing:border-box">
-            </div>
-            <div class="f-group">
-              <label class="f-label">Колір фону іконки</label>
-              <div style="display:flex;align-items:center;gap:8px">
-                <input id="cfg_branding_color" type="color" value="#FF6B35" style="width:48px;height:38px;border:1.5px solid var(--border);border-radius:var(--r-sm);cursor:pointer;padding:3px" onchange="updateBrandingPreview()">
-                <input id="cfg_branding_color_hex" type="text" value="#FF6B35" placeholder="#FF6B35" style="flex:1;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:monospace;font-size:13px;color:var(--navy);outline:none" oninput="document.getElementById('cfg_branding_color').value=this.value;updateBrandingPreview()">
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="import-card" style="margin-bottom:16px">
-          <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:6px;color:var(--navy)">Оберіть іконку логотипу</h3>
-          <p style="font-size:12px;color:var(--text-muted);margin-bottom:16px">15 варіантів іконок з прозорим фоном — підходять для будь-якого стилю магазину</p>
-          <div id="logoIconGallery" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px"></div>
-        </div>
-
-        <div class="import-card" style="margin-bottom:16px">
-          <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:6px;color:var(--navy)">Або завантажте власний логотип</h3>
-          <p style="font-size:12px;color:var(--text-muted);margin-bottom:14px">Вставте URL зображення (PNG/SVG з прозорим фоном). Якщо вказати URL — він замінить іконку + назву як єдиний логотип.</p>
-          <div style="display:flex;gap:8px;align-items:flex-end">
-            <div class="f-group" style="flex:1;margin:0">
-              <label class="f-label">URL логотипу (необов'язково)</label>
-              <input id="cfg_branding_image_url" type="text" placeholder="https://kidsride.ua/logo.svg" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:'Manrope',sans-serif;font-size:13px;color:var(--navy);outline:none;box-sizing:border-box" oninput="updateBrandingPreview()">
-            </div>
-            <button class="btn btn-outline btn-sm" onclick="document.getElementById('cfg_branding_image_url').value='';_brandingMode='preset';updateBrandingPreview()">Скинути</button>
-          </div>
-        </div>
-
-        <div class="import-card" style="margin-bottom:16px">
-          <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:14px;color:var(--navy)">Попередній перегляд</h3>
-          <div style="display:flex;flex-wrap:wrap;gap:24px;align-items:center">
-            <div>
-              <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">На світлому фоні (хедер)</div>
-              <div id="previewLight" style="background:white;border:1px solid var(--border);border-radius:var(--r);padding:14px 20px;display:inline-flex;align-items:center;gap:10px">
-                <div id="previewMarkLight" class="logo-mark" style="width:40px;height:40px;background:#FF6B35;border-radius:10px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(255,107,53,.3)">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect x="9" y="11" width="14" height="10" rx="2"/><circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/></svg>
-                </div>
-                <span id="previewNameLight" style="font-family:'Nunito',sans-serif;font-weight:900;font-size:22px;color:#1B2A4A">Kids<span style="color:#FF6B35">Ride</span></span>
-              </div>
-            </div>
-            <div>
-              <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">На темному фоні (футер / адмін)</div>
-              <div id="previewDark" style="background:#1B2A4A;border-radius:var(--r);padding:14px 20px;display:inline-flex;align-items:center;gap:10px">
-                <div id="previewMarkDark" class="logo-mark" style="width:40px;height:40px;background:#FF6B35;border-radius:10px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(255,107,53,.3)">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect x="9" y="11" width="14" height="10" rx="2"/><circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/></svg>
-                </div>
-                <span id="previewNameDark" style="font-family:'Nunito',sans-serif;font-weight:900;font-size:22px;color:white">Kids<span style="color:#FF6B35">Ride</span></span>
-              </div>
-            </div>
-            <div>
-              <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Фавіконка (вкладка браузера)</div>
-              <div style="background:#f0f2f8;border:1px solid var(--border);border-radius:var(--r);padding:14px 20px;display:inline-flex;align-items:center;gap:10px">
-                <div id="previewFavicon" style="width:32px;height:32px;background:#FF6B35;border-radius:8px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(255,107,53,.4)">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect x="9" y="11" width="14" height="10" rx="2"/><circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/></svg>
-                </div>
-                <span style="font-size:12px;color:var(--text-muted)">32×32px</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div style="display:flex;gap:10px;align-items:center">
-          <button class="btn btn-primary" onclick="saveBranding()">
-            <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-            Зберегти логотип
-          </button>
-          <span id="brandingSaveMsg" style="display:none;color:var(--green);font-weight:700;font-size:13px">✓ Логотип збережено і застосовано на всьому сайті</span>
-        </div>
-      </div><!-- /stab-branding -->
 
     </div>
 
@@ -7719,180 +7637,6 @@ function resetBlocksOrder(){
   _renderBlocks();
   saveBlocksOrder();
 }
-
-
-
-// ── BRANDING PANEL ─────────────────────────────────────────────────────────
-
-var _KR_LOGOS = [
-  { id: 'default',   name: 'Екран',            svg: '<path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect x="9" y="11" width="14" height="10" rx="2"/><circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>' },
-  { id: 'star',      name: 'Зірка',            svg: '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>' },
-  { id: 'rocket',    name: 'Ракета',           svg: '<path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m3.5 14.5 2.5-2.5 7.5-7.5s4-4 8 0-4 8-4 8l-7.5 7.5-2.5 2.5"/>' },
-  { id: 'crown',     name: 'Корона',           svg: '<path d="M2 20h20M4 20V8l4 4 4-8 4 8 4-4v12"/>' },
-  { id: 'lightning', name: 'Блискавка',        svg: '<path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>' },
-  { id: 'bicycle',   name: 'Велосипед',        svg: '<circle cx="6" cy="15" r="4"/><circle cx="18" cy="15" r="4"/><path d="M6 15h6l3-6h3M9 9l3 6"/>' },
-  { id: 'gift',      name: 'Подарунок',        svg: '<polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>' },
-  { id: 'heart',     name: 'Серце',            svg: '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>' },
-  { id: 'wand',      name: 'Чарівна паличка', svg: '<path d="m15 4 5 5-11 11-5-5z"/><path d="M2 18l2 4M14 2l4 4M20 7l1.5-1.5M19 12l2-1M17 17l1.5 2"/>' },
-  { id: 'scooter',   name: 'Самокат',          svg: '<circle cx="5" cy="17" r="3"/><circle cx="19" cy="17" r="3"/><path d="M5 17h8V8h3l3 9"/><path d="M13 8l2-5h2"/>' },
-  { id: 'shield',    name: 'Щит зі зіркою',   svg: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polygon points="12 7 13.5 10.5 17 11 14.5 13.5 15.5 17 12 15 8.5 17 9.5 13.5 7 11 10.5 10.5 12 7"/>' },
-  { id: 'planet',    name: 'Планета',          svg: '<circle cx="12" cy="12" r="5"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>' },
-  { id: 'balloon',   name: 'Кулька',           svg: '<path d="M12 22V16"/><circle cx="12" cy="10" r="8"/><path d="M8 16.93C4.5 15.5 2 12.5 2 10"/>' },
-  { id: 'paw',       name: 'Лапка',            svg: '<circle cx="8.5" cy="7.5" r="1.5"/><circle cx="15.5" cy="7.5" r="1.5"/><circle cx="5.5" cy="11.5" r="1.5"/><circle cx="18.5" cy="11.5" r="1.5"/><path d="M12 23c-3.5 0-6-2.5-6-5.5 0-2 1.5-3.5 4-4h4c2.5.5 4 2 4 4C18 20.5 15.5 23 12 23z"/>' },
-  { id: 'car',       name: 'Авто',             svg: '<path d="M5 17H3a1 1 0 0 1-1-1v-4l2-5h16l2 5v4a1 1 0 0 1-1 1h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/><path d="M5 9h14"/>' },
-];
-
-var _brandingSelectedId = 'default';
-var _brandingMode = 'preset';
-
-function loadBrandingPanel() {
-  renderLogoGallery();
-  // Load saved branding
-  try {
-    var cached = localStorage.getItem('kr_branding');
-    if (cached) { var b = JSON.parse(cached); _fillBrandingForm(b); }
-  } catch(e) {}
-  fetch(SUPABASE_URL + '/rest/v1/settings?select=value&key=eq.site_branding', {
-    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
-  }).then(function(r){ return r.json(); }).then(function(rows) {
-    if (!rows || !rows[0] || !rows[0].value) return;
-    var b = JSON.parse(rows[0].value);
-    localStorage.setItem('kr_branding', rows[0].value);
-    _fillBrandingForm(b);
-  }).catch(function(){});
-}
-
-function _fillBrandingForm(b) {
-  if (!b) return;
-  if (b.storeName) document.getElementById('cfg_branding_name').value = b.storeName;
-  if (b.bgColor) {
-    document.getElementById('cfg_branding_color').value = b.bgColor;
-    document.getElementById('cfg_branding_color_hex').value = b.bgColor;
-  }
-  if (b.imageUrl) document.getElementById('cfg_branding_image_url').value = b.imageUrl;
-  if (b.presetId) {
-    _brandingSelectedId = b.presetId;
-    _brandingMode = b.mode || 'preset';
-    document.querySelectorAll('.logo-icon-card').forEach(function(c) {
-      c.classList.toggle('selected', c.getAttribute('data-id') === _brandingSelectedId);
-    });
-  }
-  updateBrandingPreview();
-}
-
-function renderLogoGallery() {
-  var gallery = document.getElementById('logoIconGallery');
-  if (!gallery) return;
-  gallery.innerHTML = '';
-  _KR_LOGOS.forEach(function(logo) {
-    var card = document.createElement('div');
-    card.className = 'logo-icon-card' + (logo.id === _brandingSelectedId ? ' selected' : '');
-    card.setAttribute('data-id', logo.id);
-    card.style.cssText = 'cursor:pointer;border:2px solid var(--border);border-radius:var(--r);padding:14px 10px;text-align:center;transition:all .2s;background:white;position:relative';
-    card.innerHTML =
-      '<div style="width:44px;height:44px;background:#FF6B35;border-radius:11px;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(255,107,53,.35);margin-bottom:8px" id="gmark_' + logo.id + '">' +
-        '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' + logo.svg + '</svg>' +
-      '</div>' +
-      '<div style="font-size:11px;font-weight:700;color:var(--navy);font-family:'Manrope',sans-serif">' + logo.name + '</div>';
-    card.onclick = function() {
-      _brandingSelectedId = logo.id;
-      _brandingMode = 'preset';
-      document.querySelectorAll('.logo-icon-card').forEach(function(c){ c.classList.remove('selected'); c.style.borderColor='var(--border)'; c.style.boxShadow='none'; });
-      card.classList.add('selected');
-      card.style.borderColor = 'var(--orange)';
-      card.style.boxShadow = '0 0 0 3px rgba(255,107,53,.15)';
-      updateBrandingPreview();
-    };
-    if (logo.id === _brandingSelectedId) {
-      card.style.borderColor = 'var(--orange)';
-      card.style.boxShadow = '0 0 0 3px rgba(255,107,53,.15)';
-    }
-    gallery.appendChild(card);
-  });
-  updateBrandingPreview();
-}
-
-function updateBrandingPreview() {
-  var color = document.getElementById('cfg_branding_color')?.value || '#FF6B35';
-  var name = document.getElementById('cfg_branding_name')?.value || 'KidsRide';
-  var imageUrl = document.getElementById('cfg_branding_image_url')?.value || '';
-  var logo = _KR_LOGOS.find(function(l){ return l.id === _brandingSelectedId; }) || _KR_LOGOS[0];
-
-  // Update gallery marks with current color
-  _KR_LOGOS.forEach(function(l) {
-    var el = document.getElementById('gmark_' + l.id);
-    if (el) { el.style.background = color; el.style.boxShadow = '0 4px 14px ' + color + '55'; }
-  });
-
-  var half = name === 'KidsRide' ? 4 : Math.ceil(name.length * 0.55);
-  var n1 = name.slice(0, half), n2 = name.slice(half);
-  var nameHtml = n1 + '<span style="color:' + color + '">' + n2 + '</span>';
-
-  if (imageUrl) {
-    var imgHtml = '<img src="' + imageUrl + '" alt="' + name + '" style="height:40px;width:auto;object-fit:contain;display:block;max-width:180px">';
-    document.getElementById('previewLight').innerHTML = imgHtml;
-    document.getElementById('previewDark').style.display = 'none';
-  } else {
-    var iconHtml = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' + logo.svg + '</svg>';
-
-    ['Light','Dark'].forEach(function(theme) {
-      var mark = document.getElementById('previewMark' + theme);
-      var namEl = document.getElementById('previewName' + theme);
-      if (mark) { mark.style.background = color; mark.style.boxShadow = '0 4px 12px ' + color + '55'; mark.innerHTML = iconHtml; }
-      if (namEl) namEl.innerHTML = nameHtml;
-    });
-    document.getElementById('previewDark').style.display = '';
-    document.getElementById('previewLight').style.display = '';
-
-    var fav = document.getElementById('previewFavicon');
-    if (fav) { fav.style.background = color; fav.style.boxShadow = '0 2px 8px ' + color + '55'; fav.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' + logo.svg + '</svg>'; }
-  }
-}
-
-async function saveBranding() {
-  var name = document.getElementById('cfg_branding_name')?.value || 'KidsRide';
-  var color = document.getElementById('cfg_branding_color')?.value || '#FF6B35';
-  var imageUrl = document.getElementById('cfg_branding_image_url')?.value || '';
-  var mode = imageUrl ? 'image' : 'preset';
-  var branding = { storeName: name, bgColor: color, presetId: _brandingSelectedId, mode: mode, imageUrl: imageUrl };
-  var val = JSON.stringify(branding);
-  try { localStorage.setItem('kr_branding', val); } catch(e) {}
-  try {
-    await sbFetch('settings?on_conflict=key', {
-      method: 'POST',
-      headers: { Prefer: 'resolution=merge-duplicates,return=representation' },
-      body: JSON.stringify([{ key: 'site_branding', value: val }])
-    });
-  } catch(e) { console.warn('saveBranding:', e); }
-
-  // Apply live to admin sidebar immediately
-  if (typeof KR !== 'undefined' && KR._applyBranding) {
-    KR._applyBranding(branding);
-  } else {
-    var logo = _KR_LOGOS.find(function(l){ return l.id === _brandingSelectedId; }) || _KR_LOGOS[0];
-    document.querySelectorAll('[data-logo-mark]').forEach(function(el) {
-      el.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' + logo.svg + '</svg>';
-    });
-    document.querySelectorAll('.logo-mark').forEach(function(el) {
-      el.style.background = color; el.style.boxShadow = '0 4px 12px ' + color + '55';
-    });
-    var half = name === 'KidsRide' ? 4 : Math.ceil(name.length * 0.55);
-    document.querySelectorAll('[data-logo-name]').forEach(function(el) {
-      el.innerHTML = name.slice(0, half) + '<span>' + name.slice(half) + '</span>';
-    });
-  }
-
-  var msg = document.getElementById('brandingSaveMsg');
-  if (msg) { msg.style.display = 'block'; setTimeout(function(){ msg.style.display = 'none'; }, 4000); }
-  showToast('Логотип оновлено на всьому сайті', 'success');
-}
-
-// CSS for selected logo card
-(function(){
-  var s = document.createElement('style');
-  s.textContent = '.logo-icon-card:hover{border-color:var(--orange)!important;transform:translateY(-2px);box-shadow:0 4px 16px rgba(255,107,53,.2)!important} .logo-icon-card.selected{border-color:var(--orange)!important;box-shadow:0 0 0 3px rgba(255,107,53,.15)!important}';
-  document.head.appendChild(s);
-})();
 
 </script>
 </body>
