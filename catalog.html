@@ -1915,7 +1915,7 @@ async function loadProductsFromSupabase() {
   try {
     // Завантажуємо всі товари посторінково (Supabase ліміт 1000 на запит)
     const PAGE = 1000;
-    const FETCH_TIMEOUT = 20000;
+    const FETCH_TIMEOUT = 8000; // ← знижено з 20000: швидше fallback при проблемах
     let all = [];
     let from = 0;
 
@@ -1938,6 +1938,23 @@ async function loadProductsFromSupabase() {
       ).finally(() => clearTimeout(tid));
     };
 
+    // ── ПАРАЛЕЛЬНИЙ запит залишків: стартуємо ОДРАЗУ, не чекаємо кінця товарів ──
+    // Логіка: якщо товар відсутній у постачальника (products.stock <= 0),
+    // але є на власному складі (ostatok.quantity > 0) → показуємо як «в наявності»
+    // Якщо артикулу немає в products взагалі — створюємо синтетичний запис з ostatok
+    const ostatokPromise = (async () => {
+      try {
+        const osCtrl = new AbortController();
+        const osTid = setTimeout(() => osCtrl.abort(), FETCH_TIMEOUT);
+        const osRes = await fetch(
+          SUPABASE_URL + '/rest/v1/ostatok?select=id,sku,color,quantity,sell_price,old_price,active,images,category_id,short_desc&quantity=gt.0&active=eq.true',
+          { signal: osCtrl.signal, headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
+        ).finally(() => clearTimeout(osTid));
+        if (osRes.ok) return await osRes.json();
+      } catch(_) {}
+      return [];
+    })();
+
     while (true) {
       const res = await _fetchPage(from);
       if (!res.ok && res.status !== 206) throw new Error('Supabase error: ' + res.status);
@@ -1948,18 +1965,8 @@ async function loadProductsFromSupabase() {
       from += PAGE;
     }
 
-    // ── Завантажуємо власний залишок (ostatok) паралельно ─────────────────────
-    // Логіка: якщо товар відсутній у постачальника (products.stock <= 0),
-    // але є на власному складі (ostatok.quantity > 0) → показуємо як «в наявності»
-    // Якщо артикулу немає в products взагалі — створюємо синтетичний запис з ostatok
-    let ostatokRows = [];
-    try {
-      const osRes = await fetch(
-        SUPABASE_URL + '/rest/v1/ostatok?select=id,sku,color,quantity,sell_price,old_price,active,images,category_id,short_desc&quantity=gt.0&active=eq.true',
-        { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
-      );
-      if (osRes.ok) ostatokRows = await osRes.json();
-    } catch(_) {}
+    // Отримуємо результат залишків (вже завантажувалися паралельно з товарами)
+    let ostatokRows = await ostatokPromise;
 
     if (ostatokRows.length > 0) {
       // Індекс products за sku (lower) + color (lower) для швидкого пошуку
@@ -2237,7 +2244,7 @@ async function renderCatalog() {
   }
 
   // ── Крок 1: Показати кешовані товари ОДРАЗУ (якщо є в localStorage) ─────
-  const PRODUCTS_CACHE_KEY = 'kidsride_products_v5'; // v5: ostatok merge (show own warehouse stock)
+  const PRODUCTS_CACHE_KEY = 'kidsride_products_v6'; // v6: parallel ostatok fetch (performance fix)
   let cached = null;
   try {
     const raw = localStorage.getItem(PRODUCTS_CACHE_KEY);
