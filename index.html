@@ -133,6 +133,8 @@ nav a.active{color:var(--orange)}
 .swiper-hero:not(.swiper-initialized) .swiper-slide:first-child{opacity:1!important;pointer-events:auto;position:relative;z-index:1}
 /* Вимикаємо будь-які переходи до ініціалізації Swiper — усуває "просвічування" сусідніх слайдів під час DOM-перестановки в _krApplySlides */
 .swiper-hero:not(.swiper-initialized) .swiper-slide{transition:none!important;}
+/* Клас що тимчасово ховає враппер під час перестановки слайдів */
+.swiper-hero .swiper-wrapper.kr-reordering{opacity:0!important;transition:none!important;}
 .hero-slide{position:relative;width:100%;height:100%;display:flex;align-items:center;overflow:hidden}
 .s1{background:linear-gradient(135deg,#1B2A4A 0%,#243660 100%)}
 .s2{background:linear-gradient(135deg,#0f1e36 0%,#1b3a6b 100%)}
@@ -1892,7 +1894,7 @@ function _krApplySlides(saved){
   const wrapper = document.querySelector('.swiper-hero .swiper-wrapper');
   if (!wrapper) return;
   // Ховаємо враппер до завершення перестановки — усуває будь-яке "просвічування" між слайдами
-  wrapper.style.cssText += ';opacity:0!important;transition:none!important';
+  wrapper.classList.add('kr-reordering');
   const existing = {};
   wrapper.querySelectorAll('.swiper-slide').forEach(el => {
     const id = el.getAttribute('data-slide-id');
@@ -1927,11 +1929,9 @@ function _krApplySlides(saved){
     const first = Object.values(existing)[0];
     if (first) wrapper.appendChild(first);
   }
-  // Плавно показуємо враппер після завершення перестановки (2 rAF = гарантовано після рендеру)
+  // Показуємо враппер після завершення перестановки (2 rAF = гарантовано після рендеру)
   requestAnimationFrame(() => requestAnimationFrame(() => {
-    wrapper.style.cssText = wrapper.style.cssText
-      .replace(/;?opacity:0!important/g, '')
-      .replace(/;?transition:none!important/g, '');
+    wrapper.classList.remove('kr-reordering');
   }));
 }
 
