@@ -402,6 +402,39 @@ const KR = {
   },
 
 
+  // ── LOGO SYNC ─────────────────────────────────────────────────────────────
+  _applyLogo(url) {
+    if (!url) return;
+    document.querySelectorAll('.logo-mark').forEach(el => {
+      el.innerHTML = '<img src="' + url + '" style="width:100%;height:100%;object-fit:contain;padding:3px;border-radius:inherit" alt="logo">';
+    });
+  },
+
+  async initLogo() {
+    // Apply cached logo immediately (fast path)
+    try {
+      const cached = localStorage.getItem('kr_logo_url');
+      if (cached) this._applyLogo(cached);
+    } catch(e) {}
+    // Fetch from Supabase — source of truth
+    try {
+      const res = await fetch(this._SUPA_URL + '/rest/v1/settings_store?select=logo_url&id=eq.1', {
+        headers: { 'apikey': this._SUPA_KEY, 'Authorization': 'Bearer ' + this._SUPA_KEY }
+      });
+      if (res.ok) {
+        const rows = await res.json();
+        if (rows && rows[0] && rows[0].logo_url) {
+          const url = rows[0].logo_url;
+          try { localStorage.setItem('kr_logo_url', url); } catch(e) {}
+          this._applyLogo(url);
+        } else {
+          // No logo set — clear cache
+          try { localStorage.removeItem('kr_logo_url'); } catch(e) {}
+        }
+      }
+    } catch(e) {}
+  },
+
   // ── STRIPE SYNC ──────────────────────────────────────────────────────────
   _applyStripe(s) {
     var el = document.getElementById('kr-stripe-css');
@@ -469,6 +502,7 @@ const KR = {
   // ── INIT ──────────────────────────────────────────────────────────────────
   init() {
     this.initStripe();
+    this.initLogo();
     this.injectWishStyles();
     this.updateCartBadge();
     this.updateWishBadge();
