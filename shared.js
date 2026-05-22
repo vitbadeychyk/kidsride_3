@@ -410,14 +410,14 @@ const KR = {
 
     if (logoUrl) {
       // ── РЕЖИМ COMBINED LOGO: зображення вже містить символ + текст ──────
-      // Хедер/Контент: замінюємо весь вміст <a class="logo"> на один <img>
+      // Хедер: замінюємо весь вміст <a class="logo"> на один <img>
       document.querySelectorAll('a.logo:not(.footer-logo)').forEach(anchor => {
         if (!anchor.dataset.krOrig) anchor.dataset.krOrig = anchor.innerHTML;
         anchor.innerHTML = '<img src="' + logoUrl + '" alt="' + name
           + '" style="height:42px;width:auto;max-width:240px;object-fit:contain;display:block">';
       });
 
-      // Футер (темний фон — додаємо brightness filter щоб логотип читався)
+      // Футер (темний фон — додаємо filter щоб логотип читався)
       document.querySelectorAll('a.footer-logo').forEach(anchor => {
         if (!anchor.dataset.krOrig) anchor.dataset.krOrig = anchor.innerHTML;
         anchor.innerHTML = '<img src="' + logoUrl + '" alt="' + name
@@ -442,14 +442,22 @@ const KR = {
       }
       if (sidebarText) sidebarText.style.display = 'none';
 
-      // Favicon
-      let link = document.querySelector("link[rel~='icon']");
-      if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
-      link.href = logoUrl;
-      link.type = logoUrl.startsWith('data:image/svg') || logoUrl.endsWith('.svg') ? 'image/svg+xml' : 'image/png';
-      let apple = document.querySelector("link[rel='apple-touch-icon']");
-      if (!apple) { apple = document.createElement('link'); apple.rel = 'apple-touch-icon'; document.head.appendChild(apple); }
-      apple.href = logoUrl;
+      // ── Favicon — видаляємо старий тег і додаємо новий (скидає кеш браузера) ──
+      const isSvgLogo = logoUrl.startsWith('data:image/svg') || logoUrl.endsWith('.svg');
+      const faviconType = isSvgLogo ? 'image/svg+xml' : 'image/png';
+      // Видаляємо всі старі favicon теги
+      document.querySelectorAll("link[rel*='icon']").forEach(el => el.remove());
+      // Додаємо новий favicon з cache-busting параметром
+      const faviconSrc = logoUrl.startsWith('data:') ? logoUrl : (logoUrl + (logoUrl.includes('?') ? '&' : '?') + '_kr=' + Date.now());
+      const newLink = document.createElement('link');
+      newLink.rel = 'icon';
+      newLink.type = faviconType;
+      newLink.href = faviconSrc;
+      document.head.appendChild(newLink);
+      const newApple = document.createElement('link');
+      newApple.rel = 'apple-touch-icon';
+      newApple.href = faviconSrc;
+      document.head.appendChild(newApple);
 
     } else {
       // ── РЕЖИМ ВІДНОВЛЕННЯ: логотип скинуто — повертаємо оригінал ────────
@@ -473,7 +481,7 @@ const KR = {
 
   // Завантажити бренд з Supabase і застосувати по всьому сайту
   async initBrand() {
-    // Спочатку швидко з localStorage кешу
+    // Спочатку швидко з localStorage кешу (для миттєвого відображення)
     try {
       const cached = JSON.parse(localStorage.getItem('kr_brand') || '{}');
       if (cached.logo_url || cached.shop_name) {
@@ -481,22 +489,47 @@ const KR = {
       }
     } catch(e) {}
 
-    // Потім синхронізуємо з Supabase (джерело правди для всіх пристроїв)
+    // Синхронізуємо з Supabase (джерело правди — завжди без кешу)
     try {
       const res = await fetch(this._SUPA_URL + '/rest/v1/settings_store?id=eq.1&select=logo_url,shop_name', {
-        headers: { 'apikey': this._SUPA_KEY, 'Authorization': 'Bearer ' + this._SUPA_KEY }
+        headers: {
+          'apikey': this._SUPA_KEY,
+          'Authorization': 'Bearer ' + this._SUPA_KEY,
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        },
+        cache: 'no-store'
       });
       if (res.ok) {
         const data = await res.json();
         if (data && data[0]) {
           const b = data[0];
           try { localStorage.setItem('kr_brand', JSON.stringify(b)); } catch(e) {}
-          if (b.logo_url || b.shop_name) {
-            this.applyBrandLogo(b.logo_url, b.shop_name);
-          }
+          // Застосовуємо навіть якщо обидва поля порожні (щоб скинути старий логотип)
+          this.applyBrandLogo(b.logo_url || '', b.shop_name || '');
         }
       }
     } catch(e) {}
+
+    // ── Слухаємо зміни з інших вкладок (адмінка → сайт в реальному часі) ──
+    if (!this._brandStorageListenerAdded) {
+      this._brandStorageListenerAdded = true;
+      window.addEventListener('storage', (e) => {
+        if (e.key === 'kr_brand' && e.newValue) {
+          try {
+            const b = JSON.parse(e.newValue);
+            this.applyBrandLogo(b.logo_url || '', b.shop_name || '');
+          } catch(err) {}
+        }
+        // Додатковий сигнал від адмінки (якщо kr_brand не змінився по контенту)
+        if (e.key === 'kr_brand_ts') {
+          try {
+            const cached = JSON.parse(localStorage.getItem('kr_brand') || '{}');
+            this.applyBrandLogo(cached.logo_url || '', cached.shop_name || '');
+          } catch(err) {}
+        }
+      });
+    }
   },
 
   // ── STRIPE SYNC ──────────────────────────────────────────────────────────
