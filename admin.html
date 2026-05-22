@@ -89,6 +89,29 @@ button{cursor:pointer;font-family:'Manrope',sans-serif}
 .tb-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .tb-notif{position:absolute;top:5px;right:5px;width:7px;height:7px;background:var(--orange);border-radius:50%;border:1.5px solid white}
 .tb-date{font-size:12px;color:var(--text-muted);font-weight:500}
+/* ── NOTIFICATION PANEL ── */
+#notifPanel{position:fixed;top:64px;right:12px;width:360px;background:white;border:1.5px solid var(--border);border-radius:var(--r-lg);box-shadow:0 8px 32px rgba(0,0,0,.12);z-index:9000;display:none;flex-direction:column;max-height:520px;overflow:hidden}
+#notifPanel.open{display:flex}
+.notif-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;border-bottom:1px solid var(--border);flex-shrink:0}
+.notif-head-title{font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;color:var(--navy)}
+.notif-mark-all{font-size:11px;color:var(--orange);cursor:pointer;font-weight:600;background:none;border:none;padding:0}
+.notif-mark-all:hover{text-decoration:underline}
+.notif-list{overflow-y:auto;flex:1;scrollbar-width:thin}
+.notif-item{display:flex;align-items:flex-start;gap:10px;padding:11px 16px;border-bottom:1px solid var(--border-light);cursor:pointer;transition:background .15s}
+.notif-item:hover{background:var(--bg-soft)}
+.notif-item.unread{background:#fffbf5}
+.notif-item.unread:hover{background:#fff3e0}
+.notif-icon{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px}
+.notif-body{flex:1;min-width:0}
+.notif-body-title{font-size:13px;font-weight:600;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.notif-body-sub{font-size:11px;color:var(--text-muted);margin-top:2px}
+.notif-time{font-size:10px;color:var(--text-muted);white-space:nowrap;flex-shrink:0;margin-top:2px}
+.notif-footer{padding:10px 16px;border-top:1px solid var(--border);text-align:center;flex-shrink:0}
+.notif-footer a{font-size:12px;color:var(--orange);font-weight:600;cursor:pointer;text-decoration:none}
+.notif-footer a:hover{text-decoration:underline}
+.notif-empty{padding:32px 16px;text-align:center;color:var(--text-muted);font-size:13px}
+#notifBadge{position:absolute;top:4px;right:4px;min-width:16px;height:16px;background:var(--orange);border-radius:8px;border:2px solid white;display:none;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:white;padding:0 3px;font-family:'Nunito',sans-serif}
+#notifBadge.show{display:flex}
 
 /* CONTENT */
 .content{flex:1;overflow-y:auto;padding:24px 28px;scrollbar-width:thin}
@@ -524,10 +547,23 @@ tr:hover td{background:rgba(240,242,248,.5)}
     </div>
     <div class="topbar-right">
       <div class="tb-date" id="tbDate"></div>
-      <button class="tb-btn" title="Сповіщення">
+      <button class="tb-btn" id="notifBtn" title="Сповіщення" onclick="toggleNotifPanel()" style="position:relative">
         <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-        <div class="tb-notif"></div>
+        <span id="notifBadge"></span>
       </button>
+      <!-- Панель сповіщень -->
+      <div id="notifPanel">
+        <div class="notif-head">
+          <span class="notif-head-title">🔔 Сповіщення</span>
+          <button class="notif-mark-all" onclick="markAllNotifRead()">Позначити всі як прочитані</button>
+        </div>
+        <div class="notif-list" id="notifList">
+          <div class="notif-empty">Завантаження…</div>
+        </div>
+        <div class="notif-footer">
+          <a onclick="closeNotifPanel();switchPanel('panel-orders')">Всі замовлення →</a>
+        </div>
+      </div>
       <button class="tb-btn" title="Перейти на сайт" onclick="window.open('index.html')">
         <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
       </button>
@@ -5188,11 +5224,153 @@ function initAdmin() {
   // Показати dashboard за замовчуванням
   showPanel('dashboard', document.querySelector('.nav-item'));
 
+  // Завантажити лічильник непрочитаних сповіщень у фоні
+  setTimeout(function() {
+    sbFetch('orders?select=id,created_at&order=created_at.desc&limit=12').then(function(orders) {
+      if (!orders || !orders.length) return;
+      var readIds = _getReadIds();
+      var unread = orders.filter(function(o) { return !readIds.has(String(o.id)); }).length;
+      _updateNotifBadge(unread);
+    }).catch(function() {});
+  }, 1500);
+
   // Рендер таблиці товарів якщо активна панель
   if(document.getElementById('panel-products')?.classList.contains('active')) {
     renderProductsTable();
   }
 }
+
+// ── NOTIFICATION PANEL ──────────────────────────────────────────────────────
+var _notifReadKey = 'kr_notif_read_ids';
+var _notifOpen = false;
+
+function _getReadIds() {
+  try { return new Set(JSON.parse(localStorage.getItem(_notifReadKey) || '[]')); } catch(e) { return new Set(); }
+}
+function _saveReadIds(set) {
+  try { localStorage.setItem(_notifReadKey, JSON.stringify([...set].slice(-200))); } catch(e) {}
+}
+
+function _notifTimeAgo(iso) {
+  var diff = (Date.now() - new Date(iso)) / 1000;
+  if (diff < 60)   return 'щойно';
+  if (diff < 3600) return Math.floor(diff/60) + ' хв тому';
+  if (diff < 86400) return Math.floor(diff/3600) + ' год тому';
+  return Math.floor(diff/86400) + ' дн тому';
+}
+
+function _notifStatusColor(st) {
+  var map = { 'Новий':'#f97316', 'В обробці':'#3b82f6', 'Відправлено':'#8b5cf6',
+              'Доставлено':'#10b981', 'Скасовано':'#ef4444' };
+  return map[st] || '#6b7280';
+}
+
+async function loadNotifPanel() {
+  var el = document.getElementById('notifList');
+  if (!el) return;
+  try {
+    var orders = await sbFetch('orders?select=id,order_number,status,total,created_at,customer_first_name,customer_last_name&order=created_at.desc&limit=12');
+    var readIds = _getReadIds();
+    var unread = 0;
+    if (!orders || !orders.length) {
+      el.innerHTML = '<div class="notif-empty">Замовлень поки немає</div>';
+      _updateNotifBadge(0);
+      return;
+    }
+    var html = orders.map(function(o) {
+      var isRead = readIds.has(String(o.id));
+      if (!isRead) unread++;
+      var num = o.order_number ? '#' + o.order_number : '#' + String(o.id).slice(0,8).toUpperCase();
+      var fio = [o.customer_first_name, o.customer_last_name].filter(Boolean).join(' ') || 'Клієнт';
+      var sum = o.total ? (Number(o.total).toLocaleString('uk-UA') + ' ₴') : '—';
+      var color = _notifStatusColor(o.status);
+      var icon = o.status === 'Новий' ? '🛒'
+               : o.status === 'Доставлено' ? '✅'
+               : o.status === 'Скасовано' ? '❌'
+               : o.status === 'Відправлено' ? '📦' : '🔄';
+      return '<div class="notif-item' + (isRead ? '' : ' unread') + '" onclick="notifClickOrder(\'' + o.id + '\')">'
+        + '<div class="notif-icon" style="background:' + color + '1a">' + icon + '</div>'
+        + '<div class="notif-body">'
+        + '<div class="notif-body-title">' + num + ' — ' + _escHtml(fio) + '</div>'
+        + '<div class="notif-body-sub">'
+        + '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + color + ';margin-right:4px;vertical-align:middle"></span>'
+        + _escHtml(o.status || '—') + ' · ' + sum + '</div>'
+        + '</div>'
+        + '<div class="notif-time">' + _notifTimeAgo(o.created_at) + '</div>'
+        + '</div>';
+    }).join('');
+    el.innerHTML = html;
+    _updateNotifBadge(unread);
+  } catch(e) {
+    el.innerHTML = '<div class="notif-empty">Помилка завантаження</div>';
+  }
+}
+
+function _updateNotifBadge(count) {
+  var badge = document.getElementById('notifBadge');
+  if (!badge) return;
+  if (count > 0) {
+    badge.textContent = count > 99 ? '99+' : String(count);
+    badge.classList.add('show');
+  } else {
+    badge.classList.remove('show');
+    badge.textContent = '';
+  }
+}
+
+function toggleNotifPanel() {
+  var panel = document.getElementById('notifPanel');
+  if (!panel) return;
+  _notifOpen = !_notifOpen;
+  if (_notifOpen) {
+    panel.classList.add('open');
+    loadNotifPanel();
+  } else {
+    panel.classList.remove('open');
+  }
+}
+
+function closeNotifPanel() {
+  var panel = document.getElementById('notifPanel');
+  if (panel) panel.classList.remove('open');
+  _notifOpen = false;
+}
+
+function notifClickOrder(id) {
+  // Позначаємо як прочитане
+  var readIds = _getReadIds();
+  readIds.add(String(id));
+  _saveReadIds(readIds);
+  closeNotifPanel();
+  // Переходимо в замовлення
+  if (typeof switchPanel === 'function') switchPanel('panel-orders');
+  else if (typeof showPanel === 'function') showPanel('orders', null);
+}
+
+function markAllNotifRead() {
+  var items = document.querySelectorAll('#notifList .notif-item');
+  // Читаємо всі поточні id з DOM
+  var readIds = _getReadIds();
+  // Знімаємо unread клас
+  items.forEach(function(item) {
+    item.classList.remove('unread');
+    var onc = item.getAttribute('onclick') || '';
+    var m = onc.match(/notifClickOrder\('([^']+)'\)/);
+    if (m) readIds.add(m[1]);
+  });
+  _saveReadIds(readIds);
+  _updateNotifBadge(0);
+}
+
+// Закриває панель при кліку поза нею
+document.addEventListener('click', function(e) {
+  if (!_notifOpen) return;
+  var panel = document.getElementById('notifPanel');
+  var btn   = document.getElementById('notifBtn');
+  if (panel && btn && !panel.contains(e.target) && !btn.contains(e.target)) {
+    closeNotifPanel();
+  }
+});
 
 // Запустити захист після завантаження всієї сторінки
 
