@@ -466,94 +466,9 @@ const KR = {
     if (q) window.location.href = 'catalog.html?search=' + encodeURIComponent(q);
   },
 
-
-  // ── BRAND LOGO (логотип по всьому сайту) ─────────────────────────────────
-  _SUPA_URL: 'https://xczrzdbikkycgpnvolib.supabase.co',
-  _SUPA_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ',
-
-  applyBrandLogo(logoUrl, shopName) {
-    const name = shopName || 'KidsRide';
-    if (logoUrl) {
-      // Хедер: замінюємо innerHTML <a class="logo"> (але не footer-logo)
-      document.querySelectorAll('a.logo:not(.footer-logo)').forEach(el => {
-        if (!el.dataset.krOrig) el.dataset.krOrig = el.innerHTML;
-        el.innerHTML = '<img src="' + logoUrl + '" alt="' + name +
-          '" style="height:40px;width:auto;max-width:220px;object-fit:contain;display:block">';
-      });
-      // Футер (темний фон — додаємо filter)
-      document.querySelectorAll('a.footer-logo').forEach(el => {
-        if (!el.dataset.krOrig) el.dataset.krOrig = el.innerHTML;
-        el.innerHTML = '<img src="' + logoUrl + '" alt="' + name +
-          '" style="height:36px;width:auto;max-width:200px;object-fit:contain;display:block;filter:brightness(0) invert(1)">';
-      });
-      // Мобільне меню
-      document.querySelectorAll('.mobile-drawer-logo').forEach(el => {
-        if (!el.dataset.krOrig) el.dataset.krOrig = el.innerHTML;
-        el.innerHTML = '<img src="' + logoUrl + '" alt="' + name +
-          '" style="height:32px;width:auto;max-width:160px;object-fit:contain;display:block">';
-      });
-      // Favicon — видаляємо старий тег і додаємо новий (скидає кеш браузера)
-      document.querySelectorAll("link[rel*='icon']").forEach(el => el.remove());
-      const isSvg = logoUrl.startsWith('data:image/svg') || logoUrl.endsWith('.svg');
-      const favSrc = logoUrl.startsWith('data:') ? logoUrl
-        : (logoUrl + (logoUrl.includes('?') ? '&' : '?') + '_t=' + Date.now());
-      const fav = document.createElement('link');
-      fav.rel = 'icon'; fav.type = isSvg ? 'image/svg+xml' : 'image/png';
-      fav.href = favSrc; document.head.appendChild(fav);
-      const apple = document.createElement('link');
-      apple.rel = 'apple-touch-icon'; apple.href = favSrc;
-      document.head.appendChild(apple);
-    } else {
-      // Відновлюємо оригінальний HTML логотипу
-      document.querySelectorAll('a.logo').forEach(el => {
-        if (el.dataset.krOrig) { el.innerHTML = el.dataset.krOrig; delete el.dataset.krOrig; }
-      });
-      document.querySelectorAll('.mobile-drawer-logo').forEach(el => {
-        if (el.dataset.krOrig) { el.innerHTML = el.dataset.krOrig; delete el.dataset.krOrig; }
-      });
-    }
-  },
-
-  async initBrand() {
-    // 1. Швидко з кешу
-    try {
-      const c = JSON.parse(localStorage.getItem('kr_brand') || '{}');
-      if (c.logo_url || c.shop_name) this.applyBrandLogo(c.logo_url, c.shop_name);
-    } catch(e) {}
-    // 2. Синхронізуємо з Supabase (джерело правди, без кешу)
-    try {
-      const r = await fetch(this._SUPA_URL + '/rest/v1/settings_store?id=eq.1&select=logo_url,shop_name', {
-        headers: { 'apikey': this._SUPA_KEY, 'Authorization': 'Bearer ' + this._SUPA_KEY,
-                   'Cache-Control': 'no-cache', 'Pragma': 'no-cache' },
-        cache: 'no-store'
-      });
-      if (r.ok) {
-        const d = await r.json();
-        if (d && d[0]) {
-          try { localStorage.setItem('kr_brand', JSON.stringify(d[0])); } catch(e) {}
-          this.applyBrandLogo(d[0].logo_url || '', d[0].shop_name || '');
-        }
-      }
-    } catch(e) {}
-    // 3. Слухаємо оновлення від адмінки (cross-tab)
-    if (!this._brandListener) {
-      this._brandListener = true;
-      window.addEventListener('storage', (e) => {
-        if (e.key === 'kr_brand' && e.newValue) {
-          try { const b = JSON.parse(e.newValue); this.applyBrandLogo(b.logo_url||'', b.shop_name||''); }
-          catch(_){}
-        }
-        if (e.key === 'kr_brand_ts') {
-          try { const c = JSON.parse(localStorage.getItem('kr_brand')||'{}');
-            this.applyBrandLogo(c.logo_url||'', c.shop_name||''); } catch(_){}
-        }
-      });
-    }
-  },
-
   // ── INIT ──────────────────────────────────────────────────────────────────
   init() {
-    
+    this.initStripe();
     this.injectWishStyles();
     this.updateCartBadge();
     this.updateWishBadge();
