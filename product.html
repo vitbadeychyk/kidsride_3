@@ -1774,6 +1774,7 @@ async function _krTrackView(productId, productName, productSku) {
         product_name: productName,
         product_sku: productSku,
         session_id: sid,
+        user_agent: navigator.userAgent || '',
         viewed_at: new Date().toISOString()
       })
     });

@@ -1417,6 +1417,17 @@ tr:hover td{background:rgba(240,242,248,.5)}
         </div>
       </div>
 
+      <div class="charts-row" style="margin-top:0">
+        <div class="chart-card" style="flex:1;min-width:180px">
+          <div class="chart-head"><h3 class="chart-title">📱 Пристрої</h3></div>
+          <div id="paDeviceChart"><div style="color:var(--text-muted);font-size:13px;padding:8px 0">Завантаження…</div></div>
+        </div>
+        <div class="chart-card" style="flex:2">
+          <div class="chart-head"><h3 class="chart-title">💻 Операційна система</h3><span style="font-size:11px;color:var(--text-muted);font-weight:500">унікальних сесій</span></div>
+          <div id="paOsChart"><div style="color:var(--text-muted);font-size:13px;padding:8px 0">Завантаження…</div></div>
+        </div>
+      </div>
+
       <div class="table-card">
         <div class="table-head">
           <span class="table-head-title">Топ переглянутих товарів</span>
@@ -1429,9 +1440,9 @@ tr:hover td{background:rgba(240,242,248,.5)}
             <th style="width:36px">#</th>
             <th>Назва товару</th>
             <th>Артикул</th>
-            <th onclick="paSortBy('views')" style="cursor:pointer">Переглядів ▾</th>
-            <th onclick="paSortBy('sessions')" style="cursor:pointer">Сесій</th>
-            <th>Остання дія</th>
+            <th onclick="paSortBy('views')" style="cursor:pointer" id="paTh-views">Переглядів ▾</th>
+            <th onclick="paSortBy('sessions')" style="cursor:pointer" id="paTh-sessions">Сесій</th>
+            <th onclick="paSortBy('lastSeen')" style="cursor:pointer" id="paTh-lastSeen">Остання дія</th>
             <th>Динаміка (7 дн.)</th>
           </tr></thead>
           <tbody id="paTableBody">
@@ -7312,7 +7323,7 @@ async function loadProductAnalytics(from, to) {
   ['pa-total-views','pa-unique-products','pa-unique-sessions','pa-avg-day'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='—';});
   const hdrs = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY };
   try {
-    const url = SUPABASE_URL + '/rest/v1/product_views?select=product_id,product_name,product_sku,session_id,viewed_at'
+    const url = SUPABASE_URL + '/rest/v1/product_views?select=product_id,product_name,product_sku,session_id,user_agent,viewed_at'
       + '&viewed_at=gte.' + from.toISOString()
       + '&viewed_at=lte.' + to.toISOString()
       + '&order=viewed_at.asc&limit=10000';
@@ -7416,12 +7427,100 @@ function renderProductAnalyticsUI(from, to) {
   });
   _paTableData = Object.values(prodMap).map(p => ({...p, sessions: p.sessions.size}));
   paSortBy(_paSortCol, true);
+
+  // ── Device / OS analytics ─────────────────────────────────────────────
+  const sessDevMap = {};
+  data.forEach(r => {
+    if (!sessDevMap[r.session_id]) sessDevMap[r.session_id] = _detectDevice(r.user_agent || '');
+  });
+  const devCounts = { mobile:0, desktop:0, tablet:0 };
+  const osCounts  = {};
+  Object.values(sessDevMap).forEach(d => {
+    devCounts[d.type] = (devCounts[d.type] || 0) + 1;
+    osCounts[d.os]    = (osCounts[d.os]    || 0) + 1;
+  });
+  const totalSess = Object.values(devCounts).reduce((a,b)=>a+b,0) || 1;
+  const hasUA = data.some(r => r.user_agent);
+
+  // Render device breakdown
+  const devEl = document.getElementById('paDeviceChart');
+  if (devEl) {
+    if (!hasUA) {
+      devEl.innerHTML = '<div style="color:var(--text-muted);font-size:12px;padding:4px 0">Дані з\'являться після оновлення product.html та SQL-міграції</div>';
+    } else {
+      const devCfg = [
+        { key:'mobile',  name:'Мобільні',  color:'var(--orange)', icon:'<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>' },
+        { key:'desktop', name:'Десктоп',   color:'var(--blue)',   icon:'<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>' },
+        { key:'tablet',  name:'Планшет',   color:'var(--green)',  icon:'<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="9" y1="7" x2="15" y2="7"/></svg>' },
+      ];
+      devEl.innerHTML = devCfg.map(d => {
+        const n   = devCounts[d.key] || 0;
+        const pct = Math.round(n / totalSess * 100);
+        return `<div class="device-item">
+          <div class="device-name">${d.icon}&nbsp;${d.name}</div>
+          <div style="flex:1;margin:0 10px;height:6px;background:var(--border);border-radius:3px;overflow:hidden">
+            <div style="height:100%;background:${d.color};border-radius:3px;width:${pct}%"></div>
+          </div>
+          <div class="device-pct" style="color:${d.color}">${pct}%<span style="font-size:11px;color:var(--text-muted);font-weight:500;margin-left:3px">(${n})</span></div>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // Render OS breakdown
+  const osEl = document.getElementById('paOsChart');
+  if (osEl) {
+    if (!hasUA) {
+      osEl.innerHTML = '<div style="color:var(--text-muted);font-size:12px;padding:4px 0">Потрібна SQL-міграція: <code style="background:var(--bg);padding:1px 5px;border-radius:4px;font-size:11px">ALTER TABLE product_views ADD COLUMN IF NOT EXISTS user_agent text;</code></div>';
+    } else {
+      const osSorted = Object.entries(osCounts).sort((a,b)=>b[1]-a[1]);
+      const osMax = osSorted[0]?.[1] || 1;
+      const osColors = { 'iOS':'#007AFF','Android':'#3DDC84','Windows':'#0078D4','macOS':'#636366','Linux':'#E8A000','ChromeOS':'#4285F4','iPadOS':'#5856D6','Windows Phone':'#00AFF0','Інше':'#aaa','Невідомо':'#ccc' };
+      osEl.innerHTML = osSorted.slice(0,8).map(([os, n]) => {
+        const barPct  = Math.round(n / osMax * 100);
+        const totPct  = Math.round(n / totalSess * 100);
+        const color   = osColors[os] || '#aaa';
+        return `<div class="device-item">
+          <div class="device-name" style="min-width:95px;color:var(--navy)">${_escHtml(os)}</div>
+          <div style="flex:1;margin:0 10px;height:6px;background:var(--border);border-radius:3px;overflow:hidden">
+            <div style="height:100%;border-radius:3px;width:${barPct}%;background:${color}"></div>
+          </div>
+          <div style="font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;color:${color};white-space:nowrap">${totPct}%<span style="font-size:11px;color:var(--text-muted);font-weight:500;margin-left:3px">(${n})</span></div>
+        </div>`;
+      }).join('');
+    }
+  }
+}
+
+function _detectDevice(ua) {
+  if (!ua) return { type: 'desktop', os: 'Невідомо' };
+  let type = 'desktop', os = 'Інше';
+  if (/iPad/.test(ua) || (/Macintosh/.test(ua) && /Touch/.test(ua))) { type = 'tablet'; os = 'iPadOS'; }
+  else if (/iPhone/.test(ua)) { type = 'mobile'; os = 'iOS'; }
+  else if (/Android/.test(ua)) { type = /Mobile/.test(ua) ? 'mobile' : 'tablet'; os = 'Android'; }
+  else if (/Windows Phone/.test(ua)) { type = 'mobile'; os = 'Windows Phone'; }
+  else if (/CrOS/.test(ua)) { type = 'desktop'; os = 'ChromeOS'; }
+  else if (/Windows/.test(ua)) { type = 'desktop'; os = 'Windows'; }
+  else if (/Mac OS X/.test(ua)) { type = 'desktop'; os = 'macOS'; }
+  else if (/Linux/.test(ua)) { type = 'desktop'; os = 'Linux'; }
+  return { type, os };
 }
 
 function paSortBy(col, keepDir) {
   if(!keepDir) _paSortDir = (_paSortCol===col) ? -_paSortDir : -1;
   _paSortCol = col;
-  _paTableData.sort((a,b) => _paSortDir * (b[col] - a[col]));
+  if (col === 'lastSeen') {
+    _paTableData.sort((a,b) => _paSortDir * (new Date(b.lastSeen||0).getTime() - new Date(a.lastSeen||0).getTime()));
+  } else {
+    _paTableData.sort((a,b) => _paSortDir * (b[col] - a[col]));
+  }
+  // Update header arrows
+  const cols = { views:'Переглядів', sessions:'Сесій', lastSeen:'Остання дія' };
+  Object.entries(cols).forEach(([c, label]) => {
+    const th = document.getElementById('paTh-' + c);
+    if (!th) return;
+    th.textContent = label + (c === col ? (_paSortDir === -1 ? ' ▾' : ' ▴') : '');
+  });
   paRenderTable();
 }
 
