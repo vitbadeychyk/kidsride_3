@@ -133,8 +133,8 @@ nav a.active{color:var(--orange)}
 .swiper-hero:not(.swiper-initialized) .swiper-slide:first-child{opacity:1!important;pointer-events:auto;position:relative;z-index:1}
 /* Вимикаємо будь-які переходи до ініціалізації Swiper — усуває "просвічування" сусідніх слайдів під час DOM-перестановки в _krApplySlides */
 .swiper-hero:not(.swiper-initialized) .swiper-slide{transition:none!important;}
-/* Клас що тимчасово ховає враппер під час перестановки слайдів */
-.swiper-hero .swiper-wrapper.kr-reordering{opacity:0!important;transition:none!important;}
+/* Фізично приховуємо всі слайди крім першого до ініціалізації Swiper — жодного overlap неможливо */
+.swiper-hero:not(.swiper-initialized) .swiper-slide:not(:first-child){display:none!important;}
 .hero-slide{position:relative;width:100%;height:100%;display:flex;align-items:center;overflow:hidden}
 .s1{background:linear-gradient(135deg,#1B2A4A 0%,#243660 100%)}
 .s2{background:linear-gradient(135deg,#0f1e36 0%,#1b3a6b 100%)}
@@ -1893,8 +1893,6 @@ function _krApplySlides(saved){
   if (!Array.isArray(saved) || !saved.length) return;
   const wrapper = document.querySelector('.swiper-hero .swiper-wrapper');
   if (!wrapper) return;
-  // Ховаємо враппер до завершення перестановки — усуває будь-яке "просвічування" між слайдами
-  wrapper.classList.add('kr-reordering');
   const existing = {};
   wrapper.querySelectorAll('.swiper-slide').forEach(el => {
     const id = el.getAttribute('data-slide-id');
@@ -1929,10 +1927,6 @@ function _krApplySlides(saved){
     const first = Object.values(existing)[0];
     if (first) wrapper.appendChild(first);
   }
-  // Показуємо враппер після завершення перестановки (2 rAF = гарантовано після рендеру)
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    wrapper.classList.remove('kr-reordering');
-  }));
 }
 
 // Stable signature of slide settings — used to detect real changes
@@ -1964,25 +1958,51 @@ window._krAppliedSlidesSig = '';
     window._krAppliedSlidesSig = _krSlidesSig(cached);
   }
 
-  // 2) Then refresh from Supabase in background and re-apply ONLY if changed
+  // 2) Швидкий запит: тільки перший слайд (1/3 трафіку) → фото з'являється без затримки
   const SUPA_URL = 'https://xczrzdbikkycgpnvolib.supabase.co';
   const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
-  fetch(SUPA_URL + '/rest/v1/slides?select=*&order=sort_order.asc', {
-    headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
-  }).then(r => r.ok ? r.json() : null).then(data => {
+  const _H = { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY };
+  fetch(SUPA_URL + '/rest/v1/slides?select=id,sort_order,enabled,image&order=sort_order.asc&limit=1', { headers: _H })
+    .then(r => r.ok ? r.json() : null).then(first => {
+      if (!Array.isArray(first) || !first[0] || !first[0].image) return;
+      const s = first[0];
+      const tpl = document.querySelector('.swiper-hero .swiper-slide[data-slide-id="' + s.id + '"]');
+      if (!tpl) return;
+      const card = tpl.querySelector('.hero-img-card');
+      // Застосовуємо тільки якщо ще не завантажено з кешу
+      if (card && !card.querySelector('img')) {
+        card.innerHTML = '<img src="' + _krEscAttr(s.image) + '" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" fetchpriority="high">';
+      }
+    }).catch(() => {});
+
+  // 3) Повний фоновий запит: всі слайди, всі поля — тільки оновлює кеш і фото без перезапуску Swiper
+  fetch(SUPA_URL + '/rest/v1/slides?select=*&order=sort_order.asc', { headers: _H })
+  .then(r => r.ok ? r.json() : null).then(data => {
     if (!Array.isArray(data) || !data.length) return;
     const newSig = _krSlidesSig(data);
-    // Always refresh local cache for next visit
+    // Завжди оновлюємо кеш для наступного відвідування
     try { localStorage.setItem('kr_slides', JSON.stringify(data)); } catch(e) {}
-    // No visible change → skip destroy/reinit to avoid the flash
+    // Нічого не змінилось — нічого не робимо
     if (newSig && newSig === window._krAppliedSlidesSig) return;
 
-    // Preserve currently visible slide so a real change doesn't reset to slide 1
+    // Якщо Swiper вже запущено — просто оновлюємо зображення в картках без destroy/reinit
+    if (window.heroSwiper && window.heroSwiper.el) {
+      data.forEach(s => {
+        if (!s.image) return;
+        const tpl = document.querySelector('.swiper-hero .swiper-slide[data-slide-id="' + s.id + '"]');
+        if (!tpl) return;
+        const card = tpl.querySelector('.hero-img-card');
+        if (card) card.innerHTML = '<img src="' + _krEscAttr(s.image) + '" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block">';
+      });
+      window._krAppliedSlidesSig = newSig;
+      return;
+    }
+
+    // Swiper ще не ініціалізовано — повне застосування
     let preservedIdx = 0;
     if (window.heroSwiper && typeof window.heroSwiper.realIndex === 'number') {
       preservedIdx = window.heroSwiper.realIndex;
     }
-
     if (window.heroSwiper && window.heroSwiper.destroy) {
       try { window.heroSwiper.destroy(true, true); } catch(e) {}
     }
