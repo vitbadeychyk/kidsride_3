@@ -2015,7 +2015,20 @@ window._krAppliedSlidesSig = '';
         loop: true, autoplay: { delay: 5500, disableOnInteraction: false },
         speed: 900, effect: 'fade', fadeEffect: { crossFade: true },
         initialSlide: initSlide,
-        on: { slideChange() { updatePag(this.realIndex); } }
+        on: {
+          init(swiper) {
+            swiper.slides.forEach(slide => {
+              slide.style.transition = 'none';
+              if (!slide.classList.contains('swiper-slide-active')) {
+                slide.style.opacity = '0';
+              }
+            });
+            requestAnimationFrame(() => {
+              swiper.slides.forEach(slide => { slide.style.transition = ''; });
+            });
+          },
+          slideChange() { updatePag(this.realIndex); }
+        }
       });
       // Rewire pagination dots count
       if (pag) {
@@ -2043,6 +2056,21 @@ window.heroSwiper = new Swiper('.swiper-hero', {
   effect: 'fade',
   fadeEffect: { crossFade: true },
   on: {
+    // init: миттєво прибираємо будь-який opacity > 0 з неактивних слайдів
+    // (loop вставляє clone-slide-3 перед slide-1 → він міг отримати opacity:1 і
+    //  потім плавно зникати протягом 0.9s — саме це бачив юзер як "overlap")
+    init(swiper) {
+      swiper.slides.forEach(slide => {
+        slide.style.transition = 'none';
+        if (!slide.classList.contains('swiper-slide-active')) {
+          slide.style.opacity = '0';
+        }
+      });
+      // Повертаємо transition після наступного paint, щоб подальші слайди фейдились нормально
+      requestAnimationFrame(() => {
+        swiper.slides.forEach(slide => { slide.style.transition = ''; });
+      });
+    },
     slideChange() { updatePag(this.realIndex); }
   }
 });
