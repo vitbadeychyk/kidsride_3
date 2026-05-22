@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 160" fill="none">
-  <!-- Minimal dash mark — speed/motion lines -->
-  <rect x="38" y="28" width="144" height="10" rx="5" fill="#1B2A4A"/>
-  <rect x="58" y="46" width="104" height="10" rx="5" fill="#FF6B35"/>
-  <rect x="78" y="64" width="64" height="10" rx="5" fill="#1B2A4A"/>
-  <!-- Wordmark -->
-  <text x="110" y="112" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-weight="900" font-size="38" letter-spacing="-1" fill="#1B2A4A" text-anchor="middle">Kids</text>
-  <text x="110" y="148" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-weight="900" font-size="38" letter-spacing="-1" fill="#FF6B35" text-anchor="middle">Ride</text>
-</svg>
