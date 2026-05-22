@@ -1914,9 +1914,8 @@ function selectVehicleType(code, parentId) {
 async function loadProductsFromSupabase() {
   try {
     // Завантажуємо всі товари посторінково (Supabase ліміт 1000 на запит)
-    // Фільтрування по категорії виконується клієнтськи через _activeCatIdFilter
     const PAGE = 1000;
-    const FETCH_TIMEOUT = 20000; // 20 секунд на кожен запит
+    const FETCH_TIMEOUT = 20000;
     let all = [];
     let from = 0;
 
@@ -1924,7 +1923,7 @@ async function loadProductsFromSupabase() {
       const ctrl = new AbortController();
       const tid = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT);
       return fetch(
-        SUPABASE_URL + '/rest/v1/products?select=id,sku,model_code,color,name,brand,price,old_price,category,category_id,voltage,age_range,stock,preorder_days,badge,img_type,images,active,created_at&active=eq.true&order=created_at.desc',
+        SUPABASE_URL + '/rest/v1/products?select=id,sku,model_code,color,name,brand,price,old_price,category,category_id,voltage,age_range,stock,preorder_days,badge,img_type,images,active,created_at,description,short_desc&active=eq.true&order=created_at.desc',
         {
           signal: ctrl.signal,
           headers: {
@@ -1941,9 +1940,7 @@ async function loadProductsFromSupabase() {
 
     while (true) {
       const res = await _fetchPage(from);
-
       if (!res.ok && res.status !== 206) throw new Error('Supabase error: ' + res.status);
-
       const data = await res.json();
       if (!Array.isArray(data) || data.length === 0) break;
       all = all.concat(data);
@@ -1951,30 +1948,112 @@ async function loadProductsFromSupabase() {
       from += PAGE;
     }
 
+    // ── Завантажуємо власний залишок (ostatok) паралельно ─────────────────────
+    // Логіка: якщо товар відсутній у постачальника (products.stock <= 0),
+    // але є на власному складі (ostatok.quantity > 0) → показуємо як «в наявності»
+    // Якщо артикулу немає в products взагалі — створюємо синтетичний запис з ostatok
+    let ostatokRows = [];
+    try {
+      const osRes = await fetch(
+        SUPABASE_URL + '/rest/v1/ostatok?select=id,sku,color,quantity,sell_price,old_price,active,images,category_id,short_desc&quantity=gt.0&active=eq.true',
+        { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
+      );
+      if (osRes.ok) ostatokRows = await osRes.json();
+    } catch(_) {}
+
+    if (ostatokRows.length > 0) {
+      // Індекс products за sku (lower) + color (lower) для швидкого пошуку
+      const bySkuColor = {};
+      const bySku = {};
+      all.forEach((p, idx) => {
+        if (!p.sku) return;
+        const sk = p.sku.trim().toLowerCase();
+        const cl = (p.color || '').trim().toLowerCase();
+        bySkuColor[sk + '|' + cl] = idx;
+        if (!(sk in bySku)) bySku[sk] = idx; // перший збіг по sku без кольору
+      });
+
+      const syntheticProducts = [];
+      ostatokRows.forEach(os => {
+        if (!os.sku || os.quantity <= 0) return;
+        const sk = os.sku.trim().toLowerCase();
+        const cl = (os.color || '').trim().toLowerCase();
+        const keyFull = sk + '|' + cl;
+        const keyNoColor = sk + '|';
+
+        // Шукаємо збіг в products (спочатку з кольором, потім без)
+        let idx = bySkuColor[keyFull];
+        if (idx === undefined && cl) idx = bySkuColor[keyNoColor];
+        if (idx === undefined) idx = bySku[sk];
+
+        if (idx !== undefined) {
+          // ✅ Артикул є в products — якщо там stock <= 0, перекриваємо з ostatok
+          const existing = all[idx];
+          if (existing.stock == null || existing.stock <= 0) {
+            existing.stock = os.quantity;
+          }
+          // Якщо description порожній — підставляємо short_desc з ostatok
+          if (!existing.description && !existing.short_desc && os.short_desc) {
+            existing.short_desc = os.short_desc;
+          }
+        } else {
+          // 🆕 Артикулу немає в products — синтетичний запис з ostatok
+          syntheticProducts.push({
+            id:          'os_' + os.id,
+            sku:         os.sku,
+            model_code:  null,
+            color:       os.color || null,
+            name:        os.sku,
+            brand:       '',
+            price:       parseFloat(os.sell_price) || 0,
+            old_price:   os.old_price ? parseFloat(os.old_price) : null,
+            category:    null,
+            category_id: os.category_id || null,
+            voltage:     null,
+            age_range:   null,
+            stock:       os.quantity,
+            preorder_days: 0,
+            badge:       null,
+            img_type:    'jeep',
+            images:      Array.isArray(os.images) ? os.images : [],
+            active:      true,
+            created_at:  new Date(0).toISOString(),
+            description: null,
+            short_desc:  os.short_desc || null,
+            _fromOstatok: true
+          });
+        }
+      });
+      all = all.concat(syntheticProducts);
+    }
+
     if (all.length > 0) {
       // Конвертувати формат Supabase → формат сайту
       return all.map(p => ({
-        id: p.id,
-        sku: p.sku,
-        model_code: p.model_code || null,
-        modelCode: p.model_code || null,
-        color: p.color || null,
-        name: p.name,
-        brand: p.brand || 'Bambi Racer',
-        price: parseFloat(p.price),
-        oldPrice: p.old_price ? parseFloat(p.old_price) : null,
-        category: p.category,
-        category_id: p.category_id ?? null,
-        voltage: p.voltage || null,
-        age: p.age_range || null,
-        stock: p.stock ?? null,
+        id:           p.id,
+        sku:          p.sku,
+        model_code:   p.model_code || null,
+        modelCode:    p.model_code || null,
+        color:        p.color || null,
+        name:         p.name,
+        brand:        p.brand || 'Bambi Racer',
+        price:        parseFloat(p.price),
+        oldPrice:     p.old_price ? parseFloat(p.old_price) : null,
+        category:     p.category,
+        category_id:  p.category_id ?? null,
+        voltage:      p.voltage || null,
+        age:          p.age_range || null,
+        stock:        p.stock ?? null,
         preorderDays: p.preorder_days || 0,
-        badge: p.badge,
-        img: p.img_type || 'jeep',
-        features: Array.isArray(p.features) ? p.features : [],
-        images: Array.isArray(p.images) ? p.images : [],
-        active: p.active,
-        addedAt: new Date(p.created_at).getTime()
+        badge:        p.badge,
+        img:          p.img_type || 'jeep',
+        features:     Array.isArray(p.features) ? p.features : [],
+        images:       Array.isArray(p.images) ? p.images : [],
+        active:       p.active,
+        addedAt:      new Date(p.created_at).getTime(),
+        // Опис: з products.description → products.short_desc → ostatok.short_desc
+        description:  p.description || p.short_desc || null,
+        _fromOstatok: p._fromOstatok || false
       }));
     }
   } catch(e) {
@@ -2158,7 +2237,7 @@ async function renderCatalog() {
   }
 
   // ── Крок 1: Показати кешовані товари ОДРАЗУ (якщо є в localStorage) ─────
-  const PRODUCTS_CACHE_KEY = 'kidsride_products_v4'; // v3: stock null fix (was p.stock||0)
+  const PRODUCTS_CACHE_KEY = 'kidsride_products_v5'; // v5: ostatok merge (show own warehouse stock)
   let cached = null;
   try {
     const raw = localStorage.getItem(PRODUCTS_CACHE_KEY);
