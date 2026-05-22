@@ -2344,7 +2344,7 @@ function applyFiltersAndRender() {
   // Оновити лічильник
   const countEl = document.getElementById('catalogCount');
   if (countEl) {
-    const _noFilter = !_activeCatIdFilter && !_activeParentIdFilter && !_activeVehicleType && !_isDefaultMode
+    const _noFilter = !_activeCatIdFilter && !_activeParentIdFilter && !_activeVehicleType
       && !activeFilters.types.length && !activeFilters.ages.length
       && !activeFilters.brands.length && !activeFilters.voltages.length && !activeFilters.search;
     countEl.textContent = (_noFilter
