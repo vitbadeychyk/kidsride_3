@@ -131,6 +131,8 @@ nav a.active{color:var(--orange)}
 .swiper-hero .swiper-slide.swiper-slide-active{opacity:1!important;pointer-events:auto;position:relative;z-index:1}
 /* Fallback: якщо Swiper ще не ініціалізувався — показати перший слайд як активний */
 .swiper-hero:not(.swiper-initialized) .swiper-slide:first-child{opacity:1!important;pointer-events:auto;position:relative;z-index:1}
+/* Вимикаємо будь-які переходи до ініціалізації Swiper — усуває "просвічування" сусідніх слайдів під час DOM-перестановки в _krApplySlides */
+.swiper-hero:not(.swiper-initialized) .swiper-slide{transition:none!important;}
 .hero-slide{position:relative;width:100%;height:100%;display:flex;align-items:center;overflow:hidden}
 .s1{background:linear-gradient(135deg,#1B2A4A 0%,#243660 100%)}
 .s2{background:linear-gradient(135deg,#0f1e36 0%,#1b3a6b 100%)}
