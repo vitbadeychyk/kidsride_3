@@ -1903,6 +1903,33 @@ tr:hover td{background:rgba(240,242,248,.5)}
       <!-- TAB: APPEARANCE -->
       <div class="settings-section" id="stab-appearance">
         <div class="import-card" style="margin-bottom:16px">
+          <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:18px;color:var(--navy)">📂 Дефолтна категорія каталогу</h3>
+          <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Оберіть, які товари показуються покупцям коли вони відкривають каталог або скидають фільтри. Категорія <b>не буде підсвічена</b> — товари просто фільтруються без активного вибору.</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:end">
+            <div class="f-group" style="margin:0">
+              <label class="f-label">Тип транспорту (підкатегорія)</label>
+              <select id="cfg_default_vehicle_type" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:'Manrope',sans-serif;font-size:13px;color:var(--navy);background:white;outline:none">
+                <option value="">— Всі товари (без фільтру) —</option>
+                <option value="jeep">🚙 Джипи</option>
+                <option value="quad">🏎️ Квадроцикли</option>
+                <option value="moto">🏍️ Мотоцикли</option>
+                <option value="car">🚗 Машини</option>
+                <option value="tractor">🚜 Трактори</option>
+                <option value="truck">🚛 Вантажівки</option>
+                <option value="buggy">🏁 Баггі</option>
+                <option value="walker">🛴 Каталки-толокари</option>
+              </select>
+            </div>
+            <div style="margin:0">
+              <button class="btn btn-primary btn-sm" onclick="saveDefaultCatalogCat()" style="width:100%;justify-content:center">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                Зберегти
+              </button>
+            </div>
+          </div>
+          <div id="defaultCatStatus" style="margin-top:10px;font-size:12px;color:var(--green);display:none">✅ Збережено! Каталог буде показувати обраний тип за замовчуванням.</div>
+        </div>
+        <div class="import-card" style="margin-bottom:16px">
           <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:18px;color:var(--navy)">🎨 Брендові кольори</h3>
           <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px">
             <div class="f-group">
@@ -5568,6 +5595,32 @@ function _cacheSettings(obj) {
   localStorage.setItem(SETTINGS_KEY, JSON.stringify({ ...loadSettings(), ...obj }));
 }
 
+// ── DEFAULT CATALOG CATEGORY ─────────────────────────────────
+function saveDefaultCatalogCat() {
+  const vehicleType = document.getElementById('cfg_default_vehicle_type')?.value || '';
+  try {
+    localStorage.setItem('kr_default_catalog', JSON.stringify({ vehicleType }));
+  } catch(e) {}
+  const status = document.getElementById('defaultCatStatus');
+  if (status) {
+    status.style.display = 'block';
+    setTimeout(() => { status.style.display = 'none'; }, 3000);
+  }
+}
+function _loadDefaultCatalogCatIntoForm() {
+  try {
+    const saved = localStorage.getItem('kr_default_catalog');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      const sel = document.getElementById('cfg_default_vehicle_type');
+      if (sel && parsed.vehicleType !== undefined) sel.value = parsed.vehicleType;
+    } else {
+      const sel = document.getElementById('cfg_default_vehicle_type');
+      if (sel) sel.value = 'jeep';
+    }
+  } catch(e) {}
+}
+
 // ── PAYMENT METHODS CRUD ──────────────────────────────────────
 const PAY_METHODS_KEY = 'kr_payment_methods';
 const PAY_METHODS_DEFAULT = [
@@ -5805,6 +5858,7 @@ async function renderSettings() {
   _setField('cfg_free_shipping_from',   del.free_shipping_from || '');
 
   // ── Вигляд ──
+  _loadDefaultCatalogCatIntoForm();
   const a = d.appearance;
   if (a.color_primary) {
     _setField('cfg_color_primary', a.color_primary);
