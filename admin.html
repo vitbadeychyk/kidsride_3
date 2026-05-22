@@ -1426,74 +1426,14 @@ tr:hover td{background:rgba(240,242,248,.5)}
         <div class="import-card" style="margin-bottom:16px">
           <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:18px;color:var(--navy)">Основна інформація</h3>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-            <div class="f-group"><label class="f-label">Назва магазину</label><input id="cfg_shop_name" type="text" placeholder="KidsRide" oninput="updateLogoPreviewName(this.value)"></div>
+            <div class="f-group"><label class="f-label">Назва магазину</label><input id="cfg_shop_name" type="text" placeholder="KidsRide"></div>
             <div class="f-group"><label class="f-label">Слоган / підзаголовок</label><input id="cfg_shop_tagline" type="text" placeholder="Дитячий транспорт"></div>
             <div class="f-group"><label class="f-label">Телефон</label><input id="cfg_phone" type="text" placeholder="+380 XX XXX XX XX"></div>
             <div class="f-group"><label class="f-label">Email для покупців</label><input id="cfg_email" type="email" placeholder="info@kidsride.com.ua"></div>
             <div class="f-group"><label class="f-label">Робочі години</label><input id="cfg_hours" type="text" placeholder="Пн–Пт 9:00–18:00"></div>
             <div class="f-group"><label class="f-label">Місто / Адреса</label><input id="cfg_address" type="text" placeholder="м. Київ, вул. ..."></div>
           </div>
-          <!-- ─── БЛОК КЕРУВАННЯ ЛОГОТИПОМ ─── -->
-          <div style="margin-top:16px;border:1.5px solid var(--border);border-radius:var(--r);padding:18px;background:var(--bg)">
-            <div style="font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;color:var(--navy);margin-bottom:14px;display:flex;align-items:center;gap:8px">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-              Логотип магазину
-            </div>
-
-            <!-- Прев'ю поточного логотипу + назви -->
-            <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;padding:14px;background:white;border-radius:var(--r-sm);border:1px solid var(--border)">
-              <div id="logoPreviewBox" style="width:52px;height:52px;border-radius:10px;background:var(--orange);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(255,107,53,.3);overflow:hidden">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect x="9" y="11" width="14" height="10" rx="2"/><circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/></svg>
-              </div>
-              <div style="flex:1;min-width:0">
-                <div id="logoPreviewName" style="font-family:'Nunito',sans-serif;font-weight:900;font-size:18px;color:var(--navy)">Kids<span style="color:var(--orange)">Ride</span></div>
-                <div style="font-size:11px;color:var(--text-muted);margin-top:2px" id="logoPreviewStatus">Стандартний логотип</div>
-              </div>
-              <button type="button" onclick="clearLogoSettings()" title="Скинути логотип до стандартного" style="background:none;border:none;cursor:pointer;padding:6px;border-radius:6px;color:var(--text-muted);transition:color .2s" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.57"/></svg>
-              </button>
-            </div>
-
-            <!-- Завантажити файл -->
-            <div style="margin-bottom:12px">
-              <label style="font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:6px">Завантажити зображення</label>
-              <div style="display:flex;gap:8px;align-items:center">
-                <label style="flex:1;display:flex;align-items:center;gap:8px;padding:9px 14px;border:1.5px dashed var(--border);border-radius:var(--r-sm);cursor:pointer;transition:all .2s;background:white;font-size:13px;color:var(--text-muted);font-weight:600" id="logoFileLabel"
-                  onmouseover="this.style.borderColor='var(--orange)';this.style.color='var(--orange)'"
-                  onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)'">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
-                  <span id="logoFileName">Обрати файл (PNG, SVG, JPG)</span>
-                  <input type="file" id="logoFileInput" accept="image/png,image/svg+xml,image/jpeg,image/webp" style="display:none" onchange="handleLogoFileSelect(this)">
-                </label>
-                <button type="button" id="logoUploadBtn" onclick="uploadLogoFile()" disabled
-                  style="padding:9px 16px;background:var(--orange);color:white;border:none;border-radius:var(--r-sm);font-weight:700;font-size:13px;cursor:not-allowed;opacity:.5;font-family:inherit;transition:all .2s;white-space:nowrap">
-                  Завантажити
-                </button>
-              </div>
-              <div id="logoUploadProgress" style="display:none;margin-top:8px">
-                <div style="height:4px;background:#e5e7eb;border-radius:2px;overflow:hidden">
-                  <div id="logoUploadBar" style="height:100%;background:var(--orange);border-radius:2px;width:0%;transition:width .3s"></div>
-                </div>
-                <div id="logoUploadStatus" style="font-size:11px;color:var(--text-muted);margin-top:4px">Завантаження...</div>
-              </div>
-            </div>
-
-            <!-- АБО вручну URL -->
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-              <div style="flex:1;height:1px;background:var(--border)"></div>
-              <span style="font-size:11px;color:var(--text-muted);font-weight:600;white-space:nowrap">або вставте URL</span>
-              <div style="flex:1;height:1px;background:var(--border)"></div>
-            </div>
-
-            <div class="f-group" style="margin:0">
-              <input id="cfg_logo_url" type="text" placeholder="https://example.com/logo.png" oninput="updateLogoPreview(this.value)">
-            </div>
-
-            <div style="margin-top:10px;padding:10px 12px;background:rgba(255,107,53,.06);border-radius:var(--r-sm);border:1px solid rgba(255,107,53,.15);font-size:12px;color:var(--text-muted);line-height:1.5">
-              💡 <strong>Рекомендація:</strong> SVG або PNG без фону (прозорий). Оптимальний розмір — <strong>200×200 px</strong>. Зображення автоматично з'явиться в хедері, футері та вкладці браузера на всіх сторінках.
-            </div>
-          </div>
-          <!-- ─── /БЛОК КЕРУВАННЯ ЛОГОТИПОМ ─── -->
+          <div class="f-group" style="margin-top:12px"><label class="f-label">URL логотипу (зображення)</label><input id="cfg_logo_url" type="text" placeholder="https://..."></div>
           <div class="f-group" style="margin-top:12px"><label class="f-label">Коротко про магазин (відображається в footer)</label><textarea id="cfg_about" rows="3" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:'Manrope',sans-serif;font-size:13px;color:var(--navy);outline:none;resize:vertical" placeholder="Ми продаємо якісний дитячий транспорт..."></textarea></div>
         </div>
         <div class="import-card">
@@ -2349,19 +2289,10 @@ async function guardAdminPage() {
     return;
   }
 
-  let isAdm = false;
-  try {
-    isAdm = await checkIsAdmin(session.access_token);
-  } catch(netErr) {
-    // Мережева помилка — не виходимо, просто показуємо панель з обмеженнями
-    console.warn('[guard] network error checking admin role, proceeding cautiously:', netErr);
-    isAdm = true; // дозволяємо доступ якщо сесія валідна (checkIsAdmin кине виняток тільки при мережевій помилці)
-  }
+  const isAdm = await checkIsAdmin(session.access_token);
 
   if (!isAdm) {
-    // Явно не адмін (сервер відповів, але роль не підходить)
     localStorage.removeItem('kr_admin_session');
-    sessionStorage.removeItem('kr_admin_session');
     window.location.href = 'auth.html';
     return;
   }
@@ -5295,185 +5226,6 @@ function _applyStoredTheme() {
   document.head.appendChild(s);
 })();
 
-// ── LOGO MANAGEMENT ──────────────────────────────────────────
-
-let _logoSelectedFile = null;
-
-// Оновити прев'ю логотипу коли змінюється URL вручну
-function updateLogoPreview(url) {
-  const box = document.getElementById('logoPreviewBox');
-  const status = document.getElementById('logoPreviewStatus');
-  if (!box) return;
-  if (url && url.trim()) {
-    box.innerHTML = '<img src="' + url.trim() + '" alt="logo" style="width:100%;height:100%;object-fit:contain;padding:4px" onerror="this.parentNode.innerHTML=\'<svg width=&quot;28&quot; height=&quot;28&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;white&quot; stroke-width=&quot;2.2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><path d=&quot;M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3&quot;/><rect x=&quot;9&quot; y=&quot;11&quot; width=&quot;14&quot; height=&quot;10&quot; rx=&quot;2&quot;/><circle cx=&quot;12&quot; cy=&quot;21&quot; r=&quot;1&quot;/><circle cx=&quot;20&quot; cy=&quot;21&quot; r=&quot;1&quot;/></svg>\'">';
-    box.style.background = 'transparent';
-    box.style.boxShadow = 'none';
-    box.style.border = '2px solid rgba(255,107,53,0.25)';
-    if (status) status.textContent = 'Власний логотип встановлено ✓';
-    // Оновити і sidebar логотип в адмінці
-    _applyLogoToAdminSidebar(url.trim());
-  } else {
-    box.style.background = 'var(--orange)';
-    box.style.border = 'none';
-    box.style.boxShadow = '0 4px 12px rgba(255,107,53,.3)';
-    box.innerHTML = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect x="9" y="11" width="14" height="10" rx="2"/><circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/></svg>';
-    if (status) status.textContent = 'Стандартний логотип';
-    _applyLogoToAdminSidebar(null);
-  }
-}
-
-// Оновити назву в прев'ю
-function updateLogoPreviewName(name) {
-  const el = document.getElementById('logoPreviewName');
-  if (!el) return;
-  if (name && name.trim()) {
-    el.textContent = name.trim();
-  } else {
-    el.innerHTML = 'Kids<span style="color:var(--orange)">Ride</span>';
-  }
-}
-
-// Застосувати логотип до sidebar адмінки (відразу після збереження)
-function _applyLogoToAdminSidebar(logoUrl) {
-  const mark = document.querySelector('.sidebar-logo .logo-mark');
-  const text = document.querySelector('.sidebar-logo .logo-text');
-  if (!mark) return;
-  if (logoUrl) {
-    mark.innerHTML = '<img src="' + logoUrl + '" alt="logo" style="width:100%;height:100%;object-fit:contain;padding:3px;display:block">';
-    mark.style.background = 'transparent';
-    mark.style.boxShadow = 'none';
-    mark.style.border = '2px solid rgba(255,255,255,0.2)';
-  } else {
-    mark.style.background = 'var(--orange)';
-    mark.style.boxShadow = '0 4px 12px rgba(255,107,53,.35)';
-    mark.style.border = 'none';
-    mark.innerHTML = '<svg viewBox="0 0 24 24"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect x="9" y="11" width="14" height="10" rx="2"/><circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/></svg>';
-  }
-}
-
-// Скинути логотип до стандартного
-function clearLogoSettings() {
-  const input = document.getElementById('cfg_logo_url');
-  if (input) input.value = '';
-  updateLogoPreview('');
-  showToast('Логотип скинуто до стандартного. Збережіть налаштування.', 'success');
-}
-
-// Обрати файл логотипу
-function handleLogoFileSelect(input) {
-  const file = input.files[0];
-  if (!file) return;
-  const maxMb = 2;
-  if (file.size > maxMb * 1024 * 1024) {
-    showToast('Файл занадто великий. Максимум ' + maxMb + ' МБ.', 'error');
-    input.value = '';
-    return;
-  }
-  const allowed = ['image/png','image/svg+xml','image/jpeg','image/webp'];
-  if (!allowed.includes(file.type)) {
-    showToast('Формат не підтримується. Оберіть PNG, SVG або JPG.', 'error');
-    input.value = '';
-    return;
-  }
-  _logoSelectedFile = file;
-  const label = document.getElementById('logoFileName');
-  if (label) label.textContent = file.name;
-  // Показати локальний прев'ю одразу
-  const reader = new FileReader();
-  reader.onload = e => {
-    updateLogoPreview(e.target.result);
-    // Тимчасово ставимо data URL в input щоб прев'ю показалось
-    // (після upload замінимо на реальний URL)
-  };
-  reader.readAsDataURL(file);
-  // Активувати кнопку завантаження
-  const btn = document.getElementById('logoUploadBtn');
-  if (btn) { btn.disabled = false; btn.style.cursor = 'pointer'; btn.style.opacity = '1'; }
-}
-
-// Завантажити файл логотипу — конвертуємо в base64 data URL і зберігаємо в БД
-async function uploadLogoFile() {
-  if (!_logoSelectedFile) { showToast('Спочатку оберіть файл', 'error'); return; }
-
-  const progress = document.getElementById('logoUploadProgress');
-  const bar = document.getElementById('logoUploadBar');
-  const statusEl = document.getElementById('logoUploadStatus');
-  const btn = document.getElementById('logoUploadBtn');
-
-  if (progress) progress.style.display = 'block';
-  if (bar) bar.style.width = '20%';
-  if (statusEl) statusEl.textContent = 'Обробка файлу...';
-  if (btn) { btn.disabled = true; btn.textContent = 'Обробка...'; }
-
-  try {
-    const isSvg = _logoSelectedFile.type === 'image/svg+xml'
-                  || _logoSelectedFile.name.toLowerCase().endsWith('.svg');
-
-    let dataUrl;
-
-    if (isSvg) {
-      // SVG — читаємо як текст і кодуємо в data URL
-      const text = await _logoSelectedFile.text();
-      if (bar) bar.style.width = '60%';
-      dataUrl = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(text)));
-    } else {
-      // PNG / JPG / WebP — стискаємо до max 800px через canvas
-      if (bar) bar.style.width = '40%';
-      dataUrl = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = e => {
-          const img = new Image();
-          img.onload = () => {
-            const MAX = 800;
-            const scale = Math.min(1, MAX / Math.max(img.width, img.height));
-            const canvas = document.createElement('canvas');
-            canvas.width  = Math.round(img.width  * scale);
-            canvas.height = Math.round(img.height * scale);
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            resolve(canvas.toDataURL('image/png', 0.92));
-          };
-          img.onerror = () => reject(new Error('Не вдалося прочитати зображення'));
-          img.src = e.target.result;
-        };
-        reader.onerror = () => reject(new Error('Помилка читання файлу'));
-        reader.readAsDataURL(_logoSelectedFile);
-      });
-    }
-
-    if (bar) bar.style.width = '90%';
-
-    // Встановити data URL в поле і оновити прев'ю
-    const urlInput = document.getElementById('cfg_logo_url');
-    if (urlInput) urlInput.value = dataUrl;
-    updateLogoPreview(dataUrl);
-
-    if (bar) bar.style.width = '100%';
-    if (statusEl) statusEl.textContent = '✓ Файл готовий!';
-    if (btn) { btn.textContent = 'Завантажити'; btn.disabled = false; btn.style.opacity = '1'; }
-
-    _logoSelectedFile = null;
-    const fileInput = document.getElementById('logoFileInput');
-    if (fileInput) fileInput.value = '';
-    const fileLabel = document.getElementById('logoFileName');
-    if (fileLabel) fileLabel.textContent = 'Обрати файл (PNG, SVG, JPG)';
-
-    showToast('Логотип готовий! Натисніть "Зберегти налаштування" щоб застосувати.', 'success');
-
-    setTimeout(() => {
-      if (progress) progress.style.display = 'none';
-      if (bar) bar.style.width = '0%';
-    }, 3000);
-
-  } catch(err) {
-    if (bar) bar.style.width = '0%';
-    if (progress) progress.style.display = 'none';
-    if (btn) { btn.textContent = 'Завантажити'; btn.disabled = false; btn.style.opacity = '1'; }
-    showToast('Помилка: ' + err.message, 'error');
-    console.error('[Logo upload error]', err);
-  }
-}
-
 // ── SETTINGS STORAGE (localStorage fallback) ─────────────────
 const SETTINGS_KEY = 'kr_admin_settings';
 function loadSettings() {
@@ -5674,8 +5426,6 @@ async function renderSettings() {
   _setField('cfg_hours',        s.hours);
   _setField('cfg_address',      s.address);
   _setField('cfg_logo_url',     s.logo_url);
-  updateLogoPreview(s.logo_url || '');
-  updateLogoPreviewName(s.shop_name || '');
   _setField('cfg_about',        s.about);
   _setField('cfg_instagram',    s.instagram);
   _setField('cfg_facebook',     s.facebook);
@@ -5857,20 +5607,6 @@ async function saveAllSettings() {
     });
 
     showToast('✅ Налаштування збережено в базі даних', 'success');
-    // Оновити логотип в адмінці та очистити кеш для всіх інших сторінок
-    const savedLogoUrl = document.getElementById('cfg_logo_url')?.value || '';
-    const savedShopName = document.getElementById('cfg_shop_name')?.value || '';
-    updateLogoPreview(savedLogoUrl);
-    updateLogoPreviewName(savedShopName);
-    if (document.querySelector('.logo-text')) {
-      document.querySelector('.logo-text').innerHTML = savedShopName || 'Kids<span>Ride</span>';
-    }
-    try {
-      // Зберігаємо в localStorage — storage event автоматично оновить всі відкриті вкладки сайту
-      localStorage.setItem('kr_brand', JSON.stringify({ logo_url: savedLogoUrl, shop_name: savedShopName }));
-      // Додатковий сигнал для відкритих вкладок (якщо kr_brand не змінився, storage event не спрацює)
-      localStorage.setItem('kr_brand_ts', String(Date.now()));
-    } catch(e) {}
   } catch(e) {
     showToast('❌ Помилка збереження: ' + e.message, 'error');
   } finally {
@@ -6603,10 +6339,6 @@ window.addEventListener('load', () => {
       clearTimeout(_visTimeout);
       document.body.style.visibility = 'visible';
       console.error('Guard error:', e);
-      // BUGFIX: очищаємо сесію перед redirect щоб запобігти нескінченному циклу
-      // (якщо сесію НЕ видалити — auth.html побачить її і знову перенаправить на admin.html)
-      localStorage.removeItem('kr_admin_session');
-      sessionStorage.removeItem('kr_admin_session');
       window.location.href = 'auth.html';
     });
 });

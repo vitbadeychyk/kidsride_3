@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Вхід / Реєстрація — KidsRide</title>
@@ -492,8 +491,6 @@ async function handleSignedIn(session) {
 
   // 6. Редирект
   document.getElementById('successDesc').textContent = 'Переадресовуємо вас...';
-  // Скидаємо лічильник redirectів (успішний вхід)
-  sessionStorage.removeItem('_kr_redirect_count');
   setTimeout(() => { window.location.href = isAdm ? 'admin.html' : 'index.html'; }, 800);
 }
 
@@ -778,25 +775,13 @@ function hideError(id) {
 (function checkAlreadyLoggedIn() {
   if (IS_OAUTH_CALLBACK) return; // не заважаємо OAuth callback
   if (localStorage.getItem('kr_signed_out') === '1') return; // явно виходив — показуємо форму
-
-  // BUGFIX: Захист від redirect loop (admin.html ↔ auth.html)
-  // Якщо нас перенаправили з admin.html — не редиректимо назад
-  const redirectCount = parseInt(sessionStorage.getItem('_kr_redirect_count') || '0', 10);
-  if (redirectCount >= 3) {
-    // Забагато redirectів підряд — очищаємо сесію та показуємо форму входу
-    sessionStorage.removeItem('_kr_redirect_count');
-    localStorage.removeItem('kr_admin_session');
-    return;
-  }
-
   try {
     const s = localStorage.getItem(KR_SESSION_KEY) || sessionStorage.getItem(KR_SESSION_KEY);
     if (!s) return;
     const session = JSON.parse(s);
     if (!session.access_token) return;
     if (session.expires_at && Date.now() / 1000 > session.expires_at) return;
-    // Є активна сесія — збільшуємо лічильник і редиректимо
-    sessionStorage.setItem('_kr_redirect_count', String(redirectCount + 1));
+    // Є активна сесія — редирект без повторної авторизації
     window.location.replace(session.is_admin ? 'admin.html' : 'index.html');
   } catch(e) {}
 })();
