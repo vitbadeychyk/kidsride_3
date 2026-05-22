@@ -408,6 +408,16 @@ const KR = {
     document.querySelectorAll('.logo-mark').forEach(el => {
       el.innerHTML = '<img src="' + url + '" style="width:100%;height:100%;object-fit:contain;padding:3px;border-radius:inherit" alt="logo">';
     });
+    this._updateFavicon(url);
+  },
+
+  _updateFavicon(url) {
+    try {
+      ['link[rel="icon"]', 'link[rel="shortcut icon"]'].forEach(sel => {
+        const el = document.querySelector(sel);
+        if (el) { el.href = url; el.type = 'image/svg+xml'; }
+      });
+    } catch(e) {}
   },
 
   async initLogo() {
@@ -428,7 +438,6 @@ const KR = {
           try { localStorage.setItem('kr_logo_url', url); } catch(e) {}
           this._applyLogo(url);
         } else {
-          // No logo set — clear cache
           try { localStorage.removeItem('kr_logo_url'); } catch(e) {}
         }
       }
