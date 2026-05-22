@@ -508,10 +508,92 @@ const KR = {
     if (q) window.location.href = 'catalog.html?search=' + encodeURIComponent(q);
   },
 
+  // ── STORE SETTINGS SYNC ──────────────────────────────────────────────────
+  // Застосовує налаштування магазину (телефон, соцмережі, текст) до всіх елементів сторінки
+  _applyStoreSettings(s) {
+    if (!s) return;
+    // ── Телефон ──
+    const phone = (s.phone || '').trim();
+    if (phone) {
+      const phoneDigits = phone.replace(/\D/g, '');
+      const phoneHref = 'tel:+' + phoneDigits;
+      document.querySelectorAll('.h-phone-link').forEach(el => {
+        el.href = phoneHref;
+        el.title = phone;
+      });
+      document.querySelectorAll('.h-phone-text').forEach(el => {
+        el.textContent = phone;
+      });
+      // Мобільна шторка
+      document.querySelectorAll('[data-kr-phone]').forEach(el => {
+        el.textContent = phone;
+        if (el.tagName === 'A') el.href = phoneHref;
+      });
+    }
+    // ── Соціальні мережі ──
+    if (s.instagram) {
+      document.querySelectorAll('a[href*="instagram.com"]').forEach(el => { el.href = s.instagram; });
+    }
+    if (s.facebook) {
+      document.querySelectorAll('a[href*="facebook.com"]').forEach(el => { el.href = s.facebook; });
+    }
+    if (s.tiktok) {
+      document.querySelectorAll('a[href*="tiktok.com"]').forEach(el => { el.href = s.tiktok; });
+    }
+    if (s.youtube) {
+      document.querySelectorAll('a[href*="youtube.com"]').forEach(el => { el.href = s.youtube; });
+    }
+    // ── Email ──
+    if (s.email) {
+      document.querySelectorAll('a[href^="mailto:"]').forEach(el => {
+        el.href = 'mailto:' + s.email;
+        if (el.dataset.krEmail !== undefined || el.textContent.includes('@')) el.textContent = s.email;
+      });
+    }
+    // ── Текст про магазин у футері ──
+    if (s.about) {
+      document.querySelectorAll('.footer-about, [data-kr-about]').forEach(el => {
+        el.textContent = s.about;
+      });
+    }
+    // ── Назва магазину ──
+    if (s.shop_name) {
+      document.querySelectorAll('[data-kr-name]').forEach(el => { el.textContent = s.shop_name; });
+    }
+    // ── Telegram у футері (з адреси або окремо) ──
+    if (s.telegram) {
+      document.querySelectorAll('a[href*="t.me"]').forEach(el => { el.href = s.telegram; });
+    }
+  },
+
+  // Завантажує налаштування магазину з Supabase та кешує в localStorage
+  async initStoreSettings() {
+    // Миттєво застосовуємо кешовані (швидкий шлях)
+    try {
+      const cached = JSON.parse(localStorage.getItem('kr_store_settings') || 'null');
+      if (cached) this._applyStoreSettings(cached);
+    } catch(e) {}
+    // Завантажуємо актуальні з Supabase
+    try {
+      const res = await fetch(
+        this._SUPA_URL + '/rest/v1/settings_store?select=shop_name,tagline,phone,email,hours,address,about,instagram,facebook,tiktok,youtube&id=eq.1',
+        { headers: { 'apikey': this._SUPA_KEY, 'Authorization': 'Bearer ' + this._SUPA_KEY } }
+      );
+      if (res.ok) {
+        const rows = await res.json();
+        if (rows && rows[0]) {
+          try { localStorage.setItem('kr_store_settings', JSON.stringify(rows[0])); } catch(e) {}
+          this._applyStoreSettings(rows[0]);
+        }
+      }
+    } catch(e) {}
+  },
+
   // ── INIT ──────────────────────────────────────────────────────────────────
   init() {
     this.initStripe();
     this.initLogo();
+    this.initStoreSettings();
     this.injectWishStyles();
     this.updateCartBadge();
     this.updateWishBadge();

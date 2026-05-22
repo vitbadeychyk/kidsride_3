@@ -5803,13 +5803,13 @@ async function renderSettings() {
     d = { store:{}, orders:{}, notify:{}, delivery:{}, appearance:{}, seo:{} };
   }
 
-  // ── Магазин ──
+  // ── Магазин (якщо поле пусте в БД — підставляємо відомі дефолтні значення) ──
   const s = d.store;
-  _setField('cfg_shop_name',    s.shop_name);
-  _setField('cfg_shop_tagline', s.tagline);
-  _setField('cfg_phone',        s.phone);
-  _setField('cfg_email',        s.email);
-  _setField('cfg_hours',        s.hours);
+  _setField('cfg_shop_name',    s.shop_name    || 'KidsRide');
+  _setField('cfg_shop_tagline', s.tagline      || 'Дитячий транспорт');
+  _setField('cfg_phone',        s.phone        || '+380 98 070 73 48');
+  _setField('cfg_email',        s.email        || 'info@kidsride.com.ua');
+  _setField('cfg_hours',        s.hours        || 'Пн–Пт 9:00–18:00');
   _setField('cfg_address',      s.address);
   // Logo: set hidden input + update preview
   const _logoUrl = s.logo_url || '';
@@ -5817,7 +5817,7 @@ async function renderSettings() {
   if (_logoEl) _logoEl.value = _logoUrl;
   if (typeof updateLogoPreview === 'function') updateLogoPreview(_logoUrl);
   _setField('cfg_about',        s.about);
-  _setField('cfg_instagram',    s.instagram);
+  _setField('cfg_instagram',    s.instagram    || 'https://www.instagram.com/kidsride.ua/');
   _setField('cfg_facebook',     s.facebook);
   _setField('cfg_tiktok',       s.tiktok);
   _setField('cfg_youtube',      s.youtube);
@@ -5996,6 +5996,26 @@ async function saveAllSettings() {
       cfg_auto_logout:  document.getElementById('cfg_auto_logout')?.checked  ? 'true':'false',
       cfg_log_actions:  document.getElementById('cfg_log_actions')?.checked  ? 'true':'false',
     });
+
+    // Кешуємо налаштування магазину → миттєво оновлюються всі вкладки/сторінки
+    const _storeData = {
+      shop_name: document.getElementById('cfg_shop_name')?.value      || '',
+      tagline:   document.getElementById('cfg_shop_tagline')?.value   || '',
+      phone:     document.getElementById('cfg_phone')?.value          || '',
+      email:     document.getElementById('cfg_email')?.value          || '',
+      hours:     document.getElementById('cfg_hours')?.value          || '',
+      address:   document.getElementById('cfg_address')?.value        || '',
+      about:     document.getElementById('cfg_about')?.value          || '',
+      instagram: document.getElementById('cfg_instagram')?.value      || '',
+      facebook:  document.getElementById('cfg_facebook')?.value       || '',
+      tiktok:    document.getElementById('cfg_tiktok')?.value         || '',
+      youtube:   document.getElementById('cfg_youtube')?.value        || '',
+    };
+    try { localStorage.setItem('kr_store_settings', JSON.stringify(_storeData)); } catch(e) {}
+    // Застосовуємо зміни на поточній сторінці адмінки
+    if (window.KR && typeof window.KR._applyStoreSettings === 'function') {
+      window.KR._applyStoreSettings(_storeData);
+    }
 
     // Apply logo change live (updates all .logo-mark + favicon)
     const _savedLogoUrl = document.getElementById('cfg_logo_url')?.value || '';
