@@ -7649,31 +7649,64 @@ function savePromoSettings() {
   if (typeof showToast === 'function') showToast('Промо-налаштування збережено! ✅', 'success');
 }
 
+function _logPromoAction(entry) {
+  // Додає запис в локальну історію промокодів
+  try {
+    var hist = getPromoHistory();
+    hist.unshift(Object.assign({ date: new Date().toISOString() }, entry));
+    localStorage.setItem(PROMO_HISTORY_KEY, JSON.stringify(hist.slice(0, 200)));
+  } catch(e) {}
+  renderPromoHistory();
+}
+
 function renderPromoHistory() {
   var el = document.getElementById('promoHistoryTable');
   if (!el) return;
   var hist = getPromoHistory();
   if (!hist.length) {
-    el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px">Зміни ще не вносились. Збережіть налаштування — запис з\'явиться тут.</div>';
+    el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px">Дій ще не виконувалось. Збережіть налаштування або додайте промокод — запис з\'явиться тут.</div>';
     return;
   }
   var rows = hist.map(function(h, i) {
     var d = new Date(h.date);
-    var dateStr = d.toLocaleDateString('uk-UA',{day:'2-digit',month:'2-digit',year:'numeric'}) + ' ' + d.toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'});
-    var prev = h.prev_code ? '<span style="color:var(--text-muted);font-size:11px;text-decoration:line-through">' + h.prev_code + '</span> → ' : '';
-    var statusBadge = h.enabled
-      ? '<span style="background:#d1fae5;color:#065f46;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px">УВІМК.</span>'
-      : '<span style="background:#fee2e2;color:#991b1b;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px">ВИМК.</span>';
-    var bg = i % 2 === 0 ? 'white' : 'var(--bg)';
-    return '<div style="display:grid;grid-template-columns:1fr 140px 80px;align-items:center;gap:12px;padding:10px 14px;background:'+bg+';border-bottom:1px solid var(--border-light)">'
-      + '<div style="font-family:\'Nunito\',sans-serif;font-weight:800;font-size:14px;color:var(--navy)">' + prev + h.code + '</div>'
+    var dateStr = d.toLocaleDateString('uk-UA',{day:'2-digit',month:'2-digit',year:'numeric'})
+                + ' ' + d.toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'});
+
+    // Визначаємо тип запису: CRUD-дія або зміна попап-налаштувань
+    var actionBadge;
+    var codeDisplay;
+    if (h.action === 'created') {
+      actionBadge = '<span style="background:#d1fae5;color:#065f46;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px">ДОДАНО</span>';
+    } else if (h.action === 'updated') {
+      actionBadge = '<span style="background:#dbeafe;color:#1e40af;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px">ОНОВЛЕНО</span>';
+    } else if (h.action === 'deleted') {
+      actionBadge = '<span style="background:#fee2e2;color:#991b1b;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px">ВИДАЛЕНО</span>';
+    } else {
+      // Старий формат — зміна попап-коду
+      actionBadge = h.enabled
+        ? '<span style="background:#fef3c7;color:#92400e;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px">ПОПАП УВ.</span>'
+        : '<span style="background:#f3f4f6;color:#6b7280;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px">ПОПАП ВИМ.</span>';
+    }
+
+    // Якщо є prev_code — показуємо зміну коду
+    var prev = h.prev_code ? '<span style="color:var(--text-muted);font-size:11px;text-decoration:line-through;margin-right:4px">' + _escHtmlAd(h.prev_code) + '</span>→ ' : '';
+    // Тип промокоду (free_delivery / discount)
+    var typeNote = '';
+    if (h.type === 'free_delivery') typeNote = ' <span style="color:var(--text-muted);font-size:11px">(доставка)</span>';
+    else if (h.type === 'discount') typeNote = ' <span style="color:var(--text-muted);font-size:11px">(-' + (h.discount_percent || '') + '%)</span>';
+
+    codeDisplay = '<div style="font-family:\'Nunito\',sans-serif;font-weight:800;font-size:13px;color:var(--navy)">' + prev + _escHtmlAd(h.code || '') + typeNote + '</div>';
+    if (h.name) codeDisplay += '<div style="font-size:11px;color:var(--text-muted);margin-top:1px">' + _escHtmlAd(h.name) + '</div>';
+
+    var bg = i % 2 === 0 ? 'white' : 'var(--bg-soft)';
+    return '<div style="display:grid;grid-template-columns:1fr 150px 100px;align-items:center;gap:12px;padding:10px 14px;background:'+bg+';border-bottom:1px solid var(--border-light)">'
+      + '<div>' + codeDisplay + '</div>'
       + '<div style="font-size:12px;color:var(--text-muted)">' + dateStr + '</div>'
-      + '<div>' + statusBadge + '</div>'
+      + '<div>' + actionBadge + '</div>'
       + '</div>';
   });
-  // Header
-  el.innerHTML = '<div style="display:grid;grid-template-columns:1fr 140px 80px;gap:12px;padding:8px 14px;background:var(--bg);border-bottom:1px solid var(--border);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">'
-    + '<div>Промокод</div><div>Дата</div><div>Статус</div></div>'
+  el.innerHTML = '<div style="display:grid;grid-template-columns:1fr 150px 100px;gap:12px;padding:8px 14px;background:var(--bg-soft);border-bottom:1px solid var(--border);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">'
+    + '<div>Промокод</div><div>Дата</div><div>Дія</div></div>'
     + rows.join('');
 }
 
@@ -7860,6 +7893,8 @@ async function savePromoCode() {
       loadPromoCodes();
       return;
     }
+    // Логуємо дію в локальну історію
+    _logPromoAction({ code: code, name: name, type: type, discount_percent: discount, action: isEdit ? 'updated' : 'created' });
     if (typeof showToast === 'function') showToast(isEdit ? 'Промокод оновлено ✅' : 'Промокод створено ✅', 'success');
     closePromoCodeForm();
     loadPromoCodes();
@@ -7885,8 +7920,10 @@ async function deletePromoCode(id, code) {
       }
       return;
     }
-    // Видаляємо з локального кешу
+    // Видаляємо з локального кешу та логуємо в історію
+    var _deleted = _pcCodesCache[id];
     delete _pcCodesCache[id];
+    _logPromoAction({ code: code, name: _deleted ? (_deleted.name || '') : '', type: _deleted ? (_deleted.type || '') : '', action: 'deleted' });
     if (typeof showToast === 'function') showToast('Промокод «' + code + '» видалено ✅', 'info');
     loadPromoCodes();
   } catch(e) {
