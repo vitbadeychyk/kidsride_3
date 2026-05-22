@@ -1923,7 +1923,7 @@ async function loadProductsFromSupabase() {
       const ctrl = new AbortController();
       const tid = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT);
       return fetch(
-        SUPABASE_URL + '/rest/v1/products?select=id,sku,model_code,color,name,brand,price,old_price,category,category_id,voltage,age_range,stock,preorder_days,badge,img_type,images,active,created_at,description,short_desc&active=eq.true&order=created_at.desc',
+        SUPABASE_URL + '/rest/v1/products?select=id,sku,model_code,color,name,brand,price,old_price,category,category_id,voltage,age_range,stock,preorder_days,badge,img_type,images,active,created_at&active=eq.true&order=created_at.desc',
         {
           signal: ctrl.signal,
           headers: {

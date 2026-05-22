@@ -1063,8 +1063,9 @@ footer{background:var(--navy);color:white;padding:56px 40px 0}
         try{
           var sl=JSON.parse(localStorage.getItem('kr_slides')||'null');
           if(!Array.isArray(sl)||!sl.length)return;
-          var sorted=sl.filter(function(x){return x.enabled!==false;}).sort(function(a,b){return(a.sort_order||0)-(b.sort_order||0);});
-          var s=sorted[0];if(!s||!s.image)return;
+          // Шукаємо слайд САМЕ з id='slide-1', щоб не вставити картинку від іншого слайду
+          var s=sl.find(function(x){return x.id==='slide-1'&&x.enabled!==false&&x.image;});
+          if(!s)return;
           var c=document.getElementById('_s1ImgCard');
           if(c)c.innerHTML='<img src="'+s.image.replace(/["<>]/g,'')+'" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" fetchpriority="high">';
         }catch(e){}
@@ -1111,8 +1112,8 @@ footer{background:var(--navy);color:white;padding:56px 40px 0}
         try{
           var sl=JSON.parse(localStorage.getItem('kr_slides')||'null');
           if(!Array.isArray(sl)||!sl.length)return;
-          var sorted=sl.filter(function(x){return x.enabled!==false;}).sort(function(a,b){return(a.sort_order||0)-(b.sort_order||0);});
-          var s=sorted[1];if(!s||!s.image)return;
+          var s=sl.find(function(x){return x.id==='slide-2'&&x.enabled!==false&&x.image;});
+          if(!s)return;
           var c=document.getElementById('_s2ImgCard');
           if(c)c.innerHTML='<img src="'+s.image.replace(/["<>]/g,'')+'" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block">';
         }catch(e){}
@@ -1158,8 +1159,8 @@ footer{background:var(--navy);color:white;padding:56px 40px 0}
         try{
           var sl=JSON.parse(localStorage.getItem('kr_slides')||'null');
           if(!Array.isArray(sl)||!sl.length)return;
-          var sorted=sl.filter(function(x){return x.enabled!==false;}).sort(function(a,b){return(a.sort_order||0)-(b.sort_order||0);});
-          var s=sorted[2];if(!s||!s.image)return;
+          var s=sl.find(function(x){return x.id==='slide-3'&&x.enabled!==false&&x.image;});
+          if(!s)return;
           var c=document.getElementById('_s3ImgCard');
           if(c)c.innerHTML='<img src="'+s.image.replace(/["<>]/g,'')+'" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block">';
         }catch(e){}
