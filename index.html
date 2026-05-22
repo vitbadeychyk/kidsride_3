@@ -1891,6 +1891,8 @@ function _krApplySlides(saved){
   if (!Array.isArray(saved) || !saved.length) return;
   const wrapper = document.querySelector('.swiper-hero .swiper-wrapper');
   if (!wrapper) return;
+  // Ховаємо враппер до завершення перестановки — усуває будь-яке "просвічування" між слайдами
+  wrapper.style.cssText += ';opacity:0!important;transition:none!important';
   const existing = {};
   wrapper.querySelectorAll('.swiper-slide').forEach(el => {
     const id = el.getAttribute('data-slide-id');
@@ -1925,6 +1927,12 @@ function _krApplySlides(saved){
     const first = Object.values(existing)[0];
     if (first) wrapper.appendChild(first);
   }
+  // Плавно показуємо враппер після завершення перестановки (2 rAF = гарантовано після рендеру)
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    wrapper.style.cssText = wrapper.style.cssText
+      .replace(/;?opacity:0!important/g, '')
+      .replace(/;?transition:none!important/g, '');
+  }));
 }
 
 // Stable signature of slide settings — used to detect real changes
