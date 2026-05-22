@@ -326,7 +326,7 @@ nav a.active{color:var(--orange)}
 
   /* Products area */
   .products-area{padding:12px 16px}
-  .products-grid{grid-template-columns:repeat(2,1fr);gap:12px}
+  .products-grid{grid-template-columns:1fr;gap:12px}
   .products-grid.list{grid-template-columns:1fr}
   .products-grid.list .p-card{grid-template-columns:130px 1fr}
   .products-grid.list .p-img{min-height:130px;max-height:160px}
@@ -999,7 +999,7 @@ function clearSearch() {
 
 // View toggle
 const _KR_VIEW_KEY = 'kr_catalog_view';
-let currentView = (function(){ try { return localStorage.getItem(_KR_VIEW_KEY) || 'list'; } catch(_){ return 'list'; } })();
+let currentView = (function(){ try { return localStorage.getItem(_KR_VIEW_KEY) || 'grid'; } catch(_){ return 'grid'; } })();
 function setView(view, btn) {
   currentView = view;
   try { localStorage.setItem(_KR_VIEW_KEY, view); } catch(_) {}

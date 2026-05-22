@@ -1036,7 +1036,7 @@ footer{background:var(--navy);color:white;padding:56px 40px 0}
               </div>
             </div>
             <div class="hero-img-wrap">
-              <div class="hero-img-card">
+              <div class="hero-img-card" id="_s1ImgCard">
                 <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.04)">
                 <svg viewBox="0 0 240 160" xmlns="http://www.w3.org/2000/svg" style="width:65%;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)">
   <rect x="20" y="75" width="200" height="55" rx="14" fill="#1B2A4A" opacity=".15"/>
@@ -1057,6 +1057,19 @@ footer{background:var(--navy);color:white;padding:56px 40px 0}
           </div>
         </div>
       </div>
+      <!-- Inline early-swap: замінює SVG на реальне фото до першого рендеру (синхронно під час парсингу) -->
+      <script>
+      (function(){
+        try{
+          var sl=JSON.parse(localStorage.getItem('kr_slides')||'null');
+          if(!Array.isArray(sl)||!sl.length)return;
+          var sorted=sl.filter(function(x){return x.enabled!==false;}).sort(function(a,b){return(a.sort_order||0)-(b.sort_order||0);});
+          var s=sorted[0];if(!s||!s.image)return;
+          var c=document.getElementById('_s1ImgCard');
+          if(c)c.innerHTML='<img src="'+s.image.replace(/["<>]/g,'')+'" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" fetchpriority="high">';
+        }catch(e){}
+      })();
+      </script>
 
       <div class="swiper-slide" data-slide-id="slide-2">
         <div class="hero-slide s2">
@@ -1073,7 +1086,7 @@ footer{background:var(--navy);color:white;padding:56px 40px 0}
               </div>
             </div>
             <div class="hero-img-wrap">
-              <div class="hero-img-card">
+              <div class="hero-img-card" id="_s2ImgCard">
                 <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.04)">
                 <svg viewBox="0 0 240 160" xmlns="http://www.w3.org/2000/svg" style="width:65%;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)">
   <rect x="50" y="70" width="140" height="45" rx="10" fill="#3B4A8A" opacity=".18"/>
@@ -1093,6 +1106,18 @@ footer{background:var(--navy);color:white;padding:56px 40px 0}
           </div>
         </div>
       </div>
+      <script>
+      (function(){
+        try{
+          var sl=JSON.parse(localStorage.getItem('kr_slides')||'null');
+          if(!Array.isArray(sl)||!sl.length)return;
+          var sorted=sl.filter(function(x){return x.enabled!==false;}).sort(function(a,b){return(a.sort_order||0)-(b.sort_order||0);});
+          var s=sorted[1];if(!s||!s.image)return;
+          var c=document.getElementById('_s2ImgCard');
+          if(c)c.innerHTML='<img src="'+s.image.replace(/["<>]/g,'')+'" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block">';
+        }catch(e){}
+      })();
+      </script>
 
       <div class="swiper-slide" data-slide-id="slide-3">
         <div class="hero-slide s3">
@@ -1109,7 +1134,7 @@ footer{background:var(--navy);color:white;padding:56px 40px 0}
               </div>
             </div>
             <div class="hero-img-wrap">
-              <div class="hero-img-card">
+              <div class="hero-img-card" id="_s3ImgCard">
                 <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.04)">
                 <svg viewBox="0 0 240 160" xmlns="http://www.w3.org/2000/svg" style="width:60%;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)">
   <ellipse cx="120" cy="95" rx="80" ry="18" fill="#1B2A4A" opacity=".08"/>
@@ -1128,6 +1153,18 @@ footer{background:var(--navy);color:white;padding:56px 40px 0}
           </div>
         </div>
       </div>
+      <script>
+      (function(){
+        try{
+          var sl=JSON.parse(localStorage.getItem('kr_slides')||'null');
+          if(!Array.isArray(sl)||!sl.length)return;
+          var sorted=sl.filter(function(x){return x.enabled!==false;}).sort(function(a,b){return(a.sort_order||0)-(b.sort_order||0);});
+          var s=sorted[2];if(!s||!s.image)return;
+          var c=document.getElementById('_s3ImgCard');
+          if(c)c.innerHTML='<img src="'+s.image.replace(/["<>]/g,'')+'" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block">';
+        }catch(e){}
+      })();
+      </script>
 
     </div>
   </div>
