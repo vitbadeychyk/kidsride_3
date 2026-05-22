@@ -155,7 +155,9 @@ button{cursor:pointer;font-family:'Manrope',sans-serif}
 .stat-card.green .stat-icon{background:var(--green);box-shadow:0 4px 12px rgba(39,174,96,.3)}
 .stat-card.blue .stat-icon{background:var(--blue);box-shadow:0 4px 12px rgba(33,150,243,.3)}
 .stat-card.yellow .stat-icon{background:var(--yellow);box-shadow:0 4px 12px rgba(245,158,11,.3)}
-.stat-val{font-family:'Nunito',sans-serif;font-weight:900;font-size:26px;color:var(--navy);line-height:1}
+.stat-val{font-family:'Nunito',sans-serif;font-weight:900;font-size:26px;color:var(--navy);line-height:1;word-break:break-all}
+#panel-product-analytics .stat-val{font-size:clamp(13px,2.1vw,24px);white-space:nowrap;overflow:visible;word-break:normal}
+#panel-product-analytics .stat-card{overflow:visible}
 .stat-label{font-size:12px;color:var(--text-muted);margin-top:4px;font-weight:500}
 .stat-delta{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:700;margin-top:8px;padding:2px 8px;border-radius:5px}
 .delta-up{background:var(--green-soft);color:var(--green)}
@@ -7650,6 +7652,21 @@ function renderProductAnalytics() {
         <div style="font-size:11px;font-weight:700;color:#6b7280;letter-spacing:.06em;margin-bottom:12px">АКТИВНІСТЬ ПО ДНЯХ ТИЖНЯ</div>
         <div id="_skuDow" style="display:flex;align-items:flex-end;gap:6px;height:70px"></div>
       </div>
+
+      <!-- Device + OS breakdown -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+        <div style="background:#FAFBFD;border:1.5px solid #e8ecf4;border-radius:14px;padding:16px 18px">
+          <div style="font-size:11px;font-weight:700;color:#6b7280;letter-spacing:.06em;margin-bottom:12px">📱 ПРИСТРОЇ</div>
+          <div id="_skuDeviceChart"><div style="color:#9ca3af;font-size:12px">Завантаження…</div></div>
+        </div>
+        <div style="background:#FAFBFD;border:1.5px solid #e8ecf4;border-radius:14px;padding:16px 18px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <div style="font-size:11px;font-weight:700;color:#6b7280;letter-spacing:.06em">💻 ОПЕРАЦІЙНА СИСТЕМА</div>
+            <div style="font-size:10px;color:#9ca3af;font-weight:500">унік. сесій</div>
+          </div>
+          <div id="_skuOsChart"><div style="color:#9ca3af;font-size:12px">Завантаження…</div></div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -7740,14 +7757,19 @@ function _skuRender(){
   document.getElementById('_skuKpi3').textContent=avgDay;
   document.getElementById('_skuKpi4').textContent=interest;
 
-  // Trend
-  const half=Math.floor(rows.length/2);
-  const h1=rows.slice(0,half).length, h2=rows.slice(half).length;
+  // Trend — compare first half vs second half of the TIME PERIOD (not array position)
   const trEl=document.getElementById('_skuTrend');
   if(totalViews===0){trEl.textContent='Немає даних';trEl.style.background='#F8F9FC';trEl.style.color='#6b7280';}
-  else if(h2>h1){trEl.innerHTML='↑ Зростання';trEl.style.background='#d1fae5';trEl.style.color='#059669';}
-  else if(h2<h1){trEl.innerHTML='↓ Падіння';trEl.style.background='#fee2e2';trEl.style.color='#e53935';}
-  else{trEl.innerHTML='→ Стабільно';trEl.style.background='#F0F4FF';trEl.style.color='#4F6FE8';}
+  else {
+    const midMs = cutoff.getTime() + (now.getTime()-cutoff.getTime())/2;
+    const midDate = new Date(midMs);
+    const h1=rows.filter(r=>new Date(r.viewed_at)<midDate).length;
+    const h2=rows.filter(r=>new Date(r.viewed_at)>=midDate).length;
+    const diffPct = h1>0 ? Math.round((h2-h1)/h1*100) : (h2>0?100:0);
+    if(h2>h1*1.15){trEl.innerHTML='↑ Зростання'+(Math.abs(diffPct)>0?' +'+Math.abs(diffPct)+'%':'');trEl.style.background='#d1fae5';trEl.style.color='#059669';}
+    else if(h2<h1*0.85){trEl.innerHTML='↓ Падіння'+(Math.abs(diffPct)>0?' −'+Math.abs(diffPct)+'%':'');trEl.style.background='#fee2e2';trEl.style.color='#e53935';}
+    else{trEl.innerHTML='→ Стабільно';trEl.style.background='#F0F4FF';trEl.style.color='#4F6FE8';}
+  }
 
   // Main chart
   if(_skuViewMode==='day'){
@@ -7803,6 +7825,67 @@ function _skuRender(){
       <div style="font-size:10px;color:${isTop?'#FF6B35':'#6b7280'};font-weight:600">${dowNames[d]}</div>
     </div>`;
   }).join('');
+
+  // ── Device / OS breakdown for this SKU ────────────────────────────────────
+  const _skuSessDevMap={};
+  rows.forEach(r=>{if(!_skuSessDevMap[r.session_id])_skuSessDevMap[r.session_id]=_detectDevice(r.user_agent||'');});
+  const _skuDevCounts={mobile:0,desktop:0,tablet:0};
+  const _skuOsCounts={};
+  Object.values(_skuSessDevMap).forEach(d=>{
+    _skuDevCounts[d.type]=(_skuDevCounts[d.type]||0)+1;
+    _skuOsCounts[d.os]=(_skuOsCounts[d.os]||0)+1;
+  });
+  const _skuTotalSess=Object.values(_skuDevCounts).reduce((a,b)=>a+b,0)||1;
+  const _skuHasUA=rows.some(r=>r.user_agent);
+
+  const devEl2=document.getElementById('_skuDeviceChart');
+  if(devEl2){
+    if(!_skuHasUA){
+      devEl2.innerHTML='<div style="color:#9ca3af;font-size:12px">Потрібна SQL-міграція<br><code style="font-size:10px;background:#F8F9FC;padding:1px 5px;border-radius:4px">ADD COLUMN user_agent text</code></div>';
+    } else {
+      const _dCfg=[
+        {key:'mobile', name:'Мобільні', color:'#FF6B35'},
+        {key:'desktop',name:'Десктоп',  color:'#2563eb'},
+        {key:'tablet', name:'Планшет',  color:'#27AE60'},
+      ];
+      devEl2.innerHTML=_dCfg.map(d=>{
+        const n=_skuDevCounts[d.key]||0;
+        const pct=Math.round(n/_skuTotalSess*100);
+        return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:9px">
+          <div style="font-size:12px;font-weight:600;color:#374151;min-width:72px">${d.name}</div>
+          <div style="flex:1;height:6px;background:#e5e7eb;border-radius:3px;overflow:hidden">
+            <div style="height:100%;background:${d.color};border-radius:3px;width:${pct}%"></div>
+          </div>
+          <div style="font-size:12px;font-weight:700;color:${d.color};min-width:36px;text-align:right">${pct}%</div>
+          <div style="font-size:11px;color:#9ca3af">(${n})</div>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  const osEl2=document.getElementById('_skuOsChart');
+  if(osEl2){
+    if(!_skuHasUA){
+      osEl2.innerHTML='<div style="color:#9ca3af;font-size:12px">Дані зʼявляться після SQL-міграції та оновлення product.html</div>';
+    } else {
+      const _osSorted=Object.entries(_skuOsCounts).sort((a,b)=>b[1]-a[1]);
+      const _osMax=_osSorted[0]?.[1]||1;
+      const _osColors={'iOS':'#007AFF','Android':'#3DDC84','Windows':'#0078D4','macOS':'#636366','Linux':'#E8A000','ChromeOS':'#4285F4','iPadOS':'#5856D6','Windows Phone':'#00AFF0','Інше':'#aaa','Невідомо':'#ccc'};
+      osEl2.innerHTML=_osSorted.slice(0,6).map(([os,n])=>{
+        const bar=Math.round(n/_osMax*100);
+        const pct=Math.round(n/_skuTotalSess*100);
+        const col=_osColors[os]||'#aaa';
+        return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:9px">
+          <div style="font-size:12px;font-weight:600;color:#374151;min-width:72px">${_escHtml(os)}</div>
+          <div style="flex:1;height:6px;background:#e5e7eb;border-radius:3px;overflow:hidden">
+            <div style="height:100%;background:${col};border-radius:3px;width:${bar}%"></div>
+          </div>
+          <div style="font-size:12px;font-weight:700;color:${col};min-width:36px;text-align:right">${pct}%</div>
+          <div style="font-size:11px;color:#9ca3af">(${n})</div>
+        </div>`;
+      }).join('');
+    }
+  }
 }
 
 function _skuRenderDayChart(rows,from,to){
