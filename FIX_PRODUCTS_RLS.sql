@@ -1,45 +1,7 @@
--- ============================================================================
--- KidsRide — Виправлення RLS для таблиці products (ОНОВЛЕНА ВЕРСІЯ)
--- ============================================================================
--- Запустіть у Supabase → SQL Editor → Run
--- Після виконання поверніться в адмінку → Товари → "Спробувати знову"
--- ============================================================================
-
--- Крок 1: Видалити ВСІ існуючі RLS-правила для products
-DO $$
-DECLARE pol RECORD;
-BEGIN
-  FOR pol IN
-    SELECT policyname
-    FROM   pg_policies
-    WHERE  schemaname = 'public' AND tablename = 'products'
-  LOOP
-    EXECUTE format('DROP POLICY IF EXISTS %I ON products', pol.policyname);
-  END LOOP;
-END $$;
-
--- Крок 2: Увімкнути RLS (якщо ще не увімкнено)
-ALTER TABLE products ENABLE ROW LEVEL SECURITY;
-
--- Крок 3: Дозволити ВСІМ читати товари (публічний каталог + адмінка)
-CREATE POLICY allow_read_products
-  ON products
-  FOR SELECT
-  USING (true);
-
--- Крок 4: Дозволити авторизованим користувачам (адміну) редагувати товари
-CREATE POLICY allow_write_products
-  ON products
-  FOR ALL
-  TO authenticated
-  USING (true)
-  WITH CHECK (true);
-
--- Крок 5: Перевірка — покаже активні правила
-SELECT
-  policyname,
-  cmd,
-  roles,
-  qual
-FROM pg_policies
-WHERE schemaname = 'public' AND tablename = 'products';
+<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="180" height="180" rx="36" fill="#FF6B35"/>
+<path d="M37 127H23a15 15 0 0 1-15-15V75a15 15 0 0 1 15-15h82a15 15 0 0 1 15 15v22" stroke="white" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="67" y="82" width="106" height="76" rx="14" stroke="white" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="90" cy="158" r="11" stroke="white" stroke-width="13"/>
+<circle cx="150" cy="158" r="11" stroke="white" stroke-width="13"/>
+</svg>
