@@ -155,9 +155,7 @@ button{cursor:pointer;font-family:'Manrope',sans-serif}
 .stat-card.green .stat-icon{background:var(--green);box-shadow:0 4px 12px rgba(39,174,96,.3)}
 .stat-card.blue .stat-icon{background:var(--blue);box-shadow:0 4px 12px rgba(33,150,243,.3)}
 .stat-card.yellow .stat-icon{background:var(--yellow);box-shadow:0 4px 12px rgba(245,158,11,.3)}
-.stat-val{font-family:'Nunito',sans-serif;font-weight:900;font-size:26px;color:var(--navy);line-height:1;word-break:break-all}
-#panel-product-analytics .stat-val{font-size:clamp(13px,2.1vw,24px);white-space:nowrap;overflow:visible;word-break:normal}
-#panel-product-analytics .stat-card{overflow:visible}
+.stat-val{font-family:'Nunito',sans-serif;font-weight:900;font-size:26px;color:var(--navy);line-height:1}
 .stat-label{font-size:12px;color:var(--text-muted);margin-top:4px;font-weight:500}
 .stat-delta{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:700;margin-top:8px;padding:2px 8px;border-radius:5px}
 .delta-up{background:var(--green-soft);color:var(--green)}
@@ -1419,17 +1417,6 @@ tr:hover td{background:rgba(240,242,248,.5)}
         </div>
       </div>
 
-      <div class="charts-row" style="margin-top:0">
-        <div class="chart-card" style="flex:1;min-width:180px">
-          <div class="chart-head"><h3 class="chart-title">📱 Пристрої</h3></div>
-          <div id="paDeviceChart"><div style="color:var(--text-muted);font-size:13px;padding:8px 0">Завантаження…</div></div>
-        </div>
-        <div class="chart-card" style="flex:2">
-          <div class="chart-head"><h3 class="chart-title">💻 Операційна система</h3><span style="font-size:11px;color:var(--text-muted);font-weight:500">унікальних сесій</span></div>
-          <div id="paOsChart"><div style="color:var(--text-muted);font-size:13px;padding:8px 0">Завантаження…</div></div>
-        </div>
-      </div>
-
       <div class="table-card">
         <div class="table-head">
           <span class="table-head-title">Топ переглянутих товарів</span>
@@ -1442,9 +1429,9 @@ tr:hover td{background:rgba(240,242,248,.5)}
             <th style="width:36px">#</th>
             <th>Назва товару</th>
             <th>Артикул</th>
-            <th onclick="paSortBy('views')" style="cursor:pointer" id="paTh-views">Переглядів ▾</th>
-            <th onclick="paSortBy('sessions')" style="cursor:pointer" id="paTh-sessions">Сесій</th>
-            <th onclick="paSortBy('lastSeen')" style="cursor:pointer" id="paTh-lastSeen">Остання дія</th>
+            <th onclick="paSortBy('views')" style="cursor:pointer">Переглядів ▾</th>
+            <th onclick="paSortBy('sessions')" style="cursor:pointer">Сесій</th>
+            <th>Остання дія</th>
             <th>Динаміка (7 дн.)</th>
           </tr></thead>
           <tbody id="paTableBody">
@@ -1544,7 +1531,6 @@ tr:hover td{background:rgba(240,242,248,.5)}
                   <button onclick="setPickerCat('kids',this)" class="lcat-btn" data-cat="kids" style="padding:5px 11px;border-radius:6px;border:none;font-size:11px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text-muted)">Дитячі &#x2B50;</button>
                   <button onclick="setPickerCat('abstract',this)" class="lcat-btn" data-cat="abstract" style="padding:5px 11px;border-radius:6px;border:none;font-size:11px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text-muted)">Абстракт</button>
                   <button onclick="setPickerCat('star',this)" class="lcat-btn" data-cat="star" style="padding:5px 11px;border-radius:6px;border:none;font-size:11px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text-muted)">Зірки &#x2728;</button>
-                  <button onclick="setPickerCat('kr',this)" class="lcat-btn" data-cat="kr" style="padding:5px 11px;border-radius:6px;border:none;font-size:11px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text-muted)">&#x2726; KR Бренд</button>
                 </div>
               </div>
               <div id="logoPickerGrid" style="padding:14px 24px;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:8px;flex:1"></div>
@@ -1710,112 +1696,6 @@ tr:hover td{background:rgba(240,242,248,.5)}
               {n:'Астрал',c:'star',p:'<line x1="12" y1="2" x2="12" y2="22" stroke-width="2"/><line x1="2" y1="12" x2="22" y2="12" stroke-width="2"/><line x1="4.9" y1="4.9" x2="19.1" y2="19.1" stroke-width="2"/><line x1="19.1" y1="4.9" x2="4.9" y2="19.1" stroke-width="2"/><circle cx="12" cy="12" r="3" stroke-width="2.5"/>'},
               {n:'Дозорна вежа',c:'star',p:'<polygon points="12 2 16 10 22 10 18 15 20 22 12 18 4 22 6 15 2 10 8 10" stroke-width="2"/>'},
               {n:'Зірка в зірці',c:'star',p:'<polygon points="12 2 15 9 22 9 16.5 14 18.5 21 12 17 5.5 21 7.5 14 2 9 9 9" stroke-width="2"/><polygon points="12 7 13.5 10.5 17 10.5 14.5 12.5 15.5 16 12 14 8.5 16 9.5 12.5 7 10.5 10.5 10.5" stroke-width="1"/>'},
-              // ── KR МОНОГРАМА (20) ──
-              {n:'KR · Коло орандж.',c:'kr',fc:true,p:'<circle cx="50" cy="50" r="48" fill="#FF6B35"/><text x="50" y="66" font-family="Arial Black,sans-serif" font-weight="900" font-size="46" fill="#fff" text-anchor="middle">KR</text>'},
-              {n:'KR · Коло темний',c:'kr',fc:true,p:'<circle cx="50" cy="50" r="48" fill="#1B2A4A"/><text x="50" y="66" font-family="Arial Black,sans-serif" font-weight="900" font-size="46" fill="#FF6B35" text-anchor="middle">KR</text>'},
-              {n:'KR · Кільце орандж.',c:'kr',fc:true,p:'<circle cx="50" cy="50" r="47" fill="none" stroke="#FF6B35" stroke-width="6"/><text x="50" y="66" font-family="Arial Black,sans-serif" font-weight="900" font-size="44" fill="#FF6B35" text-anchor="middle">KR</text>'},
-              {n:'KR · Кільце темне',c:'kr',fc:true,p:'<circle cx="50" cy="50" r="47" fill="none" stroke="#1B2A4A" stroke-width="6"/><text x="50" y="66" font-family="Arial Black,sans-serif" font-weight="900" font-size="44" fill="#1B2A4A" text-anchor="middle">KR</text>'},
-              {n:'KR · Шестикутник орандж.',c:'kr',fc:true,p:'<polygon points="50,4 93,27 93,73 50,96 7,73 7,27" fill="#FF6B35"/><text x="50" y="66" font-family="Arial Black,sans-serif" font-weight="900" font-size="42" fill="#fff" text-anchor="middle">KR</text>'},
-              {n:'KR · Шестикутник темний',c:'kr',fc:true,p:'<polygon points="50,4 93,27 93,73 50,96 7,73 7,27" fill="#1B2A4A"/><text x="50" y="66" font-family="Arial Black,sans-serif" font-weight="900" font-size="42" fill="#FF6B35" text-anchor="middle">KR</text>'},
-              {n:'KR · Квадрат орандж.',c:'kr',fc:true,p:'<rect x="4" y="4" width="92" height="92" rx="20" fill="#FF6B35"/><text x="50" y="66" font-family="Arial Black,sans-serif" font-weight="900" font-size="46" fill="#fff" text-anchor="middle">KR</text>'},
-              {n:'KR · Квадрат темний',c:'kr',fc:true,p:'<rect x="4" y="4" width="92" height="92" rx="20" fill="#1B2A4A"/><text x="50" y="66" font-family="Arial Black,sans-serif" font-weight="900" font-size="46" fill="#FF6B35" text-anchor="middle">KR</text>'},
-              {n:'KR · Щит орандж.',c:'kr',fc:true,p:'<path d="M50,4 L90,20 L90,56 Q90,82 50,96 Q10,82 10,56 L10,20 Z" fill="#FF6B35"/><text x="50" y="67" font-family="Arial Black,sans-serif" font-weight="900" font-size="38" fill="#fff" text-anchor="middle">KR</text>'},
-              {n:'KR · Щит темний',c:'kr',fc:true,p:'<path d="M50,4 L90,20 L90,56 Q90,82 50,96 Q10,82 10,56 L10,20 Z" fill="#1B2A4A"/><text x="50" y="67" font-family="Arial Black,sans-serif" font-weight="900" font-size="38" fill="#FF6B35" text-anchor="middle">KR</text>'},
-              {n:'KR · Пілюля стек',c:'kr',fc:true,p:'<rect x="26" y="4" width="48" height="92" rx="24" fill="#FF6B35"/><text x="50" y="44" font-family="Arial Black,sans-serif" font-weight="900" font-size="32" fill="#fff" text-anchor="middle">K</text><text x="50" y="78" font-family="Arial Black,sans-serif" font-weight="900" font-size="32" fill="#fff" text-anchor="middle">R</text>'},
-              {n:'K орандж + R темний',c:'kr',fc:true,p:'<text x="25" y="65" font-family="Arial Black,sans-serif" font-weight="900" font-size="52" fill="#FF6B35" text-anchor="middle">K</text><text x="75" y="65" font-family="Arial Black,sans-serif" font-weight="900" font-size="52" fill="#1B2A4A" text-anchor="middle">R</text>'},
-              {n:'KR + ⚡ (темне коло)',c:'kr',fc:true,p:'<circle cx="50" cy="50" r="48" fill="#1B2A4A"/><text x="22" y="65" font-family="Arial Black,sans-serif" font-weight="900" font-size="38" fill="#fff" text-anchor="middle">K</text><text x="78" y="65" font-family="Arial Black,sans-serif" font-weight="900" font-size="38" fill="#fff" text-anchor="middle">R</text><path d="M53,22 L44,50 L51,50 L48,78 L57,48 L50,48 Z" fill="#FF6B35"/>'},
-              {n:'KR · Табличка з колесами',c:'kr',fc:true,p:'<rect x="4" y="14" width="92" height="60" rx="12" fill="#FF6B35"/><text x="50" y="56" font-family="Arial Black,sans-serif" font-weight="900" font-size="46" fill="#fff" text-anchor="middle">KR</text><circle cx="28" cy="84" r="12" fill="#1B2A4A"/><circle cx="72" cy="84" r="12" fill="#1B2A4A"/><circle cx="28" cy="84" r="5" fill="#fff"/><circle cx="72" cy="84" r="5" fill="#fff"/>'},
-              {n:'KR · Корона темна',c:'kr',fc:true,p:'<circle cx="50" cy="54" r="44" fill="#1B2A4A"/><polygon points="22,68 22,44 36,56 50,36 64,56 78,44 78,68" fill="#FF6B35"/><rect x="22" y="66" width="56" height="8" rx="2" fill="#FF6B35"/><text x="50" y="84" font-family="Arial Black,sans-serif" font-weight="900" font-size="26" fill="#fff" text-anchor="middle">KR</text>'},
-              {n:'KR · Ромб орандж.',c:'kr',fc:true,p:'<polygon points="50,5 95,50 50,95 5,50" fill="#FF6B35"/><text x="50" y="63" font-family="Arial Black,sans-serif" font-weight="900" font-size="32" fill="#fff" text-anchor="middle">KR</text>'},
-              {n:'KR · Ромб темний',c:'kr',fc:true,p:'<polygon points="50,5 95,50 50,95 5,50" fill="#1B2A4A"/><text x="50" y="63" font-family="Arial Black,sans-serif" font-weight="900" font-size="32" fill="#FF6B35" text-anchor="middle">KR</text>'},
-              {n:'KR · Шестикутник обвед.',c:'kr',fc:true,p:'<polygon points="50,4 93,27 93,73 50,96 7,73 7,27" fill="none" stroke="#FF6B35" stroke-width="5"/><text x="50" y="66" font-family="Arial Black,sans-serif" font-weight="900" font-size="42" fill="#FF6B35" text-anchor="middle">KR</text>'},
-              {n:'KR · Подвійне кільце',c:'kr',fc:true,p:'<circle cx="50" cy="50" r="48" fill="#FF6B35"/><circle cx="50" cy="50" r="38" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="2"/><text x="50" y="66" font-family="Arial Black,sans-serif" font-weight="900" font-size="46" fill="#fff" text-anchor="middle">KR</text>'},
-              {n:'KR · Спліт-коло',c:'kr',fc:true,p:'<path d="M50,2 A48,48 0 0,0 50,98 Z" fill="#FF6B35"/><path d="M50,2 A48,48 0 0,1 50,98 Z" fill="#1B2A4A"/><text x="25" y="65" font-family="Arial Black,sans-serif" font-weight="900" font-size="40" fill="#fff" text-anchor="middle">K</text><text x="75" y="65" font-family="Arial Black,sans-serif" font-weight="900" font-size="40" fill="#FF6B35" text-anchor="middle">R</text>'},
-              // ── БЛИСКАВКА (15) ──
-              {n:'⚡ Жирна орандж.',c:'kr',fc:true,p:'<path d="M56,5 L26,54 L46,54 L44,95 L74,46 L54,46 Z" fill="#FF6B35"/>'},
-              {n:'⚡ Коло орандж.',c:'kr',fc:true,p:'<circle cx="50" cy="50" r="48" fill="#FF6B35"/><path d="M56,14 L34,52 L48,52 L44,86 L66,48 L52,48 Z" fill="#fff"/>'},
-              {n:'⚡ Коло темний',c:'kr',fc:true,p:'<circle cx="50" cy="50" r="48" fill="#1B2A4A"/><path d="M56,14 L34,52 L48,52 L44,86 L66,48 L52,48 Z" fill="#FF6B35"/>'},
-              {n:'⚡ Шестикутник',c:'kr',fc:true,p:'<polygon points="50,4 93,27 93,73 50,96 7,73 7,27" fill="#1B2A4A"/><path d="M56,18 L36,52 L50,52 L44,82 L64,48 L50,48 Z" fill="#FF6B35"/>'},
-              {n:'⚡ Щит темний',c:'kr',fc:true,p:'<path d="M50,4 L90,20 L90,56 Q90,82 50,96 Q10,82 10,56 L10,20 Z" fill="#1B2A4A"/><path d="M55,18 L35,52 L49,52 L44,80 L64,46 L50,46 Z" fill="#FF6B35"/>'},
-              {n:'⚡⚡ Подвійна',c:'kr',fc:true,p:'<path d="M43,8 L23,50 L36,50 L32,85 L52,43 L39,43 Z" fill="#FF6B35"/><path d="M63,8 L43,50 L56,50 L52,85 L72,43 L59,43 Z" fill="#1B2A4A"/>'},
-              {n:'⚡ + KR текст',c:'kr',fc:true,p:'<path d="M55,6 L33,43 L46,43 L42,72 L62,35 L49,35 Z" fill="#FF6B35"/><text x="50" y="92" font-family="Arial Black,sans-serif" font-weight="900" font-size="20" fill="#1B2A4A" text-anchor="middle">KR</text>'},
-              {n:'⚡ Квадрат орандж.',c:'kr',fc:true,p:'<rect x="4" y="4" width="92" height="92" rx="20" fill="#FF6B35"/><path d="M56,14 L34,52 L48,52 L44,86 L66,48 L52,48 Z" fill="#fff"/>'},
-              {n:'⚡ Обведення',c:'kr',fc:true,p:'<path d="M56,5 L26,54 L46,54 L44,95 L74,46 L54,46 Z" fill="none" stroke="#FF6B35" stroke-width="4" stroke-linejoin="round"/>'},
-              {n:'⚡ Батарея',c:'kr',fc:true,p:'<rect x="12" y="24" width="66" height="52" rx="8" fill="#1B2A4A"/><rect x="78" y="38" width="10" height="24" rx="4" fill="#1B2A4A"/><path d="M53,32 L38,53 L49,53 L47,68 L62,47 L51,47 Z" fill="#FF6B35"/>'},
-              {n:'⚡⚡⚡ Три промені',c:'kr',fc:true,p:'<path d="M50,8 L36,46 L46,46 L42,88 L56,46 L66,46 Z" fill="#FF6B35"/><path d="M26,14 L12,50 L22,50 L20,78 L32,46 L22,46 Z" fill="#FF6B35" opacity=".35"/><path d="M74,14 L68,46 L78,46 L80,78 L88,50 L78,50 Z" fill="#FF6B35" opacity=".35"/>'},
-              {n:'⚡ Кільце орандж.',c:'kr',fc:true,p:'<circle cx="50" cy="50" r="47" fill="none" stroke="#FF6B35" stroke-width="4"/><path d="M55,18 L35,52 L49,52 L44,82 L64,48 L50,48 Z" fill="#FF6B35"/>'},
-              {n:'K ⚡ R розділювач',c:'kr',fc:true,p:'<text x="22" y="65" font-family="Arial Black,sans-serif" font-weight="900" font-size="42" fill="#1B2A4A" text-anchor="middle">K</text><text x="78" y="65" font-family="Arial Black,sans-serif" font-weight="900" font-size="42" fill="#1B2A4A" text-anchor="middle">R</text><path d="M54,12 L44,48 L50,48 L46,88 L56,52 L50,52 Z" fill="#FF6B35"/>'},
-              {n:'⚡ + Лінії швидк.',c:'kr',fc:true,p:'<path d="M55,18 L35,52 L49,52 L44,82 L64,48 L50,48 Z" fill="#FF6B35"/><line x1="5" y1="38" x2="28" y2="38" stroke="#1B2A4A" stroke-width="3.5" stroke-linecap="round"/><line x1="5" y1="50" x2="28" y2="50" stroke="#1B2A4A" stroke-width="3.5" stroke-linecap="round"/><line x1="10" y1="62" x2="28" y2="62" stroke="#1B2A4A" stroke-width="3.5" stroke-linecap="round"/>'},
-              {n:'⚡ Ромб темний',c:'kr',fc:true,p:'<polygon points="50,5 95,50 50,95 5,50" fill="#1B2A4A"/><path d="M55,25 L38,52 L50,52 L44,75 L62,48 L50,48 Z" fill="#FF6B35"/>'},
-              // ── ТРАНСПОРТ (20) ──
-              {n:'🛵 Самокат орандж.',c:'kr',fc:true,p:'<circle cx="22" cy="76" r="14" fill="none" stroke="#FF6B35" stroke-width="5"/><circle cx="78" cy="76" r="14" fill="none" stroke="#FF6B35" stroke-width="5"/><line x1="22" y1="62" x2="78" y2="62" stroke="#FF6B35" stroke-width="5" stroke-linecap="round"/><line x1="75" y1="62" x2="82" y2="32" stroke="#FF6B35" stroke-width="5" stroke-linecap="round"/><line x1="72" y1="32" x2="92" y2="32" stroke="#FF6B35" stroke-width="5" stroke-linecap="round"/><rect x="30" y="56" width="36" height="12" rx="6" fill="#FF6B35"/>'},
-              {n:'🛵 Самокат у колі',c:'kr',fc:true,p:'<circle cx="50" cy="50" r="48" fill="#FF6B35"/><circle cx="27" cy="68" r="10" fill="none" stroke="#fff" stroke-width="4"/><circle cx="73" cy="68" r="10" fill="none" stroke="#fff" stroke-width="4"/><line x1="27" y1="58" x2="73" y2="58" stroke="#fff" stroke-width="4" stroke-linecap="round"/><line x1="70" y1="58" x2="76" y2="36" stroke="#fff" stroke-width="4" stroke-linecap="round"/><line x1="68" y1="36" x2="84" y2="36" stroke="#fff" stroke-width="4" stroke-linecap="round"/><rect x="33" y="52" width="28" height="10" rx="5" fill="#fff"/>'},
-              {n:'🛵 Електросамокат',c:'kr',fc:true,p:'<circle cx="22" cy="76" r="14" fill="none" stroke="#1B2A4A" stroke-width="5"/><circle cx="78" cy="76" r="14" fill="none" stroke="#1B2A4A" stroke-width="5"/><rect x="18" y="56" width="66" height="12" rx="6" fill="#1B2A4A"/><line x1="75" y1="56" x2="80" y2="28" stroke="#1B2A4A" stroke-width="5" stroke-linecap="round"/><line x1="70" y1="28" x2="90" y2="28" stroke="#1B2A4A" stroke-width="5" stroke-linecap="round"/><path d="M55,18 L44,48 L52,48 L50,70 L60,44 L52,44 Z" fill="#FF6B35"/>'},
-              {n:'🚲 Велосипед орандж.',c:'kr',fc:true,p:'<circle cx="26" cy="66" r="22" fill="none" stroke="#FF6B35" stroke-width="5"/><circle cx="74" cy="66" r="22" fill="none" stroke="#FF6B35" stroke-width="5"/><line x1="26" y1="66" x2="50" y2="28" stroke="#FF6B35" stroke-width="4"/><line x1="50" y1="28" x2="74" y2="66" stroke="#FF6B35" stroke-width="4"/><line x1="26" y1="66" x2="74" y2="66" stroke="#FF6B35" stroke-width="4"/><line x1="50" y1="28" x2="50" y2="14" stroke="#FF6B35" stroke-width="4"/><line x1="42" y1="14" x2="58" y2="14" stroke="#FF6B35" stroke-width="5" stroke-linecap="round"/>'},
-              {n:'🚲 Велосипед у колі',c:'kr',fc:true,p:'<circle cx="50" cy="50" r="48" fill="#1B2A4A"/><circle cx="30" cy="62" r="16" fill="none" stroke="#FF6B35" stroke-width="4"/><circle cx="70" cy="62" r="16" fill="none" stroke="#FF6B35" stroke-width="4"/><line x1="30" y1="62" x2="50" y2="30" stroke="#FF6B35" stroke-width="3.5"/><line x1="50" y1="30" x2="70" y2="62" stroke="#FF6B35" stroke-width="3.5"/><line x1="30" y1="62" x2="70" y2="62" stroke="#FF6B35" stroke-width="3.5"/><line x1="50" y1="30" x2="50" y2="18" stroke="#FF6B35" stroke-width="3.5"/><line x1="42" y1="18" x2="58" y2="18" stroke="#FF6B35" stroke-width="4.5" stroke-linecap="round"/>'},
-              {n:'🚗 Авто боковий',c:'kr',fc:true,p:'<rect x="10" y="44" width="80" height="30" rx="5" fill="#FF6B35"/><rect x="22" y="28" width="50" height="22" rx="8" fill="#FF6B35"/><rect x="27" y="31" width="20" height="14" rx="4" fill="rgba(30,50,80,.45)"/><rect x="52" y="31" width="15" height="14" rx="4" fill="rgba(30,50,80,.45)"/><circle cx="28" cy="74" r="12" fill="#1B2A4A"/><circle cx="72" cy="74" r="12" fill="#1B2A4A"/><circle cx="28" cy="74" r="5" fill="#fff"/><circle cx="72" cy="74" r="5" fill="#fff"/>'},
-              {n:'ATV / Квадроцикл',c:'kr',fc:true,p:'<rect x="16" y="38" width="68" height="26" rx="9" fill="#FF6B35"/><circle cx="24" cy="70" r="16" fill="none" stroke="#1B2A4A" stroke-width="6"/><circle cx="76" cy="70" r="16" fill="none" stroke="#1B2A4A" stroke-width="6"/><rect x="32" y="26" width="20" height="16" rx="4" fill="#FF6B35"/><line x1="48" y1="26" x2="58" y2="20" stroke="#FF6B35" stroke-width="5" stroke-linecap="round"/><line x1="54" y1="20" x2="66" y2="20" stroke="#FF6B35" stroke-width="5" stroke-linecap="round"/>'},
-              {n:'Триколісний велос.',c:'kr',fc:true,p:'<circle cx="50" cy="68" r="18" fill="none" stroke="#FF6B35" stroke-width="5"/><circle cx="18" cy="68" r="13" fill="none" stroke="#FF6B35" stroke-width="5"/><circle cx="82" cy="68" r="13" fill="none" stroke="#FF6B35" stroke-width="5"/><line x1="18" y1="55" x2="50" y2="50" stroke="#FF6B35" stroke-width="4"/><line x1="82" y1="55" x2="50" y2="50" stroke="#FF6B35" stroke-width="4"/><line x1="50" y1="50" x2="50" y2="26" stroke="#FF6B35" stroke-width="4"/><line x1="40" y1="26" x2="60" y2="26" stroke="#FF6B35" stroke-width="5" stroke-linecap="round"/>'},
-              {n:'Колесо + KR',c:'kr',fc:true,p:'<circle cx="50" cy="50" r="47" fill="none" stroke="#FF6B35" stroke-width="5"/><circle cx="50" cy="50" r="16" fill="#FF6B35"/><text x="50" y="56" font-family="Arial Black,sans-serif" font-weight="900" font-size="14" fill="#fff" text-anchor="middle">KR</text><line x1="50" y1="3" x2="50" y2="34" stroke="#FF6B35" stroke-width="3"/><line x1="50" y1="66" x2="50" y2="97" stroke="#FF6B35" stroke-width="3"/><line x1="3" y1="50" x2="34" y2="50" stroke="#FF6B35" stroke-width="3"/><line x1="66" y1="50" x2="97" y2="50" stroke="#FF6B35" stroke-width="3"/><line x1="20" y1="20" x2="40" y2="40" stroke="#FF6B35" stroke-width="2.5"/><line x1="60" y1="60" x2="80" y2="80" stroke="#FF6B35" stroke-width="2.5"/><line x1="80" y1="20" x2="60" y2="40" stroke="#FF6B35" stroke-width="2.5"/><line x1="40" y1="60" x2="20" y2="80" stroke="#FF6B35" stroke-width="2.5"/>'},
-              {n:'Колесо + ⚡ спиця',c:'kr',fc:true,p:'<circle cx="50" cy="50" r="47" fill="none" stroke="#1B2A4A" stroke-width="5"/><circle cx="50" cy="50" r="10" fill="#1B2A4A"/><line x1="50" y1="3" x2="50" y2="40" stroke="#1B2A4A" stroke-width="3"/><line x1="50" y1="60" x2="50" y2="97" stroke="#1B2A4A" stroke-width="3"/><line x1="3" y1="50" x2="40" y2="50" stroke="#1B2A4A" stroke-width="3"/><line x1="60" y1="50" x2="97" y2="50" stroke="#1B2A4A" stroke-width="3"/><path d="M53,18 L44,44 L51,44 L47,62 L56,42 L49,42 Z" fill="#FF6B35"/>'},
-              {n:'⛑ Шолом',c:'kr',fc:true,p:'<path d="M50,12 Q20,12 12,40 Q8,52 10,64 L90,64 Q92,52 88,40 Q80,12 50,12 Z" fill="#FF6B35"/><path d="M14,64 L86,64 Q86,70 80,74 Q68,80 50,80 Q32,80 20,74 Q14,70 14,64 Z" fill="#1B2A4A"/><path d="M55,20 Q48,20 42,30 L52,30 Q56,24 62,22 Q58,18 55,20 Z" fill="rgba(255,255,255,.35)"/>'},
-              {n:'🏎 Карт + KR',c:'kr',fc:true,p:'<rect x="10" y="44" width="80" height="22" rx="10" fill="#FF6B35"/><circle cx="22" cy="68" r="14" fill="#1B2A4A"/><circle cx="78" cy="68" r="14" fill="#1B2A4A"/><circle cx="22" cy="68" r="6" fill="#FF6B35"/><circle cx="78" cy="68" r="6" fill="#FF6B35"/><text x="50" y="60" font-family="Arial Black,sans-serif" font-weight="900" font-size="16" fill="#fff" text-anchor="middle">KR</text><circle cx="46" cy="36" r="10" fill="#FF6B35"/><circle cx="46" cy="36" r="7" fill="none" stroke="#1B2A4A" stroke-width="3.5"/>'},
-              {n:'Спідометр',c:'kr',fc:true,p:'<path d="M10,66 A42,42 0 0,1 90,66" fill="none" stroke="#e8ecf4" stroke-width="12" stroke-linecap="round"/><path d="M10,66 A42,42 0 0,1 74,32" fill="none" stroke="#FF6B35" stroke-width="12" stroke-linecap="round"/><circle cx="50" cy="66" r="7" fill="#1B2A4A"/><line x1="50" y1="66" x2="70" y2="38" stroke="#1B2A4A" stroke-width="4" stroke-linecap="round"/><text x="50" y="90" font-family="Arial Black,sans-serif" font-weight="900" font-size="14" fill="#1B2A4A" text-anchor="middle">KidsRide</text>'},
-              {n:'🏁 Гоночний прапор',c:'kr',fc:true,p:'<rect x="8" y="8" width="84" height="42" rx="4" fill="#1B2A4A"/><rect x="8" y="8" width="21" height="21" fill="#fff"/><rect x="29" y="8" width="21" height="21" fill="#1B2A4A"/><rect x="50" y="8" width="21" height="21" fill="#fff"/><rect x="71" y="8" width="21" height="21" fill="#1B2A4A"/><rect x="8" y="29" width="21" height="21" fill="#1B2A4A"/><rect x="29" y="29" width="21" height="21" fill="#fff"/><rect x="50" y="29" width="21" height="21" fill="#1B2A4A"/><rect x="71" y="29" width="21" height="21" fill="#fff"/><text x="50" y="82" font-family="Arial Black,sans-serif" font-weight="900" font-size="22" fill="#FF6B35" text-anchor="middle">KR</text>'},
-              {n:'Людина на самокаті',c:'kr',fc:true,p:'<circle cx="55" cy="24" r="9" fill="#1B2A4A"/><line x1="55" y1="33" x2="52" y2="54" stroke="#1B2A4A" stroke-width="6" stroke-linecap="round"/><line x1="52" y1="44" x2="68" y2="38" stroke="#1B2A4A" stroke-width="5" stroke-linecap="round"/><circle cx="28" cy="74" r="16" fill="none" stroke="#FF6B35" stroke-width="5"/><circle cx="72" cy="74" r="14" fill="none" stroke="#FF6B35" stroke-width="5"/><rect x="20" y="54" width="58" height="12" rx="6" fill="#FF6B35"/><line x1="70" y1="54" x2="68" y2="32" stroke="#FF6B35" stroke-width="5" stroke-linecap="round"/><line x1="62" y1="32" x2="78" y2="32" stroke="#FF6B35" stroke-width="5" stroke-linecap="round"/>'},
-              {n:'Баланс-байк',c:'kr',fc:true,p:'<circle cx="24" cy="70" r="18" fill="none" stroke="#FF6B35" stroke-width="5"/><circle cx="76" cy="70" r="18" fill="none" stroke="#FF6B35" stroke-width="5"/><line x1="24" y1="52" x2="50" y2="26" stroke="#FF6B35" stroke-width="5" stroke-linecap="round"/><line x1="76" y1="52" x2="50" y2="26" stroke="#FF6B35" stroke-width="5" stroke-linecap="round"/><line x1="24" y1="52" x2="76" y2="52" stroke="#FF6B35" stroke-width="4"/><line x1="50" y1="26" x2="52" y2="12" stroke="#FF6B35" stroke-width="5" stroke-linecap="round"/><line x1="44" y1="12" x2="60" y2="12" stroke="#FF6B35" stroke-width="5" stroke-linecap="round"/>'},
-              {n:'Електрокар фронт',c:'kr',fc:true,p:'<rect x="10" y="28" width="80" height="52" rx="10" fill="#FF6B35"/><rect x="22" y="16" width="56" height="24" rx="8" fill="#FF6B35"/><rect x="26" y="19" width="22" height="16" rx="5" fill="rgba(30,50,80,.4)"/><rect x="52" y="19" width="22" height="16" rx="5" fill="rgba(30,50,80,.4)"/><rect x="14" y="44" width="28" height="18" rx="4" fill="rgba(255,220,100,.8)"/><rect x="58" y="44" width="28" height="18" rx="4" fill="rgba(255,220,100,.8)"/><circle cx="26" cy="80" r="10" fill="#1B2A4A"/><circle cx="74" cy="80" r="10" fill="#1B2A4A"/><path d="M54,60 L45,72 L51,72 L48,82 L57,68 L51,68 Z" fill="#1B2A4A"/>'},
-              {n:'Сегвей',c:'kr',fc:true,p:'<rect x="28" y="52" width="44" height="10" rx="5" fill="#FF6B35"/><circle cx="50" cy="76" r="20" fill="none" stroke="#FF6B35" stroke-width="6"/><circle cx="50" cy="76" r="5" fill="#FF6B35"/><line x1="50" y1="52" x2="50" y2="26" stroke="#FF6B35" stroke-width="6" stroke-linecap="round"/><line x1="36" y1="26" x2="64" y2="26" stroke="#FF6B35" stroke-width="6" stroke-linecap="round"/>'},
-              {n:'Дитяча машинка',c:'kr',fc:true,p:'<rect x="8" y="46" width="84" height="26" rx="12" fill="#FF6B35"/><rect x="22" y="28" width="48" height="22" rx="8" fill="#FF6B35"/><rect x="28" y="31" width="16" height="14" rx="4" fill="rgba(255,255,255,.45)"/><rect x="50" y="31" width="16" height="14" rx="4" fill="rgba(255,255,255,.45)"/><circle cx="24" cy="72" r="12" fill="#1B2A4A"/><circle cx="76" cy="72" r="12" fill="#1B2A4A"/><circle cx="24" cy="72" r="5" fill="#fff"/><circle cx="76" cy="72" r="5" fill="#fff"/>'},
-              {n:'Літак-іграшка',c:'kr',fc:true,p:'<path d="M50,8 L90,55 L72,55 L60,90 L50,72 L40,90 L28,55 L10,55 Z" fill="#FF6B35"/><circle cx="50" cy="42" r="10" fill="#1B2A4A"/>'},
-              // ── БЕЙДЖ (15) ──
-              {n:'Овал орандж.',c:'kr',fc:true,p:'<ellipse cx="50" cy="50" rx="46" ry="36" fill="#FF6B35"/><text x="50" y="42" font-family="Arial Black,sans-serif" font-weight="900" font-size="18" fill="#fff" text-anchor="middle">KIDS</text><text x="50" y="64" font-family="Arial Black,sans-serif" font-weight="900" font-size="18" fill="#fff" text-anchor="middle">RIDE</text>'},
-              {n:'Овал темний',c:'kr',fc:true,p:'<ellipse cx="50" cy="50" rx="46" ry="36" fill="#1B2A4A"/><text x="50" y="42" font-family="Arial Black,sans-serif" font-weight="900" font-size="18" fill="#FF6B35" text-anchor="middle">KIDS</text><text x="50" y="64" font-family="Arial Black,sans-serif" font-weight="900" font-size="18" fill="#FF6B35" text-anchor="middle">RIDE</text>'},
-              {n:'★ Зірковий бейдж',c:'kr',fc:true,p:'<polygon points="50,5 61,35 95,35 68,55 79,85 50,66 21,85 32,55 5,35 39,35" fill="#FF6B35"/><text x="50" y="58" font-family="Arial Black,sans-serif" font-weight="900" font-size="18" fill="#fff" text-anchor="middle">KR</text>'},
-              {n:'Стрічковий бейдж',c:'kr',fc:true,p:'<rect x="15" y="18" width="70" height="52" rx="8" fill="#FF6B35"/><polygon points="14,70 4,88 30,82 50,94 70,82 96,88 86,70" fill="#1B2A4A"/><text x="50" y="52" font-family="Arial Black,sans-serif" font-weight="900" font-size="26" fill="#fff" text-anchor="middle">KR</text>'},
-              {n:'👑 Корона у колі',c:'kr',fc:true,p:'<circle cx="50" cy="50" r="48" fill="#1B2A4A"/><polygon points="22,68 22,44 36,56 50,36 64,56 78,44 78,68" fill="#FF6B35"/><rect x="22" y="66" width="56" height="8" rx="2" fill="#FF6B35"/>'},
-              {n:'Кругла медаль KR',c:'kr',fc:true,p:'<circle cx="50" cy="50" r="48" fill="#FF6B35"/><circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="2"/><text x="50" y="38" font-family="Arial,sans-serif" font-weight="700" font-size="8" fill="#fff" text-anchor="middle" letter-spacing="3">KIDSRIDE</text><text x="50" y="60" font-family="Arial Black,sans-serif" font-weight="900" font-size="28" fill="#fff" text-anchor="middle">KR</text><text x="50" y="72" font-family="Arial,sans-serif" font-weight="700" font-size="7" fill="rgba(255,255,255,.9)" text-anchor="middle" letter-spacing="2">UKRAINE</text>'},
-              {n:'Щит зі зіркою',c:'kr',fc:true,p:'<path d="M50,4 L90,20 L90,56 Q90,82 50,96 Q10,82 10,56 L10,20 Z" fill="#1B2A4A"/><polygon points="50,26 55,40 70,40 58,50 62,64 50,55 38,64 42,50 30,40 45,40" fill="#FF6B35"/>'},
-              {n:'🏆 Трофей',c:'kr',fc:true,p:'<path d="M32,8 L68,8 L68,42 Q68,62 50,70 Q32,62 32,42 Z" fill="#FF6B35"/><line x1="20" y1="8" x2="32" y2="8" stroke="#FF6B35" stroke-width="5" stroke-linecap="round"/><line x1="68" y1="8" x2="80" y2="8" stroke="#FF6B35" stroke-width="5" stroke-linecap="round"/><line x1="20" y1="8" x2="22" y2="28" stroke="#FF6B35" stroke-width="5" stroke-linecap="round"/><line x1="80" y1="8" x2="78" y2="28" stroke="#FF6B35" stroke-width="5" stroke-linecap="round"/><line x1="50" y1="70" x2="50" y2="82" stroke="#FF6B35" stroke-width="5" stroke-linecap="round"/><rect x="34" y="82" width="32" height="8" rx="4" fill="#FF6B35"/>'},
-              {n:'Лавровий вінок KR',c:'kr',fc:true,p:'<text x="50" y="58" font-family="Arial Black,sans-serif" font-weight="900" font-size="30" fill="#1B2A4A" text-anchor="middle">KR</text><path d="M22,50 Q14,40 18,28 Q28,36 22,50 M22,50 Q12,50 10,38 Q22,38 22,50 M22,50 Q14,60 18,72 Q28,64 22,50" fill="#27AE60" opacity=".9"/><path d="M78,50 Q86,40 82,28 Q72,36 78,50 M78,50 Q88,50 90,38 Q78,38 78,50 M78,50 Q86,60 82,72 Q72,64 78,50" fill="#27AE60" opacity=".9"/>'},
-              {n:'Нагородна стрічка',c:'kr',fc:true,p:'<circle cx="50" cy="34" r="28" fill="#FF6B35"/><circle cx="50" cy="34" r="22" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="3"/><text x="50" y="40" font-family="Arial Black,sans-serif" font-weight="900" font-size="22" fill="#fff" text-anchor="middle">KR</text><polygon points="38,58 32,92 50,78 68,92 62,58" fill="#1B2A4A"/>'},
-              {n:'💎 Преміум ромб',c:'kr',fc:true,p:'<polygon points="50,5 95,50 50,95 5,50" fill="#1B2A4A"/><polygon points="50,10 90,50 50,90 10,50" fill="none" stroke="#FF6B35" stroke-width="2"/><text x="50" y="43" font-family="Arial,sans-serif" font-weight="700" font-size="8" fill="#FF6B35" text-anchor="middle" letter-spacing="2">PREMIUM</text><text x="50" y="60" font-family="Arial Black,sans-serif" font-weight="900" font-size="22" fill="#FF6B35" text-anchor="middle">KR</text>'},
-              {n:'VIP бейдж',c:'kr',fc:true,p:'<rect x="5" y="18" width="90" height="64" rx="14" fill="#1B2A4A"/><rect x="8" y="21" width="84" height="58" rx="11" fill="none" stroke="#FF6B35" stroke-width="2"/><text x="50" y="40" font-family="Arial,sans-serif" font-weight="700" font-size="8" fill="#FF6B35" text-anchor="middle" letter-spacing="4">KIDS RIDE</text><text x="50" y="65" font-family="Arial Black,sans-serif" font-weight="900" font-size="30" fill="#FF6B35" text-anchor="middle">VIP</text>'},
-              {n:'Гексамедаль',c:'kr',fc:true,p:'<polygon points="50,4 93,27 93,73 50,96 7,73 7,27" fill="#FF6B35"/><polygon points="50,14 83,32 83,68 50,86 17,68 17,32" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="2"/><text x="50" y="62" font-family="Arial Black,sans-serif" font-weight="900" font-size="22" fill="#fff" text-anchor="middle">KR</text>'},
-              {n:'Мінімальний щит',c:'kr',fc:true,p:'<path d="M50,4 L88,18 L88,52 Q88,76 50,94 Q12,76 12,52 L12,18 Z" fill="none" stroke="#FF6B35" stroke-width="5"/><path d="M50,14 L80,25 L80,50 Q80,68 50,82 Q20,68 20,50 L20,25 Z" fill="#FF6B35"/><text x="50" y="60" font-family="Arial Black,sans-serif" font-weight="900" font-size="28" fill="#fff" text-anchor="middle">KR</text>'},
-              {n:'Сигнет / Печатка',c:'kr',fc:true,p:'<circle cx="50" cy="50" r="48" fill="#1B2A4A"/><circle cx="50" cy="50" r="40" fill="none" stroke="#FF6B35" stroke-width="1.5" stroke-dasharray="4,3"/><text x="50" y="38" font-family="Arial,sans-serif" font-weight="700" font-size="7.5" fill="#FF6B35" text-anchor="middle" letter-spacing="3">KIDS RIDE</text><text x="50" y="58" font-family="Arial Black,sans-serif" font-weight="900" font-size="26" fill="#FF6B35" text-anchor="middle">KR</text><text x="50" y="70" font-family="Arial,sans-serif" font-weight="700" font-size="7" fill="rgba(255,107,53,.8)" text-anchor="middle" letter-spacing="2">ELECTRIC</text>'},
-              // ── ТЕКСТ / WORDMARK (15) ──
-              {n:'KIDSRIDE горизонт.',c:'kr',fc:true,p:'<text x="50" y="56" font-family="Arial Black,sans-serif" font-weight="900" font-size="17" fill="#FF6B35" text-anchor="middle" letter-spacing="1">KIDSRIDE</text><rect x="10" y="63" width="80" height="4" rx="2" fill="#1B2A4A"/>'},
-              {n:'KIDS / RIDE стек',c:'kr',fc:true,p:'<text x="50" y="42" font-family="Arial Black,sans-serif" font-weight="900" font-size="28" fill="#FF6B35" text-anchor="middle">KIDS</text><text x="50" y="72" font-family="Arial Black,sans-serif" font-weight="900" font-size="28" fill="#1B2A4A" text-anchor="middle">RIDE</text>'},
-              {n:'kids · ride мінімал.',c:'kr',fc:true,p:'<text x="50" y="52" font-family="Arial,Helvetica,sans-serif" font-weight="300" font-size="22" fill="#1B2A4A" text-anchor="middle">kids</text><text x="50" y="76" font-family="Arial,Helvetica,sans-serif" font-weight="900" font-size="22" fill="#FF6B35" text-anchor="middle">ride</text>'},
-              {n:'KR™ мінімал.',c:'kr',fc:true,p:'<text x="45" y="65" font-family="Arial Black,sans-serif" font-weight="900" font-size="52" fill="#FF6B35" text-anchor="middle">KR</text><text x="83" y="28" font-family="Arial,sans-serif" font-size="14" fill="#1B2A4A">&#x2122;</text>'},
-              {n:'KidsRide + ⚡',c:'kr',fc:true,p:'<path d="M16,48 L8,70 L14,70 L12,86 L18,66 L12,66 Z" fill="#FF6B35"/><text x="57" y="68" font-family="Arial Black,sans-serif" font-weight="900" font-size="20" fill="#1B2A4A" text-anchor="middle">KidsRide</text>'},
-              {n:'KidsRide Ukraine',c:'kr',fc:true,p:'<text x="50" y="44" font-family="Arial Black,sans-serif" font-weight="900" font-size="20" fill="#FF6B35" text-anchor="middle">KidsRide</text><rect x="15" y="51" width="70" height="3" rx="1.5" fill="#FF6B35"/><text x="50" y="70" font-family="Arial,Helvetica,sans-serif" font-weight="600" font-size="11" fill="#1B2A4A" text-anchor="middle" letter-spacing="3">UKRAINE</text>'},
-              {n:'KR ELECTRIC',c:'kr',fc:true,p:'<text x="50" y="48" font-family="Arial Black,sans-serif" font-weight="900" font-size="38" fill="#FF6B35" text-anchor="middle">KR</text><text x="50" y="68" font-family="Arial,Helvetica,sans-serif" font-weight="400" font-size="10" fill="#1B2A4A" text-anchor="middle" letter-spacing="6">ELECTRIC</text>'},
-              {n:'KR SHOP',c:'kr',fc:true,p:'<text x="50" y="48" font-family="Arial Black,sans-serif" font-weight="900" font-size="38" fill="#1B2A4A" text-anchor="middle">KR</text><rect x="18" y="55" width="64" height="24" rx="6" fill="#FF6B35"/><text x="50" y="72" font-family="Arial Black,sans-serif" font-weight="900" font-size="14" fill="#fff" text-anchor="middle" letter-spacing="2">SHOP</text>'},
-              {n:'KIDS · RIDE · ELECTRIC',c:'kr',fc:true,p:'<text x="50" y="40" font-family="Arial Black,sans-serif" font-weight="900" font-size="16" fill="#FF6B35" text-anchor="middle">KIDS</text><text x="50" y="58" font-family="Arial,sans-serif" font-weight="400" font-size="10" fill="#1B2A4A" text-anchor="middle" letter-spacing="5">RIDE</text><text x="50" y="74" font-family="Arial,sans-serif" font-weight="600" font-size="9" fill="#1B2A4A" text-anchor="middle" letter-spacing="4">ELECTRIC</text>'},
-              {n:'KR EST. 2024',c:'kr',fc:true,p:'<text x="50" y="48" font-family="Arial Black,sans-serif" font-weight="900" font-size="42" fill="#FF6B35" text-anchor="middle">KR</text><text x="50" y="68" font-family="Arial,sans-serif" font-weight="600" font-size="9" fill="#6b7280" text-anchor="middle" letter-spacing="3">EST. 2024</text>'},
-              {n:'kids ♥ ride',c:'kr',fc:true,p:'<text x="20" y="60" font-family="Arial Black,sans-serif" font-weight="900" font-size="22" fill="#1B2A4A" text-anchor="middle">kids</text><path d="M46,44 Q50,38 54,44 Q58,50 50,58 Q42,50 46,44 Z" fill="#FF6B35"/><text x="80" y="60" font-family="Arial Black,sans-serif" font-weight="900" font-size="22" fill="#FF6B35" text-anchor="middle">ride</text>'},
-              {n:'KIDS | RIDE',c:'kr',fc:true,p:'<line x1="50" y1="20" x2="50" y2="80" stroke="#FF6B35" stroke-width="3"/><text x="34" y="55" font-family="Arial Black,sans-serif" font-weight="900" font-size="18" fill="#1B2A4A" text-anchor="middle">KIDS</text><text x="66" y="55" font-family="Arial Black,sans-serif" font-weight="900" font-size="18" fill="#FF6B35" text-anchor="middle">RIDE</text>'},
-              {n:'KR · Підкреслення',c:'kr',fc:true,p:'<text x="50" y="60" font-family="Arial Black,sans-serif" font-weight="900" font-size="52" fill="#FF6B35" text-anchor="middle">KR</text><rect x="12" y="68" width="76" height="5" rx="2.5" fill="#1B2A4A"/>'},
-              {n:'kids.ride мінімал.',c:'kr',fc:true,p:'<text x="50" y="56" font-family="Arial,Helvetica,sans-serif" font-weight="100" font-size="16" fill="#1B2A4A" text-anchor="middle" letter-spacing="4">KIDS RIDE</text><rect x="18" y="62" width="64" height="1.5" fill="#FF6B35"/>'},
-              {n:'Wordmark + іконка',c:'kr',fc:true,p:'<circle cx="18" cy="50" r="14" fill="#FF6B35"/><text x="19" y="56" font-family="Arial Black,sans-serif" font-weight="900" font-size="13" fill="#fff" text-anchor="middle">KR</text><text x="60" y="46" font-family="Arial Black,sans-serif" font-weight="900" font-size="18" fill="#FF6B35" text-anchor="middle">KidsRide</text><text x="60" y="62" font-family="Arial,sans-serif" font-weight="600" font-size="9" fill="#6b7280" text-anchor="middle" letter-spacing="3">ELECTRIC</text>'},
-              // ── ГЕОМЕТРІЯ (15) ──
-              {n:'Два кола K+R',c:'kr',fc:true,p:'<path d="M37,2 A35,35 0 1,0 37,98 A35,35 0 1,0 37,2" fill="#FF6B35" opacity=".9"/><path d="M63,2 A35,35 0 1,1 63,98 A35,35 0 1,1 63,2" fill="#1B2A4A" opacity=".9"/>'},
-              {n:'Трикутник вкладений',c:'kr',fc:true,p:'<polygon points="50,5 95,90 5,90" fill="#FF6B35"/><polygon points="50,20 82,78 18,78" fill="#1B2A4A"/><text x="50" y="74" font-family="Arial Black,sans-serif" font-weight="900" font-size="24" fill="#FF6B35" text-anchor="middle">KR</text>'},
-              {n:'∞ Нескінченність',c:'kr',fc:true,p:'<path d="M50,50 C40,30 15,30 15,50 C15,70 40,70 50,50 C60,30 85,30 85,50 C85,70 60,70 50,50 Z" fill="none" stroke="#FF6B35" stroke-width="7"/><text x="50" y="88" font-family="Arial Black,sans-serif" font-weight="900" font-size="16" fill="#1B2A4A" text-anchor="middle">KR</text>'},
-              {n:'Лінії швидкості',c:'kr',fc:true,p:'<rect x="4" y="4" width="92" height="92" rx="20" fill="#1B2A4A"/><rect x="4" y="4" width="92" height="92" rx="20" fill="none" stroke="#FF6B35" stroke-width="3"/><line x1="15" y1="34" x2="85" y2="34" stroke="#FF6B35" stroke-width="3.5" stroke-linecap="round" opacity=".3"/><line x1="15" y1="45" x2="85" y2="45" stroke="#FF6B35" stroke-width="5.5" stroke-linecap="round"/><line x1="15" y1="55" x2="85" y2="55" stroke="#FF6B35" stroke-width="9" stroke-linecap="round"/><line x1="15" y1="66" x2="85" y2="66" stroke="#FF6B35" stroke-width="3.5" stroke-linecap="round" opacity=".3"/><text x="50" y="86" font-family="Arial Black,sans-serif" font-weight="900" font-size="14" fill="#FF6B35" text-anchor="middle">KR</text>'},
-              {n:'Спліт-коло KR',c:'kr',fc:true,p:'<path d="M50,2 A48,48 0 0,0 50,98 Z" fill="#FF6B35"/><path d="M50,2 A48,48 0 0,1 50,98 Z" fill="#1B2A4A"/><text x="25" y="65" font-family="Arial Black,sans-serif" font-weight="900" font-size="40" fill="#fff" text-anchor="middle">K</text><text x="75" y="65" font-family="Arial Black,sans-serif" font-weight="900" font-size="40" fill="#FF6B35" text-anchor="middle">R</text>'},
-              {n:'Хвильові лінії',c:'kr',fc:true,p:'<path d="M5,35 Q20,25 35,35 Q50,45 65,35 Q80,25 95,35" fill="none" stroke="#FF6B35" stroke-width="5" stroke-linecap="round"/><path d="M5,50 Q20,40 35,50 Q50,60 65,50 Q80,40 95,50" fill="none" stroke="#FF6B35" stroke-width="8" stroke-linecap="round"/><path d="M5,65 Q20,55 35,65 Q50,75 65,65 Q80,55 95,65" fill="none" stroke="#FF6B35" stroke-width="5" stroke-linecap="round"/><text x="50" y="90" font-family="Arial Black,sans-serif" font-weight="900" font-size="14" fill="#1B2A4A" text-anchor="middle">KIDSRIDE</text>'},
-              {n:'Гора-шеврон',c:'kr',fc:true,p:'<polygon points="50,8 86,60 72,60 50,30 28,60 14,60" fill="#FF6B35"/><polygon points="50,34 74,72 60,72 50,54 40,72 26,72" fill="#1B2A4A"/><text x="50" y="94" font-family="Arial Black,sans-serif" font-weight="900" font-size="16" fill="#FF6B35" text-anchor="middle">KR</text>'},
-              {n:'◎ Мішень',c:'kr',fc:true,p:'<circle cx="50" cy="50" r="47" fill="none" stroke="#FF6B35" stroke-width="4"/><circle cx="50" cy="50" r="33" fill="none" stroke="#FF6B35" stroke-width="4"/><circle cx="50" cy="50" r="18" fill="#FF6B35"/><text x="50" y="56" font-family="Arial Black,sans-serif" font-weight="900" font-size="16" fill="#fff" text-anchor="middle">KR</text>'},
-              {n:'Піксельний KR',c:'kr',fc:true,p:'<rect x="6" y="6" width="88" height="88" rx="8" fill="#1B2A4A"/><rect x="16" y="18" width="8" height="64" fill="#FF6B35"/><rect x="24" y="18" width="24" height="8" fill="#FF6B35"/><rect x="24" y="46" width="22" height="8" fill="#FF6B35"/><rect x="24" y="74" width="24" height="8" fill="#FF6B35"/><rect x="54" y="18" width="8" height="64" fill="#FF6B35"/><rect x="62" y="18" width="16" height="8" fill="#FF6B35"/><rect x="70" y="26" width="8" height="8" fill="#FF6B35"/><rect x="62" y="46" width="16" height="8" fill="#FF6B35"/><rect x="70" y="54" width="8" height="28" fill="#FF6B35"/>'},
-              {n:'Концентричні кола',c:'kr',fc:true,p:'<circle cx="50" cy="50" r="47" fill="none" stroke="#FF6B35" stroke-width="4"/><circle cx="50" cy="50" r="35" fill="none" stroke="#FF6B35" stroke-width="3" opacity=".65"/><circle cx="50" cy="50" r="22" fill="none" stroke="#FF6B35" stroke-width="2.5" opacity=".4"/><circle cx="50" cy="50" r="12" fill="#FF6B35"/><text x="50" y="55" font-family="Arial Black,sans-serif" font-weight="900" font-size="11" fill="#fff" text-anchor="middle">KR</text>'},
-              {n:'→ Стрілка вперед',c:'kr',fc:true,p:'<polygon points="5,34 62,34 62,18 96,50 62,82 62,66 5,66" fill="#FF6B35"/><text x="36" y="58" font-family="Arial Black,sans-serif" font-weight="900" font-size="20" fill="#fff" text-anchor="middle">KR</text>'},
-              {n:'Решітка-точки',c:'kr',fc:true,p:'<circle cx="20" cy="20" r="5" fill="#FF6B35"/><circle cx="50" cy="20" r="5" fill="#FF6B35"/><circle cx="80" cy="20" r="5" fill="#FF6B35"/><circle cx="20" cy="50" r="5" fill="#FF6B35"/><circle cx="50" cy="50" r="9" fill="#FF6B35"/><circle cx="80" cy="50" r="5" fill="#FF6B35"/><circle cx="20" cy="80" r="5" fill="#FF6B35"/><circle cx="50" cy="80" r="5" fill="#FF6B35"/><circle cx="80" cy="80" r="5" fill="#FF6B35"/><line x1="20" y1="20" x2="80" y2="20" stroke="#FF6B35" stroke-width="1.5" opacity=".4"/><line x1="20" y1="50" x2="80" y2="50" stroke="#FF6B35" stroke-width="1.5" opacity=".4"/><line x1="20" y1="80" x2="80" y2="80" stroke="#FF6B35" stroke-width="1.5" opacity=".4"/><line x1="20" y1="20" x2="20" y2="80" stroke="#FF6B35" stroke-width="1.5" opacity=".4"/><line x1="50" y1="20" x2="50" y2="80" stroke="#FF6B35" stroke-width="1.5" opacity=".4"/><line x1="80" y1="20" x2="80" y2="80" stroke="#FF6B35" stroke-width="1.5" opacity=".4"/>'},
-              {n:'Вкладені шестикутн.',c:'kr',fc:true,p:'<polygon points="50,4 93,27 93,73 50,96 7,73 7,27" fill="none" stroke="#FF6B35" stroke-width="4"/><polygon points="50,18 80,35 80,65 50,82 20,65 20,35" fill="none" stroke="#FF6B35" stroke-width="2.5" opacity=".6"/><polygon points="50,32 66,42 66,58 50,68 34,58 34,42" fill="#FF6B35"/>'},
-              {n:'Чотири квадрати KR',c:'kr',fc:true,p:'<rect x="6" y="6" width="40" height="40" rx="8" fill="#FF6B35"/><rect x="54" y="6" width="40" height="40" rx="8" fill="#1B2A4A"/><rect x="6" y="54" width="40" height="40" rx="8" fill="#1B2A4A"/><rect x="54" y="54" width="40" height="40" rx="8" fill="#FF6B35"/><text x="26" y="32" font-family="Arial Black,sans-serif" font-weight="900" font-size="22" fill="#fff" text-anchor="middle">K</text><text x="74" y="32" font-family="Arial Black,sans-serif" font-weight="900" font-size="22" fill="#FF6B35" text-anchor="middle">R</text>'},
-              {n:'✦ Мастер-логотип KR',c:'kr',fc:true,p:'<circle cx="50" cy="50" r="48" fill="#FF6B35"/><circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="1.5"/><path d="M53,14 L44,38 L50,38 L47,58 L56,34 L50,34 Z" fill="rgba(255,255,255,.65)"/><text x="50" y="77" font-family="Arial Black,sans-serif" font-weight="900" font-size="30" fill="#fff" text-anchor="middle">KR</text><text x="50" y="90" font-family="Arial,sans-serif" font-weight="700" font-size="8" fill="rgba(255,255,255,.85)" text-anchor="middle" letter-spacing="3">KIDSRIDE</text>'},
             ];
 
             let _pickerCat = '';
@@ -1851,12 +1731,6 @@ tr:hover td{background:rgba(240,242,248,.5)}
               grid.innerHTML = filtered.map(l => {
                 const ri = window.KR_LOGOS.indexOf(l);
                 const sel = ri === _selectedIdx;
-                if (l.fc) {
-                  return `<div onclick="selectLogoIdx(${ri})" title="${l.n}" style="aspect-ratio:1;position:relative;background:white;border:2px solid ${sel ? 'var(--navy)' : '#e5e7eb'};border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;transform:${sel ? 'scale(1.05)' : ''};box-shadow:0 2px 6px rgba(0,0,0,.08)" onmouseenter="this.style.transform='scale(1.08)'" onmouseleave="this.style.transform='${sel ? 'scale(1.05)' : ''}'">
-                    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width:62%;height:62%">${l.p}</svg>
-                    <div style="font-size:7px;color:#6b7280;text-align:center;padding:0 3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;line-height:1.2">${l.n}</div>
-                  </div>`;
-                }
                 return `<div onclick="selectLogoIdx(${ri})" title="${l.n}" style="aspect-ratio:1;position:relative;background:${bg};border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;outline:${sel ? '3px solid var(--navy)' : 'none'};transform:${sel ? 'scale(1.05)' : ''};box-shadow:0 2px 6px rgba(0,0,0,.15)" onmouseenter="this.style.transform='scale(1.08)'" onmouseleave="this.style.transform='${sel ? 'scale(1.05)' : ''}'">
                   <svg viewBox="0 0 24 24" fill="none" stroke="${fg}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:55%;height:55%">${l.p}</svg>
                   <div style="font-size:7.5px;color:${fg};opacity:.75;text-align:center;padding:0 3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;line-height:1.2">${l.n}</div>
@@ -1867,22 +1741,12 @@ tr:hover td{background:rgba(240,242,248,.5)}
               _selectedIdx = idx;
               const l = window.KR_LOGOS[idx];
               if (!l) return;
-              if (l.fc) {
-                const svgStr = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">' + l.p + '</svg>';
-                const url = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgStr);
-                document.getElementById('cfg_logo_url').value = url;
-                document.getElementById('cfg_logo_paths').value = '';
-                updateLogoPreview(url, '#ffffff');
-                const box = document.getElementById('logoPreviewBox');
-                if (box) box.style.background = '#f3f4f6';
-              } else {
-                const bg = document.getElementById('cfg_logo_bg_color')?.value || '#FF6B35';
-                const fg = document.getElementById('cfg_logo_fg_color')?.value || '#ffffff';
-                document.getElementById('cfg_logo_paths').value = l.p;
-                const url = genLogoUrl(l.p, bg, fg);
-                document.getElementById('cfg_logo_url').value = url;
-                updateLogoPreview(url, bg);
-              }
+              const bg = document.getElementById('cfg_logo_bg_color')?.value || '#FF6B35';
+              const fg = document.getElementById('cfg_logo_fg_color')?.value || '#ffffff';
+              document.getElementById('cfg_logo_paths').value = l.p;
+              const url = genLogoUrl(l.p, bg, fg);
+              document.getElementById('cfg_logo_url').value = url;
+              updateLogoPreview(url, bg);
               renderPickerGrid();
               setTimeout(closeLogoPicker, 250);
             };
@@ -7448,7 +7312,7 @@ async function loadProductAnalytics(from, to) {
   ['pa-total-views','pa-unique-products','pa-unique-sessions','pa-avg-day'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='—';});
   const hdrs = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY };
   try {
-    const url = SUPABASE_URL + '/rest/v1/product_views?select=product_id,product_name,product_sku,session_id,user_agent,viewed_at'
+    const url = SUPABASE_URL + '/rest/v1/product_views?select=product_id,product_name,product_sku,session_id,viewed_at'
       + '&viewed_at=gte.' + from.toISOString()
       + '&viewed_at=lte.' + to.toISOString()
       + '&order=viewed_at.asc&limit=10000';
@@ -7552,100 +7416,12 @@ function renderProductAnalyticsUI(from, to) {
   });
   _paTableData = Object.values(prodMap).map(p => ({...p, sessions: p.sessions.size}));
   paSortBy(_paSortCol, true);
-
-  // ── Device / OS analytics ─────────────────────────────────────────────
-  const sessDevMap = {};
-  data.forEach(r => {
-    if (!sessDevMap[r.session_id]) sessDevMap[r.session_id] = _detectDevice(r.user_agent || '');
-  });
-  const devCounts = { mobile:0, desktop:0, tablet:0 };
-  const osCounts  = {};
-  Object.values(sessDevMap).forEach(d => {
-    devCounts[d.type] = (devCounts[d.type] || 0) + 1;
-    osCounts[d.os]    = (osCounts[d.os]    || 0) + 1;
-  });
-  const totalSess = Object.values(devCounts).reduce((a,b)=>a+b,0) || 1;
-  const hasUA = data.some(r => r.user_agent);
-
-  // Render device breakdown
-  const devEl = document.getElementById('paDeviceChart');
-  if (devEl) {
-    if (!hasUA) {
-      devEl.innerHTML = '<div style="color:var(--text-muted);font-size:12px;padding:4px 0">Дані з\'являться після оновлення product.html та SQL-міграції</div>';
-    } else {
-      const devCfg = [
-        { key:'mobile',  name:'Мобільні',  color:'var(--orange)', icon:'<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>' },
-        { key:'desktop', name:'Десктоп',   color:'var(--blue)',   icon:'<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>' },
-        { key:'tablet',  name:'Планшет',   color:'var(--green)',  icon:'<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="9" y1="7" x2="15" y2="7"/></svg>' },
-      ];
-      devEl.innerHTML = devCfg.map(d => {
-        const n   = devCounts[d.key] || 0;
-        const pct = Math.round(n / totalSess * 100);
-        return `<div class="device-item">
-          <div class="device-name">${d.icon}&nbsp;${d.name}</div>
-          <div style="flex:1;margin:0 10px;height:6px;background:var(--border);border-radius:3px;overflow:hidden">
-            <div style="height:100%;background:${d.color};border-radius:3px;width:${pct}%"></div>
-          </div>
-          <div class="device-pct" style="color:${d.color}">${pct}%<span style="font-size:11px;color:var(--text-muted);font-weight:500;margin-left:3px">(${n})</span></div>
-        </div>`;
-      }).join('');
-    }
-  }
-
-  // Render OS breakdown
-  const osEl = document.getElementById('paOsChart');
-  if (osEl) {
-    if (!hasUA) {
-      osEl.innerHTML = '<div style="color:var(--text-muted);font-size:12px;padding:4px 0">Потрібна SQL-міграція: <code style="background:var(--bg);padding:1px 5px;border-radius:4px;font-size:11px">ALTER TABLE product_views ADD COLUMN IF NOT EXISTS user_agent text;</code></div>';
-    } else {
-      const osSorted = Object.entries(osCounts).sort((a,b)=>b[1]-a[1]);
-      const osMax = osSorted[0]?.[1] || 1;
-      const osColors = { 'iOS':'#007AFF','Android':'#3DDC84','Windows':'#0078D4','macOS':'#636366','Linux':'#E8A000','ChromeOS':'#4285F4','iPadOS':'#5856D6','Windows Phone':'#00AFF0','Інше':'#aaa','Невідомо':'#ccc' };
-      osEl.innerHTML = osSorted.slice(0,8).map(([os, n]) => {
-        const barPct  = Math.round(n / osMax * 100);
-        const totPct  = Math.round(n / totalSess * 100);
-        const color   = osColors[os] || '#aaa';
-        return `<div class="device-item">
-          <div class="device-name" style="min-width:95px;color:var(--navy)">${_escHtml(os)}</div>
-          <div style="flex:1;margin:0 10px;height:6px;background:var(--border);border-radius:3px;overflow:hidden">
-            <div style="height:100%;border-radius:3px;width:${barPct}%;background:${color}"></div>
-          </div>
-          <div style="font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;color:${color};white-space:nowrap">${totPct}%<span style="font-size:11px;color:var(--text-muted);font-weight:500;margin-left:3px">(${n})</span></div>
-        </div>`;
-      }).join('');
-    }
-  }
-}
-
-function _detectDevice(ua) {
-  if (!ua) return { type: 'desktop', os: 'Невідомо' };
-  let type = 'desktop', os = 'Інше';
-  if (/iPad/.test(ua) || (/Macintosh/.test(ua) && /Touch/.test(ua))) { type = 'tablet'; os = 'iPadOS'; }
-  else if (/iPhone/.test(ua)) { type = 'mobile'; os = 'iOS'; }
-  else if (/Android/.test(ua)) { type = /Mobile/.test(ua) ? 'mobile' : 'tablet'; os = 'Android'; }
-  else if (/Windows Phone/.test(ua)) { type = 'mobile'; os = 'Windows Phone'; }
-  else if (/CrOS/.test(ua)) { type = 'desktop'; os = 'ChromeOS'; }
-  else if (/Windows/.test(ua)) { type = 'desktop'; os = 'Windows'; }
-  else if (/Mac OS X/.test(ua)) { type = 'desktop'; os = 'macOS'; }
-  else if (/Linux/.test(ua)) { type = 'desktop'; os = 'Linux'; }
-  return { type, os };
 }
 
 function paSortBy(col, keepDir) {
   if(!keepDir) _paSortDir = (_paSortCol===col) ? -_paSortDir : -1;
   _paSortCol = col;
-  if (col === 'lastSeen') {
-    _paTableData.sort((a,b) => _paSortDir * (new Date(b.lastSeen||0).getTime() - new Date(a.lastSeen||0).getTime()));
-  } else {
-    _paTableData.sort((a,b) => _paSortDir * (b[col] - a[col]));
-  }
-  // Update header arrows
-  const cols = { views:'Переглядів', sessions:'Сесій', lastSeen:'Остання дія' };
-  Object.entries(cols).forEach(([c, label]) => {
-    const th = document.getElementById('paTh-' + c);
-    if (!th) return;
-    th.textContent = label + (c === col ? (_paSortDir === -1 ? ' ▾' : ' ▴') : '');
-  });
+  _paTableData.sort((a,b) => _paSortDir * (b[col] - a[col]));
   paRenderTable();
 }
 
@@ -7775,21 +7551,6 @@ function renderProductAnalytics() {
         <div style="font-size:11px;font-weight:700;color:#6b7280;letter-spacing:.06em;margin-bottom:12px">АКТИВНІСТЬ ПО ДНЯХ ТИЖНЯ</div>
         <div id="_skuDow" style="display:flex;align-items:flex-end;gap:6px;height:70px"></div>
       </div>
-
-      <!-- Device + OS breakdown -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
-        <div style="background:#FAFBFD;border:1.5px solid #e8ecf4;border-radius:14px;padding:16px 18px">
-          <div style="font-size:11px;font-weight:700;color:#6b7280;letter-spacing:.06em;margin-bottom:12px">📱 ПРИСТРОЇ</div>
-          <div id="_skuDeviceChart"><div style="color:#9ca3af;font-size:12px">Завантаження…</div></div>
-        </div>
-        <div style="background:#FAFBFD;border:1.5px solid #e8ecf4;border-radius:14px;padding:16px 18px">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-            <div style="font-size:11px;font-weight:700;color:#6b7280;letter-spacing:.06em">💻 ОПЕРАЦІЙНА СИСТЕМА</div>
-            <div style="font-size:10px;color:#9ca3af;font-weight:500">унік. сесій</div>
-          </div>
-          <div id="_skuOsChart"><div style="color:#9ca3af;font-size:12px">Завантаження…</div></div>
-        </div>
-      </div>
     </div>
   </div>
 </div>
@@ -7880,19 +7641,14 @@ function _skuRender(){
   document.getElementById('_skuKpi3').textContent=avgDay;
   document.getElementById('_skuKpi4').textContent=interest;
 
-  // Trend — compare first half vs second half of the TIME PERIOD (not array position)
+  // Trend
+  const half=Math.floor(rows.length/2);
+  const h1=rows.slice(0,half).length, h2=rows.slice(half).length;
   const trEl=document.getElementById('_skuTrend');
   if(totalViews===0){trEl.textContent='Немає даних';trEl.style.background='#F8F9FC';trEl.style.color='#6b7280';}
-  else {
-    const midMs = cutoff.getTime() + (now.getTime()-cutoff.getTime())/2;
-    const midDate = new Date(midMs);
-    const h1=rows.filter(r=>new Date(r.viewed_at)<midDate).length;
-    const h2=rows.filter(r=>new Date(r.viewed_at)>=midDate).length;
-    const diffPct = h1>0 ? Math.round((h2-h1)/h1*100) : (h2>0?100:0);
-    if(h2>h1*1.15){trEl.innerHTML='↑ Зростання'+(Math.abs(diffPct)>0?' +'+Math.abs(diffPct)+'%':'');trEl.style.background='#d1fae5';trEl.style.color='#059669';}
-    else if(h2<h1*0.85){trEl.innerHTML='↓ Падіння'+(Math.abs(diffPct)>0?' −'+Math.abs(diffPct)+'%':'');trEl.style.background='#fee2e2';trEl.style.color='#e53935';}
-    else{trEl.innerHTML='→ Стабільно';trEl.style.background='#F0F4FF';trEl.style.color='#4F6FE8';}
-  }
+  else if(h2>h1){trEl.innerHTML='↑ Зростання';trEl.style.background='#d1fae5';trEl.style.color='#059669';}
+  else if(h2<h1){trEl.innerHTML='↓ Падіння';trEl.style.background='#fee2e2';trEl.style.color='#e53935';}
+  else{trEl.innerHTML='→ Стабільно';trEl.style.background='#F0F4FF';trEl.style.color='#4F6FE8';}
 
   // Main chart
   if(_skuViewMode==='day'){
@@ -7948,67 +7704,6 @@ function _skuRender(){
       <div style="font-size:10px;color:${isTop?'#FF6B35':'#6b7280'};font-weight:600">${dowNames[d]}</div>
     </div>`;
   }).join('');
-
-  // ── Device / OS breakdown for this SKU ────────────────────────────────────
-  const _skuSessDevMap={};
-  rows.forEach(r=>{if(!_skuSessDevMap[r.session_id])_skuSessDevMap[r.session_id]=_detectDevice(r.user_agent||'');});
-  const _skuDevCounts={mobile:0,desktop:0,tablet:0};
-  const _skuOsCounts={};
-  Object.values(_skuSessDevMap).forEach(d=>{
-    _skuDevCounts[d.type]=(_skuDevCounts[d.type]||0)+1;
-    _skuOsCounts[d.os]=(_skuOsCounts[d.os]||0)+1;
-  });
-  const _skuTotalSess=Object.values(_skuDevCounts).reduce((a,b)=>a+b,0)||1;
-  const _skuHasUA=rows.some(r=>r.user_agent);
-
-  const devEl2=document.getElementById('_skuDeviceChart');
-  if(devEl2){
-    if(!_skuHasUA){
-      devEl2.innerHTML='<div style="color:#9ca3af;font-size:12px">Потрібна SQL-міграція<br><code style="font-size:10px;background:#F8F9FC;padding:1px 5px;border-radius:4px">ADD COLUMN user_agent text</code></div>';
-    } else {
-      const _dCfg=[
-        {key:'mobile', name:'Мобільні', color:'#FF6B35'},
-        {key:'desktop',name:'Десктоп',  color:'#2563eb'},
-        {key:'tablet', name:'Планшет',  color:'#27AE60'},
-      ];
-      devEl2.innerHTML=_dCfg.map(d=>{
-        const n=_skuDevCounts[d.key]||0;
-        const pct=Math.round(n/_skuTotalSess*100);
-        return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:9px">
-          <div style="font-size:12px;font-weight:600;color:#374151;min-width:72px">${d.name}</div>
-          <div style="flex:1;height:6px;background:#e5e7eb;border-radius:3px;overflow:hidden">
-            <div style="height:100%;background:${d.color};border-radius:3px;width:${pct}%"></div>
-          </div>
-          <div style="font-size:12px;font-weight:700;color:${d.color};min-width:36px;text-align:right">${pct}%</div>
-          <div style="font-size:11px;color:#9ca3af">(${n})</div>
-        </div>`;
-      }).join('');
-    }
-  }
-
-  const osEl2=document.getElementById('_skuOsChart');
-  if(osEl2){
-    if(!_skuHasUA){
-      osEl2.innerHTML='<div style="color:#9ca3af;font-size:12px">Дані зʼявляться після SQL-міграції та оновлення product.html</div>';
-    } else {
-      const _osSorted=Object.entries(_skuOsCounts).sort((a,b)=>b[1]-a[1]);
-      const _osMax=_osSorted[0]?.[1]||1;
-      const _osColors={'iOS':'#007AFF','Android':'#3DDC84','Windows':'#0078D4','macOS':'#636366','Linux':'#E8A000','ChromeOS':'#4285F4','iPadOS':'#5856D6','Windows Phone':'#00AFF0','Інше':'#aaa','Невідомо':'#ccc'};
-      osEl2.innerHTML=_osSorted.slice(0,6).map(([os,n])=>{
-        const bar=Math.round(n/_osMax*100);
-        const pct=Math.round(n/_skuTotalSess*100);
-        const col=_osColors[os]||'#aaa';
-        return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:9px">
-          <div style="font-size:12px;font-weight:600;color:#374151;min-width:72px">${_escHtml(os)}</div>
-          <div style="flex:1;height:6px;background:#e5e7eb;border-radius:3px;overflow:hidden">
-            <div style="height:100%;background:${col};border-radius:3px;width:${bar}%"></div>
-          </div>
-          <div style="font-size:12px;font-weight:700;color:${col};min-width:36px;text-align:right">${pct}%</div>
-          <div style="font-size:11px;color:#9ca3af">(${n})</div>
-        </div>`;
-      }).join('');
-    }
-  }
 }
 
 function _skuRenderDayChart(rows,from,to){
@@ -8629,8 +8324,6 @@ function resetBlocksOrder(){
 }
 
 </script>
-
-
 </body>
 </html>
 
