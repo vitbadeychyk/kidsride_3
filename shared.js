@@ -410,19 +410,6 @@ const KR = {
       el.style.background = 'transparent';
       el.style.boxShadow = 'none';
       el.style.padding = '0';
-      // Hide the text label (e.g. "KidsRide") next to the logo mark
-      const logoParent = el.closest('.logo');
-      if (logoParent) {
-        logoParent.querySelectorAll(':scope > span, :scope > a > span').forEach(function(s) {
-          s.style.display = 'none';
-        });
-        // also direct child spans of the logo anchor
-        Array.from(logoParent.childNodes).forEach(function(node) {
-          if (node.nodeType === 1 && node !== el && node.tagName !== 'DIV') {
-            node.style.display = 'none';
-          }
-        });
-      }
     });
     this._updateFavicon(url);
   },
