@@ -1522,6 +1522,32 @@ tr:hover td{background:rgba(240,242,248,.5)}
             </div>
             <input id="cfg_logo_url" type="hidden" value="">
             <input id="cfg_logo_paths" type="hidden" value="">
+
+            <!-- FAVICON DOWNLOAD -->
+            <div style="margin-top:14px;padding:14px 16px;background:var(--bg-soft);border-radius:var(--r-sm);border:1px solid var(--border)">
+              <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:6px;display:flex;align-items:center;gap:6px">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Скачати іконки сайту (favicon)
+              </div>
+              <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px">Оберіть логотип → скачайте PNG → замініть файли у папці сайту</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button type="button" onclick="downloadLogoAsPng(32,'favicon-32.png')" style="display:flex;flex-direction:column;align-items:center;padding:10px 16px;background:white;border:1.5px solid var(--border);border-radius:var(--r-sm);cursor:pointer;font-family:'Nunito',sans-serif;gap:3px;transition:all .2s" onmouseenter="this.style.borderColor='var(--orange)';this.style.boxShadow='0 2px 8px rgba(255,107,53,.2)'" onmouseleave="this.style.borderColor='var(--border)';this.style.boxShadow='none'">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  <div style="font-weight:800;font-size:12px;color:var(--navy)">32 × 32</div>
+                  <div style="font-size:10px;color:var(--text-muted)">favicon-32.png</div>
+                </button>
+                <button type="button" onclick="downloadLogoAsPng(48,'favicon-48.png')" style="display:flex;flex-direction:column;align-items:center;padding:10px 16px;background:white;border:1.5px solid var(--border);border-radius:var(--r-sm);cursor:pointer;font-family:'Nunito',sans-serif;gap:3px;transition:all .2s" onmouseenter="this.style.borderColor='var(--orange)';this.style.boxShadow='0 2px 8px rgba(255,107,53,.2)'" onmouseleave="this.style.borderColor='var(--border)';this.style.boxShadow='none'">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  <div style="font-weight:800;font-size:12px;color:var(--navy)">48 × 48</div>
+                  <div style="font-size:10px;color:var(--text-muted)">favicon-48.png</div>
+                </button>
+                <button type="button" onclick="downloadLogoAsPng(180,'apple-touch-icon.png')" style="display:flex;flex-direction:column;align-items:center;padding:10px 16px;background:white;border:1.5px solid var(--border);border-radius:var(--r-sm);cursor:pointer;font-family:'Nunito',sans-serif;gap:3px;transition:all .2s" onmouseenter="this.style.borderColor='var(--orange)';this.style.boxShadow='0 2px 8px rgba(255,107,53,.2)'" onmouseleave="this.style.borderColor='var(--border)';this.style.boxShadow='none'">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  <div style="font-weight:800;font-size:12px;color:var(--navy)">180 × 180</div>
+                  <div style="font-size:10px;color:var(--text-muted)">apple-touch-icon.png</div>
+                </button>
+              </div>
+            </div>
           </div>
 
           <!-- Logo Picker Modal -->
@@ -1942,6 +1968,75 @@ tr:hover td{background:rgba(240,242,248,.5)}
               if (box) { box.style.background = '#FF6B35'; box.style.boxShadow = '0 4px 12px rgba(255,107,53,.35)'; }
               try { localStorage.removeItem('kr_logo_url'); } catch(e) {}
             };
+
+            // ── DOWNLOAD LOGO AS PNG ──
+            window.downloadLogoAsPng = function(size, filename) {
+              const url = document.getElementById('cfg_logo_url')?.value?.trim();
+              if (!url) {
+                const t = document.createElement('div');
+                t.textContent = '⚠️ Спочатку оберіть логотип у бібліотеці або завантажте свій';
+                t.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#1B2A4A;color:white;padding:12px 22px;border-radius:12px;font-family:\'Nunito\',sans-serif;font-weight:700;font-size:13px;z-index:99999;box-shadow:0 4px 20px rgba(0,0,0,.3)';
+                document.body.appendChild(t);
+                setTimeout(() => t.remove(), 3500);
+                return;
+              }
+
+              const canvas = document.createElement('canvas');
+              canvas.width = size; canvas.height = size;
+              const ctx = canvas.getContext('2d');
+
+              function doDownload() {
+                try {
+                  const link = document.createElement('a');
+                  link.download = filename;
+                  link.href = canvas.toDataURL('image/png');
+                  document.body.appendChild(link);
+                  link.click();
+                  link.remove();
+                  // Toast success
+                  const t = document.createElement('div');
+                  t.innerHTML = '✅ <b>' + filename + '</b> скачано (' + size + '×' + size + ')';
+                  t.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#27AE60;color:white;padding:12px 22px;border-radius:12px;font-family:\'Nunito\',sans-serif;font-weight:700;font-size:13px;z-index:99999;box-shadow:0 4px 20px rgba(0,0,0,.25)';
+                  document.body.appendChild(t);
+                  setTimeout(() => t.remove(), 3000);
+                } catch(e) {
+                  alert('Помилка завантаження: ' + e.message + '\nСпробуйте інший браузер або формат зображення.');
+                }
+              }
+
+              // SVG data URL — draw directly
+              if (url.startsWith('data:image/svg+xml')) {
+                const img = new Image();
+                img.onload = function() { ctx.drawImage(img, 0, 0, size, size); doDownload(); };
+                img.onerror = function() { alert('Не вдалося конвертувати SVG. Спробуйте завантажити PNG логотип.'); };
+                img.src = url;
+                return;
+              }
+
+              // Raster data URL (PNG/JPG/WebP uploaded by user)
+              if (url.startsWith('data:')) {
+                const img = new Image();
+                img.onload = function() { ctx.drawImage(img, 0, 0, size, size); doDownload(); };
+                img.onerror = function() { alert('Помилка завантаження зображення.'); };
+                img.src = url;
+                return;
+              }
+
+              // External URL — try with crossOrigin
+              const img = new Image();
+              img.crossOrigin = 'anonymous';
+              img.onload = function() { ctx.drawImage(img, 0, 0, size, size); doDownload(); };
+              img.onerror = function() {
+                // CORS fallback — open in new tab with instructions
+                const t = document.createElement('div');
+                t.innerHTML = '⚠️ CORS-блок. <a href="' + url + '" download="' + filename + '" target="_blank" style="color:#fff;text-decoration:underline">Відкрити зображення</a> та зберегти вручну';
+                t.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#e85520;color:white;padding:12px 22px;border-radius:12px;font-family:\'Nunito\',sans-serif;font-weight:700;font-size:13px;z-index:99999;box-shadow:0 4px 20px rgba(0,0,0,.3);max-width:90vw;text-align:center';
+                document.body.appendChild(t);
+                setTimeout(() => t.remove(), 6000);
+              };
+              img.src = url;
+            };
+
           })();
           </script>
           <div class="f-group" style="margin-top:12px"><label class="f-label">Коротко про магазин (відображається в footer)</label><textarea id="cfg_about" rows="3" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:'Manrope',sans-serif;font-size:13px;color:var(--navy);outline:none;resize:vertical" placeholder="Ми продаємо якісний дитячий транспорт..."></textarea></div>
