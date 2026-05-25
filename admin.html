@@ -814,7 +814,10 @@ tr:hover td{background:rgba(240,242,248,.5)}
     <div class="panel" id="panel-carousel">
       <div class="section-header">
         <h2 class="section-title">Карусель <span>сайту</span></h2>
-        <button class="btn btn-primary btn-sm" onclick="slidesSaveAll()"><svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13"/><polyline points="7 3 7 8 15 8"/></svg>Зберегти зміни</button>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn btn-sm" style="background:none;border:1.5px solid var(--border);color:var(--text-muted);font-size:13px" onclick="slidesResetDefaults()" title="Скинути всі слайди до заводських налаштувань">↺ Скинути</button>
+          <button class="btn btn-primary btn-sm" onclick="slidesSaveAll()"><svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13"/><polyline points="7 3 7 8 15 8"/></svg>Зберегти зміни</button>
+        </div>
       </div>
 
       <div style="background:rgba(255,107,53,.08);border:1px solid rgba(255,107,53,.2);border-radius:var(--r-sm);padding:12px 16px;margin-bottom:20px;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--navy)">
@@ -4026,6 +4029,17 @@ async function _supabaseSyncSlides(arr){
     }
   }
   if (lastErr) throw lastErr;
+}
+
+async function slidesResetDefaults(){
+  if (!confirm('Скинути всі слайди до заводських налаштувань?\nЦе видалить усі поточні зміни (посилання, тексти, порядок).')) return;
+  try { localStorage.removeItem('kr_slides'); } catch(e){}
+  try {
+    await _supabaseSyncSlides(DEFAULT_SLIDES.map((s,i) => ({...s, sort_order: i})));
+  } catch(e){}
+  _slides = DEFAULT_SLIDES.map((s,i) => _normalizeSlide({...s, sort_order: i}, i));
+  renderSlidesGrid();
+  showToast('Слайди скинуто до стандартних. Посилання кнопок виправлено.', 'success');
 }
 
 async function persistSlides(arr){

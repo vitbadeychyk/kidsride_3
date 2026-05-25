@@ -8,23 +8,23 @@
 <link rel="shortcut icon" href="favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>KidsRide — Електромобілі, Квадроцикли та Іграшки для дітей | Україна</title>
-<meta name="description" content="Купити дитячий електромобіль, квадроцикл, самокат та розвивальні іграшки для дітей 1–10 років. ✅ Гарантія 12 міс. Доставка 1–3 дні Новою Поштою. Оплата частинами без переплат. 500+ щасливих родин в Україні!">
-<meta name="keywords" content="дитячий електромобіль, купити електромобіль для дітей, дитячий квадроцикл, дитячий самокат, дитячий мотоцикл, іграшки для дітей, електромобіль Україна, електромобіль джип дитячий, дитячі електромобілі купити Київ">
+<title>KidsRide — Електромобілі, Автокрісла та Дитячі Товари | Україна</title>
+<meta name="description" content="Купити дитячий електромобіль, квадроцикл, автокрісло та товари для дітей. Гарантія 12 міс. Доставка 1–3 дні Новою Поштою. Оплата частинами 0%, Пакунок малюка, 7000 грн до 1 року.">
+<meta name="keywords" content="дитячий електромобіль, купити електромобіль для дітей, дитячий джип електро, електромобіль 12v, електромобіль 24v, дитячий квадроцикл купити, дитячий мотоцикл електро, дитячий самокат, дитячий велосипед, дитячий скутер, дитяча машинка електро, трактор дитячий електро, дитячий багі, каталка дитяча, автокрісло дитяче купити, автокрісло для новонародженого, коляска дитяча купити, меблі дитячі купити, басейн дитячий, товари для немовлят, пакунок малюка, виплата 7000 грн до 1 року, активний відпочинок для дітей, товари для дівчаток, дитячі товари інтернет магазин Україна, купити дитячі товари Київ, електромобіль Україна, дитячий електромобіль з пультом">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.kidsride.com.ua/">
 <!-- Open Graph -->
 <meta property="og:type" content="website">
-<meta property="og:title" content="KidsRide — Електромобілі, Квадроцикли та Іграшки для дітей | Україна">
-<meta property="og:description" content="Преміум електромобілі, квадроцикли, самокати та іграшки для дітей 1–10 років. Гарантія 12 міс., доставка 1–3 дні, оплата частинами. 500+ щасливих родин в Україні!">
+<meta property="og:title" content="KidsRide — Електромобілі, Автокрісла та Дитячі Товари | Україна">
+<meta property="og:description" content="Купити дитячий електромобіль, автокрісло, квадроцикл та товари для дітей. Гарантія 12 міс. Доставка 1–3 дні Новою Поштою. Оплата частинами 0%, Пакунок малюка, 7000 грн до 1 року.">
 <meta property="og:image" content="https://www.kidsride.com.ua/opengraph.jpg">
 <meta property="og:url" content="https://www.kidsride.com.ua/">
 <meta property="og:locale" content="uk_UA">
 <meta property="og:site_name" content="KidsRide">
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="KidsRide — Електромобілі, Квадроцикли та Іграшки для дітей | Україна">
-<meta name="twitter:description" content="Купити дитячий електромобіль, квадроцикл, самокат в Україні. Гарантія 12 місяців, доставка 1–3 дні Новою Поштою.">
+<meta name="twitter:title" content="KidsRide — Електромобілі, Автокрісла та Дитячі Товари | Україна">
+<meta name="twitter:description" content="Купити дитячий електромобіль, автокрісло, квадроцикл та товари для дітей. Гарантія 12 міс. Доставка 1–3 дні Новою Поштою. Оплата частинами 0%, Пакунок малюка.">
 <meta name="twitter:image" content="https://www.kidsride.com.ua/opengraph.jpg">
 <!-- Schema.org: Organization + WebSite -->
 <script type="application/ld+json">
@@ -1855,7 +1855,7 @@ function _krBuildGenericSlide(s){
     ? `<img src="${_krEscAttr(s.image)}" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block">`
     : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.06);font-family:'Nunito',sans-serif;color:rgba(255,255,255,.5);font-size:14px">KidsRide</div>`;
   const cta1Text = _krEscHtml(s.cta1_text || 'Дізнатись більше');
-  const cta1Link = _krEscAttr(_krFixSlideUrl(s.cta1_link || s.link || 'catalog.html'));
+  const cta1Link = _krEscAttr(_krFixSlideUrl(s.cta1_link || 'catalog.html'));
   const cta2Text = s.cta2_text ? _krEscHtml(s.cta2_text) : '';
   const cta2Link = _krEscAttr(_krFixSlideUrl(s.cta2_link || 'catalog.html'));
   const title = _krEscHtml(s.title || 'KidsRide');
@@ -1890,7 +1890,10 @@ function _krPatchExistingSlide(tplEl, s){
   const btns = tplEl.querySelectorAll('.hero-btns a');
   if (btns[0]) {
     if (s.cta1_text) btns[0].textContent = s.cta1_text;
-    const link = _krFixSlideUrl(s.cta1_link || s.link);
+    // Використовуємо тільки cta1_link — НЕ падаємо на s.link,
+    // бо legacy поле link може містити застарілі/хибні значення з БД.
+    // Якщо cta1_link порожній — залишаємо оригінальний href зі статичного HTML.
+    const link = _krFixSlideUrl(s.cta1_link);
     if (link) btns[0].setAttribute('href', link);
   }
   if (btns[1]) {
