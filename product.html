@@ -2412,6 +2412,23 @@ async function buildColorVariants(currentSku, currentId, supaUrl, supaKey, model
     if (added) usedStrategies.push('spare parts model_code=' + code + ' (+' + added + ')');
   }
 
+  // ── Стратегія 1в: авто для запчастин ────────────────────────────────────
+  // Запускається коли поточний товар є запчастиною/аксесуаром (НЕ транспортним засобом).
+  // Знаходить транспортні засоби з тим самим model_code — щоб вони не зникали
+  // з плитки кольорів при перемиканні на запчастину.
+  if (code && !isCurrentVehicle){
+    const qsBase = 'products?model_code=eq.' + encodeURIComponent(code)
+      + '&active=eq.true'
+      + '&select=';
+    const data = await _fetchVariants(qsBase);
+    // Залишаємо лише транспортні засоби
+    const vehicles = Array.isArray(data)
+      ? data.filter(v => _VEHICLE_CATS.has(String(v.category || '').toLowerCase()))
+      : [];
+    const added = _mergeIn(vehicles);
+    if (added) usedStrategies.push('vehicles for spare model_code=' + code + ' (+' + added + ')');
+  }
+
   // ── Стратегія 2: за префіксом артикула (формат "PREFIX-N") ─────────────
   {
     const m = String(currentSku || '').match(/^(.*?)-(\d+)\s*$/);
