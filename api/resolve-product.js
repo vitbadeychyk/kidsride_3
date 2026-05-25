@@ -46,6 +46,14 @@ export default async function handler(req, res) {
   } catch (_) {}
 
   if (!product) {
+    // Slug ще не заповнений у БД — подаємо product.html, JS завантажить з sessionStorage або за ?id=
+    let fallbackHtml;
+    try { fallbackHtml = fs.readFileSync(path.join(process.cwd(), 'product.html'), 'utf8'); } catch (_) {}
+    if (fallbackHtml) {
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-store');
+      return res.status(200).send(fallbackHtml);
+    }
     return res.redirect(302, '/catalog.html');
   }
 

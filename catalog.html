@@ -2134,13 +2134,20 @@ function _currentCatLabel() {
   return 'Каталог';
 }
 
+// Client-side slug generation (fallback when DB slugs not populated)
+function slugify(str) {
+  const UA = {"а":"a","б":"b","в":"v","г":"h","ґ":"g","д":"d","е":"e","є":"ie","ж":"zh","з":"z","и":"y","і":"i","ї":"i","й":"i","к":"k","л":"l","м":"m","н":"n","о":"o","п":"p","р":"r","с":"s","т":"t","у":"u","ф":"f","х":"kh","ц":"ts","ч":"ch","ш":"sh","щ":"shch","ь":"","ю":"iu","я":"ia","ё":"e","ъ":"","ы":"y","э":"e"};
+  return str.toLowerCase().split("").map(function(c){return UA[c]!==undefined?UA[c]:c;}).join("")
+    .replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").substring(0,80);
+}
+
 function catOpenProduct(id) {
   let _slug = null;
   try {
     const p = (allProducts || []).find(x => String(x.id) === String(id));
     if (p) {
       sessionStorage.setItem('kr_active_product', JSON.stringify(p));
-      _slug = p.slug || null;
+      _slug = p.slug || slugify(p.name || "") || null;
     }
     // Зберігаємо стан каталогу для кнопки "Назад" і відновлення позиції прокрутки
     sessionStorage.setItem('kr_catalog_return', JSON.stringify({
@@ -2190,7 +2197,8 @@ function renderCard(p) {
     stockBadge = '<div style="font-size:11px;color:#16a34a;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:5px"><svg viewBox="0 0 8 8" style="width:8px;height:8px"><circle cx="4" cy="4" r="4" fill="#16a34a"/></svg>В наявності</div>';
   }
 
-  const productHref = p.slug ? 'product/' + p.slug : (p.id ? 'product.html?id=' + encodeURIComponent(p.id) : 'product.html');
+  const _pSlug = p.slug || slugify(p.name || "");
+  const productHref = _pSlug ? 'product/' + _pSlug : (p.id ? 'product.html?id=' + encodeURIComponent(p.id) : 'product.html');
 
   return `
     <div class="p-card reveal" data-id="${escAttr(p.id)}" data-category="${escAttr(p.category)}" data-age="${escAttr(p.age)}" data-voltage="${escAttr(p.voltage)}" data-price="${p.price}" data-brand="${escAttr(p.brand)}">

@@ -1688,7 +1688,7 @@ console.log('[KidsRide] product.html v3.9 — працюють: копіюван
     const SUPA_KEY = (window.KR && KR._SUPA_KEY) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
 
     const params = new URLSearchParams(location.search);
-    let id = params.get('id');
+    let id = (typeof window.__KR_PRODUCT_ID__ === 'string' && window.__KR_PRODUCT_ID__) || params.get('id');
 
     // ─ Швидкий первинний рендер з sessionStorage (без очікування мережі) ─
     let cached = null;
