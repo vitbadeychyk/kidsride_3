@@ -2135,9 +2135,13 @@ function _currentCatLabel() {
 }
 
 function catOpenProduct(id) {
+  let _slug = null;
   try {
     const p = (allProducts || []).find(x => String(x.id) === String(id));
-    if (p) sessionStorage.setItem('kr_active_product', JSON.stringify(p));
+    if (p) {
+      sessionStorage.setItem('kr_active_product', JSON.stringify(p));
+      _slug = p.slug || null;
+    }
     // Зберігаємо стан каталогу для кнопки "Назад" і відновлення позиції прокрутки
     sessionStorage.setItem('kr_catalog_return', JSON.stringify({
       url: window.location.href,
@@ -2145,7 +2149,7 @@ function catOpenProduct(id) {
       catLabel: _currentCatLabel()
     }));
   } catch {}
-  window.location.href = p && p.slug ? 'product/' + p.slug : 'product.html?id=' + encodeURIComponent(id);
+  window.location.href = _slug ? 'product/' + _slug : 'product.html?id=' + encodeURIComponent(id);
 }
 
 // Рендер однієї картки

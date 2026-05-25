@@ -659,7 +659,7 @@ function renderCartItems() {
     const tags = [];
 
 
-    const productHref = 'product.html' + (p.sku ? ('?sku=' + encodeURIComponent(p.sku)) : (p.model ? ('?model=' + encodeURIComponent(p.model)) : ''));
+    const productHref = p.slug ? 'product/' + p.slug : (p.id && !/^p-/.test(String(p.id)) ? 'product.html?id=' + encodeURIComponent(p.id) : 'product.html');
     const safeKey = escHtml(key);
     const imgHtml = p.img
       ? `<img src="${escHtml(String(p.img))}" alt="${escHtml(p.name||'')}" loading="lazy" data-sku="${escHtml(p.sku||'')}" style="width:100%;height:100%;object-fit:contain;background:#fff;border-radius:10px" onerror="this.style.display='none';this.parentNode.innerHTML+=genericSvg()">`
