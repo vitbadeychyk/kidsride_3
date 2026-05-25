@@ -5464,6 +5464,18 @@ function searchProducts() {
 
 // ── INIT ADMIN (викликається після перевірки авторизації) ──────────────────
 function initAdmin() {
+  // Fast-path: apply cached logo immediately (before DB fetch)
+  try {
+    var _cachedLogo = localStorage.getItem('kr_logo_url');
+    if (_cachedLogo) {
+      document.querySelectorAll('.logo-mark').forEach(function(el) {
+        el.innerHTML = '<img src="' + _cachedLogo + '" style="width:100%;height:100%;object-fit:contain;border-radius:inherit" alt="logo">';
+        el.style.background = 'transparent';
+        el.style.boxShadow = 'none';
+        el.style.padding = '0';
+      });
+    }
+  } catch(e) {}
   // Дата в topbar
   const days=['Неділя','Понеділок','Вівторок','Середа','Четвер','П\'ятниця','Субота'];
   const months=['січня','лютого','березня','квітня','травня','червня','липня','серпня','вересня','жовтня','листопада','грудня'];
@@ -6244,6 +6256,21 @@ async function renderSettings() {
   const _logoEl = document.getElementById('cfg_logo_url');
   if (_logoEl) _logoEl.value = _logoUrl;
   if (typeof updateLogoPreview === 'function') updateLogoPreview(_logoUrl);
+  // Apply to sidebar logo-mark
+  if (_logoUrl) {
+    document.querySelectorAll('.logo-mark').forEach(function(el) {
+      el.innerHTML = '<img src="' + _logoUrl + '" style="width:100%;height:100%;object-fit:contain;border-radius:inherit" alt="logo">';
+      el.style.background = 'transparent';
+      el.style.boxShadow = 'none';
+      el.style.padding = '0';
+    });
+    try { localStorage.setItem('kr_logo_url', _logoUrl); } catch(e) {}
+    // Update favicon
+    ['link[rel="icon"]', 'link[rel="shortcut icon"]'].forEach(function(sel) {
+      var el = document.querySelector(sel);
+      if (el) el.href = _logoUrl;
+    });
+  }
   _setField('cfg_about',        s.about);
   _setField('cfg_instagram',    s.instagram    || 'https://www.instagram.com/kidsride.ua/');
   _setField('cfg_facebook',     s.facebook);
