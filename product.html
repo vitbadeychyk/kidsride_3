@@ -2034,36 +2034,38 @@ function applyProductData(p){
     setId('tw-description', 'content', autoDesc);
     setId('tw-image', 'content', imgUrl);
 
-    // Schema.org Product
-    const existingSchema = document.getElementById('schema-product');
-    if (existingSchema) existingSchema.remove();
+    // Schema.org Product + BreadcrumbList
+    // (SSR вже міг вставити схему у HEAD — оновлюємо її з повними даними після завантаження JS)
+    const CAT_URLS_MAP = { jeep:'/dityachi-dzhypy', quad:'/dityachi-kvadratsykly', moto:'/dityachi-motosykly', car:'/dityachi-mashynky', tractor:'/dityachi-traktory', walker:'/kataly-tolokary', truck:'/dityachi-vantazhivky', buggy:'/dityachi-bahhi' };
+    const catUrl = site + (CAT_URLS_MAP[p.category] || '/catalog.html');
+    // priceValidUntil — 1 рік вперед
+    const _pvu = new Date(); _pvu.setFullYear(_pvu.getFullYear() + 1);
+    const priceValidUntil = _pvu.toISOString().substring(0, 10);
+
+    // Product schema
+    document.getElementById('schema-product')?.remove();
     const schema = {
       "@context": "https://schema.org",
       "@type": "Product",
+      "@id": pageUrl + "#product",
       "name": p.name || '',
       "description": autoDesc,
       "brand": { "@type": "Brand", "name": p.brand || 'KidsRide' },
-      "sku": p.sku || '',
-      "image": Array.isArray(p.images) ? p.images.filter(Boolean) : [imgUrl],
+      "sku": p.sku || String(p.id || ''),
+      "mpn": p.sku || String(p.id || ''),
+      "image": Array.isArray(p.images) && p.images.length ? p.images.filter(Boolean) : [imgUrl],
       "url": pageUrl,
       "category": catName,
       "offers": {
         "@type": "Offer",
+        "@id": pageUrl + "#offer",
         "url": pageUrl,
         "priceCurrency": "UAH",
-        "price": String(p.price || ''),
-        "availability": inStock ? "https://schema.org/InStock" : "https://schema.org/PreOrder",
-        "seller": { "@type": "Organization", "name": "KidsRide" },
-        "warranty": "P12M"
-      },
-      "breadcrumb": {
-        "@type": "BreadcrumbList",
-        "itemListElement": [
-          {"@type": "ListItem", "position": 1, "name": "Головна", "item": site + "/"},
-          {"@type": "ListItem", "position": 2, "name": "Каталог", "item": site + "/catalog.html"},
-          {"@type": "ListItem", "position": 3, "name": catName, "item": site + "/catalog.html?cat=" + encodeURIComponent(p.category || '')},
-          {"@type": "ListItem", "position": 4, "name": p.name, "item": pageUrl}
-        ]
+        "price": String(Math.round(Number(p.price || 0))),
+        "priceValidUntil": priceValidUntil,
+        "availability": inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+        "itemCondition": "https://schema.org/NewCondition",
+        "seller": { "@type": "Organization", "name": "KidsRide", "url": site }
       }
     };
     const script = document.createElement('script');
@@ -2071,6 +2073,23 @@ function applyProductData(p){
     script.id = 'schema-product';
     script.textContent = JSON.stringify(schema);
     document.head.appendChild(script);
+
+    // BreadcrumbList — окремий блок (Google читає їх незалежно)
+    document.getElementById('schema-breadcrumb')?.remove();
+    const bcSchema = {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Головна", "item": site + "/"},
+        {"@type": "ListItem", "position": 2, "name": catName, "item": catUrl},
+        {"@type": "ListItem", "position": 3, "name": p.name || '', "item": pageUrl}
+      ]
+    };
+    const bcScript = document.createElement('script');
+    bcScript.type = 'application/ld+json';
+    bcScript.id = 'schema-breadcrumb';
+    bcScript.textContent = JSON.stringify(bcSchema);
+    document.head.appendChild(bcScript);
   })(p);
   // Категорія в хлібних крихтах — беремо збережений контекст каталогу,
   // або fallback на тип транспорту продукту
