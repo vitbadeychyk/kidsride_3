@@ -5,205 +5,219 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="shortcut icon" href="favicon.svg">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Підбір дитячого електромобіля за віком — KidsRide</title>
-<meta name="description" content="Не знаєш який електромобіль обрати? Підберемо ідеальний варіант за 3 питання: вік дитини, тип покриття і бюджет. Безкоштовно і швидко.">
-<meta name="keywords" content="підбір дитячого електромобіля, який електромобіль вибрати дитині, електромобіль за віком дитини, підібрати електромобіль онлайн">
-<meta name="robots" content="index, follow">
-<link rel="canonical" href="https://www.kidsride.com.ua/calculator.html">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Підбір дитячого електромобіля за віком — KidsRide">
-<meta property="og:description" content="Підберемо ідеальний електромобіль за 3 питання: вік, покриття, бюджет.">
-<meta property="og:image" content="https://www.kidsride.com.ua/opengraph.jpg">
-<meta property="og:url" content="https://www.kidsride.com.ua/calculator.html">
-<meta property="og:locale" content="uk_UA">
-<meta property="og:site_name" content="KidsRide">
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "WebPage",
-  "name": "Підбір дитячого електромобіля за віком",
-  "description": "Підберемо ідеальний варіант за 3 питання: вік дитини, тип покриття і бюджет.",
-  "url": "https://www.kidsride.com.ua/calculator.html",
-  "breadcrumb": {
-    "@type": "BreadcrumbList",
-    "itemListElement": [
-      {"@type": "ListItem", "position": 1, "name": "Головна", "item": "https://www.kidsride.com.ua/"},
-      {"@type": "ListItem", "position": 2, "name": "Підбір електромобіля", "item": "https://www.kidsride.com.ua/calculator.html"}
-    ]
-  }
-}
-</script>
+<title>Кошик — KidsRide</title>
+<meta name="description" content="Оформлення замовлення в KidsRide. Перевір товари у кошику та перейди до оформлення.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="canonical" href="https://kidsride.ua/cart.html">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--orange:#FF6B35;--orange-dark:#e85520;--navy:#1B2A4A;--navy-light:#2d4270;--bg:#F0F2F8;--white:#fff;--bg-soft:#F8F9FC;--green:#27AE60;--text:#1a1a2e;--text-muted:#6b7280;--border:#e8ecf4;--shadow-sm:0 2px 12px rgba(27,42,74,.07);--shadow-md:0 8px 32px rgba(27,42,74,.12);--shadow-lg:0 20px 60px rgba(27,42,74,.16);--r:14px;--r-sm:10px;--r-lg:20px}
+:root{
+  --orange:#FF6B35;--orange-dark:#e85520;
+  --navy:#1B2A4A;--navy-light:#2d4270;
+  --bg:#fff;--bg-soft:#F8F9FC;--bg-warm:#FFF8F5;
+  --green:#27AE60;--red:#e53935;
+  --text:#1a1a2e;--text-muted:#6b7280;
+  --border:#e8ecf4;
+  --shadow-sm:0 2px 12px rgba(27,42,74,.07);
+  --shadow-md:0 8px 32px rgba(27,42,74,.12);
+  --shadow-lg:0 20px 60px rgba(27,42,74,.16);
+  --r:14px;--r-sm:8px;--r-lg:20px;
+}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Manrope',sans-serif;color:var(--text);background:var(--bg);min-height:100vh;overflow-x:hidden}
-img{display:block;max-width:100%}
-h1,h2,h3{font-family:'Nunito',sans-serif;font-weight:800}
+html{scroll-behavior:smooth}
+body{font-family:'Manrope',sans-serif;color:var(--text);background:var(--bg-soft);overflow-x:hidden}
+h1,h2,h3,h4{font-family:'Nunito',sans-serif;font-weight:800}
 a{text-decoration:none;color:inherit}
 
-/* ── HEADER (uniform with index.html) ── */
-.header{
-  position:sticky;top:0;left:0;right:0;z-index:1000;
-  height:72px;padding:0 48px;
-  display:flex;align-items:center;justify-content:space-between;
-  background:rgba(255,255,255,.92);
-  backdrop-filter:blur(20px) saturate(180%);
-  border-bottom:1px solid rgba(232,236,244,.7);
-  transition:box-shadow .3s;
-}
+/* HEADER */
+.header{position:fixed;top:0;left:0;right:0;z-index:1000;height:64px;padding:0 40px;display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.93);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);transition:box-shadow .3s}
 .header.scrolled{box-shadow:var(--shadow-md)}
-.logo{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:'Nunito',sans-serif;font-weight:900;font-size:24px;color:var(--navy)}
-.logo-mark{width:38px;height:38px;background:var(--orange);border-radius:10px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(255,107,53,.35)}
-.logo-mark svg{width:22px;height:22px;stroke:white;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.logo{display:flex;align-items:center;gap:10px;font-family:'Nunito',sans-serif;font-weight:900;font-size:22px;color:var(--navy)}
+.logo-mark{width:36px;height:36px;background:var(--orange);border-radius:9px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(255,107,53,.3)}
 .logo span{color:var(--orange)}
 nav{display:flex;gap:2px}
-nav a{text-decoration:none;color:var(--text-muted);font-weight:600;font-size:14px;padding:8px 14px;border-radius:8px;transition:all .2s}
+nav a{color:var(--text-muted);font-weight:600;font-size:14px;padding:7px 13px;border-radius:7px;transition:all .2s}
 nav a:hover{color:var(--navy);background:var(--bg-soft)}
-nav a.active{color:var(--orange)}
 .h-right{display:flex;align-items:center;gap:6px}
-.ic-btn{width:40px;height:40px;border:none;background:none;cursor:pointer;border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);transition:all .2s;position:relative;text-decoration:none}
+.ic-btn{width:38px;height:38px;border:none;background:none;cursor:pointer;border-radius:9px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);transition:all .2s;position:relative}
 .ic-btn:hover{background:var(--bg-soft);color:var(--navy)}
 .ic-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.ic-btn .badge{position:absolute;top:4px;right:4px;width:18px;height:18px;background:var(--orange);border-radius:50%;font-size:10px;font-weight:700;color:white;display:flex;align-items:center;justify-content:center;font-family:'Nunito',sans-serif}
-.btn-login{display:inline-flex;align-items:center;gap:6px;background:var(--orange);color:white;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;padding:9px 18px;border-radius:10px;margin-left:6px;text-decoration:none;box-shadow:0 4px 16px rgba(255,107,53,.3);transition:all .25s cubic-bezier(.34,1.56,.64,1)}
-.btn-login:hover{background:var(--orange-dark);transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,107,53,.4)}
+.badge{position:absolute;top:4px;right:4px;width:17px;height:17px;background:var(--orange);border-radius:50%;font-size:9px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Nunito',sans-serif}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:10px;font-family:'Nunito',sans-serif;font-weight:700;font-size:14px;border:none;cursor:pointer;transition:all .25s cubic-bezier(.34,1.56,.64,1)}
+.btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.btn-primary{background:var(--orange);color:#fff;box-shadow:0 4px 16px rgba(255,107,53,.3)}
+.btn-primary:hover{background:var(--orange-dark);transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,107,53,.4)}
+.btn-outline{background:transparent;color:var(--navy);border:1.5px solid var(--border)}
+.btn-outline:hover{border-color:var(--orange);color:var(--orange)}
+.btn-ghost{background:transparent;color:var(--text-muted);border:none}
+.btn-ghost:hover{color:var(--red)}
 
-/* Mobile burger */
-.mobile-burger{display:none;align-items:center;gap:8px;background:none;border:none;cursor:pointer;padding:8px 10px;border-radius:8px;color:var(--navy)}
-.mobile-burger:hover{background:var(--bg-soft)}
-.burger-lines{display:flex;flex-direction:column;gap:4px;width:18px}
-.burger-lines span{display:block;height:2px;background:var(--navy);border-radius:2px}
-.burger-label{font-size:13px;font-weight:700;font-family:'Nunito',sans-serif}
-.mobile-menu{position:fixed;top:72px;left:0;right:0;background:white;box-shadow:var(--shadow-md);padding:16px 20px;display:none;flex-direction:column;gap:4px;z-index:999;border-bottom:1px solid var(--border)}
-.mobile-menu.open{display:flex}
-.mobile-menu a{padding:12px 14px;border-radius:8px;font-weight:600;font-size:15px;color:var(--text-muted)}
-.mobile-menu a.active{color:var(--orange)}
-.mobile-menu a:hover{background:var(--bg-soft);color:var(--navy)}
+/* BREADCRUMB */
+.breadcrumb{margin-top:64px;background:white;border-bottom:1px solid var(--border);padding:14px 40px;display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted)}
+.breadcrumb a{color:var(--text-muted);transition:color .2s}
+.breadcrumb a:hover{color:var(--orange)}
+.breadcrumb svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;opacity:.5}
+.breadcrumb-cur{color:var(--navy);font-weight:600}
 
-.calc-hero{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-light) 100%);padding:48px 40px;text-align:center;position:relative;overflow:hidden}
-.calc-hero::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,.04) 1px,transparent 1px);background-size:32px 32px}
-.calc-hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:100px;padding:6px 16px;font-size:12px;font-weight:600;color:white;margin-bottom:16px;position:relative;z-index:1}
-.calc-hero-title{font-size:clamp(24px,4vw,40px);color:white;line-height:1.2;margin-bottom:10px;position:relative;z-index:1}
-.calc-hero-title em{font-style:normal;color:var(--orange)}
-.calc-hero-desc{font-size:15px;color:rgba(255,255,255,.65);max-width:540px;margin:0 auto;position:relative;z-index:1}
-.calc-hero-desc strong{color:white;font-weight:700}
-.wizard-wrap{max-width:820px;margin:0 auto;padding:32px 24px 64px}
-.wizard-progress{background:white;border-radius:var(--r-lg);padding:24px 28px;margin-bottom:24px;box-shadow:var(--shadow-sm);border:1px solid var(--border)}
-.wp-steps{display:flex;align-items:center;margin-bottom:16px}
-.wp-step{display:flex;align-items:center;gap:8px;flex:1;min-width:0}
-.wp-step-num{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;flex-shrink:0;transition:all .3s}
-.wp-step-info{min-width:0}
-.wp-step-label{font-size:10px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.08em}
-.wp-step-name{font-family:'Nunito',sans-serif;font-weight:800;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.wp-connector{height:2px;flex:1;border-radius:2px;transition:background .3s;margin:0 6px}
-.wp-step.done .wp-step-num{background:var(--green);color:white}
-.wp-step.done .wp-step-name{color:var(--green)}
-.wp-step.active .wp-step-num{background:var(--orange);color:white;box-shadow:0 4px 12px rgba(255,107,53,.35)}
-.wp-step.active .wp-step-name{color:var(--orange)}
-.wp-step.pending .wp-step-num{background:var(--bg-soft);color:var(--text-muted);border:1.5px solid var(--border)}
-.wp-step.pending .wp-step-name{color:var(--text-muted)}
-.wp-connector.done{background:var(--green)}
-.wp-connector.pending{background:var(--border)}
-.wp-bar-wrap{height:6px;background:var(--border);border-radius:3px;overflow:hidden}
-.wp-bar-fill{height:100%;background:linear-gradient(90deg,var(--orange),var(--orange-dark));border-radius:3px;transition:width .5s cubic-bezier(.34,1.56,.64,1)}
-.step-card{background:white;border-radius:var(--r-lg);padding:32px;box-shadow:var(--shadow-sm);border:1px solid var(--border);animation:fadeUp .35s ease}
-.step-q{font-size:20px;color:var(--navy);margin-bottom:6px}
-.step-hint{font-size:13px;color:var(--text-muted);margin-bottom:24px;line-height:1.6}
-.options-grid{display:grid;gap:14px}
-.options-grid.cols-2{grid-template-columns:1fr 1fr}
-.options-grid.cols-3{grid-template-columns:repeat(3,1fr)}
-.options-grid.cols-4{grid-template-columns:repeat(4,1fr)}
-.opt-card{border:2px solid var(--border);border-radius:var(--r);padding:20px 16px;cursor:pointer;transition:all .25s cubic-bezier(.34,1.56,.64,1);text-align:center;position:relative;background:white}
-.opt-card:hover{border-color:rgba(255,107,53,.4);transform:translateY(-3px);box-shadow:var(--shadow-md)}
-.opt-card.selected{border-color:var(--orange);background:rgba(255,107,53,.04);transform:translateY(-3px);box-shadow:0 8px 24px rgba(255,107,53,.15)}
-.opt-card.selected::after{content:'✓';position:absolute;top:10px;right:10px;width:22px;height:22px;background:var(--orange);border-radius:50%;font-size:11px;font-weight:800;color:white;display:flex;align-items:center;justify-content:center;font-family:'Nunito',sans-serif}
-.opt-icon{font-size:40px;margin-bottom:12px;line-height:1;display:block;transition:transform .3s}
-.opt-card:hover .opt-icon,.opt-card.selected .opt-icon{transform:scale(1.1)}
-.opt-icon-svg{width:52px;height:52px;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;border-radius:14px;transition:all .25s}
-.opt-card.selected .opt-icon-svg{background:rgba(255,107,53,.1)}
-.opt-icon-svg svg{width:28px;height:28px;stroke:var(--text-muted);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;transition:stroke .25s}
-.opt-card.selected .opt-icon-svg svg{stroke:var(--orange)}
-.opt-title{font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;color:var(--navy);margin-bottom:4px}
-.opt-desc{font-size:12px;color:var(--text-muted);line-height:1.5}
-.opt-tag{display:inline-block;background:var(--bg-soft);border-radius:5px;padding:2px 8px;font-size:10px;font-weight:700;color:var(--orange);margin-top:8px;font-family:'Nunito',sans-serif}
-.budget-display{text-align:center;margin-bottom:24px}
-.budget-val{font-family:'Nunito',sans-serif;font-size:42px;font-weight:900;color:var(--navy)}
-.budget-label{font-size:13px;color:var(--text-muted)}
-.range-wrap{position:relative;padding:0 8px}
-.range-input{width:100%;-webkit-appearance:none;height:6px;border-radius:3px;background:linear-gradient(to right,var(--orange) 0%,var(--orange) 45%,var(--border) 45%,var(--border) 100%);outline:none;cursor:pointer}
-.range-input::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:white;border:3px solid var(--orange);box-shadow:0 2px 8px rgba(255,107,53,.3);cursor:pointer;transition:transform .2s}
-.range-input::-webkit-slider-thumb:hover{transform:scale(1.15)}
-.range-labels{display:flex;justify-content:space-between;margin-top:10px;font-size:11px;color:var(--text-muted);font-weight:600}
-.budget-presets{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px;justify-content:center}
-.budget-preset{padding:7px 16px;border-radius:100px;border:1.5px solid var(--border);background:white;font-family:'Nunito',sans-serif;font-weight:700;font-size:12px;color:var(--navy);cursor:pointer;transition:all .2s}
-.budget-preset:hover,.budget-preset.active{border-color:var(--orange);color:var(--orange);background:rgba(255,107,53,.05)}
-.step-nav{display:flex;align-items:center;justify-content:space-between;margin-top:24px}
-.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:var(--r-sm);font-family:'Nunito',sans-serif;font-weight:700;font-size:14px;border:none;cursor:pointer;transition:all .25s cubic-bezier(.34,1.56,.64,1)}
-.btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
-.btn-primary{background:var(--orange);color:white;box-shadow:0 4px 16px rgba(255,107,53,.3)}
-.btn-primary:hover{background:var(--orange-dark);transform:translateY(-2px)}
-.btn-primary:disabled{background:#d1d5db;box-shadow:none;cursor:not-allowed;transform:none}
-.btn-ghost{background:transparent;color:var(--text-muted);border:1.5px solid var(--border)}
-.btn-ghost:hover{color:var(--navy);border-color:var(--navy)}
-.results-wrap{display:none}
-.results-header{text-align:center;margin-bottom:32px}
-.results-title{font-size:28px;color:var(--navy);margin-bottom:8px}
-.results-title em{font-style:normal;color:var(--orange)}
-.results-desc{font-size:15px;color:var(--text-muted)}
-.results-summary{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:16px}
-.rs-tag{display:inline-flex;align-items:center;gap:6px;background:white;border:1px solid var(--border);border-radius:100px;padding:6px 14px;font-size:12px;font-weight:600;color:var(--navy)}
-.rs-tag svg{width:13px;height:13px;stroke:var(--orange);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.results-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
-.res-card{background:white;border-radius:var(--r);border:1.5px solid var(--border);overflow:hidden;transition:all .3s cubic-bezier(.34,1.56,.64,1);animation:fadeUp .4s ease both;position:relative}
-.res-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg);border-color:transparent}
-.res-card.best{border-color:var(--orange)}
-.res-best-badge{position:absolute;top:12px;left:12px;background:var(--orange);color:white;border-radius:6px;padding:4px 10px;font-family:'Nunito',sans-serif;font-size:11px;font-weight:800;z-index:2}
-.res-img{aspect-ratio:16/10;display:flex;align-items:center;justify-content:center;position:relative;background:#f0f2f7;overflow:hidden}
-.res-img img{width:100%;height:100%;object-fit:cover}
-.res-img svg{width:72%}
-.res-body{padding:16px 20px 20px}
-.res-brand{font-size:10px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px}
-.res-name{font-family:'Nunito',sans-serif;font-weight:800;font-size:16px;color:var(--navy);margin-bottom:8px;line-height:1.3}
-.res-match{display:flex;align-items:center;gap:6px;margin-bottom:12px}
-.res-match-bar{flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden}
-.res-match-fill{height:100%;border-radius:3px;background:var(--green)}
-.res-match-pct{font-family:'Nunito',sans-serif;font-weight:800;font-size:12px}
-.res-specs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
-.res-spec{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--text-muted);background:var(--bg-soft);border-radius:5px;padding:3px 8px;font-weight:500}
-.res-bottom{display:flex;align-items:center;justify-content:space-between}
-.res-price{font-family:'Nunito',sans-serif;font-size:22px;font-weight:900;color:var(--navy)}
-.res-actions{display:flex;gap:8px}
-.btn-sm{padding:9px 16px;font-size:13px}
-.btn-cart-sm{width:38px;height:38px;border-radius:9px;border:none;background:var(--orange);color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .25s cubic-bezier(.34,1.56,.64,1);box-shadow:0 4px 12px rgba(255,107,53,.28);flex-shrink:0}
-.btn-cart-sm:hover{transform:scale(1.12)}
-.btn-cart-sm svg{width:16px;height:16px;stroke:white;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.restart-btn{display:block;margin:28px auto 0;font-size:13px}
-@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+/* PAGE */
+.page{max-width:1200px;margin:0 auto;padding:32px 40px 64px}
+.page-head{display:flex;align-items:center;gap:14px;margin-bottom:32px}
+.page-title{font-size:28px;color:var(--navy)}
+.cart-count-badge{background:var(--orange);color:#fff;border-radius:8px;padding:4px 12px;font-family:'Nunito',sans-serif;font-size:14px;font-weight:800}
+
+/* EMPTY CART */
+.empty-cart{text-align:center;padding:80px 24px;background:white;border-radius:var(--r-lg);border:1.5px solid var(--border)}
+.empty-cart svg{width:80px;height:80px;stroke:var(--border);fill:none;stroke-width:1.2;margin:0 auto 24px;display:block}
+.empty-title{font-size:22px;color:var(--navy);margin-bottom:10px}
+.empty-desc{font-size:14px;color:var(--text-muted);margin-bottom:28px;line-height:1.6}
+
+/* CART LAYOUT */
+.cart-layout{display:grid;grid-template-columns:1fr 380px;gap:28px;align-items:start}
+
+/* CART ITEMS */
+.cart-items{background:white;border-radius:var(--r-lg);border:1.5px solid var(--border);overflow:hidden}
+.cart-items-head{padding:18px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.cart-items-title{font-size:16px;color:var(--navy)}
+.clear-cart-btn{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--text-muted);background:none;border:none;cursor:pointer;font-family:'Manrope',sans-serif;transition:color .2s;padding:0}
+.clear-cart-btn:hover{color:var(--red)}
+.clear-cart-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+
+/* CART ITEM */
+.cart-item{display:grid;grid-template-columns:96px 1fr auto;gap:16px;padding:20px 24px;border-bottom:1px solid var(--border);align-items:start;transition:background .2s}
+.cart-item:last-child{border-bottom:none}
+.cart-item:hover{background:rgba(248,249,252,.6)}
+.cart-item.removing{opacity:.5;transform:translateX(-20px);transition:all .3s ease}
+
+.ci-img{width:96px;height:80px;border-radius:var(--r-sm);background:var(--bg-soft);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;border:1px solid var(--border)}
+.ci-img svg{width:80%}
+
+.ci-info{min-width:0}
+.ci-brand{font-size:10px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px}
+.ci-sku{display:inline-flex;align-items:center;gap:5px;margin-bottom:5px}
+.ci-sku-label{font-size:10px;font-weight:700;color:white;background:var(--navy);border-radius:4px;padding:1px 6px;letter-spacing:.04em;text-transform:uppercase;flex-shrink:0}
+.ci-sku-val{font-size:12px;font-weight:700;color:var(--navy)}
+.ci-color{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:6px}
+.ci-color-dot{width:12px;height:12px;border-radius:50%;border:1.5px solid rgba(0,0,0,.15);flex-shrink:0}
+.ci-color strong{color:var(--navy);font-weight:700}
+.ci-name{font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;color:var(--navy);line-height:1.3;margin-bottom:4px}
+.ci-name a:hover{color:var(--orange)}
+.ci-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.ci-tag{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--text-muted);background:var(--bg-soft);border-radius:5px;padding:2px 8px;font-weight:500}
+.ci-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+
+/* Quantity control */
+.qty-ctrl{display:flex;align-items:center;border:1.5px solid var(--border);border-radius:9px;overflow:hidden;background:white}
+.qty-btn{width:34px;height:34px;border:none;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted);transition:all .2s;flex-shrink:0}
+.qty-btn:hover{background:var(--bg-soft);color:var(--navy)}
+.qty-btn:active{background:rgba(255,107,53,.08);color:var(--orange)}
+.qty-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.qty-val{min-width:36px;text-align:center;font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;color:var(--navy);padding:0 4px}
+
+.wish-move-btn{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--text-muted);background:none;border:none;cursor:pointer;font-family:'Manrope',sans-serif;transition:color .2s;padding:0}
+.wish-move-btn:hover{color:var(--orange)}
+.wish-move-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+.ci-right{display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0}
+.ci-price{font-family:'Nunito',sans-serif;font-weight:900;font-size:18px;color:var(--navy);white-space:nowrap}
+.ci-price-per{font-size:11px;color:var(--text-muted);text-align:right}
+.ci-del{width:30px;height:30px;border-radius:8px;border:none;background:var(--bg-soft);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted);transition:all .2s}
+.ci-del:hover{background:rgba(229,57,53,.1);color:var(--red)}
+.ci-del svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+
+
+
+/* CART SIDEBAR */
+.cart-sidebar{display:flex;flex-direction:column;gap:16px;position:sticky;top:80px}
+
+/* PROMO */
+.promo-block{background:white;border-radius:var(--r-lg);border:1.5px solid var(--border);padding:20px}
+.promo-title{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.promo-title svg{width:16px;height:16px;stroke:var(--orange);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.promo-row{display:flex;gap:8px}
+.promo-input{flex:1;padding:11px 14px;border:1.5px solid var(--border);border-radius:9px;font-family:'Manrope',sans-serif;font-size:13px;outline:none;transition:border-color .2s;color:var(--navy)}
+.promo-input:focus{border-color:var(--orange)}
+.promo-input::placeholder{color:var(--text-muted)}
+.promo-apply{padding:11px 16px;border-radius:9px;background:var(--navy);color:#fff;border:none;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;white-space:nowrap;transition:all .2s}
+.promo-apply:hover{background:var(--navy-light)}
+.promo-ok{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--green);margin-top:10px}
+.promo-ok svg{width:14px;height:14px;stroke:var(--green);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+
+/* SUMMARY */
+.summary{background:white;border-radius:var(--r-lg);border:1.5px solid var(--border);padding:24px}
+.summary-title{font-size:17px;color:var(--navy);margin-bottom:20px}
+.summary-rows{display:flex;flex-direction:column;gap:12px;margin-bottom:20px}
+.sum-row{display:flex;align-items:center;justify-content:space-between;font-size:14px}
+.sum-label{color:var(--text-muted)}
+.sum-val{color:var(--navy);font-weight:600}
+.sum-val.green{color:var(--green);font-weight:700}
+.sum-val.orange{color:var(--orange);font-weight:700}
+.sum-divider{height:1px;background:var(--border);margin:4px 0}
+.sum-total-row{display:flex;align-items:center;justify-content:space-between;padding-top:4px}
+.sum-total-label{font-family:'Nunito',sans-serif;font-weight:800;font-size:16px;color:var(--navy)}
+.sum-total-val{font-family:'Nunito',sans-serif;font-weight:900;font-size:24px;color:var(--navy)}
+.sum-note{font-size:11px;color:var(--text-muted);margin-top:4px;text-align:right}
+
+.checkout-btn{width:100%;padding:15px;border-radius:12px;background:var(--orange);color:#fff;border:none;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:800;font-size:16px;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 6px 20px rgba(255,107,53,.35);transition:all .25s cubic-bezier(.34,1.56,.64,1);margin-top:16px}
+.checkout-btn:hover{background:var(--orange-dark);transform:translateY(-2px);box-shadow:0 10px 28px rgba(255,107,53,.4)}
+.checkout-btn svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.checkout-btn:disabled{background:#d1d5db;box-shadow:none;cursor:not-allowed;transform:none}
+
+.continue-link{display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;color:var(--text-muted);margin-top:12px;cursor:pointer;transition:color .2s;font-weight:600}
+.continue-link:hover{color:var(--orange)}
+.continue-link svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+
+/* TRUST BADGES */
+.trust-badges{display:flex;flex-direction:column;gap:8px}
+.trust-item{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text-muted);font-weight:500}
+.trust-item svg{width:15px;height:15px;stroke:var(--green);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+
+/* MOBILE CHECKOUT BAR */
+.mobile-checkout{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);padding:12px 16px;z-index:800;box-shadow:0 -8px 24px rgba(27,42,74,.1);align-items:center;justify-content:space-between;gap:12px}
+.mc-total{font-family:'Nunito',sans-serif;font-weight:900;font-size:20px;color:var(--navy)}
+.mc-label{font-size:11px;color:var(--text-muted)}
+.mc-btn{flex:1;padding:13px;border-radius:11px;background:var(--orange);color:#fff;border:none;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;box-shadow:0 4px 16px rgba(255,107,53,.3);transition:all .2s;white-space:nowrap}
+.mc-btn:hover{background:var(--orange-dark)}
+
+/* TOAST */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:11px 22px;border-radius:100px;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;z-index:3000;box-shadow:0 8px 24px rgba(0,0,0,.2);white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .25s}
+.toast.show{opacity:1}
+
+/* RESPONSIVE */
 @media(max-width:1024px){
-  .header{padding:0 24px}
-  nav a{padding:8px 10px;font-size:13px}
-}
-@media(max-width:880px){
-  nav{display:none}
-  .mobile-burger{display:flex}
+  .cart-layout{grid-template-columns:1fr;gap:20px}
+  .cart-sidebar{position:static}
+  .page{padding:24px 24px 100px}
+  .breadcrumb{padding:12px 24px}
 }
 @media(max-width:768px){
-  .header{height:64px;padding:0 16px}
-  .mobile-menu{top:64px}
-  .calc-hero{padding:32px 20px}
-  .wizard-wrap{padding:20px 16px 80px}
-  .step-card{padding:24px 18px}
-  .options-grid.cols-4{grid-template-columns:repeat(2,1fr)}
-  .options-grid.cols-3{grid-template-columns:repeat(2,1fr)}
-  .results-grid{grid-template-columns:1fr}
-  .wp-step-info{display:none}
-  .btn-login{display:none}
+  .header{height:58px;padding:0 16px}
+  nav{display:none}
+  .h-right .btn{display:none}
+  .breadcrumb{margin-top:58px;padding:10px 16px;font-size:11px}
+  .page{padding:16px 16px 100px}
+  .page-head{margin-bottom:20px}
+  .page-title{font-size:22px}
+
+  .cart-item{grid-template-columns:76px 1fr;gap:12px}
+  .ci-right{display:none}
+  .ci-actions{gap:8px}
+  .ci-name{font-size:14px}
+
+  /* Show price in info section on mobile */
+  .ci-info::after{display:none}
+  .ci-price-mobile{display:block !important}
+  .summary{padding:18px}
+  .sum-total-val{font-size:20px}
+
+  /* Mobile checkout bar */
+  .mobile-checkout{display:flex}
+  .checkout-btn,.continue-link{display:none}
 }
-@media(max-width:480px){
-  .options-grid.cols-2{grid-template-columns:1fr}
-  .budget-val{font-size:34px}
+@media(max-width:420px){
+  .cart-item{grid-template-columns:64px 1fr;gap:10px;padding:14px 16px}
+  .ci-img{width:64px;height:56px}
+  .page-title{font-size:20px}
 }
 /* ── PHONE IN HEADER ── */
 .h-phone-link{display:inline-flex;align-items:center;gap:7px;text-decoration:none;color:var(--navy);font-family:'Nunito',sans-serif;font-weight:700;font-size:13.5px;padding:8px 12px;border-radius:10px;transition:all .2s;white-space:nowrap}
@@ -215,6 +229,34 @@ nav a.active{color:var(--orange)}
 @media(max-width:640px){.h-phone-link{width:40px;height:40px;padding:0;justify-content:center}}
 
 .header,.header#hdr{border-top:12px solid #1B2A4A}
+
+  /* ── SEARCH OVERLAY ── */
+  .search-overlay{position:fixed;inset:0;background:rgba(15,25,55,.55);backdrop-filter:blur(6px);z-index:2000;display:none;align-items:flex-start;justify-content:center;padding:80px 20px 20px;opacity:0;transition:opacity .2s ease}
+  .search-overlay.open{display:flex;opacity:1}
+  .search-modal{background:white;border-radius:18px;width:100%;max-width:640px;box-shadow:0 30px 80px rgba(0,0,0,.35);overflow:hidden;animation:searchIn .25s cubic-bezier(.34,1.56,.64,1)}
+  @keyframes searchIn{from{transform:translateY(-12px) scale(.97);opacity:0}to{transform:none;opacity:1}}
+  .search-form{display:flex;align-items:center;gap:12px;padding:18px 22px;border-bottom:1px solid var(--border)}
+  .search-form svg.search-icon{width:20px;height:20px;stroke:var(--text-muted);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+  .search-form input{flex:1;border:none;outline:none;font-family:'Manrope',sans-serif;font-size:17px;color:var(--navy);background:none;padding:4px 0}
+  .search-form input::placeholder{color:#9aa4bf}
+  .search-kbd{font-family:'Manrope',sans-serif;font-size:11px;font-weight:700;color:var(--text-muted);background:var(--bg-soft);border:1px solid var(--border);padding:3px 8px;border-radius:6px}
+  .search-close{width:30px;height:30px;border:none;background:var(--bg-soft);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted);transition:all .2s}
+  .search-close:hover{background:#fee2e2;color:#dc2626}
+  .search-close svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round}
+  .search-body{max-height:60vh;overflow-y:auto;padding:8px 0}
+  .search-body-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);padding:12px 22px 6px}
+  .search-sug{display:flex;align-items:center;gap:14px;padding:11px 22px;text-decoration:none;color:var(--navy);font-size:14px;font-weight:600;transition:background .12s}
+  .search-sug-img{width:44px;height:44px;border-radius:8px;object-fit:contain;background:#f5f7fa;flex-shrink:0;padding:4px;box-sizing:border-box}
+  .search-sug:hover{background:var(--bg-soft)}
+  .search-sug-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .search-sug-arr{width:14px;height:14px;color:var(--text-muted);flex-shrink:0;opacity:0;transition:all .15s}
+  .search-sug:hover .search-sug-arr{opacity:1;color:var(--orange);transform:translateX(2px)}
+  .search-empty{padding:28px 22px;text-align:center;color:var(--text-muted);font-size:14px}
+  .search-empty strong{color:var(--navy)}
+  .search-empty a{color:var(--orange);font-weight:700;text-decoration:none}
+  .search-foot{padding:12px 22px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--text-muted);background:var(--bg-soft)}
+  .search-foot kbd{font-family:'Manrope',sans-serif;background:white;border:1px solid var(--border);padding:2px 7px;border-radius:5px;font-size:10px;font-weight:700;color:var(--navy)}
+  @media(max-width:520px){.search-overlay{padding:60px 12px 12px}.search-form{padding:14px 16px}.search-form input{font-size:15px}.search-foot{display:none}.search-kbd{display:none}}
 </style>
 <script>
 (function(){
@@ -238,28 +280,23 @@ nav a.active{color:var(--orange)}
 <script>try{if(localStorage.getItem('kr_logo_url')){document.write('<style>.logo-mark svg{display:none!important}.logo-mark{background:transparent!important;box-shadow:none!important;padding:0!important}</style>')}}catch(e){}</script>
 </head>
 <body>
+<script src="shared.js"></script>
 
 <!-- HEADER -->
 <header class="header" id="hdr">
   <a href="index.html" class="logo">
     <div class="logo-mark">
-      <svg viewBox="0 0 24 24"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect x="9" y="11" width="14" height="10" rx="2"/><circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/></svg>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect x="9" y="11" width="14" height="10" rx="2"/><circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/></svg>
     </div>
     <span style="color:inherit">Kids<span>Ride</span></span>
   </a>
   <nav>
     <a href="index.html">Головна</a>
     <a href="catalog.html">Каталог</a>
-    <a href="calculator.html" class="active">Підбір</a>
-    <a href="compare.html">Порівняння</a>
     <a href="index.html#delivery-section">Доставка</a>
     <a href="index.html#warranty-section">Гарантія</a>
     <a href="index.html#contacts-section">Контакти</a>
   </nav>
-  <button class="mobile-burger" id="mobileBurger" onclick="toggleMobileMenu()" aria-label="Меню">
-    <span class="burger-lines"><span></span><span></span><span></span></span>
-    <span class="burger-label">Меню</span>
-  </button>
   <div class="h-right">
     <a href="tel:+380980707348" class="h-phone-link" title="+380 98 070 73 48">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
@@ -267,450 +304,839 @@ nav a.active{color:var(--orange)}
     </a>
     <div class="h-phone-sep"></div>
     
-    <a href="cart.html" class="ic-btn" title="Кошик">
+    <button class="ic-btn" onclick="openSearchOverlay()" title="Пошук" aria-label="Пошук"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></button>
+    <button class="ic-btn" id="wishBtn" title="Список бажань" onclick="window.location.href='index.html#wishlist'" style="cursor:pointer"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span class="badge wish-badge" id="wishBadge" style="display:none">0</span></button>
+    <button class="ic-btn" id="compareBtn" title="Порівняння" onclick="window.location.href='compare.html'" style="cursor:pointer"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span class="badge" id="compareBadge" style="display:none">0</span></button>
+    <button class="ic-btn" id="cartBtn" onclick="window.location.href='cart.html'" style="cursor:pointer">
       <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-      <span class="badge" id="cartBadge">0</span>
-    </a>
-    <a href="auth.html" class="btn-login">Увійти</a>
+      <span class="badge" id="cartBadge">2</span>
+    </button>
+    <a href="auth.html" class="btn btn-primary" style="margin-left:6px;font-size:13px;padding:9px 18px">Увійти</a>
   </div>
 </header>
-<div class="mobile-menu" id="mobileMenu">
-  <a href="index.html">Головна</a>
-  <a href="catalog.html">Каталог</a>
-  <a href="calculator.html" class="active">Підбір</a>
-  <a href="compare.html">Порівняння</a>
-  <a href="index.html#delivery-section">Доставка</a>
-  <a href="index.html#warranty-section">Гарантія</a>
-  <a href="index.html#contacts-section">Контакти</a>
-</div>
-
-<div class="calc-hero">
-  <div class="calc-hero-badge">⏱ Займе менше 1 хвилини</div>
-  <h1 class="calc-hero-title">Підберемо <em>ідеальний</em><br>електромобіль для вашої дитини</h1>
-  <p class="calc-hero-desc">Відповідайте на 3 питання — отримаєте персональні рекомендації з <strong id="modelsCount">…</strong> моделей</p>
-</div>
-
-<div class="wizard-wrap">
-  <div class="wizard-progress" id="wizardProgress">
-    <div class="wp-steps">
-      <div class="wp-step active" id="ws1"><div class="wp-step-num">1</div><div class="wp-step-info"><div class="wp-step-label">Крок 1</div><div class="wp-step-name">Вік дитини</div></div></div>
-      <div class="wp-connector pending" id="wc1"></div>
-      <div class="wp-step pending" id="ws2"><div class="wp-step-num">2</div><div class="wp-step-info"><div class="wp-step-label">Крок 2</div><div class="wp-step-name">Де кататись</div></div></div>
-      <div class="wp-connector pending" id="wc2"></div>
-      <div class="wp-step pending" id="ws3"><div class="wp-step-num">3</div><div class="wp-step-info"><div class="wp-step-label">Крок 3</div><div class="wp-step-name">Бюджет</div></div></div>
-    </div>
-    <div class="wp-bar-wrap"><div class="wp-bar-fill" id="wpBar" style="width:33%"></div></div>
-  </div>
-
-  <!-- STEP 1 -->
-  <div class="step-card" id="step1">
-    <h2 class="step-q">Скільки років вашій дитині?</h2>
-    <p class="step-hint">Від віку залежить потужність, розмір та максимальна швидкість</p>
-    <div class="options-grid cols-3">
-      <div class="opt-card" onclick="selectOpt(this,'age','0-3')"><span class="opt-icon">👶</span><div class="opt-title">До 3 років</div><div class="opt-desc">Перші моделі, м'який старт, безпечна швидкість</div><div class="opt-tag">6V</div></div>
-      <div class="opt-card" onclick="selectOpt(this,'age','3-8')"><span class="opt-icon">🧒</span><div class="opt-title">Від 3 до 8 років</div><div class="opt-desc">Джипи, квадроцикли, мотоцикли, машини</div><div class="opt-tag">12V</div></div>
-      <div class="opt-card" onclick="selectOpt(this,'age','8-13')"><span class="opt-icon">🧑</span><div class="opt-title">Від 8 до 13 років</div><div class="opt-desc">Потужні моделі для впевнених водіїв</div><div class="opt-tag">24V</div></div>
-    </div>
-    <div class="step-nav"><div></div><button class="btn btn-primary" id="nextBtn1" onclick="goToStep(2)" disabled>Далі <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button></div>
-  </div>
-
-  <!-- STEP 2 -->
-  <div class="step-card" id="step2" style="display:none">
-    <h2 class="step-q">Де переважно кататиметься?</h2>
-    <p class="step-hint">Це впливає на тип коліс, потужність та кліренс</p>
-    <div class="options-grid cols-2">
-      <div class="opt-card" onclick="selectOpt(this,'surface','pavement')"><div class="opt-icon-svg"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div><div class="opt-title">На вулиці (асфальт)</div><div class="opt-desc">Двір, тротуар, паркова доріжка</div><div class="opt-tag">EVA колеса</div></div>
-      <div class="opt-card" onclick="selectOpt(this,'surface','offroad')"><div class="opt-icon-svg"><svg viewBox="0 0 24 24"><path d="M3 17l3-8 3 5 3-3 3 4 3-8"/><path d="M3 21h18"/></svg></div><div class="opt-title">Різні поверхні</div><div class="opt-desc">Трава, бруківка, бездоріжжя</div><div class="opt-tag">4×4 привід</div></div>
-    </div>
-    <div class="step-nav"><button class="btn btn-ghost" onclick="goToStep(1)"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>Назад</button><button class="btn btn-primary" id="nextBtn2" onclick="goToStep(3)" disabled>Далі <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button></div>
-  </div>
-
-  <!-- STEP 3 -->
-  <div class="step-card" id="step3" style="display:none">
-    <h2 class="step-q">Який у вас бюджет?</h2>
-    <p class="step-hint">Виберіть максимальну суму — покажемо найкращі варіанти</p>
-    <div style="padding:8px 0">
-      <div class="budget-display"><div class="budget-val" id="budgetVal">25 000 ₴</div><div class="budget-label">максимальний бюджет</div></div>
-      <div class="range-wrap"><input type="range" class="range-input" id="budgetRange" min="2000" max="100000" step="500" value="25000" oninput="updateBudget(this.value)"><div class="range-labels"><span>2 000 ₴</span><span>100 000 ₴</span></div></div>
-      <div class="budget-presets">
-        <button class="budget-preset" onclick="setBudget(5000)">до 5 000 ₴</button>
-        <button class="budget-preset" onclick="setBudget(10000)">до 10 000 ₴</button>
-        <button class="budget-preset" onclick="setBudget(20000)">до 20 000 ₴</button>
-        <button class="budget-preset active" onclick="setBudget(25000)">до 25 000 ₴</button>
-        <button class="budget-preset" onclick="setBudget(50000)">до 50 000 ₴</button>
-        <button class="budget-preset" onclick="setBudget(100000)">Без обмежень</button>
+<!-- SEARCH OVERLAY -->
+  <div class="search-overlay" id="searchOverlay" onclick="if(event.target===this)closeSearchOverlay()" role="dialog" aria-modal="true" aria-label="Пошук по сайту">
+    <div class="search-modal">
+      <form class="search-form" onsubmit="return submitSearch(event)" autocomplete="off">
+        <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="searchOverlayInput" placeholder="Шукати електромобіль, бренд, модель…" oninput="renderSearchSuggestions(this.value)" onkeyup="renderSearchSuggestions(this.value)" />
+        <span class="search-kbd">ESC</span>
+        <button type="button" class="search-close" onclick="closeSearchOverlay()" aria-label="Закрити пошук">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </form>
+      <div class="search-body">
+        <div class="search-body-label">Популярні моделі</div>
+        <div id="searchSuggestions"></div>
+        <div class="search-empty" id="searchEmpty" style="display:none">Нічого не знайдено за запитом «<strong></strong>».<br><a href="#" onclick="submitSearch(event)">Шукати в каталозі →</a></div>
       </div>
+      <div class="search-foot"><span><kbd>↵</kbd> перейти до каталогу</span><span><kbd>⌘</kbd> + <kbd>K</kbd> швидкий виклик</span></div>
     </div>
-    <div class="step-nav"><button class="btn btn-ghost" onclick="goToStep(2)"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>Назад</button><button class="btn btn-primary" onclick="showResults()"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>Знайти електромобіль</button></div>
   </div>
 
-  <!-- RESULTS -->
-  <div class="results-wrap" id="resultsWrap" style="display:none">
-    <div class="results-header">
-      <h2 class="results-title">Ідеальний вибір <em>знайдено!</em></h2>
-      <p class="results-desc" id="resultsDesc">Підбираємо варіанти...</p>
-      <div class="results-summary" id="resultsSummary"></div>
-    </div>
-    <div class="results-grid" id="resultsGrid"></div>
-    <button class="btn btn-ghost restart-btn" onclick="restartCalc()"><svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.57"/></svg>Підібрати ще раз</button>
-  </div>
+
+<!-- BREADCRUMB -->
+<div class="breadcrumb">
+  <a href="index.html">Головна</a>
+  <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+  <span class="breadcrumb-cur">Кошик</span>
 </div>
 
-<script>
-// ── SUPABASE CONFIG ─────────────────────────────────────────
-const SUPABASE_URL = 'https://xczrzdbikkycgpnvolib.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
+<!-- PAGE -->
+<div class="page">
+  <div class="page-head">
+    <h1 class="page-title">Кошик</h1>
+    <span class="cart-count-badge" id="itemCountBadge">2 товари</span>
+  </div>
 
-// ── STATE ────────────────────────────────────────────────────
-const answers = { age: null, surface: null, budget: 25000 };
-let currentStep = 1;
-let allProducts = [];
+  <!-- CART LAYOUT -->
+  <div class="cart-layout" id="cartLayout">
 
-// Категорії, які вважаємо "електромобілями" (для лічильника та підбору)
-const EV_CATEGORIES = ['jeep','car','quad','moto','tractor','truck','buggy'];
-
-// Карта віку → діапазон років та "ідеальна" напруга
-const AGE_RANGES = {
-  '0-3':  { min: 0, max: 3,  voltage: '6V'  },
-  '3-8':  { min: 3, max: 8,  voltage: '12V' },
-  '8-13': { min: 8, max: 13, voltage: '24V' }
-};
-
-// Підказки для категорій під різні поверхні
-// pavement (асфальт) — підходить все, легкі моделі трохи краще
-// offroad (різні поверхні) — джипи, квадроцикли, баггі, трактори
-const SURFACE_PREFS = {
-  pavement: { jeep: 90, car: 100, quad: 95, moto: 90, tractor: 70, truck: 75, buggy: 85 },
-  offroad:  { jeep: 100, car: 55, quad: 100, moto: 70, tractor: 90, truck: 85, buggy: 100 }
-};
-
-// SVG fallback для карток (якщо у товара немає фото)
-const SVG_BY_TYPE = {
-  jeep:    '<svg viewBox="0 0 200 140"><rect x="14" y="62" width="172" height="50" rx="12" fill="#c8d0ea"/><rect x="38" y="32" width="108" height="46" rx="10" fill="#d0d8f0"/><rect x="43" y="37" width="46" height="28" rx="5" fill="#90CAF9" opacity=".5"/><rect x="96" y="37" width="44" height="28" rx="5" fill="#90CAF9" opacity=".45"/><circle cx="52" cy="116" r="20" fill="#2d3748"/><circle cx="52" cy="116" r="11" fill="#FF6B35" opacity=".6"/><circle cx="148" cy="116" r="20" fill="#2d3748"/><circle cx="148" cy="116" r="11" fill="#FF6B35" opacity=".6"/></svg>',
-  car:     '<svg viewBox="0 0 200 140"><rect x="16" y="60" width="168" height="52" rx="12" fill="#F48FB1"/><rect x="36" y="32" width="116" height="44" rx="10" fill="#F8BBD0"/><rect x="41" y="37" width="48" height="30" rx="5" fill="#90CAF9" opacity=".5"/><rect x="96" y="37" width="48" height="30" rx="5" fill="#90CAF9" opacity=".45"/><circle cx="50" cy="116" r="18" fill="#880E4F" opacity=".6"/><circle cx="150" cy="116" r="18" fill="#880E4F" opacity=".6"/></svg>',
-  quad:    '<svg viewBox="0 0 200 140"><rect x="40" y="58" width="120" height="40" rx="8" fill="#9FA8DA"/><rect x="56" y="34" width="88" height="38" rx="8" fill="#B0BAE0"/><circle cx="54" cy="106" r="20" fill="#2d4270"/><circle cx="146" cy="106" r="20" fill="#2d4270"/></svg>',
-  moto:    '<svg viewBox="0 0 200 140"><circle cx="52" cy="106" r="24" fill="#2d3748"/><circle cx="148" cy="106" r="24" fill="#2d3748"/><path d="M52 80 Q76 46 120 50 L148 80 Q122 84 92 82 Z" fill="#FFC107" opacity=".8"/></svg>',
-  tractor: '<svg viewBox="0 0 200 140"><rect x="72" y="52" width="108" height="50" rx="8" fill="#66BB6A"/><circle cx="96" cy="110" r="26" fill="#2E7D32"/><circle cx="164" cy="112" r="18" fill="#2E7D32"/></svg>',
-  truck:   '<svg viewBox="0 0 200 140"><rect x="14" y="58" width="100" height="50" rx="8" fill="#90A4AE"/><rect x="120" y="42" width="68" height="66" rx="8" fill="#B0BEC5"/><circle cx="42" cy="116" r="14" fill="#263238"/><circle cx="98" cy="116" r="14" fill="#263238"/><circle cx="158" cy="116" r="14" fill="#263238"/></svg>',
-  buggy:   '<svg viewBox="0 0 200 140"><rect x="18" y="60" width="164" height="48" rx="14" fill="#FFC107"/><rect x="32" y="32" width="110" height="42" rx="11" fill="#FFD54F"/><circle cx="48" cy="112" r="22" fill="#4E342E"/><circle cx="152" cy="112" r="22" fill="#4E342E"/></svg>',
-  walker:  '<svg viewBox="0 0 200 140"><rect x="20" y="60" width="160" height="50" rx="12" fill="#FFB085"/><circle cx="50" cy="115" r="16" fill="#5D4037"/><circle cx="150" cy="115" r="16" fill="#5D4037"/></svg>'
-};
-const BG_BY_TYPE = {
-  jeep:'#E8ECF7,#c8d0ea', car:'#FCE4EC,#f8bbd0', quad:'#EEF0FF,#d6dcff', moto:'#FFF8E1,#ffecb3',
-  tractor:'#EDFFF5,#d5f5e5', truck:'#ECEFF1,#cfd8dc', buggy:'#FFF8E1,#ffecb3', walker:'#FFE4D6,#ffd0b5',
-  default:'#F0F2F8,#e1e6f2'
-};
-
-// ── ЗАВАНТАЖЕННЯ ТОВАРІВ ────────────────────────────────────
-async function loadProducts() {
-  try {
-    const catFilter = 'category=in.(' + EV_CATEGORIES.join(',') + ')';
-    const res = await fetch(
-      SUPABASE_URL + '/rest/v1/products?select=*&active=eq.true&' + catFilter + '&order=sort_order.asc,created_at.desc',
-      {
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': 'Bearer ' + SUPABASE_KEY,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
-    if (!res.ok) throw new Error('Supabase ' + res.status);
-    const data = await res.json();
-    allProducts = (data || []).map(p => ({
-      id: p.id,
-      sku: p.sku,
-      name: p.name,
-      brand: p.brand || 'Bambi Racer',
-      price: parseFloat(p.price) || 0,
-      oldPrice: p.old_price ? parseFloat(p.old_price) : null,
-      category: p.category || '',
-      voltage: p.voltage ? p.voltage.toUpperCase().replace(/\s+/g,'') : '',
-      age: p.age_range || '',
-      stock: p.stock || 0,
-      preorderDays: p.preorder_days || 0,
-      img: p.img_type || p.category || 'jeep',
-      images: Array.isArray(p.images) ? p.images : []
-    }));
-  } catch (e) {
-    console.warn('Не вдалося завантажити товари з Supabase:', e.message);
-    // Пробуємо взяти з localStorage (зберігається з catalog.html)
-    try {
-      const saved = JSON.parse(localStorage.getItem('kr_products') || '[]');
-      if (saved.length > 0) allProducts = saved;
-    } catch(_){}
-  }
-  updateModelsCount();
-  updateCartBadge();
-}
-
-function updateModelsCount() {
-  const el = document.getElementById('modelsCount');
-  if (!el) return;
-  const evCount = allProducts.filter(p => EV_CATEGORIES.includes(p.category)).length;
-  el.textContent = evCount > 0 ? evCount.toLocaleString('uk-UA') : '—';
-}
-
-function updateCartBadge() {
-  try {
-    const cart = JSON.parse(localStorage.getItem('kr_cart') || '[]');
-    const n = Array.isArray(cart) ? cart.reduce((s,i)=>s+(i.qty||1),0) : 0;
-    const b = document.getElementById('cartBadge');
-    if (b) b.textContent = n;
-  } catch(_){}
-}
-
-// ── ВЗАЄМОДІЯ З КРОКАМИ ─────────────────────────────────────
-function selectOpt(el, field, value) {
-  el.closest('.options-grid').querySelectorAll('.opt-card').forEach(c => c.classList.remove('selected'));
-  el.classList.add('selected');
-  answers[field] = value;
-  if (field === 'age') document.getElementById('nextBtn1').disabled = false;
-  if (field === 'surface') document.getElementById('nextBtn2').disabled = false;
-}
-
-function goToStep(step) {
-  document.getElementById('step' + currentStep).style.display = 'none';
-  currentStep = step;
-  document.getElementById('step' + step).style.display = 'block';
-  updateProgress(step);
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function updateProgress(step) {
-  const pct = { 1: 33, 2: 66, 3: 100 };
-  document.getElementById('wpBar').style.width = pct[step] + '%';
-  [1,2,3].forEach(i => {
-    const el = document.getElementById('ws' + i);
-    if (i < step) {
-      el.className = 'wp-step done';
-      el.querySelector('.wp-step-num').innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
-    } else if (i === step) {
-      el.className = 'wp-step active';
-      el.querySelector('.wp-step-num').textContent = i;
-    } else {
-      el.className = 'wp-step pending';
-      el.querySelector('.wp-step-num').textContent = i;
-    }
-  });
-  [1,2].forEach(i => {
-    document.getElementById('wc' + i).className = 'wp-connector ' + (i < step ? 'done' : 'pending');
-  });
-}
-
-function updateBudget(val) {
-  answers.budget = parseInt(val);
-  document.getElementById('budgetVal').textContent = parseInt(val).toLocaleString('uk-UA') + ' ₴';
-  const pct = ((val - 2000) / (100000 - 2000)) * 100;
-  document.getElementById('budgetRange').style.background =
-    `linear-gradient(to right,var(--orange) 0%,var(--orange) ${pct}%,var(--border) ${pct}%,var(--border) 100%)`;
-  document.querySelectorAll('.budget-preset').forEach(b => b.classList.remove('active'));
-}
-
-function setBudget(val) {
-  answers.budget = val;
-  document.getElementById('budgetRange').value = val;
-  updateBudget(val);
-  document.querySelectorAll('.budget-preset').forEach(b => {
-    const txt = b.textContent;
-    const isMatch = (val === 100000 && txt === 'Без обмежень') || txt.includes(val.toLocaleString('uk-UA'));
-    b.classList.toggle('active', isMatch);
-  });
-}
-
-// ── ПІДРАХУНОК СУМІСНОСТІ ───────────────────────────────────
-function ageScore(product) {
-  const range = AGE_RANGES[answers.age];
-  if (!range) return 50;
-
-  // 1) Бал за збігом напруги
-  const v = String(product.voltage || '').toUpperCase().replace(/\s+/g,'');
-  let voltScore = 50;
-  if (v === range.voltage) voltScore = 100;
-  else if ((range.voltage === '6V'  && v === '12V') ||
-           (range.voltage === '12V' && (v === '6V'  || v === '24V')) ||
-           (range.voltage === '24V' && v === '12V')) voltScore = 60;
-  else voltScore = 25;
-
-  // 2) Бал за перетином діапазону віку
-  const m = String(product.age || '').match(/(\d+)\s*[-–—]?\s*(\d*)/);
-  let pMin = 0, pMax = 0;
-  if (m) { pMin = +m[1] || 0; pMax = +(m[2] || m[1]); }
-  const overlap = Math.max(0, Math.min(pMax, range.max) - Math.max(pMin, range.min));
-  const span = Math.max(1, range.max - range.min);
-  const ageOverlapScore = Math.min(100, (overlap / span) * 100 + (overlap > 0 ? 30 : 0));
-
-  return Math.round(voltScore * 0.6 + ageOverlapScore * 0.4);
-}
-
-function surfaceScore(product) {
-  const prefs = SURFACE_PREFS[answers.surface];
-  if (!prefs) return 70;
-  return prefs[product.category] != null ? prefs[product.category] : 60;
-}
-
-function fitsAge(product) {
-  // Жорсткий фільтр: товар має хоча б трохи перетинатися з обраною віковою групою
-  const range = AGE_RANGES[answers.age];
-  if (!range) return true;
-  const m = String(product.age || '').match(/(\d+)\s*[-–—]?\s*(\d*)/);
-  if (!m) return true;
-  const pMin = +m[1] || 0;
-  const pMax = +(m[2] || m[1]);
-  return pMax >= range.min && pMin <= range.max;
-}
-
-// ── ПОКАЗ РЕЗУЛЬТАТІВ ───────────────────────────────────────
-function showResults() {
-  document.getElementById('step3').style.display = 'none';
-  document.getElementById('wizardProgress').style.display = 'none';
-  document.getElementById('resultsWrap').style.display = 'block';
-
-  // Жорсткі фільтри
-  const selectedVoltage = AGE_RANGES[answers.age]?.voltage || '';
-  const filtered = (allProducts || []).filter(p => {
-    if (!EV_CATEGORIES.includes(p.category)) return false;       // тільки електромобілі
-    if (p.price > answers.budget) return false;                  // бюджет
-    // Жорсткий фільтр по напрузі: якщо не вказано — не показуємо
-    const pv = String(p.voltage || '').toUpperCase().replace(/\s+/g,'');
-    if (!pv) return false;                                       // немає напруги — пропускаємо
-    if (selectedVoltage && pv !== selectedVoltage) return false; // не відповідає обраній напрузі
-    return true;
-  });
-
-  // Підрахунок балу та сортування — БЕЗ обмеження по кількості
-  const scored = filtered.map(p => {
-    const a = ageScore(p);
-    const s = surfaceScore(p);
-    const score = Math.round(a * 0.6 + s * 0.4);
-    return { ...p, score };
-  }).sort((a, b) => b.score - a.score);
-
-  // Підпис вибору
-  const ageL = { '0-3': 'До 3 років', '3-8': 'Від 3 до 8 років', '8-13': 'Від 8 до 13 років' };
-  const surfL = { pavement: 'На вулиці (асфальт)', offroad: 'Різні поверхні' };
-  document.getElementById('resultsSummary').innerHTML = [
-    `<div class="rs-tag"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${ageL[answers.age] || ''}</div>`,
-    `<div class="rs-tag"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${surfL[answers.surface] || ''}</div>`,
-    `<div class="rs-tag"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>до ${answers.budget.toLocaleString('uk-UA')} ₴</div>`
-  ].join('');
-
-  if (!scored.length) {
-    document.getElementById('resultsDesc').textContent = '';
-    document.getElementById('resultsGrid').innerHTML =
-      '<div style="grid-column:1/-1;text-align:center;padding:40px;background:white;border-radius:var(--r);border:1.5px solid var(--border)">' +
-      '<h3 style="color:var(--navy);margin-bottom:8px">Не знайдено результатів</h3>' +
-      '<p style="color:var(--text-muted);margin-bottom:20px">Спробуйте збільшити бюджет або змінити параметри</p>' +
-      '<button class="btn btn-primary" onclick="restartCalc()">Спробувати знову</button></div>';
-    return;
-  }
-
-  document.getElementById('resultsDesc').textContent =
-    'Знайдено ' + scored.length + ' ' + plural(scored.length, ['модель','моделі','моделей']) + ', що підходять вашим критеріям';
-
-  document.getElementById('resultsGrid').innerHTML = scored.map((p, i) => {
-    const photo = (p.images && p.images[0]) ? p.images[0] : '';
-    const visual = photo
-      ? `<img src="${escAttr(photo)}" alt="${escAttr(p.name)}" loading="lazy">`
-      : (SVG_BY_TYPE[p.img] || SVG_BY_TYPE.jeep);
-    const bg = photo ? '#fff' : `linear-gradient(145deg,${BG_BY_TYPE[p.img] || BG_BY_TYPE.default})`;
-    const specs = [];
-    if (p.age) specs.push(p.age + ' р.');
-    if (p.voltage) specs.push(p.voltage);
-    return `
-    <div class="res-card${i === 0 ? ' best' : ''}">
-      ${i === 0 ? '<div class="res-best-badge">🏆 Найкраще співпадіння</div>' : ''}
-      <div class="res-img" style="background:${bg}">${visual}</div>
-      <div class="res-body">
-        <div class="res-brand">${escHtml(p.brand)}</div>
-        <div class="res-name">${escHtml(p.name)}</div>
-        <div class="res-match">
-          <div class="res-match-bar"><div class="res-match-fill" style="width:${p.score}%"></div></div>
-          <div class="res-match-pct" style="color:${p.score>=80?'var(--green)':p.score>=60?'var(--orange)':'var(--text-muted)'}">${p.score}%</div>
+    <!-- LEFT: ITEMS -->
+    <div>
+      <div class="cart-items">
+        <div class="cart-items-head">
+          <span class="cart-items-title">Товари у кошику</span>
+          <button class="clear-cart-btn" onclick="clearCart()">
+            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+            Очистити кошик
+          </button>
         </div>
-        <div class="res-specs">${specs.map(s => `<span class="res-spec">${escHtml(s)}</span>`).join('')}</div>
-        <div class="res-bottom">
-          <div class="res-price">${Number(p.price).toLocaleString('uk-UA')} ₴</div>
-          <div class="res-actions">
-            <a href="product.html?id=${encodeURIComponent(p.id)}" class="btn btn-ghost btn-sm" style="font-size:12px;padding:8px 14px">Детальніше</a>
-            <button class="btn-cart-sm" onclick="addToCart('${escAttr(p.id)}', this)" title="Додати в кошик">
-              <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+
+        <div id="cartItemsList"></div>
+        <!-- (приховані демо-товари — лишаємо як референс, динамічний рендер у скрипті) -->
+        <div style="display:none">
+        <!-- Item 1 -->
+        <div class="cart-item" id="item1" data-price="17224" data-qty="1">
+          <div class="ci-img">
+            <svg viewBox="0 0 120 90">
+              <rect x="10" y="38" width="100" height="32" rx="8" fill="#c8d0ea"/>
+              <rect x="24" y="18" width="65" height="28" rx="6" fill="#d0d8f0"/>
+              <rect x="27" y="21" width="28" height="18" rx="3" fill="#90CAF9" opacity=".6"/>
+              <rect x="58" y="21" width="24" height="18" rx="3" fill="#90CAF9" opacity=".5"/>
+              <rect x="94" y="36" width="16" height="18" rx="3" fill="#c0c8e0"/>
+              <circle cx="30" cy="76" r="13" fill="#2d3748"/>
+              <circle cx="30" cy="76" r="7" fill="#FF6B35" opacity=".7"/>
+              <circle cx="90" cy="76" r="13" fill="#2d3748"/>
+              <circle cx="90" cy="76" r="7" fill="#FF6B35" opacity=".7"/>
+            </svg>
+          </div>
+          <div class="ci-info">
+            <div class="ci-brand">Bambi Racer</div>
+            <div class="ci-name"><a href="product.html">Джип M 3804EBLR-1 — 4 мотори 45W, пульт 2.4G</a></div>
+            <div class="ci-meta">
+              <span class="ci-tag">Колір: Білий</span>
+              
+
+            </div>
+            <!-- Price visible on mobile -->
+            <div class="ci-price-mobile" style="display:none;font-family:'Nunito',sans-serif;font-weight:900;font-size:17px;color:var(--navy);margin-bottom:10px" id="price1-mobile">17 224 ₴</div>
+            <div class="ci-actions">
+              <div class="qty-ctrl">
+                <button class="qty-btn" onclick="changeQty('item1',-1)">
+                  <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+                <span class="qty-val" id="qty1">1</span>
+                <button class="qty-btn" onclick="changeQty('item1',1)">
+                  <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+              </div>
+              <button class="wish-move-btn" onclick="moveToWish('item1')">
+                <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                В список бажань
+              </button>
+            </div>
+          </div>
+          <div class="ci-right">
+            <div>
+              <div class="ci-price" id="price1">17 224 ₴</div>
+              <div class="ci-price-per">за 1 шт.</div>
+            </div>
+            <button class="ci-del" onclick="removeItem('item1')" title="Видалити">
+              <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
           </div>
         </div>
+
+        <!-- Item 2 -->
+        <div class="cart-item" id="item2" data-price="12210" data-qty="1">
+          <div class="ci-img" style="background:linear-gradient(145deg,#eef0ff,#d6dcff)">
+            <svg viewBox="0 0 120 90">
+              <rect x="24" y="36" width="72" height="26" rx="6" fill="#3B4A8A" opacity=".25"/>
+              <rect x="34" y="20" width="52" height="24" rx="5" fill="#3B4A8A" opacity=".28"/>
+              <rect x="37" y="23" width="21" height="15" rx="3" fill="#90CAF9" opacity=".55"/>
+              <rect x="62" y="23" width="18" height="15" rx="3" fill="#90CAF9" opacity=".5"/>
+              <rect x="14" y="38" width="10" height="16" rx="2" fill="#2d4270" opacity=".2"/>
+              <rect x="96" y="38" width="10" height="16" rx="2" fill="#2d4270" opacity=".2"/>
+              <circle cx="34" cy="72" r="13" fill="#2d4270" opacity=".28"/>
+              <circle cx="34" cy="72" r="7" fill="#FF6B35" opacity=".4"/>
+              <circle cx="86" cy="72" r="13" fill="#2d4270" opacity=".28"/>
+              <circle cx="86" cy="72" r="7" fill="#FF6B35" opacity=".4"/>
+            </svg>
+          </div>
+          <div class="ci-info">
+            <div class="ci-brand">Bambi Racer</div>
+            <div class="ci-name"><a href="product.html">Квадроцикл M 4795EBLR — EVA колеса</a></div>
+            <div class="ci-meta">
+              <span class="ci-tag">Колір: Синій</span>
+              
+              
+            </div>
+            <div class="ci-price-mobile" style="display:none;font-family:'Nunito',sans-serif;font-weight:900;font-size:17px;color:var(--navy);margin-bottom:10px" id="price2-mobile">12 210 ₴</div>
+            <div class="ci-actions">
+              <div class="qty-ctrl">
+                <button class="qty-btn" onclick="changeQty('item2',-1)">
+                  <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+                <span class="qty-val" id="qty2">1</span>
+                <button class="qty-btn" onclick="changeQty('item2',1)">
+                  <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+              </div>
+              <button class="wish-move-btn" onclick="moveToWish('item2')">
+                <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                В список бажань
+              </button>
+            </div>
+          </div>
+          <div class="ci-right">
+            <div>
+              <div class="ci-price" id="price2">12 210 ₴</div>
+              <div class="ci-price-per">за 1 шт.</div>
+            </div>
+            <button class="ci-del" onclick="removeItem('item2')" title="Видалити">
+              <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+        </div>
+        </div><!-- /прихований шаблон демо -->
       </div>
-    </div>`;
-  }).join('');
 
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
+      <!-- RIGHT: SIDEBAR -->
+    <div class="cart-sidebar">
 
-function restartCalc() {
-  answers.age = null;
-  answers.surface = null;
-  answers.budget = 25000;
-  currentStep = 1;
-  document.getElementById('resultsWrap').style.display = 'none';
-  document.getElementById('wizardProgress').style.display = 'block';
-  ['step1','step2','step3'].forEach((id, i) =>
-    document.getElementById(id).style.display = i === 0 ? 'block' : 'none'
-  );
-  document.querySelectorAll('.opt-card').forEach(c => c.classList.remove('selected'));
-  document.getElementById('nextBtn1').disabled = true;
-  document.getElementById('nextBtn2').disabled = true;
-  setBudget(25000);
-  updateProgress(1);
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
+      <!-- PROMO -->
+      <div class="promo-block">
+        <div class="promo-title">
+          <svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+          Промокод
+        </div>
+        <div id="promoInputRow" class="promo-row">
+          <input class="promo-input" type="text" id="promoInput" placeholder="Введіть промокод"
+            oninput="this.value=this.value.toUpperCase()"
+            onkeydown="if(event.key==='Enter')applyPromo()">
+          <button class="promo-apply" onclick="applyPromo()">Застосувати</button>
+        </div>
+        <div id="promoAppliedBadge" style="display:none;align-items:center;gap:6px;margin-top:10px;font-size:12px;font-weight:700;color:#065f46;padding:9px 12px;background:#d1fae5;border-radius:8px;border:1px solid #6ee7b7">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <span id="promoAppliedText">Промокод застосовано</span>
+          <button onclick="removePromoCart()" style="margin-left:auto;background:none;border:none;cursor:pointer;font-size:11px;color:#065f46;text-decoration:underline;font-weight:600;padding:0">✕ Скасувати</button>
+        </div>
+        <div id="promoMsg" style="display:none"></div>
+      </div>
 
-function addToCart(id, btn) {
-  try {
-    const p = (allProducts || []).find(x => String(x.id) === String(id));
-    if (!p) return;
-    const cart = JSON.parse(localStorage.getItem('kr_cart') || '[]');
-    const existing = cart.find(i => String(i.id) === String(id));
-    if (existing) existing.qty = (existing.qty || 1) + 1;
-    else cart.push({ id: p.id, name: p.name, price: p.price, img: (p.images && p.images[0]) || '', qty: 1 });
-    localStorage.setItem('kr_cart', JSON.stringify(cart));
-    updateCartBadge();
-    if (btn) {
-      btn.style.background = 'var(--green)';
-      setTimeout(() => { btn.style.background = 'var(--orange)'; }, 1400);
-    }
-  } catch(e) { console.warn(e); }
-}
+      <!-- SUMMARY -->
+      <div class="summary">
+        <h3 class="summary-title">Підсумок замовлення</h3>
+        <div class="summary-rows">
+          <div class="sum-row">
+            <span class="sum-label">Товари (<span id="sumQty">0</span> шт.)</span>
+            <span class="sum-val" id="sumItems">0 ₴</span>
+          </div>
+          <div class="sum-row" id="discountRow" style="display:none">
+            <span class="sum-label">Знижка</span>
+            <span class="sum-val green" id="sumDiscount">−0 ₴</span>
+          </div>
+          <div class="sum-row" id="promoRow" style="display:none">
+            <span class="sum-label">Промокод</span>
+            <span class="sum-val green" id="sumPromo">−0 ₴</span>
+          </div>
+          <div class="sum-row">
+            <span class="sum-label">Доставка</span>
+            <span class="sum-val orange" id="sumDelivery">за тарифами НП</span>
+          </div>
+        </div>
+        <div class="sum-divider"></div>
+        <div class="sum-total-row">
+          <span class="sum-total-label">До сплати</span>
+          <div>
+            <span class="sum-total-val" id="sumTotal">0 ₴</span>
+            <div class="sum-note">+ доставка НП</div>
+          </div>
+        </div>
 
-// ── УТИЛІТИ ─────────────────────────────────────────────────
-function plural(n, forms) {
-  const a = Math.abs(n) % 100;
-  const b = a % 10;
-  if (a > 10 && a < 20) return forms[2];
-  if (b > 1 && b < 5)   return forms[1];
-  if (b === 1)          return forms[0];
-  return forms[2];
-}
-function escHtml(s) {
-  return String(s == null ? '' : s)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-}
-function escAttr(s) {
-  return String(s == null ? '' : s)
-    .replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
-}
-function toggleMobileMenu() {
-  document.getElementById('mobileMenu').classList.toggle('open');
-}
+        <!-- Installment hint -->
+        <div style="background:rgba(255,107,53,.06);border:1px solid rgba(255,107,53,.15);border-radius:9px;padding:12px 14px;margin-top:14px;display:flex;align-items:center;gap:10px">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          <div style="font-size:12px;color:var(--navy);line-height:1.5">Оплата частинами ПриватБанк:<br><strong id="installmentHint">від 4 306 ₴ × 4 платежі</strong></div>
+        </div>
 
-// ── СКРОЛ ХЕДЕРА ────────────────────────────────────────────
+        <button class="checkout-btn" onclick="goCheckout()">
+          <svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          Оформити замовлення
+        </button>
+        <a href="catalog.html" class="continue-link">
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+          Продовжити покупки
+        </a>
+      </div>
+
+      <!-- TRUST -->
+      <div class="trust-badges">
+        <div class="trust-item">
+          <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Безпечне оформлення замовлення
+        </div>
+        <div class="trust-item">
+          <svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+          Доставка Новою Поштою по Україні
+        </div>
+        <div class="trust-item">
+          <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.57"/></svg>
+          Повернення протягом 14 днів
+        </div>
+        <div class="trust-item">
+          <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          Підтримка 7 днів на тиждень
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MOBILE CHECKOUT BAR -->
+<div class="mobile-checkout" id="mobileCheckout">
+  <div>
+    <div class="mc-label">До сплати</div>
+    <div class="mc-total" id="mcTotal">0 ₴</div>
+  </div>
+  <button class="mc-btn" onclick="goCheckout()">Оформити →</button>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── STATE ─────────────────────────────────────────────────────────────────
+let cartData = [];
+try { cartData = JSON.parse(localStorage.getItem('kr_cart') || '[]'); } catch(e) { cartData = []; }
+if (!Array.isArray(cartData)) cartData = [];
+
+let _cartPromo = null; // { code, name, type, discount_percent }
+
+// Header scroll
 window.addEventListener('scroll', () => {
-  const h = document.getElementById('hdr');
-  if (!h) return;
-  if (window.scrollY > 8) h.classList.add('scrolled'); else h.classList.remove('scrolled');
+  document.getElementById('hdr').classList.toggle('scrolled', scrollY > 40);
 });
 
-// ── СТАРТ ───────────────────────────────────────────────────
-loadProducts();
+// ── HELPERS ───────────────────────────────────────────────────────────────
+function escHtml(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function formatPrice(n) { return Number(n||0).toLocaleString('uk-UA') + ' грн'; }
+function plural(n, one, few, many) {
+  if (n % 10 === 1 && n % 100 !== 11) return one;
+  if ([2,3,4].includes(n % 10) && ![12,13,14].includes(n % 100)) return few;
+  return many;
+}
+// Унікальний ключ: артикул (sku) + колір; якщо sku немає — id + колір
+function itemKey(it){
+  if (it.sku) return 'sku:' + String(it.sku) + '|' + String(it.color || '');
+  return 'id:' + String(it.id || '') + '|' + String(it.color || '');
+}
+function findIdx(key){ return cartData.findIndex(it => itemKey(it) === key); }
+function genericSvg(){
+  return `<svg viewBox="0 0 120 90">
+    <rect x="10" y="38" width="100" height="32" rx="8" fill="#c8d0ea"/>
+    <rect x="24" y="18" width="65" height="28" rx="6" fill="#d0d8f0"/>
+    <rect x="27" y="21" width="28" height="18" rx="3" fill="#90CAF9" opacity=".6"/>
+    <rect x="58" y="21" width="24" height="18" rx="3" fill="#90CAF9" opacity=".5"/>
+    <circle cx="30" cy="76" r="13" fill="#2d3748"/>
+    <circle cx="30" cy="76" r="7" fill="#FF6B35" opacity=".7"/>
+    <circle cx="90" cy="76" r="13" fill="#2d3748"/>
+    <circle cx="90" cy="76" r="7" fill="#FF6B35" opacity=".7"/>
+  </svg>`;
+}
+
+// ── PERSIST ───────────────────────────────────────────────────────────────
+function saveCart() {
+  localStorage.setItem('kr_cart', JSON.stringify(cartData));
+  const badge = document.getElementById('cartBadge');
+  if (badge) badge.textContent = cartData.reduce((s,i) => s + (Number(i.qty)||1), 0);
+  // Шлемо обидва імена події — різні сторінки слухають по-різному
+  try { window.dispatchEvent(new CustomEvent('kr:cartUpdated',  { detail: { cart: cartData } })); } catch(e) {}
+  try { window.dispatchEvent(new CustomEvent('kr:cart-changed', { detail: { cart: cartData } })); } catch(e) {}
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────
+// Вгадати колір крапки для кольору товару
+function colorDot(colorName) {
+  if (!colorName) return '#ccc';
+  const n = colorName.toLowerCase();
+  if (/біл|white/.test(n))   return '#f5f5f5';
+  if (/чорн|black/.test(n))  return '#1a1a1a';
+  if (/черв|red/.test(n))    return '#e53935';
+  if (/синь|blue/.test(n))   return '#1e88e5';
+  if (/зелен|green/.test(n)) return '#43a047';
+  if (/жовт|yellow/.test(n)) return '#fdd835';
+  if (/роже|pink/.test(n))   return '#ec407a';
+  if (/оранж|orange/.test(n))return '#fb8c00';
+  if (/фіолет|purple/.test(n))return '#8e24aa';
+  if (/сір|grey|gray/.test(n))return '#90a4ae';
+  if (/бежев|beige/.test(n)) return '#d7c4a3';
+  if (/корич|brown/.test(n)) return '#6d4c41';
+  if (/золот|gold/.test(n))  return '#ffc107';
+  if (/срібл|silver/.test(n))return '#bdbdbd';
+  return '#FF6B35';
+}
+
+function renderCartItems() {
+  const list = document.getElementById('cartItemsList');
+  if (!list) return;
+  if (!cartData.length) { list.innerHTML = ''; return; }
+  list.innerHTML = cartData.map(p => {
+    const key = itemKey(p);
+    const qty = Number(p.qty) || 1;
+    const total = (Number(p.price)||0) * qty;
+    const tags = [];
+
+
+    const productHref = 'product.html' + (p.sku ? ('?sku=' + encodeURIComponent(p.sku)) : (p.model ? ('?model=' + encodeURIComponent(p.model)) : ''));
+    const safeKey = escHtml(key);
+    const imgHtml = p.img
+      ? `<img src="${escHtml(String(p.img))}" alt="${escHtml(p.name||'')}" loading="lazy" data-sku="${escHtml(p.sku||'')}" style="width:100%;height:100%;object-fit:contain;background:#fff;border-radius:10px" onerror="this.style.display='none';this.parentNode.innerHTML+=genericSvg()">`
+      : `<span class="ci-img-placeholder" data-sku="${escHtml(p.sku||'')}" data-name="${escHtml(p.name||'')}">${genericSvg()}</span>`;
+    return `
+      <div class="cart-item" data-key="${safeKey}">
+        <div class="ci-img">${imgHtml}</div>
+        <div class="ci-info">
+          ${p.brand && !/^без\s*бренд/i.test(p.brand) ? `<div class="ci-brand">${escHtml(p.brand)}</div>` : ''}
+          ${p.sku ? `<div class="ci-sku"><span class="ci-sku-label">Арт.</span><span class="ci-sku-val">${escHtml(p.sku)}</span></div>` : ''}
+          <div class="ci-name"><a href="${escHtml(productHref)}">${escHtml(p.name || 'Товар')}</a></div>
+          ${p.color ? `<div class="ci-color"><span class="ci-color-dot" style="background:${colorDot(p.color)}"></span>Колір: <strong>${escHtml(p.color)}</strong></div>` : ''}
+          ${tags.length ? `<div class="ci-meta">${tags.join('')}</div>` : ''}
+          <div class="ci-price-mobile" style="display:none;font-family:'Nunito',sans-serif;font-weight:900;font-size:17px;color:var(--navy);margin-bottom:10px">${formatPrice(total)}</div>
+          <div class="ci-actions">
+            <div class="qty-ctrl">
+              <button class="qty-btn" onclick="changeQty('${safeKey}',-1)"><svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+              <span class="qty-val">${qty}</span>
+              <button class="qty-btn" onclick="changeQty('${safeKey}',1)"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+            </div>
+            <button class="wish-move-btn" onclick="moveToWish('${safeKey}')">
+              <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              В список бажань
+            </button>
+          </div>
+        </div>
+        <div class="ci-right">
+          <div>
+            <div class="ci-price">${formatPrice(total)}</div>
+            <div class="ci-price-per">за ${qty} шт.</div>
+          </div>
+          <button class="ci-del" onclick="removeItem('${safeKey}')" title="Видалити">
+            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      </div>`;
+  }).join('');
+  checkMobilePrices();
+  // Асинхронно підтягуємо фото для товарів без зображення
+  asyncLoadCartImages();
+}
+
+// ── ASYNC ЗАВАНТАЖЕННЯ ФОТО З SUPABASE ────────────────────────────────────
+const _SUPA_URL_CART = 'https://xczrzdbikkycgpnvolib.supabase.co';
+const _SUPA_KEY_CART = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
+
+async function asyncLoadCartImages() {
+  // Знаходимо всі placeholder-и без фото
+  const placeholders = document.querySelectorAll('.ci-img-placeholder[data-sku]');
+  if (!placeholders.length) return;
+
+  // Збираємо унікальні артикули
+  const skus = [...new Set([...placeholders].map(el => el.dataset.sku).filter(Boolean))];
+  if (!skus.length) return;
+
+  try {
+    const q = skus.map(s => encodeURIComponent('"' + s + '"')).join(',');
+    const res = await fetch(
+      `${_SUPA_URL_CART}/rest/v1/products?select=sku,images&sku=in.(${skus.map(s=>'"'+s+'"').join(',')})`,
+      { headers: { 'apikey': _SUPA_KEY_CART, 'Authorization': 'Bearer ' + _SUPA_KEY_CART } }
+    );
+    if (!res.ok) return;
+    const data = await res.json();
+    if (!Array.isArray(data)) return;
+
+    // Карта sku → перше зображення
+    const imgMap = {};
+    data.forEach(p => {
+      const imgs = Array.isArray(p.images) ? p.images : (typeof p.images === 'string' ? (() => { try { return JSON.parse(p.images); } catch{ return []; } })() : []);
+      if (imgs[0]) imgMap[p.sku] = imgs[0];
+    });
+
+    // Вставляємо зображення у DOM і оновлюємо localStorage
+    let cartUpdated = false;
+    placeholders.forEach(el => {
+      const sku = el.dataset.sku;
+      const imgUrl = imgMap[sku];
+      if (!imgUrl) return;
+      const wrapper = el.parentNode; // .ci-img
+      wrapper.innerHTML = `<img src="${imgUrl}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:contain;background:#fff;border-radius:10px" onerror="this.style.opacity=0">`;
+      // Зберігаємо у cart
+      const item = cartData.find(i => i.sku === sku);
+      if (item && !item.img) { item.img = imgUrl; cartUpdated = true; }
+    });
+
+    if (cartUpdated) localStorage.setItem('kr_cart', JSON.stringify(cartData));
+  } catch(e) {}
+}
+
+function recalc() {
+  const subtotal = cartData.reduce((s,p) => s + (Number(p.price)||0) * (Number(p.qty)||1), 0);
+  const totalQty = cartData.reduce((s,p) => s + (Number(p.qty)||1), 0);
+
+  // Знижка по промокоду
+  let promoDiscount = 0;
+  if (_cartPromo && _cartPromo.type === 'discount' && Number(_cartPromo.discount_percent) > 0) {
+    promoDiscount = Math.round(subtotal * Number(_cartPromo.discount_percent) / 100);
+  }
+  const grand = subtotal - promoDiscount;
+
+  const sumQty = document.getElementById('sumQty');
+  if (sumQty) sumQty.textContent = totalQty;
+  const sumItems = document.getElementById('sumItems');
+  if (sumItems) sumItems.textContent = formatPrice(subtotal);
+  const sumTotal = document.getElementById('sumTotal');
+  if (sumTotal) sumTotal.textContent = formatPrice(grand);
+  const mcTotal = document.getElementById('mcTotal');
+  if (mcTotal) mcTotal.textContent = formatPrice(grand);
+  const cnt = document.getElementById('itemCountBadge');
+  if (cnt) cnt.textContent = totalQty + ' ' + plural(totalQty, 'товар', 'товари', 'товарів');
+  const inst = document.getElementById('installmentHint');
+  if (inst) inst.textContent = 'від ' + formatPrice(Math.ceil(grand / 4)) + ' × 4 платежі';
+
+  // Рядок знижки
+  const pr = document.getElementById('promoRow');
+  const sp = document.getElementById('sumPromo');
+  if (promoDiscount > 0) {
+    if (pr) pr.style.display = 'flex';
+    if (sp) sp.textContent = '−' + formatPrice(promoDiscount);
+  } else {
+    if (pr) pr.style.display = 'none';
+  }
+
+  // Доставка
+  const delEl = document.getElementById('sumDelivery');
+  const noteEl = document.querySelector('.sum-note');
+  if (_cartPromo && _cartPromo.type === 'free_delivery') {
+    if (delEl) { delEl.textContent = 'Безкоштовна 🎁'; delEl.style.color = 'var(--green)'; }
+    if (noteEl) noteEl.style.display = 'none';
+  } else {
+    if (delEl) { delEl.textContent = 'за тарифами НП'; delEl.style.color = 'var(--orange)'; }
+    if (noteEl) noteEl.style.display = '';
+  }
+}
+
+// ── ACTIONS ───────────────────────────────────────────────────────────────
+function changeQty(key, delta) {
+  const idx = findIdx(key);
+  if (idx < 0) return;
+  const newQty = (Number(cartData[idx].qty)||1) + delta;
+  if (newQty < 1) { removeItem(key); return; }
+  if (newQty > 10) { showToast('Максимум 10 шт. одного товару'); return; }
+  cartData[idx].qty = newQty;
+  saveCart();
+  renderCartItems();
+  recalc();
+}
+
+function removeItem(key) {
+  const idx = findIdx(key);
+  if (idx < 0) return;
+  const el = document.querySelector('.cart-item[data-key="' + key + '"]');
+  const finish = () => {
+    cartData.splice(idx, 1);
+    saveCart();
+    if (!cartData.length) showEmptyCart();
+    else { renderCartItems(); recalc(); }
+    showToast('Товар видалено з кошика');
+  };
+  if (el) {
+    el.classList.add('removing');
+    setTimeout(finish, 300);
+  } else {
+    finish();
+  }
+}
+
+function moveToWish(key) {
+  const idx = cartData.findIndex(i => (i.id||i.name+i.color) === key || (i.name + (i.color||'')) === key || i.id === key || (i.name+i.price) === key);
+  const item = cartData[idx >= 0 ? idx : cartData.findIndex(i => itemKey(i) === key)];
+  if (item) {
+    try {
+      let wish = JSON.parse(localStorage.getItem('kr_wishlist') || '[]');
+      const isSameCW = w =>
+        (item.id && !item.id.startsWith('idx-') && !item.id.startsWith('p-') && w.id === item.id) ||
+        (item.sku && w.sku === item.sku) ||
+        w.name === item.name;
+      if (wish.some(isSameCW)) {
+        showToast('❤️ Вже є у списку бажань');
+        return;
+      }
+      wish.push({id: 'w-' + Date.now(), name: item.name, price: item.price, brand: item.brand, img: item.img, sku: item.sku||'', color: item.color||'', addedAt: Date.now()});
+      localStorage.setItem('kr_wishlist', JSON.stringify(wish));
+      // Update wishlist badge count in header
+      const wishBadge = document.getElementById('wishBadge');
+      if (wishBadge) {
+        wishBadge.textContent = wish.length;
+        wishBadge.style.display = 'flex';
+        wishBadge.style.transform = 'scale(1.5)';
+        setTimeout(() => { wishBadge.style.transform = ''; }, 300);
+      }
+      showToast('❤️ Додано до списку бажань');
+    } catch(e) { showToast('❤️ Додано до списку бажань'); }
+  } else {
+    showToast('Товар не знайдено в кошику');
+  }
+}
+
+function clearCart() {
+  if (!cartData.length) return;
+  if (!confirm('Очистити весь кошик?')) return;
+  cartData = [];
+  saveCart();
+  showEmptyCart();
+  showToast('Кошик очищено');
+}
+
+function showEmptyCart() {
+  const layout = document.getElementById('cartLayout');
+  if (layout) {
+    layout.innerHTML = `
+      <div class="empty-cart" style="grid-column:1/-1">
+        <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        <div class="empty-title">Кошик порожній</div>
+        <p class="empty-desc">Додайте товари з каталогу, щоб оформити замовлення</p>
+        <a href="catalog.html" class="btn btn-primary" style="font-size:15px;padding:13px 28px">Перейти до каталогу</a>
+      </div>`;
+  }
+  const cnt = document.getElementById('itemCountBadge');
+  if (cnt) cnt.textContent = '0 товарів';
+  const mc = document.getElementById('mobileCheckout');
+  if (mc) mc.style.display = 'none';
+}
+
+async function applyPromo() {
+  const input = document.getElementById('promoInput');
+  const msg   = document.getElementById('promoMsg');
+  const btn   = document.querySelector('.promo-apply');
+  if (!input || !msg) return;
+
+  const code = input.value.trim().toUpperCase();
+  if (!code) {
+    msg.style.display = 'block';
+    msg.innerHTML = '<div style="font-size:12px;color:var(--red);margin-top:8px">Введіть промокод</div>';
+    return;
+  }
+
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const url = _SUPA_URL_CART + '/rest/v1/promo_codes'
+      + '?code=eq.' + encodeURIComponent(code)
+      + '&status=eq.active'
+      + '&start_date=lte.' + today
+      + '&end_date=gte.'   + today
+      + '&select=code,name,type,discount_percent&limit=1';
+
+    const r = await fetch(url, {
+      headers: { 'apikey': _SUPA_KEY_CART, 'Authorization': 'Bearer ' + _SUPA_KEY_CART }
+    });
+    if (!r.ok) throw new Error('fetch');
+    const data = await r.json();
+
+    if (!Array.isArray(data) || !data.length) {
+      _cartPromo = null;
+      msg.style.display = 'block';
+      msg.innerHTML = '<div style="font-size:12px;color:var(--red);margin-top:8px">Промокод не знайдено або прострочений ❌</div>';
+      recalc();
+      return;
+    }
+
+    const promo = data[0];
+    _cartPromo = promo;
+    recalc();
+
+    // Ховаємо рядок вводу, показуємо бейдж
+    const promoRow = document.getElementById('promoInputRow');
+    const badge    = document.getElementById('promoAppliedBadge');
+    const badgeTxt = document.getElementById('promoAppliedText');
+    if (promoRow) promoRow.style.display = 'none';
+    if (badge)    badge.style.display    = 'flex';
+    if (badgeTxt) {
+      if (promo.type === 'free_delivery') {
+        badgeTxt.textContent = 'Промокод «' + promo.code + '» — безкоштовна доставка 🚚';
+      } else {
+        badgeTxt.textContent = 'Промокод «' + promo.code + '» — знижка ' + promo.discount_percent + '% 🎁';
+      }
+    }
+    msg.style.display = 'none';
+
+    // Тост-підтвердження
+    _cartPromoToast(promo);
+
+  } catch(e) {
+    msg.style.display = 'block';
+    msg.innerHTML = '<div style="font-size:12px;color:var(--red);margin-top:8px">Помилка перевірки. Спробуйте ще раз.</div>';
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Застосувати'; }
+  }
+}
+
+function removePromoCart() {
+  _cartPromo = null;
+  const input    = document.getElementById('promoInput');
+  const promoRow = document.getElementById('promoInputRow');
+  const badge    = document.getElementById('promoAppliedBadge');
+  const msg      = document.getElementById('promoMsg');
+  if (input)    input.value = '';
+  if (promoRow) promoRow.style.display = 'flex';
+  if (badge)    badge.style.display    = 'none';
+  if (msg)      msg.style.display      = 'none';
+  recalc();
+}
+
+function _cartPromoToast(promo) {
+  const t = document.createElement('div');
+  t.style.cssText = 'position:fixed;top:80px;right:24px;z-index:9999;background:white;border-radius:14px;padding:16px 20px;'
+    + 'box-shadow:0 8px 32px rgba(27,42,74,.18);max-width:300px;display:flex;align-items:flex-start;gap:12px;'
+    + 'transform:translateX(120%);transition:transform .4s cubic-bezier(.22,1,.36,1)';
+  const icon  = promo.type === 'free_delivery' ? '🚚' : '🎁';
+  const title = promo.type === 'free_delivery' ? 'Безкоштовна доставка!' : 'Знижку застосовано!';
+  const body  = promo.type === 'free_delivery'
+    ? 'Промокод «' + promo.code + '» — доставка НП безкоштовна'
+    : 'Промокод «' + promo.code + '» — знижка ' + promo.discount_percent + '% на весь кошик';
+  t.innerHTML = '<div style="font-size:24px;line-height:1;flex-shrink:0">' + icon + '</div>'
+    + '<div><div style="font-family:\'Nunito\',sans-serif;font-weight:800;font-size:14px;color:#1B2A4A;margin-bottom:3px">' + title + '</div>'
+    + '<div style="font-size:12px;color:#6b7280;line-height:1.5">' + body + '</div></div>';
+  document.body.appendChild(t);
+  requestAnimationFrame(() => { t.style.transform = 'translateX(0)'; });
+  setTimeout(() => { t.style.transform = 'translateX(120%)'; setTimeout(() => t.remove(), 420); }, 4500);
+}
+
+function goCheckout() {
+  // Завжди перечитуємо кошик безпосередньо з localStorage перед переходом,
+  // щоб уникнути ситуації "снапшот сторінки = 1, насправді 0/2"
+  let fresh = [];
+  try { fresh = JSON.parse(localStorage.getItem('kr_cart') || '[]'); } catch(e) { fresh = []; }
+  if (!Array.isArray(fresh) || !fresh.length) {
+    cartData = [];
+    showEmptyCart();
+    showToast('Кошик порожній');
+    return;
+  }
+  cartData = fresh;
+  // Зберігаємо застосований промокод щоб checkout.html міг його показати
+  if (_cartPromo) {
+    localStorage.setItem('kr_cart_promo', JSON.stringify(_cartPromo));
+  } else {
+    localStorage.removeItem('kr_cart_promo');
+  }
+  window.location.href = 'checkout.html';
+}
+
+// Синхронізація з іншими вкладками: якщо в іншій вкладці змінили kr_cart —
+// перечитуємо тут і ререндеримо.
+window.addEventListener('storage', e => {
+  if (e.key !== 'kr_cart') return;
+  try { cartData = JSON.parse(e.newValue || '[]'); } catch { cartData = []; }
+  if (!Array.isArray(cartData)) cartData = [];
+  if (!cartData.length) showEmptyCart();
+  else { renderCartItems(); recalc(); }
+});
+
+function checkMobilePrices() {
+  const isMobile = window.innerWidth <= 768;
+  document.querySelectorAll('.ci-price-mobile').forEach(el => {
+    el.style.display = isMobile ? 'block' : 'none';
+  });
+}
+window.addEventListener('resize', checkMobilePrices);
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+if (!cartData.length) {
+  showEmptyCart();
+} else {
+  renderCartItems();
+  recalc();
+  saveCart(); // sync badge
+}
+checkMobilePrices();
 </script>
+<!-- shared.js завантажено вгорі сторінки, щоб KR був гарантовано доступний -->
+
+<script>
+// Показати кнопку адмін панелі якщо залогінений як адмін
+(function() {
+  try {
+    const s = localStorage.getItem('kr_admin_session');
+    if (!s) return;
+    const session = JSON.parse(s);
+    if (!session.access_token) return;
+    // Перевірити термін дії
+    if (session.expires_at && Date.now() / 1000 > session.expires_at) return;
+    // Показувати кнопку ТІЛЬКИ адмінам
+    if (!session.is_admin) return;
+
+    // Додати кнопку адміна в header
+    const hRight = document.querySelector('.h-right, .header .h-actions, .header-right');
+    if (!hRight) return;
+
+    const adminBtn = document.createElement('a');
+    adminBtn.href = 'admin.html';
+    adminBtn.title = 'Адмін панель';
+    adminBtn.style.cssText = 'display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;background:rgba(27,42,74,.08);color:var(--navy);font-family:"Nunito",sans-serif;font-weight:700;font-size:12px;text-decoration:none;border:1.5px solid var(--border);transition:all .2s;margin-left:4px';
+    adminBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Адмін';
+    adminBtn.onmouseover = function() { this.style.background='var(--orange)'; this.style.color='white'; this.style.borderColor='var(--orange)'; };
+    adminBtn.onmouseout = function() { this.style.background='rgba(27,42,74,.08)'; this.style.color='var(--navy)'; this.style.borderColor='var(--border)'; };
+
+    hRight.insertBefore(adminBtn, hRight.firstChild);
+  } catch(e) {}
+})();
+</script>
+
+<script>
+  // ── SEARCH OVERLAY ──────────────────────────────────────────────────────────
+  const KR_SUPABASE_URL_SR=(typeof SUPABASE_URL!=='undefined'?SUPABASE_URL:'https://xczrzdbikkycgpnvolib.supabase.co');
+  const KR_SUPABASE_KEY_SR=(typeof SUPABASE_KEY!=='undefined'?SUPABASE_KEY:'');
+  const KR_CAT_EMOJI={jeep:'🚙',car:'🚗',quad:'🏍️',moto:'🏍️',tractor:'🚜',truck:'🚚',buggy:'🛺',walker:'🛴'};
+  let KR_PRODUCTS_CACHE=null,KR_PRODUCTS_PROMISE=null;
+  async function krLoadAllProducts(){
+    if(KR_PRODUCTS_CACHE)return KR_PRODUCTS_CACHE;
+    if(KR_PRODUCTS_PROMISE)return KR_PRODUCTS_PROMISE;
+    KR_PRODUCTS_PROMISE=(async()=>{
+      try{
+        const h={'apikey':KR_SUPABASE_KEY_SR,'Authorization':'Bearer '+KR_SUPABASE_KEY_SR};
+        const base=KR_SUPABASE_URL_SR+'/rest/v1/products?select=id,name,brand,model_code,sku,category,price,images&active=eq.true&order=created_at.desc&limit=1000';
+        const pages=await Promise.all([0,1000,2000].map(off=>fetch(base+'&offset='+off,{headers:h}).then(r=>r.ok?r.json():[]).catch(()=>[])));
+        const data=pages.flat();
+        if(data.length){const seen=new Set();KR_PRODUCTS_CACHE=data.filter(p=>{if(!p||seen.has(p.id))return false;seen.add(p.id);return true;}).map(p=>({id:p.id,name:p.name||'',brand:p.brand||'',model:p.model_code||p.sku||'',sku:p.sku||'',category:p.category||'',price:parseFloat(p.price)||0,emoji:KR_CAT_EMOJI[p.category]||'🚗',photo:Array.isArray(p.images)&&p.images[0]?p.images[0]:null}));return KR_PRODUCTS_CACHE;}
+      }catch(e){console.warn('KR search:',e);}
+      KR_PRODUCTS_CACHE=[];return KR_PRODUCTS_CACHE;
+    })();return KR_PRODUCTS_PROMISE;
+  }
+  function openSearchOverlay(){
+    document.getElementById('searchOverlay').classList.add('open');
+    document.body.style.overflow='hidden';
+    setTimeout(()=>{const i=document.getElementById('searchOverlayInput');if(i){i.focus();renderSearchSuggestions(i.value);}},50);
+    krLoadAllProducts().then(()=>{const i=document.getElementById('searchOverlayInput');if(i)renderSearchSuggestions(i.value);});
+  }
+  function closeSearchOverlay(){document.getElementById('searchOverlay').classList.remove('open');document.body.style.overflow='';}
+  function krNormalize(s){return(s||'').toString().toLowerCase().replace(/[\s\-_/.,]+/g,'');}
+  function krMatchScore(p,q){
+    if(!q)return 1;const qN=krNormalize(q);
+    const fs=[p.name,p.brand,p.model,p.sku].map(x=>(x||'').toString());
+    const fl=fs.map(f=>f.toLowerCase()),fn=fs.map(krNormalize);
+    if(fn[2]&&fn[2].includes(qN))return 100;if(fn[3]&&fn[3].includes(qN))return 95;
+    if(fn[0].startsWith(qN))return 80;if(fl[0].includes(q))return 70;if(fn[0].includes(qN))return 65;if(fl[1].includes(q))return 50;
+    const ts=q.split(/\s+/).filter(Boolean);
+    if(ts.length>1){if(ts.every(t=>fl[0].includes(t)||fn[0].includes(krNormalize(t))))return 60;
+      if(ts.every(t=>fl.some(f=>f.includes(t))||fn.some(f=>f.includes(krNormalize(t)))))return 40;}
+    return 0;
+  }
+  function krFmtPrice(n){return n?new Intl.NumberFormat('uk-UA').format(Math.round(n))+' грн':'';}
+  function renderSearchSuggestions(query){
+    const list=document.getElementById('searchSuggestions'),empty=document.getElementById('searchEmpty');
+    if(!list)return;const q=(query||'').trim(),products=KR_PRODUCTS_CACHE;
+    if(!products){list.innerHTML='<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:13px">Завантаження…</div>';if(empty)empty.style.display='none';krLoadAllProducts().then(()=>renderSearchSuggestions(query));return;}
+    const VC=new Set(Object.keys(KR_CAT_EMOJI));
+    if(!q){list.innerHTML='';if(empty)empty.style.display='none';return;}
+    const sc=products.map(p=>({p,s:krMatchScore(p,q)})).filter(x=>x.s>0);
+    const items=[...sc.filter(x=>VC.has(x.p.category)).sort((a,b)=>b.s-a.s).slice(0,6).map(x=>x.p),...sc.filter(x=>!VC.has(x.p.category)).sort((a,b)=>b.s-a.s).slice(0,4).map(x=>x.p)];
+    list.innerHTML='';
+    if(!items.length){if(empty){empty.style.display='block';const s=empty.querySelector('strong');if(s)s.textContent=q;}return;}
+    if(empty)empty.style.display='none';
+    items.forEach(p=>{
+      const a=document.createElement('a');
+      a.href=p.id?'product.html?id='+encodeURIComponent(p.id):'catalog.html?search='+encodeURIComponent(p.name);
+      a.className='search-sug';
+      const sub=[p.brand,p.sku].filter(Boolean).join(' · Арт: ');
+      const thumb=p.photo?'<img class="search-sug-img" src="'+p.photo+'" alt="" loading="lazy">':'<span style="width:44px;height:44px;border-radius:8px;background:#f5f7fa;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px">'+(p.emoji||'🚗')+'</span>';
+      a.innerHTML=thumb+'<span class="search-sug-name" style="display:flex;flex-direction:column;gap:2px;flex:1;min-width:0"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+p.name+'</span>'+(sub?'<span style="font-size:11px;color:var(--text-muted);font-weight:500">'+sub+'</span>':'')+'</span>'+(p.price?'<span style="font-size:13px;font-weight:800;color:var(--orange);margin-right:8px;white-space:nowrap">'+krFmtPrice(p.price)+'</span>':'')+'<svg class="search-sug-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>';
+      list.appendChild(a);
+    });
+  }
+  function submitSearch(e){if(e)e.preventDefault();const q=(document.getElementById('searchOverlayInput')?.value||'').trim();if(!q)return false;window.location.href='catalog.html?search='+encodeURIComponent(q);return false;}
+  if(document.readyState!=='loading')krLoadAllProducts();
+  else document.addEventListener('DOMContentLoaded',krLoadAllProducts);
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSearchOverlay();if((e.key==='k'||e.key==='K')&&(e.metaKey||e.ctrlKey)){e.preventDefault();openSearchOverlay();}});
+  </script>
 </body>
 </html>
