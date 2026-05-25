@@ -1345,7 +1345,7 @@ footer{background:var(--navy);color:white;padding:56px 40px 0}
             <div class="p-img" style="${bg}">
               ${imgHtml}
               <div class="p-overlay">
-                <a href="product.html?id=${pid}" class="p-overlay-btn ob-white" onclick="try{var _kp=window._krFeaturedMap&&window._krFeaturedMap['${_mapKey}'];if(_kp)sessionStorage.setItem('kr_active_product',JSON.stringify(_kp))}catch(e){}" >
+                <a href="${p.slug ? 'product/' + p.slug : 'product.html?id=' + pid}" class="p-overlay-btn ob-white" onclick="try{var _kp=window._krFeaturedMap&&window._krFeaturedMap['${_mapKey}'];if(_kp)sessionStorage.setItem('kr_active_product',JSON.stringify(_kp))}catch(e){}" >
                   <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                   Детальніше
                 </a>
@@ -2573,7 +2573,7 @@ async function krLoadAllProducts() {
   KR_PRODUCTS_PROMISE = (async () => {
     try {
       const hdrs = { 'apikey': KR_SUPABASE_KEY, 'Authorization': 'Bearer ' + KR_SUPABASE_KEY };
-      const base = KR_SUPABASE_URL + '/rest/v1/products?select=id,name,brand,model_code,sku,category,price,images&active=eq.true&order=created_at.desc&limit=1000';
+      const base = KR_SUPABASE_URL + '/rest/v1/products?select=id,name,brand,model_code,sku,category,price,images,slug&active=eq.true&order=created_at.desc&limit=1000';
       const pages = await Promise.all(
         [0, 1000, 2000].map(off => fetch(base + '&offset=' + off, { headers: hdrs })
           .then(r => r.ok ? r.json() : []).catch(() => []))
@@ -2698,10 +2698,7 @@ function renderSearchSuggestions(query) {
   empty.style.display = 'none';
   items.forEach(p => {
     const a = document.createElement('a');
-    const url = p.id
-      ? 'product.html?id=' + encodeURIComponent(p.id)
-      : 'product.html?model=' + encodeURIComponent(p.name);
-    a.href = url;
+    a.href = p.slug ? 'product/' + p.slug : (p.id ? 'product.html?id=' + encodeURIComponent(p.id) : 'product.html?model=' + encodeURIComponent(p.name));
     a.className = 'search-sug';
     const sub = [p.brand, p.sku].filter(Boolean).join(' · Арт: ');
     const thumb = p.photo
