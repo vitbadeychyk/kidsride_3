@@ -2261,7 +2261,7 @@ async function switchToVariant(id, supaUrl, supaKey){
   supaKey = supaKey || (window.KR && KR._SUPA_KEY) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
 
   // Повний набір полів — включаючи опис і характеристики
-  const baseSelect = 'id,sku,category_id,name,brand,price,old_price,stock,badge,images,active,'
+  const baseSelect = 'id,sku,category_id,name,brand,price,old_price,stock,badge,images,active,slug,'
     + 'description,short_desc,features,category,voltage,age_range,age,'
     + 'motor,battery,speed,max_load,weight,warranty,assembly_time';
   const tryFetch = async (withExtras) => {
