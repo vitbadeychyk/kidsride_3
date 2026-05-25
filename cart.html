@@ -590,6 +590,11 @@ window.addEventListener('scroll', () => {
 });
 
 // ── HELPERS ───────────────────────────────────────────────────────────────
+function slugify(str) {
+  const UA = {"а":"a","б":"b","в":"v","г":"h","ґ":"g","д":"d","е":"e","є":"ie","ж":"zh","з":"z","и":"y","і":"i","ї":"i","й":"i","к":"k","л":"l","м":"m","н":"n","о":"o","п":"p","р":"r","с":"s","т":"t","у":"u","ф":"f","х":"kh","ц":"ts","ч":"ch","ш":"sh","щ":"shch","ь":"","ю":"iu","я":"ia","ё":"e","ъ":"","ы":"y","э":"e"};
+  return str.toLowerCase().split("").map(function(c){return UA[c]!==undefined?UA[c]:c;}).join("")
+    .replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").substring(0,80);
+}
 function escHtml(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function formatPrice(n) { return Number(n||0).toLocaleString('uk-UA') + ' грн'; }
 function plural(n, one, few, many) {
@@ -659,7 +664,8 @@ function renderCartItems() {
     const tags = [];
 
 
-    const productHref = p.slug ? 'product/' + p.slug : (p.id && !/^p-/.test(String(p.id)) ? 'product.html?id=' + encodeURIComponent(p.id) : 'product.html');
+    const _cSlug = p.slug || slugify(p.name || "");
+    const productHref = _cSlug ? '/product/' + _cSlug : (p.id && !/^p-/.test(String(p.id)) ? '/product.html?id=' + encodeURIComponent(p.id) : '/product.html');
     const safeKey = escHtml(key);
     const imgHtml = p.img
       ? `<img src="${escHtml(String(p.img))}" alt="${escHtml(p.name||'')}" loading="lazy" data-sku="${escHtml(p.sku||'')}" style="width:100%;height:100%;object-fit:contain;background:#fff;border-radius:10px" onerror="this.style.display='none';this.parentNode.innerHTML+=genericSvg()">`
