@@ -1,5 +1,6 @@
 // Vercel Serverless Function: динамічний sitemap.xml з усіма товарами
 // Використовує clean product URLs (/product/:slug) якщо slug є
+// Пагінація по 1000 рядків — обходить обмеження Supabase за замовчуванням
 
 const SITE = 'https://www.kidsride.com.ua';
 
@@ -26,6 +27,42 @@ function escapeXml(s) {
     .replace(/"/g, '&quot;');
 }
 
+// Завантажує ВСІ активні товари через пагінацію (Supabase limit=1000 за замовч.)
+async function fetchAllProducts(supaUrl, supaKey) {
+  const PAGE = 1000;
+  let all = [];
+  let offset = 0;
+
+  while (true) {
+    const r = await fetch(
+      supaUrl + '/rest/v1/products?select=id,slug,updated_at&active=eq.true&order=id.asc',
+      {
+        headers: {
+          apikey: supaKey,
+          Authorization: 'Bearer ' + supaKey,
+          // Запитуємо діапазон [offset, offset+PAGE-1]
+          Range: `${offset}-${offset + PAGE - 1}`,
+          'Range-Unit': 'items',
+        },
+      }
+    );
+
+    if (!r.ok) break;
+
+    const page = await r.json();
+    if (!Array.isArray(page) || page.length === 0) break;
+
+    all = all.concat(page);
+
+    // Якщо отримали менше ніж PAGE — це остання сторінка
+    if (page.length < PAGE) break;
+
+    offset += PAGE;
+  }
+
+  return all;
+}
+
 export default async function handler(req, res) {
   const supaUrl = process.env.SUPABASE_URL;
   const supaKey = process.env.SUPABASE_ANON_KEY;
@@ -34,20 +71,13 @@ export default async function handler(req, res) {
 
   if (supaUrl && supaKey) {
     try {
-      const r = await fetch(
-        supaUrl + '/rest/v1/products?select=id,slug,name,updated_at&active=eq.true&order=created_at.desc',
-        { headers: { apikey: supaKey, Authorization: 'Bearer ' + supaKey } }
-      );
-      if (r.ok) {
-        const products = await r.json();
-        productUrls = products.map(p => ({
-          // Якщо slug є — чиста URL, інакше — стара URL (перехідний період)
-          loc: SITE + (p.slug ? '/product/' + p.slug : '/product.html?id=' + encodeURIComponent(p.id)),
-          lastmod: p.updated_at ? p.updated_at.substring(0, 10) : '',
-          changefreq: 'weekly',
-          priority: '0.70',
-        }));
-      }
+      const products = await fetchAllProducts(supaUrl, supaKey);
+      productUrls = products.map(p => ({
+        loc: SITE + (p.slug ? '/product/' + p.slug : '/product.html?id=' + encodeURIComponent(p.id)),
+        lastmod: p.updated_at ? p.updated_at.substring(0, 10) : '',
+        changefreq: 'weekly',
+        priority: '0.70',
+      }));
     } catch (_) {}
   }
 
