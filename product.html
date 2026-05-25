@@ -2291,7 +2291,7 @@ async function switchToVariant(id, supaUrl, supaKey){
 
   // Оновлюємо адресу в браузері (без перезавантаження)
   try {
-    history.pushState({ kr_variant_id: p.id }, '', p.slug ? 'product/' + p.slug : 'product.html?id=' + encodeURIComponent(p.id));
+    history.pushState({ kr_variant_id: p.id }, '', p.slug ? '/product/' + p.slug : '/product.html?id=' + encodeURIComponent(p.id));
   } catch {}
 
   // Оновлюємо кеш sessionStorage, щоб при наступному заході сторінка одразу
@@ -2527,7 +2527,7 @@ async function buildColorVariants(currentSku, currentId, supaUrl, supaKey, model
 
     const tag = isCur ? 'div' : 'a';
     const el = document.createElement(tag);
-    if (!isCur) el.href = v.slug ? 'product/' + v.slug : 'product.html?id=' + encodeURIComponent(v.id);
+    if (!isCur) el.href = v.slug ? '/product/' + v.slug : '/product.html?id=' + encodeURIComponent(v.id);
     el.title = (v.name || v.sku || '') + (isCur ? ' (поточний)' : (inStock ? '' : ' — під замовлення'));
     el.style.cssText =
       'display:flex;flex-direction:column;align-items:center;gap:6px;'
@@ -2970,7 +2970,7 @@ function _ytEmbedFromUrl(url){
     if (empty) empty.style.display = 'none';
     items.forEach(p => {
       const a = document.createElement('a');
-      a.href = p.slug ? 'product/'+p.slug : (p.id ? 'product.html?id='+encodeURIComponent(p.id) : 'catalog.html?search='+encodeURIComponent(p.name));
+      a.href = p.slug ? '/product/'+p.slug : (p.id ? '/product.html?id='+encodeURIComponent(p.id) : '/catalog.html?search='+encodeURIComponent(p.name));
       a.className = 'search-sug';
       const sub = [p.brand, p.sku].filter(Boolean).join(' · Арт: ');
       const thumb = p.photo
@@ -3053,7 +3053,7 @@ function _ytEmbedFromUrl(url){
     if(empty)empty.style.display='none';
     items.forEach(p=>{
       const a=document.createElement('a');
-      a.href=p.slug?'product/'+p.slug:(p.id?'product.html?id='+encodeURIComponent(p.id):'catalog.html?search='+encodeURIComponent(p.name));
+      a.href=p.slug?'/product/'+p.slug:(p.id?'/product.html?id='+encodeURIComponent(p.id):'/catalog.html?search='+encodeURIComponent(p.name));
       a.className='search-sug';
       const sub=[p.brand,p.sku].filter(Boolean).join(' · Арт: ');
       const thumb=p.photo?'<img class="search-sug-img" src="'+p.photo+'" alt="" loading="lazy">':'<span style="width:44px;height:44px;border-radius:8px;background:#f5f7fa;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px">'+(p.emoji||'🚗')+'</span>';
