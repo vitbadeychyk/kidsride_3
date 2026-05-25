@@ -1031,16 +1031,21 @@ function setView(view, btn) {
 // Cart
 let cartCount = 0;
 function getCardProduct(card) {
-  if (!card) return null;
-  const name = (card.querySelector('.p-name')?.textContent || 'Товар').trim();
-  const brand = (card.querySelector('.p-brand')?.textContent || '').trim();
-  const priceEl = card.querySelector('.p-price');
-  const price = priceEl ? parseInt(priceEl.textContent.replace(/\D/g,'')) || 0 : 0;
-  // Реальний id з Supabase (data-id), якщо є — інакше fallback за іменем
-  const realId = card.dataset && card.dataset.id;
-  const id = realId || ('cat-' + name.toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi,'-').slice(0,40));
-  return { id, name, brand, price, img: 'jeep' };
-}
+    if (!card) return null;
+    const realId = card.dataset && card.dataset.id;
+    // Спочатку шукаємо повний об'єкт із allProducts — це гарантує правильні images, sku, color тощо
+    if (realId) {
+      const full = (allProducts || []).find(x => String(x.id) === String(realId));
+      if (full) return full;
+    }
+    // Fallback: витягуємо дані з DOM
+    const name = (card.querySelector('.p-name')?.textContent || 'Товар').trim();
+    const brand = (card.querySelector('.p-brand')?.textContent || '').trim();
+    const priceEl = card.querySelector('.p-price');
+    const price = priceEl ? parseInt(priceEl.textContent.replace(/\D/g,'')) || 0 : 0;
+    const id = realId || ('cat-' + name.toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi,'-').slice(0,40));
+    return { id, name, brand, price, img: 'jeep' };
+  }
 
 function addToCart(btn) {
   if (event && event.stopPropagation) event.stopPropagation();
@@ -1920,24 +1925,31 @@ async function loadProductsFromSupabase() {
     let all = [];
     let from = 0;
 
-    const _fetchPage = (from) => {
-      const ctrl = new AbortController();
-      const tid = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT);
-      return fetch(
-        SUPABASE_URL + '/rest/v1/products?select=id,sku,model_code,color,name,brand,price,old_price,category,category_id,voltage,age_range,stock,preorder_days,badge,img_type,images,active,created_at,slug&active=eq.true&order=created_at.desc',
-        {
-          signal: ctrl.signal,
-          headers: {
-            'apikey': SUPABASE_KEY,
-            'Authorization': 'Bearer ' + SUPABASE_KEY,
-            'Content-Type': 'application/json',
-            'Range': from + '-' + (from + PAGE - 1),
-            'Range-Unit': 'items',
-            'Prefer': 'count=none'
+    // Два варіанти SELECT: з slug (після міграції) і без (до міграції БД)
+      const _SEL_FULL = 'id,sku,model_code,color,name,brand,price,old_price,category,category_id,voltage,age_range,stock,preorder_days,badge,img_type,images,active,created_at,slug';
+      const _SEL_BASE = 'id,sku,model_code,color,name,brand,price,old_price,category,category_id,voltage,age_range,stock,preorder_days,badge,img_type,images,active,created_at';
+      const _fetchPage = async (from, sel) => {
+        sel = sel || _SEL_FULL;
+        const ctrl = new AbortController();
+        const tid = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT);
+        const res = await fetch(
+          SUPABASE_URL + '/rest/v1/products?select=' + sel + '&active=eq.true&order=created_at.desc',
+          {
+            signal: ctrl.signal,
+            headers: {
+              'apikey': SUPABASE_KEY,
+              'Authorization': 'Bearer ' + SUPABASE_KEY,
+              'Content-Type': 'application/json',
+              'Range': from + '-' + (from + PAGE - 1),
+              'Range-Unit': 'items',
+              'Prefer': 'count=none'
+            }
           }
-        }
-      ).finally(() => clearTimeout(tid));
-    };
+        ).finally(() => clearTimeout(tid));
+        // Якщо колонки slug ще немає в БД — повторюємо без неї
+        if (res.status === 400 && sel === _SEL_FULL) return _fetchPage(from, _SEL_BASE);
+        return res;
+      };
 
     // ── ПАРАЛЕЛЬНИЙ запит залишків: стартуємо ОДРАЗУ, не чекаємо кінця товарів ──
     // Логіка: якщо товар відсутній у постачальника (products.stock <= 0),
@@ -2174,7 +2186,7 @@ function renderCard(p) {
     stockBadge = '<div style="font-size:11px;color:#16a34a;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:5px"><svg viewBox="0 0 8 8" style="width:8px;height:8px"><circle cx="4" cy="4" r="4" fill="#16a34a"/></svg>В наявності</div>';
   }
 
-  const productHref = p.id ? 'product.html?id=' + encodeURIComponent(p.id) : 'product.html';
+  const productHref = p.slug ? 'product/' + p.slug : (p.id ? 'product.html?id=' + encodeURIComponent(p.id) : 'product.html');
 
   return `
     <div class="p-card reveal" data-id="${escAttr(p.id)}" data-category="${escAttr(p.category)}" data-age="${escAttr(p.age)}" data-voltage="${escAttr(p.voltage)}" data-price="${p.price}" data-brand="${escAttr(p.brand)}">
