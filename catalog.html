@@ -2459,7 +2459,7 @@ function applyFiltersAndRender() {
       && !activeFilters.types.length && !activeFilters.ages.length
       && !activeFilters.brands.length && !activeFilters.voltages.length && !activeFilters.search;
     countEl.textContent = (_noFilter
-      ? (allProducts||[]).filter(p=>!(p.stock!=null&&p.stock<=0&&!(Number(p.preorderDays)>0))).length
+      ? (allProducts||[]).length
       : filteredProducts.length) + ' товарів';
   }
 
@@ -2546,7 +2546,7 @@ function renderPagination(totalPages) {
 // ── FILTER COUNTS ──────────────────────────────────────────────────────────
 // Рахуємо кількість товарів у кожній групі фільтрів та оновлюємо .filter-cnt
 function _getCategoryProducts() {
-  const base = (allProducts || []).filter(p => !(p.stock != null && p.stock <= 0 && !(Number(p.preorderDays) > 0)));
+  const base = (allProducts || []);
   const ids  = _getActiveCategoryIds();
   let prods  = ids.length ? base.filter(p => ids.includes(p.category_id)) : base;
   if (_activeVehicleType) prods = prods.filter(p => p.category === _activeVehicleType);
@@ -2715,17 +2715,34 @@ function applyUrlFilters() {
     }
   }
 
-  // ── Стара логіка: ?cat=jeep,car (для зворотної сумісності)
+  // ── ?cat=quad / ?cat=jeep тощо → головний шлях навігації з /dityachi-kvadratsykly
   const catRaw = params.get('cat') || params.get('type') || params.get('category') || '';
-  const TYPE_LABELS = { jeep:'Джип', quad:'Квадроцикл', moto:'Мотоцикл', car:'Машина', tractor:'Трактор', walker:'Каталка-толокар', truck:'Вантажівка', buggy:'Баггі' };
+  const TYPE_LABELS    = { jeep:'Джип', quad:'Квадроцикл', moto:'Мотоцикл', car:'Машина', tractor:'Трактор', walker:'Каталка-толокар', truck:'Вантажівка', buggy:'Баггі' };
+  const TYPE_LABELS_PL = { jeep:'Джипи', quad:'Квадроцикли', moto:'Мотоцикли', car:'Машини', tractor:'Трактори', walker:'Каталки-толокари', truck:'Вантажівки', buggy:'Баггі' };
   if (catRaw) {
     const cats = catRaw.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
-    const targets = cats.map(c => TYPE_LABELS[c]).filter(Boolean);
-    if (targets.length) {
-      document.querySelectorAll('.filter-option[data-group="type"]').forEach(opt => {
-        const label = (opt.querySelector('.filter-label')?.textContent || '').trim();
-        if (targets.indexOf(label) >= 0) opt.classList.add('checked');
-      });
+
+    if (cats.length === 1 && TYPE_LABELS[cats[0]]) {
+      // Один тип транспорту — встановлюємо _activeVehicleType (як selectVehicleType)
+      _activeVehicleType    = cats[0];
+      _activeCatIdFilter    = 0;
+      _activeParentIdFilter = 0;
+      _isDefaultMode        = false;
+      const label = TYPE_LABELS_PL[cats[0]] || TYPE_LABELS[cats[0]];
+      if (bcCats)  { bcCats.style.display = ''; }
+      if (bcSep2)  { bcSep2.style.display = ''; }
+      if (bcCur)   bcCur.textContent  = label;
+      if (titleEl) titleEl.textContent = label;
+    } else {
+      // Кілька типів або нестандартне значення — стара логіка через activeFilters.types
+      const targets = cats.map(c => TYPE_LABELS[c]).filter(Boolean);
+      if (targets.length) {
+        document.querySelectorAll('.filter-option[data-group="type"]').forEach(opt => {
+          const label = (opt.querySelector('.filter-label')?.textContent || '').trim();
+          if (targets.indexOf(label) >= 0) opt.classList.add('checked');
+        });
+        activeFilters.types = cats.filter(c => TYPE_LABELS[c]);
+      }
     }
   }
   // Пошуковий запит
