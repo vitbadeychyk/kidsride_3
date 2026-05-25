@@ -5,4 +5,4 @@ Disallow: /checkout.html
 Disallow: /auth.html
 Disallow: /admin.html
 
-Sitemap: https://kidsride.ua/sitemap.xml
+Sitemap: https://www.kidsride.com.ua/sitemap.xml
