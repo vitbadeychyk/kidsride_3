@@ -1447,7 +1447,8 @@ function closeReview() {
 function getProductKey(){
   try{
     const params = new URLSearchParams(window.location.search);
-    const id = params.get('id');
+    // Якщо API function вже передала id (SEO clean URLs /product/:slug) — беремо його
+    const id = (typeof window.__KR_PRODUCT_ID__ === 'string' && window.__KR_PRODUCT_ID__) || params.get('id') || '';
     if (id && id.trim()) return id.trim();
     const m = params.get('model');
     return (m && m.trim()) ? m.trim() : 'default';
