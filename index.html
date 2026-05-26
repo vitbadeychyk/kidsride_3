@@ -1818,10 +1818,12 @@ if(typeof Swiper === 'undefined') {
       this._init();
     }
     _init() {
+      // Додаємо swiper-initialized щоб CSS не ховав слайди через display:none!important
+      this.el.classList.add('swiper-initialized');
       this.slides.forEach((s,i) => {
-        s.style.cssText = 'position:absolute;inset:0;opacity:' + (i===0?'1':'0') + ';transition:opacity 0.9s ease;pointer-events:' + (i===0?'auto':'none');
+        s.style.cssText = 'position:absolute;inset:0;display:block;opacity:' + (i===0?'1':'0') + ';transition:opacity 0.9s ease;pointer-events:' + (i===0?'auto':'none');
       });
-      if(this.wrapper) this.wrapper.style.cssText = 'position:relative;height:100%';
+      if(this.wrapper) this.wrapper.style.cssText = 'position:relative;height:100%;display:flex';
       this.opts.on?.slideChange?.call(this);
       if(this.opts.autoplay) this._startAuto();
       if(this.opts.pagination?.el) this._initPag();
@@ -1831,6 +1833,7 @@ if(typeof Swiper === 'undefined') {
       this.realIndex = ((n % this.total) + this.total) % this.total;
       this.slides[prev].style.opacity = '0';
       this.slides[prev].style.pointerEvents = 'none';
+      this.slides[this.realIndex].style.display = 'block';
       this.slides[this.realIndex].style.opacity = '1';
       this.slides[this.realIndex].style.pointerEvents = 'auto';
       this.opts.on?.slideChange?.call(this);
@@ -1839,6 +1842,10 @@ if(typeof Swiper === 'undefined') {
     _startAuto() {
       const delay = this.opts.autoplay?.delay || 5000;
       this._timer = setInterval(() => this._goTo(this.realIndex + 1), delay);
+    }
+    destroy() {
+      if(this._timer) { clearInterval(this._timer); this._timer = null; }
+      this.el.classList.remove('swiper-initialized');
     }
     slideNext() { this._goTo(this.realIndex + 1); if(this._timer){clearInterval(this._timer);this._startAuto();} }
     slidePrev() { this._goTo(this.realIndex - 1); if(this._timer){clearInterval(this._timer);this._startAuto();} }
@@ -1922,24 +1929,12 @@ if(typeof Swiper === 'undefined') {
     document.head.appendChild(s);
   }
 
-  var IS_MOB = window.innerWidth < 769;
-  if (!IS_MOB) {
-    /* Desktop: завантажити одразу (асинхронно — не блокує рендер) */
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', _loadRealSwiper);
-    } else {
-      _loadRealSwiper();
-    }
+  /* Desktop + Mobile: завантажити одразу після DOMContentLoaded (асинхронно — не блокує рендер).
+     KrSimpleSlider тримає слайдери живими до завершення завантаження Swiper. */
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _loadRealSwiper);
   } else {
-    /* Mobile: завантажити після першої взаємодії або через 3с */
-    var _done = false;
-    function _run() {
-      if (_done) return; _done = true; _loadRealSwiper();
-    }
-    window.addEventListener('scroll',     _run, { once: true, passive: true });
-    window.addEventListener('touchstart', _run, { once: true, passive: true });
-    window.addEventListener('click',      _run, { once: true, passive: true });
-    setTimeout(_run, 3000);
+    _loadRealSwiper();
   }
 })();
 </script>
