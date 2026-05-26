@@ -590,6 +590,26 @@ footer{background:var(--navy);color:white;padding:56px 40px 0}
   .ig-grid{grid-template-columns:repeat(4,1fr)}
   .f-grid{grid-template-columns:1fr 1fr}
   .section,.section-sm{padding:40px 24px}
+
+  /* ── Mobile hero height fix ──────────────────────────────────────
+     .hero має height:auto на мобільних, тому всі position:absolute слайди
+     складаються до нуля. Рішення: активний слайд — position:relative щоб
+     герой отримав висоту від свого вмісту. Неактивні приховані через display:none. */
+  .swiper-hero.swiper-initialized .swiper-slide.swiper-slide-active {
+    position: relative !important;
+    inset: auto !important;
+    opacity: 1 !important;
+    display: block !important;
+    pointer-events: auto !important;
+  }
+  .swiper-hero.swiper-initialized .swiper-slide:not(.swiper-slide-active):not(.swiper-slide-duplicate-active) {
+    display: none !important;
+  }
+  /* Перед ініціалізацією — перший слайд теж relative */
+  .swiper-hero:not(.swiper-initialized) .swiper-slide:first-child {
+    position: relative !important;
+    inset: auto !important;
+  }
 }
 @media(max-width:640px){
   .benefits-grid{grid-template-columns:1fr}
@@ -1849,7 +1869,7 @@ if(typeof Swiper === 'undefined') {
 }
 
 </script>
-<script src="swiper-bundle.min.js" defer></script>
+<script src="swiper-bundle.min.js"></script>
 <script>
 // Custom pagination — спочатку готуємо DOM, бо Swiper може викликати slideChange під час init
 const pag = document.getElementById('heroPag');
