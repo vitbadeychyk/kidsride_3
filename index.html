@@ -883,9 +883,8 @@ footer{background:var(--navy);color:white;padding:56px 40px 0}
   }
   /* Прибираємо важку анімацію пульсу на мобілі (зменшує TBT) */
   .btn-pulse{animation:none}
-  /* Прискорення анімацій через GPU — уникаємо layout-reflow */
+  /* GPU-прискорення для hero overlay-шарів */
   .hero-grain,.hero-glow{will-change:opacity}
-  .swiper-slide{will-change:opacity}
 }
 </style>
 <script>
@@ -2761,30 +2760,19 @@ function submitSearch(e) {
   window.location.href = 'catalog.html?search=' + encodeURIComponent(q);
   return false;
 }
-// Прогрів кешу: на мобільних — тільки після першої взаємодії (економія трафіку на старті)
+// Прогрів кешу пошуку — відкладаємо до idle-часу браузера (не блокує LCP/TBT)
+// requestIdleCallback запускає callback тільки коли головний поток вільний між фреймами.
+// Timeout 5000ms — страховка на випадок якщо браузер так і не звільниться.
 (function(){
-  var isMobile = window.innerWidth <= 768;
-  function doWarm(){
-    if(document.readyState !== 'loading') krLoadAllProducts();
-    else document.addEventListener('DOMContentLoaded', krLoadAllProducts);
-  }
-  if(!isMobile){
-    doWarm();
-  } else {
-    // Мобільні: чекаємо першого scroll або дотику, щоб не блокувати LCP
-    var _warmed = false;
-    function _warmOnce(){
-      if(_warmed) return;
-      _warmed = true;
-      window.removeEventListener('touchstart', _warmOnce, true);
-      window.removeEventListener('scroll', _warmOnce, true);
-      krLoadAllProducts();
+  function scheduleWarm(){
+    if('requestIdleCallback' in window){
+      requestIdleCallback(krLoadAllProducts, {timeout:5000});
+    } else {
+      setTimeout(krLoadAllProducts, 3000);
     }
-    window.addEventListener('touchstart', _warmOnce, {once:true, passive:true, capture:true});
-    window.addEventListener('scroll', _warmOnce, {once:true, passive:true, capture:true});
-    // Fallback: через 4 секунди якщо ніякої взаємодії не було
-    setTimeout(function(){ _warmOnce(); }, 4000);
   }
+  if(document.readyState !== 'loading') scheduleWarm();
+  else document.addEventListener('DOMContentLoaded', scheduleWarm);
 })();
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') closeSearchOverlay();
