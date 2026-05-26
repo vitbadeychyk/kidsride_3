@@ -2167,7 +2167,7 @@ function renderCard(p) {
   const bg = BG_BY_TYPE[p.img] || BG_BY_TYPE.default;
   const photoUrl = (Array.isArray(p.images) && p.images.length > 0) ? p.images[0] : '';
   const visual = photoUrl
-    ? `<img src="${photoUrl}" alt="${escAttr(p.name)}" loading="lazy" style="width:100%;height:100%;object-fit:cover;position:relative;z-index:1">`
+    ? `<img src="${(function(u){if(!u||u.indexOf('/storage/v1/object/public/')<0)return u;return u.replace('/storage/v1/object/public/','/storage/v1/render/image/public/')+'?width=400&quality=75';})(photoUrl)}" alt="${escAttr(p.name)}" loading="lazy" style="width:100%;height:100%;object-fit:cover;position:relative;z-index:1">`
     : svg;
   const wrapBg = photoUrl ? '#fff' : bg;
   const badge = p.badge === 'sale' && p.oldPrice

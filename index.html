@@ -869,6 +869,16 @@ footer{background:var(--navy);color:white;padding:56px 40px 0}
 .btn-pulse:hover{animation:none;transform:translateY(-2px);box-shadow:0 14px 36px rgba(255,107,53,.55)!important}
 </style>
 <script>
+/* Supabase Image Transform helper — лише для /storage/v1/object/public/ URL */
+function _krOptImg(url,w,q){
+  if(!url||typeof url!=='string')return url||'';
+  if(url.indexOf('/storage/v1/object/public/')<0)return url;
+  var r=url.replace('/storage/v1/object/public/','/storage/v1/render/image/public/');
+  var sep=r.indexOf('?')>=0?'&':'?';
+  return r+sep+'width='+(w||800)+'&quality='+(q||75);
+}
+</script>
+<script>
 (function(){
   try{
     var s=JSON.parse(localStorage.getItem('kr_stripe')||'{"h":12,"c":"#1B2A4A"}');
@@ -1077,7 +1087,7 @@ footer{background:var(--navy);color:white;padding:56px 40px 0}
           var s=sl.find(function(x){return x.id==='slide-1'&&x.enabled!==false&&x.image;});
           if(!s)return;
           var c=document.getElementById('_s1ImgCard');
-          if(c)c.innerHTML='<img src="'+s.image.replace(/["<>]/g,'')+'" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" fetchpriority="high">';
+          if(c)c.innerHTML='<img src="'+_krOptImg(s.image.replace(/["<>]/g,''),1400)+'" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" fetchpriority="high">';
         }catch(e){}
       })();
       </script>
@@ -1125,7 +1135,7 @@ footer{background:var(--navy);color:white;padding:56px 40px 0}
           var s=sl.find(function(x){return x.id==='slide-2'&&x.enabled!==false&&x.image;});
           if(!s)return;
           var c=document.getElementById('_s2ImgCard');
-          if(c)c.innerHTML='<img src="'+s.image.replace(/["<>]/g,'')+'" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block">';
+          if(c)c.innerHTML='<img src="'+_krOptImg(s.image.replace(/["<>]/g,''),1400)+'" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block">';
         }catch(e){}
       })();
       </script>
@@ -1172,7 +1182,7 @@ footer{background:var(--navy);color:white;padding:56px 40px 0}
           var s=sl.find(function(x){return x.id==='slide-3'&&x.enabled!==false&&x.image;});
           if(!s)return;
           var c=document.getElementById('_s3ImgCard');
-          if(c)c.innerHTML='<img src="'+s.image.replace(/["<>]/g,'')+'" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block">';
+          if(c)c.innerHTML='<img src="'+_krOptImg(s.image.replace(/["<>]/g,''),1400)+'" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block">';
         }catch(e){}
       })();
       </script>
@@ -1320,7 +1330,7 @@ footer{background:var(--navy);color:white;padding:56px 40px 0}
           ? 'background:#f0f2f7'
           : ('background:' + (CAT_BG[p.category||'jeep']||CAT_BG.jeep));
         const imgHtml = (Array.isArray(p.images)&&p.images[0])
-          ? `<img src="${escH(p.images[0])}" alt="${escH(p.name)}" style="width:100%;height:100%;object-fit:cover" loading="lazy" decoding="async">`
+          ? `<img src="${escH(_krOptImg(p.images[0],400))}" alt="${escH(p.name)}" style="width:100%;height:100%;object-fit:cover" loading="lazy" decoding="async">`
           : `<svg viewBox="0 0 240 160" style="width:72%;position:relative;z-index:1"><rect x="20" y="75" width="200" height="55" rx="14" fill="#1B2A4A" opacity=".15"/><rect x="50" y="40" width="130" height="52" rx="12" fill="#1B2A4A" opacity=".18"/><rect x="55" y="45" width="55" height="34" rx="6" fill="#64B5F6" opacity=".4"/><rect x="118" y="45" width="55" height="34" rx="6" fill="#64B5F6" opacity=".35"/><circle cx="65" cy="132" r="22" fill="#1B2A4A" opacity=".2"/><circle cx="65" cy="132" r="12" fill="#FF6B35" opacity=".5"/><circle cx="175" cy="132" r="22" fill="#1B2A4A" opacity=".2"/><circle cx="175" cy="132" r="12" fill="#FF6B35" opacity=".5"/></svg>`;
 
         const badge = p.badge
@@ -1563,7 +1573,7 @@ footer{background:var(--navy);color:white;padding:56px 40px 0}
       const firstLetter = (r.author_name || '?').charAt(0).toUpperCase();
       const avatarColor = AVATAR_COLORS[i % AVATAR_COLORS.length];
       const productThumb = productImg
-        ? `<img src="${esc(productImg)}" alt="${productName}" class="r-product-img" style="width:30px;height:30px;object-fit:cover;border-radius:6px;flex-shrink:0" loading="lazy" onerror="this.style.display='none'">`
+        ? `<img src="${esc(_krOptImg(productImg,80))}" alt="${productName}" class="r-product-img" style="width:30px;height:30px;object-fit:cover;border-radius:6px;flex-shrink:0" loading="lazy" onerror="this.style.display='none'">`
         : `<div style="width:30px;height:30px;border-radius:6px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🚗</div>`;
       const cardId = 'rv-' + i;
       return `
@@ -1842,7 +1852,7 @@ function _krFixSlideUrl(u) {
 function _krBuildGenericSlide(s){
   const bg  = s.bg || 'linear-gradient(135deg,#1B2A4A,#2d4270)';
   const img = s.image
-    ? `<img src="${_krEscAttr(s.image)}" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block">`
+    ? `<img src="${_krEscAttr(_krOptImg(s.image,1400))}" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block">`
     : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.06);font-family:'Nunito',sans-serif;color:rgba(255,255,255,.5);font-size:14px">KidsRide</div>`;
   const cta1Text = _krEscHtml(s.cta1_text || 'Дізнатись більше');
   const cta1Link = _krEscAttr(_krFixSlideUrl(s.cta1_link || s.link || 'catalog.html'));
@@ -1917,7 +1927,7 @@ function _krApplySlides(saved){
       // Known slide — reuse rich template, swap image if provided
       if (s.image) {
         const card = tpl.querySelector('.hero-img-card');
-        if (card) card.innerHTML = '<img src="' + _krEscAttr(s.image) + '" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block">';
+        if (card) card.innerHTML = '<img src="' + _krEscAttr(_krOptImg(s.image,1400)) + '" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block">';
       }
       // Підставляємо адмінські налаштування (заголовок, текст і дії кнопок)
       _krPatchExistingSlide(tpl, s);
@@ -1977,7 +1987,7 @@ window._krAppliedSlidesSig = '';
       const card = tpl.querySelector('.hero-img-card');
       // Застосовуємо тільки якщо ще не завантажено з кешу
       if (card && !card.querySelector('img')) {
-        card.innerHTML = '<img src="' + _krEscAttr(s.image) + '" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" fetchpriority="high">';
+        card.innerHTML = '<img src="' + _krEscAttr(_krOptImg(s.image,1400)) + '" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" fetchpriority="high">';
       }
     }).catch(() => {});
 
@@ -1998,7 +2008,7 @@ window._krAppliedSlidesSig = '';
         const tpl = document.querySelector('.swiper-hero .swiper-slide[data-slide-id="' + s.id + '"]');
         if (!tpl) return;
         const card = tpl.querySelector('.hero-img-card');
-        if (card) card.innerHTML = '<img src="' + _krEscAttr(s.image) + '" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block">';
+        if (card) card.innerHTML = '<img src="' + _krEscAttr(_krOptImg(s.image,1400)) + '" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block">';
       });
       window._krAppliedSlidesSig = newSig;
       return;

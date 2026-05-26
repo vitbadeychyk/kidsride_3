@@ -2188,7 +2188,7 @@ function buildPhotoGallery(images){
   imgWrap.style.cssText = 'position:absolute;inset:0;overflow:hidden;display:flex;align-items:center;justify-content:center';
   const mainImg = document.createElement('img');
   mainImg.id = 'mainProductImg';
-  mainImg.src = images[0];
+  mainImg.src = (function(u){if(!u||u.indexOf('/storage/v1/object/public/')<0)return u;return u.replace('/storage/v1/object/public/','/storage/v1/render/image/public/')+'?width=900&quality=80';})(images[0]);
   mainImg.alt = '';
   mainImg.style.cssText = 'display:block;width:100%;height:100%;object-fit:contain;min-width:0;min-height:0;transition:opacity .25s';
   imgWrap.appendChild(mainImg);
@@ -3012,7 +3012,7 @@ function _ytEmbedFromUrl(url){
       a.className = 'search-sug';
       const sub = [p.brand, p.sku].filter(Boolean).join(' · Арт: ');
       const thumb = p.photo
-        ? '<img class="search-sug-img" src="'+p.photo+'" alt="" loading="lazy">'
+        ? '<img class="search-sug-img" src="'+(p.photo&&p.photo.indexOf('/storage/v1/object/public/')>=0?p.photo.replace('/storage/v1/object/public/','/storage/v1/render/image/public/')+'?width=80&quality=75':p.photo)+'" alt="" loading="lazy">'
         : '<span style="width:44px;height:44px;border-radius:8px;background:#f5f7fa;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px">🚗</span>';
       a.innerHTML = thumb +
         '<span class="search-sug-name" style="display:flex;flex-direction:column;gap:2px;flex:1;min-width:0;">' +
