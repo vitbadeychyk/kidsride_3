@@ -65,6 +65,9 @@
   ]
 }
 </script>
+<!-- Preconnect: Supabase (API/DB) та Google Fonts — встановлюємо TCP/TLS заздалегідь -->
+<link rel="preconnect" href="https://xczrzdbikkycgpnvolib.supabase.co" crossorigin>
+<link rel="dns-prefetch" href="https://xczrzdbikkycgpnvolib.supabase.co">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
@@ -1418,7 +1421,7 @@ function _krOptImg(url,w,q){
 
       async function loadFeatured() {
         try {
-          const r = await fetch('https://xczrzdbikkycgpnvolib.supabase.co/rest/v1/products?select=id,name,brand,price,old_price,images,category,age_range,age,voltage,badge,features,slug,sku,article,model&is_featured=eq.true&active=eq.true&order=created_at.desc&limit=5',
+          const r = await fetch('https://xczrzdbikkycgpnvolib.supabase.co/rest/v1/products?select=*&is_featured=eq.true&active=eq.true&order=created_at.desc&limit=5',
             { headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ'} });
           const products = r.ok ? await r.json() : [];
           if (products && products.length) {
@@ -1429,7 +1432,7 @@ function _krOptImg(url,w,q){
         } catch(e) {}
         // Якщо немає is_featured товарів — показати перших 4 активних
         try {
-          const r2 = await fetch('https://xczrzdbikkycgpnvolib.supabase.co/rest/v1/products?select=id,name,brand,price,old_price,images,category,age_range,age,voltage,badge,features,slug,sku,article,model&active=eq.true&order=created_at.desc&limit=5',
+          const r2 = await fetch('https://xczrzdbikkycgpnvolib.supabase.co/rest/v1/products?select=*&active=eq.true&order=created_at.desc&limit=5',
             { headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ'} });
           const fallback = r2.ok ? await r2.json() : [];
           GRID.innerHTML = fallback.length
@@ -1840,7 +1843,14 @@ if(typeof Swiper === 'undefined') {
 }
 
 </script>
-<script src="swiper-bundle.min.js"></script>
+<!-- На мобільних (≤768px) swiper-bundle.min.js (44 KiB) не завантажується —
+     використовується вбудований fallback Swiper (fade + autoplay + pagination).
+     На десктопі завантажується синхронно як раніше. -->
+<script>
+if(window.innerWidth > 768){
+  document.write('<scr'+'ipt src="swiper-bundle.min.js"><\/scr'+'ipt>');
+}
+</script>
 <script>
 // Custom pagination — спочатку готуємо DOM, бо Swiper може викликати slideChange під час init
 const pag = document.getElementById('heroPag');
@@ -2015,7 +2025,8 @@ window._krAppliedSlidesSig = '';
     }).catch(() => {});
 
   // 3) Повний фоновий запит: тільки потрібні поля — оновлює кеш і фото без перезапуску Swiper
-  fetch(SUPA_URL + '/rest/v1/slides?select=id,sort_order,enabled,image,bg,title,cta1_text,cta1_link,link,cta2_text,cta2_link&order=sort_order.asc', { headers: _H })
+  // Без поля `link` — це JS-fallback, не реальна колонка БД (давало 400 Bad Request)
+  fetch(SUPA_URL + '/rest/v1/slides?select=id,sort_order,enabled,image,bg,title,cta1_text,cta1_link,cta2_text,cta2_link&order=sort_order.asc', { headers: _H })
   .then(r => r.ok ? r.json() : null).then(data => {
     if (!Array.isArray(data) || !data.length) return;
     const newSig = _krSlidesSig(data);
@@ -2193,7 +2204,7 @@ function toggleWish(btn) {
   setTimeout(() => btn.style.transform = '', 200);
 }
 </script>
-<script src="shared.js"></script>
+<script src="shared.js" defer></script>
 
 <!-- SEARCH OVERLAY -->
 <div class="search-overlay" id="searchOverlay" onclick="if(event.target===this)closeSearchOverlay()" role="dialog" aria-modal="true" aria-label="Пошук по сайту">
