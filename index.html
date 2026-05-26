@@ -933,14 +933,6 @@ function _krOptImg(url,w,q){
   } catch(e) {}
 })();
 </script>
-<script>
-(function(){
-  try{var s=JSON.parse(localStorage.getItem('kr_stripe')||'{"h":12,"c":"#1B2A4A"}');
-  var el=document.createElement('style');el.id='kr-stripe-css';
-  el.textContent='.header,.header#hdr{border-top:'+s.h+'px solid '+s.c+' !important}';
-  document.head.appendChild(el);}catch(e){}
-})();
-</script>
 <script>try{if(localStorage.getItem('kr_logo_url')){document.write('<style>.logo-mark svg{display:none!important}.logo-mark{background:transparent!important;box-shadow:none!important;padding:0!important}</style>')}}catch(e){}</script>
 </head>
 <body>
@@ -1536,7 +1528,10 @@ function _krOptImg(url,w,q){
     </div>
 </section>
 <script>
-(async function loadReviews() {
+(function(){
+  var reviewsEl = document.getElementById('reviews');
+  function _startLoadReviews() {
+    (async function loadReviews() {
   const SB_URL = 'https://xczrzdbikkycgpnvolib.supabase.co';
   const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
   const headers = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY };
@@ -1631,6 +1626,18 @@ function _krOptImg(url,w,q){
       }
     });
   });
+})();
+  } // end _startLoadReviews
+
+  // Запускаємо лише коли секція відгуків потрапляє у viewport (lazy)
+  if ('IntersectionObserver' in window) {
+    var _revObs = new IntersectionObserver(function(entries, obs) {
+      if (entries[0].isIntersecting) { obs.disconnect(); _startLoadReviews(); }
+    }, { rootMargin: '400px' });
+    if (reviewsEl) { _revObs.observe(reviewsEl); } else { _startLoadReviews(); }
+  } else {
+    _startLoadReviews();
+  }
 })();
 
 function toggleReview(id) {
@@ -1842,7 +1849,7 @@ if(typeof Swiper === 'undefined') {
 }
 
 </script>
-<script src="swiper-bundle.min.js"></script>
+<script src="swiper-bundle.min.js" defer></script>
 <script>
 // Custom pagination — спочатку готуємо DOM, бо Swiper може викликати slideChange під час init
 const pag = document.getElementById('heroPag');
@@ -2131,12 +2138,25 @@ document.getElementById('heroPrev').onmouseleave = function(){ this.style.backgr
 document.getElementById('heroNext').onmouseenter = function(){ this.style.background = 'rgba(255,255,255,.22)'; }
 document.getElementById('heroNext').onmouseleave = function(){ this.style.background = 'rgba(255,255,255,.12)'; }
 
-// Reviews Swiper
-new Swiper('.swiper-reviews', {
-  slidesPerView: 1, spaceBetween: 24, loop: true,
-  autoplay: { delay: 4500, disableOnInteraction: false },
-  pagination: { el: '.swiper-reviews .swiper-pagination', clickable: true },
-  breakpoints: { 768: { slidesPerView: 2 }, 1024: { slidesPerView: 3 } }
+// Reviews Swiper — ініціалізуємо після завантаження реального Swiper (defer)
+document.addEventListener('DOMContentLoaded', function() {
+  if (typeof Swiper !== 'undefined') {
+    new Swiper('.swiper-reviews', {
+      slidesPerView: 1, spaceBetween: 24, loop: true,
+      autoplay: { delay: 4500, disableOnInteraction: false },
+      pagination: { el: '.swiper-reviews .swiper-pagination', clickable: true },
+      breakpoints: { 768: { slidesPerView: 2 }, 1024: { slidesPerView: 3 } }
+    });
+  } else {
+    window.addEventListener('load', function() {
+      new Swiper('.swiper-reviews', {
+        slidesPerView: 1, spaceBetween: 24, loop: true,
+        autoplay: { delay: 4500, disableOnInteraction: false },
+        pagination: { el: '.swiper-reviews .swiper-pagination', clickable: true },
+        breakpoints: { 768: { slidesPerView: 2 }, 1024: { slidesPerView: 3 } }
+      });
+    }, { once: true });
+  }
 });
 
 // Header scroll
@@ -2196,7 +2216,7 @@ function toggleWish(btn) {
   setTimeout(() => btn.style.transform = '', 200);
 }
 </script>
-<script src="shared.js"></script>
+<script src="shared.js" defer></script>
 
 <!-- SEARCH OVERLAY -->
 <div class="search-overlay" id="searchOverlay" onclick="if(event.target===this)closeSearchOverlay()" role="dialog" aria-modal="true" aria-label="Пошук по сайту">
@@ -3009,17 +3029,19 @@ function _runInitDynamicData() {
 })();
 } // end _runInitDynamicData
 
-// На мобільних відкладаємо до першого scroll або після 3с
+// На мобільних та десктопі відкладаємо до idle-часу браузера (не блокує LCP/TBT)
 (function(){
-  var isMob = window.innerWidth <= 768;
-  if (!isMob) {
-    _runInitDynamicData();
+  var _done = false;
+  function _run(){ if(_done) return; _done=true; _runInitDynamicData(); }
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(_run, { timeout: 4000 });
   } else {
-    var _done = false;
-    function _run(){ if(_done) return; _done=true; _runInitDynamicData(); }
+    setTimeout(_run, 2000);
+  }
+  // На мобільних — також запускаємо при першому взаємодії користувача
+  if (window.innerWidth <= 768) {
     window.addEventListener('scroll', _run, {once:true, passive:true});
     window.addEventListener('touchstart', _run, {once:true, passive:true});
-    setTimeout(_run, 3000);
   }
 })();
 </script>
@@ -3151,11 +3173,8 @@ function _runInitDynamicData() {
     }).catch(function() {});
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', loadAndApplyOrder);
-  } else {
-    loadAndApplyOrder();
-  }
+  // Запускаємо після завантаження сторінки — не блокує LCP
+  window.addEventListener('load', loadAndApplyOrder, { once: true });
 })();
 </script>
 
