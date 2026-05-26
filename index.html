@@ -189,7 +189,7 @@ nav a.active{color:var(--orange)}
 
 /* ── MARQUEE ── */
 .marquee-bar{background:var(--navy);padding:10px 0;overflow:hidden}
-.m-track{display:flex;animation:marquee 28s linear infinite;white-space:nowrap}
+.m-track{display:flex;animation:marquee 28s linear infinite;white-space:nowrap;will-change:transform}
 .m-item{display:inline-flex;align-items:center;gap:10px;padding:0 32px;color:rgba(255,255,255,.8);font-size:13px;font-weight:600}
 .m-sep{color:var(--orange);padding:0 4px;font-size:10px}
 
@@ -867,15 +867,37 @@ footer{background:var(--navy);color:white;padding:56px 40px 0}
 @keyframes kr-pulse{0%,100%{box-shadow:0 8px 28px rgba(255,107,53,.45),0 0 0 0 rgba(255,107,53,.35)}70%{box-shadow:0 8px 28px rgba(255,107,53,.45),0 0 0 14px rgba(255,107,53,0)}}
 .btn-pulse{animation:kr-pulse 2s ease-in-out infinite}
 .btn-pulse:hover{animation:none;transform:translateY(-2px);box-shadow:0 14px 36px rgba(255,107,53,.55)!important}
+
+/* ── MOBILE PERFORMANCE ───────────────────────────────────────────
+   content-visibility: auto — браузер пропускає рендеринг
+   секцій поза viewport (суттєво знижує час First Contentful Paint)
+   contain-intrinsic-size не дає стрибків скролу при ледачому рендері */
+@media(max-width:768px){
+  .ig-section,[data-block="reviews"],[data-block="delivery"],
+  [data-block="warranty"],[data-block="faq"],[data-block="contacts"]{
+    content-visibility:auto;
+    contain-intrinsic-size:0 400px;
+  }
+  /* Прибираємо важку анімацію пульсу на мобілі (зменшує TBT) */
+  .btn-pulse{animation:none}
+  /* Прискорення анімацій через GPU — уникаємо layout-reflow */
+  .hero-grain,.hero-glow{will-change:opacity}
+  .swiper-slide{will-change:opacity}
+}
 </style>
 <script>
 /* Supabase Image Transform helper — лише для /storage/v1/object/public/ URL */
 function _krOptImg(url,w,q){
   if(!url||typeof url!=='string')return url||'';
   if(url.indexOf('/storage/v1/object/public/')<0)return url;
+  /* На мобільних пристроях обмежуємо ширину до 2x viewport (економія трафіку).
+     Зображення карток товарів (w≤400) не зачіпаємо. */
+  var vw=window.innerWidth||document.documentElement.clientWidth||1200;
+  var rw=w||800;
+  if(rw>400){rw=Math.min(rw,Math.max(Math.round(vw*2),400));}
   var r=url.replace('/storage/v1/object/public/','/storage/v1/render/image/public/');
   var sep=r.indexOf('?')>=0?'&':'?';
-  return r+sep+'width='+(w||800)+'&quality='+(q||75);
+  return r+sep+'width='+rw+'&quality='+(q||75);
 }
 </script>
 <script>
@@ -902,7 +924,8 @@ function _krOptImg(url,w,q){
     var link = document.createElement('link');
     link.rel = 'preload';
     link.as = 'image';
-    link.href = img;
+    // Використовуємо transform-версію (менше байт, особливо на мобільних)
+    link.href = typeof _krOptImg === 'function' ? _krOptImg(img, 1400) : img;
     link.setAttribute('fetchpriority', 'high');
     document.head.appendChild(link);
   } catch(e) {}
@@ -1395,7 +1418,7 @@ function _krOptImg(url,w,q){
 
       async function loadFeatured() {
         try {
-          const r = await fetch('https://xczrzdbikkycgpnvolib.supabase.co/rest/v1/products?select=*&is_featured=eq.true&active=eq.true&order=created_at.desc&limit=5',
+          const r = await fetch('https://xczrzdbikkycgpnvolib.supabase.co/rest/v1/products?select=id,name,brand,price,old_price,images,category,age_range,age,voltage,badge,features,slug,sku,article,model&is_featured=eq.true&active=eq.true&order=created_at.desc&limit=5',
             { headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ'} });
           const products = r.ok ? await r.json() : [];
           if (products && products.length) {
@@ -1406,7 +1429,7 @@ function _krOptImg(url,w,q){
         } catch(e) {}
         // Якщо немає is_featured товарів — показати перших 4 активних
         try {
-          const r2 = await fetch('https://xczrzdbikkycgpnvolib.supabase.co/rest/v1/products?select=*&active=eq.true&order=created_at.desc&limit=5',
+          const r2 = await fetch('https://xczrzdbikkycgpnvolib.supabase.co/rest/v1/products?select=id,name,brand,price,old_price,images,category,age_range,age,voltage,badge,features,slug,sku,article,model&active=eq.true&order=created_at.desc&limit=5',
             { headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ'} });
           const fallback = r2.ok ? await r2.json() : [];
           GRID.innerHTML = fallback.length
@@ -1991,8 +2014,8 @@ window._krAppliedSlidesSig = '';
       }
     }).catch(() => {});
 
-  // 3) Повний фоновий запит: всі слайди, всі поля — тільки оновлює кеш і фото без перезапуску Swiper
-  fetch(SUPA_URL + '/rest/v1/slides?select=*&order=sort_order.asc', { headers: _H })
+  // 3) Повний фоновий запит: тільки потрібні поля — оновлює кеш і фото без перезапуску Swiper
+  fetch(SUPA_URL + '/rest/v1/slides?select=id,sort_order,enabled,image,bg,title,cta1_text,cta1_link,link,cta2_text,cta2_link&order=sort_order.asc', { headers: _H })
   .then(r => r.ok ? r.json() : null).then(data => {
     if (!Array.isArray(data) || !data.length) return;
     const newSig = _krSlidesSig(data);
@@ -2734,9 +2757,31 @@ function submitSearch(e) {
   window.location.href = 'catalog.html?search=' + encodeURIComponent(q);
   return false;
 }
-// Прогрів кешу одразу
-if (document.readyState !== 'loading') krLoadAllProducts();
-else document.addEventListener('DOMContentLoaded', krLoadAllProducts);
+// Прогрів кешу: на мобільних — тільки після першої взаємодії (економія трафіку на старті)
+(function(){
+  var isMobile = window.innerWidth <= 768;
+  function doWarm(){
+    if(document.readyState !== 'loading') krLoadAllProducts();
+    else document.addEventListener('DOMContentLoaded', krLoadAllProducts);
+  }
+  if(!isMobile){
+    doWarm();
+  } else {
+    // Мобільні: чекаємо першого scroll або дотику, щоб не блокувати LCP
+    var _warmed = false;
+    function _warmOnce(){
+      if(_warmed) return;
+      _warmed = true;
+      window.removeEventListener('touchstart', _warmOnce, true);
+      window.removeEventListener('scroll', _warmOnce, true);
+      krLoadAllProducts();
+    }
+    window.addEventListener('touchstart', _warmOnce, {once:true, passive:true, capture:true});
+    window.addEventListener('scroll', _warmOnce, {once:true, passive:true, capture:true});
+    // Fallback: через 4 секунди якщо ніякої взаємодії не було
+    setTimeout(function(){ _warmOnce(); }, 4000);
+  }
+})();
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') closeSearchOverlay();
   if ((e.key === 'k' || e.key === 'K') && (e.metaKey || e.ctrlKey)) {
@@ -2931,6 +2976,8 @@ document.addEventListener('keydown', function(e) {
 
 
 <script>
+// initDynamicData: на мобільних відкладаємо до першого scroll (не заважає LCP)
+function _runInitDynamicData() {
 (async function initDynamicData() {
   const SURL = 'https://xczrzdbikkycgpnvolib.supabase.co';
   const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
@@ -2967,6 +3014,21 @@ document.addEventListener('keydown', function(e) {
       }
     }
   } catch(e) {}
+})();
+} // end _runInitDynamicData
+
+// На мобільних відкладаємо до першого scroll або після 3с
+(function(){
+  var isMob = window.innerWidth <= 768;
+  if (!isMob) {
+    _runInitDynamicData();
+  } else {
+    var _done = false;
+    function _run(){ if(_done) return; _done=true; _runInitDynamicData(); }
+    window.addEventListener('scroll', _run, {once:true, passive:true});
+    window.addEventListener('touchstart', _run, {once:true, passive:true});
+    setTimeout(_run, 3000);
+  }
 })();
 </script>
 
@@ -3024,10 +3086,23 @@ document.addEventListener('keydown', function(e) {
       });
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', loadInstagramFeed);
+  // Завантажуємо Instagram feed тільки коли секція входить у viewport (на мобільних — lazy)
+  var igSection = document.getElementById('ig-grid');
+  if (!igSection) return;
+  if ('IntersectionObserver' in window) {
+    var igObs = new IntersectionObserver(function(entries, obs) {
+      if (entries[0].isIntersecting) {
+        obs.disconnect();
+        loadInstagramFeed();
+      }
+    }, { rootMargin: '200px' });
+    igObs.observe(igSection);
   } else {
-    loadInstagramFeed();
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', loadInstagramFeed);
+    } else {
+      loadInstagramFeed();
+    }
   }
 })();
 </script>
