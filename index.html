@@ -1818,34 +1818,23 @@ if(typeof Swiper === 'undefined') {
       this._init();
     }
     _init() {
-      // Додаємо swiper-initialized щоб CSS не ховав слайди через display:none!important
-      this.el.classList.add('swiper-initialized');
-      this.slides.forEach((s,i) => {
-        s.style.cssText = 'position:absolute;inset:0;display:block;opacity:' + (i===0?'1':'0') + ';transition:opacity 0.9s ease;pointer-events:' + (i===0?'auto':'none');
-      });
-      if(this.wrapper) this.wrapper.style.cssText = 'position:relative;height:100%;display:flex';
+      // НЕ додаємо swiper-initialized — CSS-fallback сам показує перший слайд.
+      // KrSimpleSlider тільки "тримає місце": зберігає wrapper-розміри до завантаження реального Swiper.
+      if(this.wrapper) this.wrapper.style.cssText = 'position:relative;height:100%';
       this.opts.on?.slideChange?.call(this);
-      if(this.opts.autoplay) this._startAuto();
+      // Не запускаємо autoplay — слайди 2,3 ховає CSS display:none!important до ініціалізації
       if(this.opts.pagination?.el) this._initPag();
     }
     _goTo(n) {
+      // no-op без swiper-initialized: slideChange та pagination все одно оновлюються
       const prev = this.realIndex;
       this.realIndex = ((n % this.total) + this.total) % this.total;
-      this.slides[prev].style.opacity = '0';
-      this.slides[prev].style.pointerEvents = 'none';
-      this.slides[this.realIndex].style.display = 'block';
-      this.slides[this.realIndex].style.opacity = '1';
-      this.slides[this.realIndex].style.pointerEvents = 'auto';
       this.opts.on?.slideChange?.call(this);
       if(this.opts.pagination?.el) this._updatePag();
     }
-    _startAuto() {
-      const delay = this.opts.autoplay?.delay || 5000;
-      this._timer = setInterval(() => this._goTo(this.realIndex + 1), delay);
-    }
+    _startAuto() {}
     destroy() {
       if(this._timer) { clearInterval(this._timer); this._timer = null; }
-      this.el.classList.remove('swiper-initialized');
     }
     slideNext() { this._goTo(this.realIndex + 1); if(this._timer){clearInterval(this._timer);this._startAuto();} }
     slidePrev() { this._goTo(this.realIndex - 1); if(this._timer){clearInterval(this._timer);this._startAuto();} }
