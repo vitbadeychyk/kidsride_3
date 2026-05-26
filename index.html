@@ -885,6 +885,20 @@ footer{background:var(--navy);color:white;padding:56px 40px 0}
   .btn-pulse{animation:none}
   /* GPU-прискорення для hero overlay-шарів */
   .hero-grain,.hero-glow{will-change:opacity}
+  /* Reviews: CSS scroll-snap до завантаження реального Swiper (уникаємо KrSimpleSlider на картках) */
+  .swiper-reviews:not(.swiper-initialized) .swiper-wrapper{
+    overflow-x:auto;
+    scroll-snap-type:x mandatory;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+    flex-wrap:nowrap;
+  }
+  .swiper-reviews:not(.swiper-initialized) .swiper-wrapper::-webkit-scrollbar{display:none}
+  .swiper-reviews:not(.swiper-initialized) .swiper-slide{
+    scroll-snap-align:start;
+    flex-shrink:0;
+    width:85%;
+  }
 }
 </style>
 <script>
@@ -1839,10 +1853,96 @@ if(typeof Swiper === 'undefined') {
     }
   }
   window.Swiper = Swiper;
+  window._krUsingFallbackSwiper = true;
 }
 
 </script>
-<script src="swiper-bundle.min.js"></script>
+<script>
+/* ── MOBILE-AWARE SWIPER LOADER ─────────────────────────────────────────────
+   Desktop: завантажує swiper-bundle.min.js одразу асинхронно (не блокує рендер)
+   Mobile:  завантажує після першої взаємодії або через 3с (зменшує TBT та час CPU)
+   Fallback KrSimpleSlider вже активний і тримає hero-слайдер без затримок.
+*/
+(function(){
+  /* Функція апгрейду: знищує KrSimpleSlider-інстанси, створює реальні Swiper */
+  window._krUpgradeSwipers = function() {
+    window._krUsingFallbackSwiper = false;
+    // Hero swiper
+    var prevIdx = 0;
+    if (window.heroSwiper && typeof window.heroSwiper.realIndex === 'number') {
+      prevIdx = window.heroSwiper.realIndex;
+    }
+    if (window.heroSwiper && window.heroSwiper.destroy) {
+      try { window.heroSwiper.destroy(true, true); } catch(e) {}
+    }
+    window.heroSwiper = new Swiper('.swiper-hero', {
+      loop: true,
+      autoplay: { delay: 5500, disableOnInteraction: false },
+      speed: 900,
+      effect: 'fade',
+      fadeEffect: { crossFade: true },
+      initialSlide: prevIdx,
+      on: {
+        init: function(swiper) {
+          swiper.slides.forEach(function(slide) {
+            slide.style.transition = 'none';
+            if (!slide.classList.contains('swiper-slide-active')) {
+              slide.style.opacity = '0';
+            }
+          });
+          requestAnimationFrame(function() {
+            swiper.slides.forEach(function(slide) { slide.style.transition = ''; });
+          });
+        },
+        slideChange: function() { updatePag(this.realIndex); }
+      }
+    });
+    // Reviews swiper
+    try {
+      new Swiper('.swiper-reviews', {
+        slidesPerView: 1, spaceBetween: 24, loop: true,
+        autoplay: { delay: 4500, disableOnInteraction: false },
+        pagination: { el: '.swiper-reviews .swiper-pagination', clickable: true },
+        breakpoints: { 768: { slidesPerView: 2 }, 1024: { slidesPerView: 3 } }
+      });
+    } catch(e) {}
+  };
+
+  /* Завантажити swiper-bundle.min.js асинхронно */
+  function _loadRealSwiper() {
+    if (window._krRealSwiperLoading || window._krRealSwiperLoaded) return;
+    window._krRealSwiperLoading = true;
+    var s = document.createElement('script');
+    s.src = 'swiper-bundle.min.js';
+    s.onload = function() {
+      window._krRealSwiperLoaded = true;
+      window._krRealSwiperLoading = false;
+      window._krUpgradeSwipers();
+    };
+    document.head.appendChild(s);
+  }
+
+  var IS_MOB = window.innerWidth < 769;
+  if (!IS_MOB) {
+    /* Desktop: завантажити одразу (асинхронно — не блокує рендер) */
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', _loadRealSwiper);
+    } else {
+      _loadRealSwiper();
+    }
+  } else {
+    /* Mobile: завантажити після першої взаємодії або через 3с */
+    var _done = false;
+    function _run() {
+      if (_done) return; _done = true; _loadRealSwiper();
+    }
+    window.addEventListener('scroll',     _run, { once: true, passive: true });
+    window.addEventListener('touchstart', _run, { once: true, passive: true });
+    window.addEventListener('click',      _run, { once: true, passive: true });
+    setTimeout(_run, 3000);
+  }
+})();
+</script>
 <script>
 // Custom pagination — спочатку готуємо DOM, бо Swiper може викликати slideChange під час init
 const pag = document.getElementById('heroPag');
@@ -2131,13 +2231,17 @@ document.getElementById('heroPrev').onmouseleave = function(){ this.style.backgr
 document.getElementById('heroNext').onmouseenter = function(){ this.style.background = 'rgba(255,255,255,.22)'; }
 document.getElementById('heroNext').onmouseleave = function(){ this.style.background = 'rgba(255,255,255,.12)'; }
 
-// Reviews Swiper
-new Swiper('.swiper-reviews', {
-  slidesPerView: 1, spaceBetween: 24, loop: true,
-  autoplay: { delay: 4500, disableOnInteraction: false },
-  pagination: { el: '.swiper-reviews .swiper-pagination', clickable: true },
-  breakpoints: { 768: { slidesPerView: 2 }, 1024: { slidesPerView: 3 } }
-});
+// Reviews Swiper — ініціалізуємо тільки якщо вже завантажений реальний Swiper.
+// На мобільних KrSimpleSlider не підходить для карткового слайдера — CSS scroll-snap замість нього.
+// Реальний Swiper підключить _krUpgradeSwipers() після завантаження.
+if (!window._krUsingFallbackSwiper) {
+  new Swiper('.swiper-reviews', {
+    slidesPerView: 1, spaceBetween: 24, loop: true,
+    autoplay: { delay: 4500, disableOnInteraction: false },
+    pagination: { el: '.swiper-reviews .swiper-pagination', clickable: true },
+    breakpoints: { 768: { slidesPerView: 2 }, 1024: { slidesPerView: 3 } }
+  });
+}
 
 // Header scroll
 window.addEventListener('scroll', () => {
@@ -2149,15 +2253,24 @@ const obs = new IntersectionObserver(entries => {
   entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
 }, { threshold: 0.05, rootMargin: '0px 0px -20px 0px' });
 
-document.querySelectorAll('.reveal').forEach(el => {
-  // Якщо елемент вже видимий при завантаженні — показати без затримки
-  const rect = el.getBoundingClientRect();
-  if (rect.top < window.innerHeight + 50) {
-    el.classList.add('visible');
-  } else {
-    obs.observe(el);
-  }
-});
+function _krInitReveal() {
+  document.querySelectorAll('.reveal').forEach(el => {
+    // Якщо елемент вже видимий при завантаженні — показати без затримки
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight + 50) {
+      el.classList.add('visible');
+    } else {
+      obs.observe(el);
+    }
+  });
+}
+// На мобільних getBoundingClientRect спричиняє примусовий reflow під час парсингу.
+// Відкладаємо до наступного кадру, щоб не затримувати FCP.
+if (window.innerWidth < 769) {
+  requestAnimationFrame(_krInitReveal);
+} else {
+  _krInitReveal();
+}
 
 // FAQ
 function toggleFaq(btn) {
