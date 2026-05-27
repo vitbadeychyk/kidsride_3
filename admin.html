@@ -7448,6 +7448,9 @@ async function saveCategoryImageUrl(catId, tableName, imageUrl) {
 
 
 // ── CATEGORY IMAGE FROM PRODUCT SKU ─────────────────────────────────────────
+// Store found image URLs by key to avoid URL-in-onclick escaping issues
+const _catSkuUrls = {};
+
 async function catImgFromSku(catId, tableName) {
   const inputId   = tableName === 'main_categories' ? 'mcSku_' + catId : 'ccSku_' + catId;
   const previewId = tableName === 'main_categories' ? 'mcSkuPreview_' + catId : 'ccSkuPreview_' + catId;
@@ -7463,34 +7466,38 @@ async function catImgFromSku(catId, tableName) {
       if (prev) prev.innerHTML = '<span style="font-size:11px;color:var(--red)">Товар не знайдено або немає фото</span>';
       return;
     }
-    const imgUrl     = rows[0].images[0];
+    const imgUrl      = rows[0].images[0];
     const productName = _esc ? _esc(rows[0].name || sku) : (rows[0].name || sku);
-    const safeUrl    = imgUrl.replace(/\/g,'\\').replace(/'/g,"\'");
-    if (prev) prev.innerHTML = `
-      <div style="display:flex;align-items:center;gap:6px;padding:6px;background:var(--bg-soft);border-radius:8px;border:1px solid var(--border)">
-        <img src="${imgUrl}" style="width:40px;height:40px;border-radius:6px;object-fit:cover;flex-shrink:0" onerror="this.style.display='none'">
-        <div style="flex:1;min-width:0">
-          <div style="font-size:11px;font-weight:600;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${productName}</div>
-          <div style="font-size:10px;color:var(--text-muted)">${sku}</div>
-        </div>
-        <button onclick="catImgFromSkuConfirm(${catId},'${tableName}','${safeUrl}',this)"
-          style="flex-shrink:0;background:var(--orange);color:white;border:none;border-radius:6px;padding:5px 9px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif">Встановити</button>
-      </div>`;
+    const key         = tableName + '_' + catId;
+    _catSkuUrls[key]  = imgUrl; // store URL — referenced by confirm button
+
+    if (prev) prev.innerHTML =
+      '<div style="display:flex;align-items:center;gap:6px;padding:6px;background:var(--bg-soft);border-radius:8px;border:1px solid var(--border)">' +
+        '<img src="' + imgUrl + '" style="width:40px;height:40px;border-radius:6px;object-fit:cover;flex-shrink:0" onerror="this.style.display='none'">' +
+        '<div style="flex:1;min-width:0">' +
+          '<div style="font-size:11px;font-weight:600;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + productName + '</div>' +
+          '<div style="font-size:10px;color:var(--text-muted)">' + sku + '</div>' +
+        '</div>' +
+        '<button onclick="catImgFromSkuConfirm(' + catId + ','' + tableName + '',this)" ' +
+          'style="flex-shrink:0;background:var(--orange);color:white;border:none;border-radius:6px;padding:5px 9px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif">Встановити</button>' +
+      '</div>';
   } catch(e) {
     if (prev) prev.innerHTML = '<span style="font-size:11px;color:var(--red)">Помилка: ' + e.message + '</span>';
   }
 }
 
-async function catImgFromSkuConfirm(catId, tableName, imgUrl, btn) {
+async function catImgFromSkuConfirm(catId, tableName, btn) {
+  const key    = tableName + '_' + catId;
+  const imgUrl = _catSkuUrls[key];
+  if (!imgUrl) { showToast('Спочатку знайдіть товар за артикулом', 'error'); return; }
   if (btn) { btn.disabled = true; btn.textContent = '…'; }
   try {
     await saveCategoryImageUrl(catId, tableName, imgUrl);
     showToast('✅ Зображення збережено', 'success');
-    // Hide the preview
+    delete _catSkuUrls[key];
     const previewId = tableName === 'main_categories' ? 'mcSkuPreview_' + catId : 'ccSkuPreview_' + catId;
     const prev = document.getElementById(previewId);
     if (prev) prev.style.display = 'none';
-    // Refresh the list
     await loadParentCategories();
     if (tableName === 'categories') renderFilteredCategories();
   } catch(e) {
