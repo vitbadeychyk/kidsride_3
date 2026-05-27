@@ -1134,11 +1134,11 @@ function _krOptImg(url,w,q){
           var sl=JSON.parse(localStorage.getItem('kr_slides')||'null');
           if(Array.isArray(sl)&&sl.length){
             var s=sl.find(function(x){return x.id==='slide-1'&&x.enabled!==false&&x.image;});
-            if(s){c.innerHTML='<img src="'+_krOptImg(s.image.replace(/["<>]/g,''),1400)+'" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" fetchpriority="high">';return;}
+            if(s){c.innerHTML='<img src="'+_krOptImg(s.image.replace(/["<>]/g,''),1400)+'" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" fetchpriority="high" decoding="async">';return;}
           }
           // Fallback: фото-заглушка з адмінки (якщо kr_slides ще немає — перше відвідування)
           var ph=localStorage.getItem('kr_hero_placeholder');
-          if(ph)c.innerHTML='<img src="'+ph.replace(/["<>]/g,'')+'" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" fetchpriority="high">';
+          if(ph)c.innerHTML='<img src="'+ph.replace(/["<>]/g,'')+'" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" fetchpriority="high" decoding="async">';
         }catch(e){}
       })();
       </script>
@@ -1186,7 +1186,7 @@ function _krOptImg(url,w,q){
           var s=sl.find(function(x){return x.id==='slide-2'&&x.enabled!==false&&x.image;});
           if(!s)return;
           var c=document.getElementById('_s2ImgCard');
-          if(c)c.innerHTML='<img src="'+_krOptImg(s.image.replace(/["<>]/g,''),1400)+'" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block">';
+          if(c)c.innerHTML='<img src="'+_krOptImg(s.image.replace(/["<>]/g,''),1400)+'" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" decoding="async">';
         }catch(e){}
       })();
       </script>
@@ -1233,7 +1233,7 @@ function _krOptImg(url,w,q){
           var s=sl.find(function(x){return x.id==='slide-3'&&x.enabled!==false&&x.image;});
           if(!s)return;
           var c=document.getElementById('_s3ImgCard');
-          if(c)c.innerHTML='<img src="'+_krOptImg(s.image.replace(/["<>]/g,''),1400)+'" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block">';
+          if(c)c.innerHTML='<img src="'+_krOptImg(s.image.replace(/["<>]/g,''),1400)+'" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" decoding="async">';
         }catch(e){}
       })();
       </script>
@@ -1918,7 +1918,7 @@ function _krFixSlideUrl(u) {
 function _krBuildGenericSlide(s){
   const bg  = s.bg || 'linear-gradient(135deg,#1B2A4A,#2d4270)';
   const img = s.image
-    ? `<img src="${_krEscAttr(_krOptImg(s.image,1400))}" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block">`
+    ? `<img src="${_krEscAttr(_krOptImg(s.image,1400))}" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" decoding="async" fetchpriority="high">`
     : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.06);font-family:'Nunito',sans-serif;color:rgba(255,255,255,.5);font-size:14px">KidsRide</div>`;
   const cta1Text = _krEscHtml(s.cta1_text || 'Дізнатись більше');
   const cta1Link = _krEscAttr(_krFixSlideUrl(s.cta1_link || s.link || 'catalog.html'));
@@ -1993,7 +1993,7 @@ function _krApplySlides(saved){
       // Known slide — reuse rich template, swap image if provided
       if (s.image) {
         const card = tpl.querySelector('.hero-img-card');
-        if (card) card.innerHTML = '<img src="' + _krEscAttr(_krOptImg(s.image,1400)) + '" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block">';
+        if (card) card.innerHTML = '<img src="' + _krEscAttr(_krOptImg(s.image,1400)) + '" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" decoding="async">';
       }
       // Підставляємо адмінські налаштування (заголовок, текст і дії кнопок)
       _krPatchExistingSlide(tpl, s);
@@ -2048,14 +2048,13 @@ window._krAppliedSlidesSig = '';
     .then(r => r.ok ? r.json() : null).then(first => {
       if (!Array.isArray(first) || !first[0] || !first[0].image) return;
       const s = first[0];
-      // Використовуємо id="#_s1ImgCard" напряму (статичний HTML завжди має цей id)
-      // Попередній код шукав data-slide-id по UUID — ніколи не знаходив "slide-1" → LCP 10.6s
-      const card = document.getElementById('_s1ImgCard');
-      if (!card || card.querySelector('img')) return; // вже вставлено
-      // Використовуємо 1400px — той самий розмір що і у повному fetch (_krOptImg адаптує за viewport)
-      // Якщо б використовували 800px тут і 1400px у повному fetch — браузер декодує двічі → TBT
+      // Шукаємо слайд по data-slide-id (якщо вже замінено _krApplySlides — знайде по UUID)
+      const tpl = document.querySelector('.swiper-hero .swiper-slide[data-slide-id="' + s.id + '"]');
+      if (!tpl) return;
+      const card = tpl.querySelector('.hero-img-card');
+      if (!card || card.querySelector('img')) return;
       const _imgUrl = _krEscAttr(_krOptImg(s.image, 1400));
-      card.innerHTML = '<img src="' + _imgUrl + '" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" fetchpriority="high">';
+      card.innerHTML = '<img src="' + _imgUrl + '" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" fetchpriority="high" decoding="async">';
       try { localStorage.setItem('kr_s1img', _krOptImg(s.image, 1400)); } catch(e) {}
     }).catch(() => {});
 
@@ -2083,7 +2082,7 @@ window._krAppliedSlidesSig = '';
           // Показуємо заглушку тільки якщо слайд ще не завантажено
           const _phCard = document.getElementById('_s1ImgCard');
           if (_phCard && !_phCard.querySelector('img')) {
-            _phCard.innerHTML = '<img src="' + _phUrl.replace(/["<>]/g,'') + '" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" loading="eager">';
+            _phCard.innerHTML = '<img src="' + _phUrl.replace(/["<>]/g,'') + '" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" loading="eager" decoding="async">';
           }
         }).catch(() => {});
     }
@@ -2097,7 +2096,7 @@ window._krAppliedSlidesSig = '';
         const tpl = document.querySelector('.swiper-hero .swiper-slide[data-slide-id="' + s.id + '"]');
         if (!tpl) return;
         const card = tpl.querySelector('.hero-img-card');
-        if (card) card.innerHTML = '<img src="' + _krEscAttr(_krOptImg(s.image,1400)) + '" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block">';
+        if (card) card.innerHTML = '<img src="' + _krEscAttr(_krOptImg(s.image,1400)) + '" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" decoding="async">';
       });
       window._krAppliedSlidesSig = newSig;
       return;
