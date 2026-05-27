@@ -1128,13 +1128,17 @@ function _krOptImg(url,w,q){
       <script>
       (function(){
         try{
-          var sl=JSON.parse(localStorage.getItem('kr_slides')||'null');
-          if(!Array.isArray(sl)||!sl.length)return;
-          // Шукаємо слайд САМЕ з id='slide-1', щоб не вставити картинку від іншого слайду
-          var s=sl.find(function(x){return x.id==='slide-1'&&x.enabled!==false&&x.image;});
-          if(!s)return;
           var c=document.getElementById('_s1ImgCard');
-          if(c)c.innerHTML='<img src="'+_krOptImg(s.image.replace(/["<>]/g,''),1400)+'" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" fetchpriority="high">';
+          if(!c)return;
+          // Спочатку перевіряємо kr_slides (основний кеш)
+          var sl=JSON.parse(localStorage.getItem('kr_slides')||'null');
+          if(Array.isArray(sl)&&sl.length){
+            var s=sl.find(function(x){return x.id==='slide-1'&&x.enabled!==false&&x.image;});
+            if(s){c.innerHTML='<img src="'+_krOptImg(s.image.replace(/["<>]/g,''),1400)+'" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" fetchpriority="high">';return;}
+          }
+          // Fallback: фото-заглушка з адмінки (якщо kr_slides ще немає — перше відвідування)
+          var ph=localStorage.getItem('kr_hero_placeholder');
+          if(ph)c.innerHTML='<img src="'+ph.replace(/["<>]/g,'')+'" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" fetchpriority="high">';
         }catch(e){}
       })();
       </script>
@@ -2068,6 +2072,15 @@ window._krAppliedSlidesSig = '';
       const _s1d = data.filter(s => s.enabled !== false).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0))[0];
       if (_s1d && _s1d.image) localStorage.setItem('kr_s1img', _krOptImg(_s1d.image, 1400));
     } catch(e) {}
+    // Фоново підтягуємо заглушку з налаштувань (якщо ще не кешована)
+    if (!localStorage.getItem('kr_hero_placeholder')) {
+      fetch(SUPA_URL + '/rest/v1/settings?select=value&key=eq.hero_placeholder_image&limit=1', { headers: _H })
+        .then(r => r.ok ? r.json() : [])
+        .then(rows => {
+          if (Array.isArray(rows) && rows[0] && rows[0].value)
+            try { localStorage.setItem('kr_hero_placeholder', rows[0].value); } catch(e) {}
+        }).catch(()=>{});
+    }
     // Нічого не змінилось — нічого не робимо
     if (newSig && newSig === window._krAppliedSlidesSig) return;
 

@@ -829,6 +829,42 @@ tr:hover td{background:rgba(240,242,248,.5)}
 
       <div class="carousel-grid" id="carouselGrid"></div>
 
+      <!-- ── ЗАГЛУШКА СЛАЙДЕРА ── -->
+      <div style="margin-top:32px;border-top:1px solid var(--border);padding-top:24px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <span style="font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;color:var(--navy)">Фото-заглушка слайдера</span>
+        </div>
+        <p style="font-size:12px;color:var(--text-muted);margin-bottom:16px;line-height:1.5">
+          Зображення яке показується поки реальне фото слайда ще не завантажилось (перше відвідування). Замість порожнього квадрата покупець бачить це фото.
+        </p>
+        <div style="display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap">
+          <div id="heroPlaceholderPreview" style="width:220px;height:140px;border-radius:var(--r-sm);overflow:hidden;border:2px dashed var(--border);background:linear-gradient(135deg,#1B2A4A,#243660);display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative">
+            <svg viewBox="0 0 240 160" xmlns="http://www.w3.org/2000/svg" style="width:65%;opacity:.3"><rect x="20" y="75" width="200" height="55" rx="14" fill="white"/><rect x="50" y="40" width="130" height="52" rx="12" fill="white"/><circle cx="65" cy="132" r="22" fill="white"/><circle cx="175" cy="132" r="22" fill="white"/></svg>
+            <div id="heroPlaceholderImg" style="position:absolute;inset:0;display:none"><img id="heroPlaceholderImgEl" src="" alt="" style="width:100%;height:100%;object-fit:cover;display:block"></div>
+          </div>
+          <div style="flex:1;min-width:200px">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <label style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">URL зображення</label>
+              <input type="url" id="heroPlaceholderUrl" placeholder="https://..." style="padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:13px;font-family:'Manrope',sans-serif;color:var(--navy);outline:none;width:100%" oninput="heroPlaceholderPreviewUrl(this.value)" onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'">
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+                <button class="btn btn-sm" style="background:none;border:1.5px solid var(--border);font-size:12px;color:var(--navy);gap:5px" onclick="document.getElementById('heroPlaceholderFileInput').click()">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  Завантажити файл
+                </button>
+                <button class="btn btn-primary btn-sm" onclick="heroPlaceholderSave()" style="gap:5px">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13"/></svg>
+                  Зберегти
+                </button>
+                <button class="btn btn-sm" style="background:none;border:1.5px solid var(--border);font-size:12px;color:var(--text-muted)" onclick="heroPlaceholderClear()">Прибрати</button>
+              </div>
+              <p style="font-size:11px;color:var(--text-muted);margin-top:4px">Рекомендований розмір: 800×600px або більше. Формат JPG/WebP.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <input type="file" id="heroPlaceholderFileInput" accept="image/*" style="display:none" onchange="heroPlaceholderHandleFile(this.files[0])">
       <input type="file" id="slideUploadInput" accept="image/*" style="display:none">
     </div>
 
@@ -3951,6 +3987,82 @@ async function loadSlides(){
 
 let _slidesTableMissing = false;
 
+// ── HERO PLACEHOLDER ─────────────────────────────────────────────────────
+const _HERO_PH_KEY = 'kr_hero_placeholder';
+
+async function heroPlaceholderLoad(){
+  // 1) спочатку localStorage
+  const cached = localStorage.getItem(_HERO_PH_KEY);
+  if (cached) { _heroPlaceholderSetPreview(cached); document.getElementById('heroPlaceholderUrl').value = cached; }
+  // 2) фоново з Supabase settings
+  try {
+    const rows = await sbFetch('settings?select=value&key=eq.hero_placeholder_image&limit=1');
+    if (Array.isArray(rows) && rows[0] && rows[0].value) {
+      const url = rows[0].value;
+      try { localStorage.setItem(_HERO_PH_KEY, url); } catch(e) {}
+      _heroPlaceholderSetPreview(url);
+      document.getElementById('heroPlaceholderUrl').value = url;
+    }
+  } catch(e) {}
+}
+
+function _heroPlaceholderSetPreview(url){
+  const wrap = document.getElementById('heroPlaceholderImg');
+  const img  = document.getElementById('heroPlaceholderImgEl');
+  if (!url) { if(wrap) wrap.style.display='none'; return; }
+  if (wrap && img) { img.src = url; wrap.style.display = 'block'; }
+}
+
+function heroPlaceholderPreviewUrl(url){
+  _heroPlaceholderSetPreview(url && url.startsWith('http') ? url : null);
+}
+
+async function heroPlaceholderSave(){
+  const url = document.getElementById('heroPlaceholderUrl').value.trim();
+  if (!url) { showToast('Вкажіть URL або завантажте фото', 'error'); return; }
+  try { localStorage.setItem(_HERO_PH_KEY, url); } catch(e) {}
+  try {
+    await sbFetch('settings?on_conflict=key', {
+      method: 'POST',
+      headers: { 'Prefer': 'resolution=merge-duplicates,return=representation' },
+      body: JSON.stringify([{ key: 'hero_placeholder_image', value: url }])
+    });
+    showToast('Заглушку збережено ✓', 'success');
+  } catch(e) {
+    showToast('Збережено локально (Supabase недоступний)', 'info');
+  }
+}
+
+async function heroPlaceholderClear(){
+  try { localStorage.removeItem(_HERO_PH_KEY); } catch(e) {}
+  document.getElementById('heroPlaceholderUrl').value = '';
+  _heroPlaceholderSetPreview(null);
+  try {
+    await sbFetch('settings?key=eq.hero_placeholder_image', { method: 'DELETE' });
+    showToast('Заглушку прибрано', 'success');
+  } catch(e) { showToast('Прибрано локально', 'info'); }
+}
+
+function heroPlaceholderHandleFile(file){
+  if (!file || !file.type.startsWith('image/')) { showToast('Потрібне зображення', 'error'); return; }
+  if (file.size > 8 * 1024 * 1024) { showToast('Файл має бути до 8 МБ', 'error'); return; }
+  const reader = new FileReader();
+  reader.onload = async function(e){
+    // Спробуємо завантажити в Supabase Storage
+    const base64 = e.target.result;
+    // Для простоти — зберігаємо dataURL (для невеликих файлів) або просимо вказати URL
+    if (file.size > 500 * 1024) {
+      showToast('Файл > 500KB. Завантажте фото на хостинг і вставте URL', 'error');
+      return;
+    }
+    document.getElementById('heroPlaceholderUrl').value = base64;
+    _heroPlaceholderSetPreview(base64);
+    await heroPlaceholderSave();
+  };
+  reader.readAsDataURL(file);
+}
+// ─────────────────────────────────────────────────────────────────────────
+
 // Колонки, яких немає в реальній таблиці slides у Supabase.
 // Заповнюється автоматично на ходу і використовується щоб не намагатись
 // записати поля, яких немає в БД (інакше PostgREST повертає PGRST204).
@@ -4081,6 +4193,7 @@ async function renderSlidesGrid(){
   grid.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-muted);grid-column:1/-1">Завантаження…</div>';
   _slides = await loadSlides();
   _renderSlidesGridSync();
+  heroPlaceholderLoad().catch(()=>{});
 }
 function _renderSlidesGridSync(){
   const grid = document.getElementById('carouselGrid');

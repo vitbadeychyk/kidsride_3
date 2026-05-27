@@ -38,6 +38,8 @@
   }
 }
 </script>
+<link rel="preconnect" href="https://xczrzdbikkycgpnvolib.supabase.co" crossorigin>
+<link rel="dns-prefetch" href="https://xczrzdbikkycgpnvolib.supabase.co">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
@@ -3358,8 +3360,32 @@ document.addEventListener('DOMContentLoaded', () => {
   let KR_PRODUCTS_CACHE = null, KR_PRODUCTS_PROMISE = null;
   async function krLoadAllProducts(){
     if(KR_PRODUCTS_CACHE)return KR_PRODUCTS_CACHE;
+    // На сторінці каталогу allProducts вже завантажено — використовуємо їх напряму
+    // щоб не робити зайві запити до Supabase (2799 товарів × 3 сторінки = зайве навантаження)
+    if(typeof allProducts !== 'undefined' && Array.isArray(allProducts) && allProducts.length > 0){
+      KR_PRODUCTS_CACHE = allProducts.map(p=>({
+        id:p.id,name:p.name||'',brand:p.brand||'',model:p.model_code||p.sku||'',
+        sku:p.sku||'',category:p.category||'',price:parseFloat(p.price)||0,
+        emoji:KR_CAT_EMOJI[p.category]||'🚗',photo:Array.isArray(p.images)&&p.images[0]?p.images[0]:null
+      }));
+      return KR_PRODUCTS_CACHE;
+    }
     if(KR_PRODUCTS_PROMISE)return KR_PRODUCTS_PROMISE;
     KR_PRODUCTS_PROMISE=(async()=>{
+      // Чекаємо поки allProducts завантажиться (max 6 секунд)
+      for(let i=0;i<60;i++){
+        if(typeof allProducts !== 'undefined' && Array.isArray(allProducts) && allProducts.length > 0){
+          const seen=new Set();
+          KR_PRODUCTS_CACHE = allProducts
+            .filter(p=>{if(!p||seen.has(p.id))return false;seen.add(p.id);return true;})
+            .map(p=>({id:p.id,name:p.name||'',brand:p.brand||'',model:p.model_code||p.sku||'',
+              sku:p.sku||'',category:p.category||'',price:parseFloat(p.price)||0,
+              emoji:KR_CAT_EMOJI[p.category]||'🚗',photo:Array.isArray(p.images)&&p.images[0]?p.images[0]:null}));
+          return KR_PRODUCTS_CACHE;
+        }
+        await new Promise(r=>setTimeout(r,100));
+      }
+      // Якщо allProducts так і не завантажились — робимо власний запит
       try{
         const hdrs={'apikey':KR_SUPABASE_KEY_SR,'Authorization':'Bearer '+KR_SUPABASE_KEY_SR};
         const base=KR_SUPABASE_URL_SR+'/rest/v1/products?select=id,name,brand,model_code,sku,category,price,images&active=eq.true&order=created_at.desc&limit=1000';
