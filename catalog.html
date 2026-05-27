@@ -2267,74 +2267,54 @@ async function loadProductsFromSupabase() {
       } catch(_) {}
     }
 
-    // Отримуємо результат залишків (вже завантажувалися паралельно з товарами)
-    let ostatokRows = await ostatokPromise;
-
-    if (ostatokRows.length > 0) {
-      // Індекс products за sku (lower) + color (lower) для швидкого пошуку
-      const bySkuColor = {};
-      const bySku = {};
-      all.forEach((p, idx) => {
+    // ── ФОНОВА ОБРОБКА ЗАЛИШКІВ (не блокує перший рендер) ─────────────────────
+    // Запускаємо merge ostatok асинхронно — товари відображаються ОДРАЗУ
+    ostatokPromise.then(ostatokRows => {
+      if (!ostatokRows || !ostatokRows.length) return;
+      // Будуємо індекс поточного allProducts (глобальний масив)
+      const src = (typeof allProducts !== 'undefined' && Array.isArray(allProducts)) ? allProducts : [];
+      if (!src.length) return;
+      const bySkuColor = {}, bySku = {};
+      src.forEach((p, idx) => {
         if (!p.sku) return;
         const sk = p.sku.trim().toLowerCase();
         const cl = (p.color || '').trim().toLowerCase();
         bySkuColor[sk + '|' + cl] = idx;
-        if (!(sk in bySku)) bySku[sk] = idx; // перший збіг по sku без кольору
+        if (!(sk in bySku)) bySku[sk] = idx;
       });
-
-      const syntheticProducts = [];
+      let changed = false;
+      const extra = [];
       ostatokRows.forEach(os => {
         if (!os.sku || os.quantity <= 0) return;
         const sk = os.sku.trim().toLowerCase();
         const cl = (os.color || '').trim().toLowerCase();
-        const keyFull = sk + '|' + cl;
-        const keyNoColor = sk + '|';
-
-        // Шукаємо збіг в products (спочатку з кольором, потім без)
-        let idx = bySkuColor[keyFull];
-        if (idx === undefined && cl) idx = bySkuColor[keyNoColor];
+        let idx = bySkuColor[sk+'|'+cl];
+        if (idx === undefined && cl) idx = bySkuColor[sk+'|'];
         if (idx === undefined) idx = bySku[sk];
-
         if (idx !== undefined) {
-          // ✅ Артикул є в products — якщо там stock <= 0, перекриваємо з ostatok
-          const existing = all[idx];
-          if (existing.stock == null || existing.stock <= 0) {
-            existing.stock = os.quantity;
-          }
-          // Якщо description порожній — підставляємо short_desc з ostatok
-          if (!existing.description && !existing.short_desc && os.short_desc) {
-            existing.short_desc = os.short_desc;
-          }
+          const p = src[idx];
+          if (p.stock == null || p.stock <= 0) { p.stock = os.quantity; changed = true; }
+          if (!p.description && os.short_desc) { p.description = os.short_desc; changed = true; }
         } else {
-          // 🆕 Артикулу немає в products — синтетичний запис з ostatok
-          syntheticProducts.push({
-            id:          'os_' + os.id,
-            sku:         os.sku,
-            model_code:  null,
-            color:       os.color || null,
-            name:        os.sku,
-            brand:       '',
-            price:       parseFloat(os.sell_price) || 0,
-            old_price:   os.old_price ? parseFloat(os.old_price) : null,
-            category:    null,
-            category_id: os.category_id || null,
-            voltage:     null,
-            age_range:   null,
-            stock:       os.quantity,
-            preorder_days: 0,
-            badge:       null,
-            img_type:    'jeep',
-            images:      Array.isArray(os.images) ? os.images : [],
-            active:      true,
-            created_at:  new Date(0).toISOString(),
-            description: null,
-            short_desc:  os.short_desc || null,
-            _fromOstatok: true
+          extra.push({
+            id:'os_'+os.id, sku:os.sku, model_code:null, modelCode:null,
+            color:os.color||null, name:os.sku, brand:'',
+            price:parseFloat(os.sell_price)||0, oldPrice:os.old_price?parseFloat(os.old_price):null,
+            category:null, category_id:os.category_id||null, voltage:null, age:null,
+            stock:os.quantity, preorderDays:0, badge:null, img:'jeep',
+            features:[], images:Array.isArray(os.images)?os.images:[],
+            active:true, addedAt:0, description:os.short_desc||null, _fromOstatok:true
           });
+          changed = true;
         }
       });
-      all = all.concat(syntheticProducts);
-    }
+      if (extra.length) Array.prototype.push.apply(src, extra);
+      // Оновлюємо кеш та перемальовуємо — тільки якщо щось змінилось
+      if (changed && typeof applyFiltersAndRender === 'function') {
+        try { localStorage.setItem(PRODUCTS_KEY, JSON.stringify(src)); } catch(_) {}
+        applyFiltersAndRender();
+      }
+    }).catch(() => {});
 
     if (all.length > 0) {
       // Конвертувати формат Supabase → формат сайту
@@ -3372,20 +3352,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if(KR_PRODUCTS_PROMISE)return KR_PRODUCTS_PROMISE;
     KR_PRODUCTS_PROMISE=(async()=>{
-      // Чекаємо поки allProducts завантажиться (max 6 секунд)
-      for(let i=0;i<60;i++){
-        if(typeof allProducts !== 'undefined' && Array.isArray(allProducts) && allProducts.length > 0){
-          const seen=new Set();
-          KR_PRODUCTS_CACHE = allProducts
-            .filter(p=>{if(!p||seen.has(p.id))return false;seen.add(p.id);return true;})
-            .map(p=>({id:p.id,name:p.name||'',brand:p.brand||'',model:p.model_code||p.sku||'',
-              sku:p.sku||'',category:p.category||'',price:parseFloat(p.price)||0,
-              emoji:KR_CAT_EMOJI[p.category]||'🚗',photo:Array.isArray(p.images)&&p.images[0]?p.images[0]:null}));
-          return KR_PRODUCTS_CACHE;
-        }
-        await new Promise(r=>setTimeout(r,100));
-      }
-      // Якщо allProducts так і не завантажились — робимо власний запит
       try{
         const hdrs={'apikey':KR_SUPABASE_KEY_SR,'Authorization':'Bearer '+KR_SUPABASE_KEY_SR};
         const base=KR_SUPABASE_URL_SR+'/rest/v1/products?select=id,name,brand,model_code,sku,category,price,images&active=eq.true&order=created_at.desc&limit=1000';

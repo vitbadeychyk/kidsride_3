@@ -163,7 +163,8 @@ nav a.active{color:var(--orange)}
 .hero-img-wrap{position:relative;display:flex;align-items:center;justify-content:center;animation:fr .8s .2s ease both}
 .hero-img-card{
   width:100%;max-width:540px;aspect-ratio:16/11;
-  background:rgba(255,255,255,.06);
+  background:var(--hero-ph-bg,rgba(255,255,255,.06));
+  background-size:cover;background-position:center;
   border:1px solid rgba(255,255,255,.12);
   border-radius:var(--r-lg);
   overflow:hidden;
@@ -934,6 +935,45 @@ function _krOptImg(url,w,q){
 })();
 </script>
 <script>
+// Встановлюємо фото-заглушку як CSS-фон одразу при парсингу <head>
+// 1) Синхронно: з localStorage (миттєво, для повторних відвідувачів)
+// 2) Асинхронно: з Supabase (для перших відвідувачів — застосовується коли прийде відповідь)
+(function(){
+  function _applyPh(url){
+    try {
+      document.documentElement.style.setProperty('--hero-ph-bg','url("'+url.replace(/"/g,'%22')+'")');
+      // Ховаємо SVG заглушку якщо є
+      var svgEl=document.getElementById('_s1SvgPh');
+      if(svgEl)svgEl.style.display='none';
+    } catch(e){}
+  }
+  try {
+    var ph = localStorage.getItem('kr_hero_placeholder');
+    if (ph) { _applyPh(ph); }
+    // Для перших відвідувачів (або після зміни заглушки в адмінці) — фетчимо з Supabase
+    // Робимо це завжди щоб кеш завжди був актуальним
+    var _SU='https://xczrzdbikkycgpnvolib.supabase.co';
+    var _SK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
+    fetch(_SU+'/rest/v1/settings?select=value&key=eq.hero_placeholder_image&limit=1',
+      {headers:{'apikey':_SK,'Authorization':'Bearer '+_SK},priority:'low'})
+    .then(function(r){return r.ok?r.json():[];})
+    .then(function(rows){
+      if(Array.isArray(rows)&&rows[0]&&rows[0].value){
+        var url=rows[0].value;
+        try{localStorage.setItem('kr_hero_placeholder',url);}catch(e){}
+        // Застосовуємо тільки якщо ще немає реального слайду (img не завантажено)
+        var card=document.getElementById('_s1ImgCard');
+        if(!ph||ph!==url){_applyPh(url);}
+        if(card&&!card.querySelector('img')){
+          var svgEl=document.getElementById('_s1SvgPh');
+          if(svgEl)svgEl.style.display='none';
+        }
+      }
+    }).catch(function(){});
+  } catch(e) {}
+})();
+</script>
+<script>
 // Preload першого слайду зі збереженого кешу (щоб зображення показувалось одразу)
 (function(){
   try {
@@ -1104,7 +1144,7 @@ function _krOptImg(url,w,q){
             </div>
             <div class="hero-img-wrap">
               <div class="hero-img-card" id="_s1ImgCard">
-                <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.04)">
+                <div id="_s1SvgPh" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.04)">
                 <svg viewBox="0 0 240 160" xmlns="http://www.w3.org/2000/svg" style="width:65%;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)">
   <rect x="20" y="75" width="200" height="55" rx="14" fill="#1B2A4A" opacity=".15"/>
   <rect x="50" y="40" width="130" height="52" rx="12" fill="#1B2A4A" opacity=".18"/>
@@ -1124,6 +1164,8 @@ function _krOptImg(url,w,q){
           </div>
         </div>
       </div>
+      <!-- Ховаємо SVG-заглушку якщо є фото-заглушка (CSS вже показує її через --hero-ph-bg) -->
+      <script>(function(){try{if(localStorage.getItem('kr_hero_placeholder')){var d=document.getElementById('_s1SvgPh');if(d)d.style.display='none';}}catch(e){}})();</script>
       <!-- Inline early-swap: замінює SVG на реальне фото до першого рендеру (синхронно під час парсингу) -->
       <script>
       (function(){
@@ -2072,15 +2114,6 @@ window._krAppliedSlidesSig = '';
       const _s1d = data.filter(s => s.enabled !== false).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0))[0];
       if (_s1d && _s1d.image) localStorage.setItem('kr_s1img', _krOptImg(_s1d.image, 1400));
     } catch(e) {}
-    // Фоново підтягуємо заглушку з налаштувань (якщо ще не кешована)
-    if (!localStorage.getItem('kr_hero_placeholder')) {
-      fetch(SUPA_URL + '/rest/v1/settings?select=value&key=eq.hero_placeholder_image&limit=1', { headers: _H })
-        .then(r => r.ok ? r.json() : [])
-        .then(rows => {
-          if (Array.isArray(rows) && rows[0] && rows[0].value)
-            try { localStorage.setItem('kr_hero_placeholder', rows[0].value); } catch(e) {}
-        }).catch(()=>{});
-    }
     // Нічого не змінилось — нічого не робимо
     if (newSig && newSig === window._krAppliedSlidesSig) return;
 
