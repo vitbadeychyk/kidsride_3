@@ -7272,11 +7272,16 @@ function renderParentCatsList() {
       <input type="file" id="mcImgInput_${p.id}" accept="image/*" style="display:none" onchange="catImgUpload(${p.id},'main_categories',this.files)">
       <div style="font-weight:700;font-size:13px;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${_esc(p.name)}">${_esc(p.name)}</div>
       <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">
-        <label title="Змінити зображення" style="cursor:pointer;padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:11px;font-weight:700;color:var(--text-muted);background:var(--bg-soft);display:inline-flex;align-items:center;gap:3px" onmouseover="this.style.borderColor='var(--orange)';this.style.color='var(--orange)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)'">📷<span>Фото</span><input type="file" accept="image/*" style="display:none" onchange="catImgUpload(${p.id},'main_categories',this.files)"></label>
+        <label title="Завантажити фото з ПК" style="cursor:pointer;padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:11px;font-weight:700;color:var(--text-muted);background:var(--bg-soft);display:inline-flex;align-items:center;gap:3px" onmouseover="this.style.borderColor='var(--orange)';this.style.color='var(--orange)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)'">📷<span>Фото</span><input type="file" accept="image/*" style="display:none" onchange="catImgUpload(${p.id},'main_categories',this.files)"></label>
         <button onclick="reorderParentCategory(${p.id},'up')" title="Вгору" ${i===0?'disabled':''} style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 7px;cursor:${i===0?'not-allowed':'pointer'};color:var(--text-muted);font-size:11px;opacity:${i===0?'.3':'1'}">▲</button>
         <button onclick="reorderParentCategory(${p.id},'down')" title="Вниз" ${i===_parentCats.length-1?'disabled':''} style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 7px;cursor:${i===_parentCats.length-1?'not-allowed':'pointer'};color:var(--text-muted);font-size:11px;opacity:${i===_parentCats.length-1?'.3':'1'}">▼</button>
         <button onclick="deleteParentCategory(${p.id},'${_esc(p.name)}')" title="Видалити" style="background:none;border:1px solid rgba(229,57,53,.3);border-radius:6px;padding:4px 7px;cursor:pointer;color:var(--red);font-size:12px;font-weight:700;margin-left:auto">✕</button>
       </div>
+      <div style="display:flex;gap:4px">
+        <input id="mcSku_${p.id}" type="text" placeholder="Артикул товару…" style="flex:1;min-width:0;padding:5px 8px;border:1.5px solid var(--border);border-radius:6px;font-size:11px;font-family:'Manrope',sans-serif;color:var(--navy);background:var(--bg-soft);outline:none" onkeydown="if(event.key==='Enter')catImgFromSku(${p.id},'main_categories')">
+        <button onclick="catImgFromSku(${p.id},'main_categories')" title="Знайти фото за артикулом" style="padding:5px 9px;border:1.5px solid var(--border);border-radius:6px;background:var(--bg-soft);cursor:pointer;font-size:13px" onmouseover="this.style.borderColor='var(--orange)'" onmouseout="this.style.borderColor='var(--border)'">🔍</button>
+      </div>
+      <div id="mcSkuPreview_${p.id}" style="display:none"></div>
     </div>`;
   }).join('');
 }
@@ -7441,6 +7446,59 @@ async function saveCategoryImageUrl(catId, tableName, imageUrl) {
 }
 
 
+
+// ── CATEGORY IMAGE FROM PRODUCT SKU ─────────────────────────────────────────
+async function catImgFromSku(catId, tableName) {
+  const inputId   = tableName === 'main_categories' ? 'mcSku_' + catId : 'ccSku_' + catId;
+  const previewId = tableName === 'main_categories' ? 'mcSkuPreview_' + catId : 'ccSkuPreview_' + catId;
+  const sku = (document.getElementById(inputId)?.value || '').trim();
+  if (!sku) { showToast('Введіть артикул товару', 'error'); return; }
+
+  const prev = document.getElementById(previewId);
+  if (prev) { prev.style.display = 'block'; prev.innerHTML = '<span style="font-size:11px;color:var(--text-muted)">Пошук…</span>'; }
+
+  try {
+    const rows = await sbFetch('products?sku=eq.' + encodeURIComponent(sku) + '&select=images,name&limit=1');
+    if (!rows || !rows.length || !Array.isArray(rows[0].images) || !rows[0].images.length) {
+      if (prev) prev.innerHTML = '<span style="font-size:11px;color:var(--red)">Товар не знайдено або немає фото</span>';
+      return;
+    }
+    const imgUrl     = rows[0].images[0];
+    const productName = _esc ? _esc(rows[0].name || sku) : (rows[0].name || sku);
+    const safeUrl    = imgUrl.replace(/\/g,'\\').replace(/'/g,"\'");
+    if (prev) prev.innerHTML = `
+      <div style="display:flex;align-items:center;gap:6px;padding:6px;background:var(--bg-soft);border-radius:8px;border:1px solid var(--border)">
+        <img src="${imgUrl}" style="width:40px;height:40px;border-radius:6px;object-fit:cover;flex-shrink:0" onerror="this.style.display='none'">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:11px;font-weight:600;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${productName}</div>
+          <div style="font-size:10px;color:var(--text-muted)">${sku}</div>
+        </div>
+        <button onclick="catImgFromSkuConfirm(${catId},'${tableName}','${safeUrl}',this)"
+          style="flex-shrink:0;background:var(--orange);color:white;border:none;border-radius:6px;padding:5px 9px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif">Встановити</button>
+      </div>`;
+  } catch(e) {
+    if (prev) prev.innerHTML = '<span style="font-size:11px;color:var(--red)">Помилка: ' + e.message + '</span>';
+  }
+}
+
+async function catImgFromSkuConfirm(catId, tableName, imgUrl, btn) {
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+  try {
+    await saveCategoryImageUrl(catId, tableName, imgUrl);
+    showToast('✅ Зображення збережено', 'success');
+    // Hide the preview
+    const previewId = tableName === 'main_categories' ? 'mcSkuPreview_' + catId : 'ccSkuPreview_' + catId;
+    const prev = document.getElementById(previewId);
+    if (prev) prev.style.display = 'none';
+    // Refresh the list
+    await loadParentCategories();
+    if (tableName === 'categories') renderFilteredCategories();
+  } catch(e) {
+    showToast('Помилка: ' + e.message, 'error');
+    if (btn) { btn.disabled = false; btn.textContent = 'Встановити'; }
+  }
+}
+
 // ── Призначити підкатегорію до головної (або зняти) ──────────────────────────
 async function setParentCategory(subId, parentId) {
   const val = parentId === '' ? null : parseInt(parentId);
@@ -7524,7 +7582,15 @@ function renderFilteredCategories() {
     return `<tr style="border-top:1px solid var(--border-light);transition:background .15s" onmouseenter="this.style.background='var(--bg)'" onmouseleave="this.style.background=''">
       <td style="padding:10px 16px;font-family:monospace;font-size:12px;color:var(--text-muted)">${cat.id}</td>
       <td style="padding:10px 16px;font-weight:600;color:var(--navy)">${_esc(cat.name || '—')}</td>
-      <td style="padding:6px 12px;text-align:center">${catThumb}<label style="display:block;font-size:9px;color:var(--text-muted);margin-top:2px;cursor:pointer" title="Клікни для завантаження"><input type="file" accept="image/*" style="display:none" onchange="catImgUpload(${cat.id},'categories',this.files)">змінити</label></td>
+      <td style="padding:6px 12px;text-align:center;min-width:120px">
+        ${catThumb}
+        <label style="display:block;font-size:9px;color:var(--text-muted);margin-top:2px;cursor:pointer" title="Клікни для завантаження"><input type="file" accept="image/*" style="display:none" onchange="catImgUpload(${cat.id},'categories',this.files)">📷 фото</label>
+        <div style="display:flex;gap:3px;margin-top:4px">
+          <input id="ccSku_${cat.id}" type="text" placeholder="Артикул…" style="width:70px;padding:3px 6px;border:1.5px solid var(--border);border-radius:5px;font-size:10px;font-family:'Manrope',sans-serif;color:var(--navy);background:var(--bg-soft);outline:none" onkeydown="if(event.key==='Enter')catImgFromSku(${cat.id},'categories')">
+          <button onclick="catImgFromSku(${cat.id},'categories')" title="Знайти за артикулом" style="padding:3px 6px;border:1.5px solid var(--border);border-radius:5px;background:var(--bg-soft);cursor:pointer;font-size:11px" onmouseover="this.style.borderColor='var(--orange)'" onmouseout="this.style.borderColor='var(--border)'">🔍</button>
+        </div>
+        <div id="ccSkuPreview_${cat.id}" style="display:none;margin-top:4px"></div>
+      </td>
       <td style="padding:10px 16px;min-width:180px">${parentSelect}</td>
       <td style="padding:10px 16px;text-align:center">
         ${cnt > 0
