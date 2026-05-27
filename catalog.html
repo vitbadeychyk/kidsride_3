@@ -455,6 +455,25 @@ nav a.active{color:var(--orange)}
   .search-foot{padding:12px 22px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--text-muted);background:var(--bg-soft)}
   .search-foot kbd{font-family:'Manrope',sans-serif;background:white;border:1px solid var(--border);padding:2px 7px;border-radius:5px;font-size:10px;font-weight:700;color:var(--navy)}
   @media(max-width:520px){.search-overlay{padding:60px 12px 12px}.search-form{padding:14px 16px}.search-form input{font-size:15px}.search-foot{display:none}.search-kbd{display:none}}
+/* ── MOBILE CATEGORY NAVIGATION ── */
+#mob-cat-nav{display:none;padding:16px 12px;min-height:calc(100vh - 140px);background:var(--bg-soft)}
+#mob-back-bar{display:none;align-items:center;gap:10px;padding:11px 16px;background:white;border-bottom:1px solid var(--border);cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+#mob-back-bar:active{background:var(--bg-soft)}
+#mob-back-bar svg{stroke:var(--orange);flex-shrink:0;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+#mob-back-bar span{font-size:13px;font-weight:700;color:var(--navy)}
+.mob-cat-header{display:flex;align-items:center;gap:12px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.mob-cat-back{width:36px;height:36px;border:none;background:white;border-radius:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:var(--shadow-sm);flex-shrink:0;-webkit-tap-highlight-color:transparent}
+.mob-cat-back svg{stroke:var(--navy);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.mob-cat-heading{font-family:'Nunito',sans-serif;font-weight:800;font-size:18px;color:var(--navy);flex:1}
+.mob-cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media(max-width:400px){.mob-cat-grid{grid-template-columns:repeat(2,1fr)}}
+.mob-cat-tile{background:white;border-radius:12px;border:1.5px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:12px 8px 10px;cursor:pointer;transition:transform .15s,box-shadow .15s;text-align:center;touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none}
+.mob-cat-tile:active{transform:scale(.95);background:var(--bg-soft)}
+.mob-cat-tile-img{width:64px;height:64px;border-radius:50%;object-fit:cover;margin-bottom:8px;flex-shrink:0;background:var(--bg-soft)}
+.mob-cat-tile-icon{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--bg-soft) 0%,var(--bg-warm) 100%);display:flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:8px;flex-shrink:0}
+.mob-cat-tile-name{font-family:'Nunito',sans-serif;font-weight:700;font-size:12px;color:var(--navy);line-height:1.3;word-break:break-word}
+.mob-cat-tile-cnt{font-size:10px;color:var(--text-muted);margin-top:3px;font-weight:600}
+@media(min-width:1025px){#mob-cat-nav{display:none!important}#mob-back-bar{display:none!important}}
 </style>
 <script>
 (function(){
@@ -541,8 +560,26 @@ nav a.active{color:var(--orange)}
   <!-- populated by JS -->
 </div>
 
-<!-- CATALOG HEAD -->
-<div class="catalog-head">
+<!-- MOBILE: BACK BAR (shows above products when subcategory selected) -->
+<div id="mob-back-bar" onclick="_mobNavGoBack()">
+  <svg width="16" height="16" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+  <span id="mob-back-label">Каталог</span>
+</div>
+
+<!-- MOBILE CATEGORY NAVIGATION (replaces products view on mobile when no leaf cat selected) -->
+<div id="mob-cat-nav">
+  <div class="mob-cat-header">
+    <button class="mob-cat-back" id="mobCatBack" onclick="_mobNavBack()" style="display:none">
+      <svg width="16" height="16" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="mob-cat-heading" id="mobCatHeading">Каталог</div>
+  </div>
+  <div class="mob-cat-grid" id="mobCatGrid">
+    <div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:var(--text-muted);font-size:14px">Завантаження…</div>
+  </div>
+</div>
+
+<!-- CATALOG HEAD --><div class="catalog-head">
   <div class="catalog-title-row">
     <h1 class="catalog-title" id="catalogTitle">Каталог товарів</h1>
     <span class="catalog-count" id="catalogCount">Завантаження…</span>
@@ -1569,7 +1606,7 @@ function _dispatchTreeAction(row) {
 }
 
 // ── CATEGORIES CACHE ─────────────────────────────────────────────────────────
-const CATS_CACHE_KEY = 'kidsride_cats_v1';
+const CATS_CACHE_KEY = 'kidsride_cats_v2';
 function _loadCatsFromStorage() {
   try {
     const raw = localStorage.getItem(CATS_CACHE_KEY);
@@ -1595,8 +1632,8 @@ async function _fetchCategoriesFromSupabase() {
     return fetch(url, { headers, signal: ctrl.signal }).finally(() => clearTimeout(tid));
   };
   const [mcRes, catRes] = await Promise.all([
-    _ctFetch(SUPABASE_URL + '/rest/v1/main_categories?select=id,name&active=eq.true&order=sort_order.asc,name.asc'),
-    _ctFetch(SUPABASE_URL + '/rest/v1/categories?select=id,name,main_category_id&active=eq.true&order=name.asc')
+    _ctFetch(SUPABASE_URL + '/rest/v1/main_categories?select=id,name,image_url&active=eq.true&order=sort_order.asc,name.asc'),
+    _ctFetch(SUPABASE_URL + '/rest/v1/categories?select=id,name,main_category_id,image_url&active=eq.true&order=name.asc')
   ]);
   if (!mcRes.ok || !catRes.ok) throw new Error('HTTP error');
   _mainCategories = await mcRes.json() || [];
@@ -1779,9 +1816,10 @@ async function loadCategoryTree() {
     if (fromCache) {
       // Рендеримо дерево з кешу відразу, потім оновлюємо у фоні
       _renderCategoryTree(treeEl);
+      if (typeof _initMobileCatNav === 'function') _initMobileCatNav();
       // Оновлюємо категорії у фоні, без блокування
       _fetchCategoriesFromSupabase().then(ok => {
-        if (ok) _saveCatsToStorage();
+        if (ok) { _saveCatsToStorage(); }
       }).catch(() => {});
       return;
     }
@@ -1796,6 +1834,7 @@ async function loadCategoryTree() {
   }
 
   _renderCategoryTree(treeEl);
+  if (typeof _initMobileCatNav === 'function') _initMobileCatNav();
   // Повторний рендер після визначення spare-parts категорій
   applyFiltersAndRender();
 }
@@ -1916,6 +1955,237 @@ function selectVehicleType(code, parentId) {
   currentPage = 1;
   applyFiltersAndRender();
 }
+
+
+// ── MOBILE CATEGORY NAVIGATION ──────────────────────────────────────────────
+let _mobNavLevel = 'main';  // 'main' | 'sub' | 'products'
+let _mobNavParentId = 0;    // selected main_category id when at sub/products level
+let _mobNavInitDone = false;
+
+function _isMobileView() {
+  return window.innerWidth <= 1024;
+}
+
+function _mobCatNavToggleProductsArea(show) {
+  const ch = document.querySelector('.catalog-head');
+  const cl = document.querySelector('.catalog-layout');
+  const af = document.getElementById('activeFilters');
+  const fb = document.querySelector('.mobile-filter-btn');
+  const bb = document.getElementById('mob-back-bar');
+  if (ch) ch.style.display = show ? '' : 'none';
+  if (cl) cl.style.display = show ? '' : 'none';
+  if (af) af.style.display = show ? '' : 'none';
+  if (!show && fb) fb.style.display = 'none';
+  if (!show && bb) bb.style.display = 'none';
+}
+
+function _mobNavShowMain() {
+  if (!_isMobileView()) return;
+  _mobNavLevel = 'main';
+  _mobNavParentId = 0;
+
+  const nav = document.getElementById('mob-cat-nav');
+  if (!nav) return;
+  _mobCatNavToggleProductsArea(false);
+  nav.style.display = 'block';
+
+  const heading = document.getElementById('mobCatHeading');
+  const backBtn = document.getElementById('mobCatBack');
+  if (heading) heading.textContent = 'Каталог';
+  if (backBtn) backBtn.style.display = 'none';
+
+  const grid = document.getElementById('mobCatGrid');
+  if (!grid) return;
+
+  if (!_mainCategories.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted)">Категорії завантажуються…</div>';
+    return;
+  }
+
+  const available = (allProducts || []).filter(p => !(p.stock != null && p.stock <= 0 && !(Number(p.preorderDays) > 0)));
+  const prodCounts = {};
+  available.forEach(p => {
+    if (!p.category_id) return;
+    const cat = (_allCategories || []).find(c => c.id === p.category_id);
+    if (cat && cat.main_category_id) {
+      prodCounts[cat.main_category_id] = (prodCounts[cat.main_category_id] || 0) + 1;
+    }
+  });
+
+  grid.innerHTML = _mainCategories.map(mc => {
+    const cnt = prodCounts[mc.id] || 0;
+    const thumb = mc.image_url
+      ? `<img class="mob-cat-tile-img" src="${mc.image_url}" alt="${escAttr ? escAttr(mc.name) : mc.name}" loading="lazy">`
+      : `<div class="mob-cat-tile-icon">${_getCatIcon(mc.name)}</div>`;
+    return `<div class="mob-cat-tile" onclick="_mobNavShowSub(${mc.id})">
+      ${thumb}
+      <div class="mob-cat-tile-name">${mc.name}</div>
+      ${cnt ? `<div class="mob-cat-tile-cnt">${cnt} товарів</div>` : ''}
+    </div>`;
+  }).join('');
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function _mobNavShowSub(parentId) {
+  if (!_isMobileView()) return;
+  _mobNavLevel = 'sub';
+  _mobNavParentId = parentId;
+
+  const parent = (_mainCategories || []).find(c => c.id === parentId);
+  const subs = (_allCategories || []).filter(c => c.main_category_id === parentId);
+
+  const nav = document.getElementById('mob-cat-nav');
+  if (!nav) return;
+  nav.style.display = 'block';
+  _mobCatNavToggleProductsArea(false);
+
+  const heading = document.getElementById('mobCatHeading');
+  const backBtn = document.getElementById('mobCatBack');
+  if (heading) heading.textContent = parent ? parent.name : 'Підкатегорії';
+  if (backBtn) backBtn.style.display = 'flex';
+
+  const grid = document.getElementById('mobCatGrid');
+  if (!grid) return;
+
+  if (!subs.length) {
+    _mobNavSelectParent(parentId);
+    return;
+  }
+
+  const available = (allProducts || []).filter(p => !(p.stock != null && p.stock <= 0 && !(Number(p.preorderDays) > 0)));
+  const prodCounts = {};
+  available.forEach(p => { if (p.category_id != null) prodCounts[p.category_id] = (prodCounts[p.category_id] || 0) + 1; });
+
+  grid.innerHTML = subs.map(sub => {
+    const cnt = prodCounts[sub.id] || 0;
+    const thumb = sub.image_url
+      ? `<img class="mob-cat-tile-img" src="${sub.image_url}" alt="${escAttr ? escAttr(sub.name) : sub.name}" loading="lazy">`
+      : `<div class="mob-cat-tile-icon">${_getCatIcon(sub.name)}</div>`;
+    return `<div class="mob-cat-tile" onclick="_mobNavSelectSub(${sub.id})">
+      ${thumb}
+      <div class="mob-cat-tile-name">${sub.name}</div>
+      ${cnt ? `<div class="mob-cat-tile-cnt">${cnt} товарів</div>` : ''}
+    </div>`;
+  }).join('');
+
+  window.scrollTo({ top: 0, behavior: 'instant' });
+}
+
+function _mobNavSelectSub(catId) {
+  if (!_isMobileView()) return;
+  const nav = document.getElementById('mob-cat-nav');
+  if (nav) nav.style.display = 'none';
+  _mobCatNavToggleProductsArea(true);
+  _mobNavLevel = 'products';
+
+  const bb = document.getElementById('mob-back-bar');
+  const bl = document.getElementById('mob-back-label');
+  if (bb) bb.style.display = 'flex';
+  if (bl) {
+    const parent = (_mainCategories || []).find(c => c.id === _mobNavParentId);
+    bl.textContent = parent ? parent.name : 'Каталог';
+  }
+
+  selectCategory(catId, 0);
+  window.scrollTo({ top: 0, behavior: 'instant' });
+}
+
+function _mobNavSelectParent(parentId) {
+  if (!_isMobileView()) return;
+  const nav = document.getElementById('mob-cat-nav');
+  if (nav) nav.style.display = 'none';
+  _mobCatNavToggleProductsArea(true);
+  _mobNavLevel = 'products';
+  _mobNavParentId = parentId;
+
+  const bb = document.getElementById('mob-back-bar');
+  const bl = document.getElementById('mob-back-label');
+  if (bb) bb.style.display = 'flex';
+  if (bl) {
+    const parent = (_mainCategories || []).find(c => c.id === parentId);
+    bl.textContent = parent ? parent.name : 'Каталог';
+  }
+
+  selectCategory(0, parentId);
+  window.scrollTo({ top: 0, behavior: 'instant' });
+}
+
+function _mobNavBack() {
+  // Back button inside sub-category grid → go to main categories
+  if (_mobNavLevel === 'sub') {
+    _mobNavShowMain();
+  }
+}
+
+function _mobNavGoBack() {
+  // Back bar above products → go back to subcategory grid (or main if no parent)
+  const bb = document.getElementById('mob-back-bar');
+  if (bb) bb.style.display = 'none';
+  _mobCatNavToggleProductsArea(false);
+  const nav = document.getElementById('mob-cat-nav');
+  if (nav) nav.style.display = 'block';
+
+  if (_mobNavParentId) {
+    _mobNavShowSub(_mobNavParentId);
+  } else {
+    _mobNavShowMain();
+  }
+
+  // Reset active category selection
+  selectCategory(0, 0);
+  _isDefaultMode = true;
+}
+
+function _initMobileCatNav() {
+  if (!_isMobileView()) return;
+  if (_mobNavInitDone) return;
+
+  const p = new URLSearchParams(location.search);
+  const catId     = p.get('catId');
+  const mainCatId = p.get('mainCatId') || p.get('parentId');
+
+  if (catId) {
+    // Arrived with a specific subcategory from URL
+    _mobNavLevel    = 'products';
+    _mobNavInitDone = true;
+    const cat = (_allCategories || []).find(c => c.id === parseInt(catId));
+    if (cat && cat.main_category_id) _mobNavParentId = cat.main_category_id;
+    const bb = document.getElementById('mob-back-bar');
+    const bl = document.getElementById('mob-back-label');
+    if (bb) bb.style.display = 'flex';
+    if (bl) {
+      const parent = (_mainCategories || []).find(c => c.id === _mobNavParentId);
+      bl.textContent = parent ? parent.name : 'Каталог';
+    }
+    return;
+  }
+
+  if (mainCatId) {
+    _mobNavInitDone = true;
+    _mobNavShowSub(parseInt(mainCatId));
+    return;
+  }
+
+  // No category params — show main category grid instead of products
+  _mobNavInitDone = true;
+  _isDefaultMode  = false;
+  _activeCatIdFilter    = 0;
+  _activeParentIdFilter = 0;
+  _activeVehicleType    = '';
+  _mobNavShowMain();
+}
+
+// Ensure products area stays visible on desktop resize
+window.addEventListener('resize', () => {
+  if (!_isMobileView()) {
+    _mobCatNavToggleProductsArea(true);
+    const nav = document.getElementById('mob-cat-nav');
+    if (nav) nav.style.display = 'none';
+    const bb = document.getElementById('mob-back-bar');
+    if (bb) bb.style.display = 'none';
+  }
+});
 
 
 // Завантажити товари з Supabase (з fallback на localStorage/дефолтні)
@@ -2339,6 +2609,7 @@ async function renderCatalog() {
     // Категорії є в кеші — показуємо дерево одразу (без лічильників, вони будуть після)
     const treeEl = document.getElementById('catTree');
     if (treeEl) _renderCategoryTree(treeEl);
+    if (typeof _initMobileCatNav === 'function') _initMobileCatNav();
   }
 
   // Завантажуємо товари і категорії паралельно
@@ -2381,6 +2652,13 @@ function _getActiveCategoryIds() {
 
 function applyFiltersAndRender() {
   const grid = document.getElementById('productsGrid');
+
+  // On mobile, if showing category nav (not products), just update filters without rendering
+  if (typeof _isMobileView === 'function' && _isMobileView() &&
+      typeof _mobNavLevel !== 'undefined' && _mobNavLevel !== 'products') {
+    updateDynamicFilters();
+    return;
+  }
 
   // Оновити панель фільтрів (бренди, напруга, вік) відповідно до поточної категорії
   updateDynamicFilters();

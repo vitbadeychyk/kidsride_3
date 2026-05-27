@@ -7243,7 +7243,7 @@ let _parentCats  = [];
 // ── Завантаження головних категорій (parent_id IS NULL, id >= 9000) ───────────
 async function loadParentCategories() {
   try {
-    const all = await sbFetch('main_categories?select=id,name,active&order=sort_order.asc,name.asc');
+    const all = await sbFetch('main_categories?select=id,name,active,image_url,sort_order&order=sort_order.asc,name.asc');
     _parentCats = (all || []);
     renderParentCatsList();
   } catch(e) {
@@ -7259,19 +7259,26 @@ function renderParentCatsList() {
     el.innerHTML = `<span style="font-size:12px;color:var(--text-muted)">Головних категорій немає. Спочатку виконайте SQL-міграцію SUPABASE_PARENT_CATEGORIES.sql</span>`;
     return;
   }
-  el.innerHTML = _parentCats.map((p, i) => `
-    <div style="display:inline-flex;align-items:center;gap:4px;background:var(--bg-soft);border:1.5px solid var(--border);border-radius:20px;padding:4px 10px">
-      <button onclick="reorderParentCategory(${p.id},'up')" title="Перемістити вгору"
-        style="background:none;border:none;cursor:${i===0?'not-allowed':'pointer'};color:var(--text-muted);padding:0 1px;line-height:1;font-size:11px;opacity:${i===0?'.3':'1'}"
-        ${i===0?'disabled':''}>▲</button>
-      <button onclick="reorderParentCategory(${p.id},'down')" title="Перемістити вниз"
-        style="background:none;border:none;cursor:${i===_parentCats.length-1?'not-allowed':'pointer'};color:var(--text-muted);padding:0 1px;line-height:1;font-size:11px;opacity:${i===_parentCats.length-1?'.3':'1'}"
-        ${i===_parentCats.length-1?'disabled':''}>▼</button>
-      <span style="font-size:13px;font-weight:700;color:var(--navy);margin:0 4px">${_esc(p.name)}</span>
-      <span style="font-size:10px;color:var(--text-muted)">ID: ${p.id}</span>
-      <button onclick="deleteParentCategory(${p.id},'${_esc(p.name)}')" title="Видалити"
-        style="background:none;border:none;cursor:pointer;color:var(--red);padding:0 0 0 4px;line-height:1;font-size:15px">×</button>
-    </div>`).join('');
+  el.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px';
+  el.innerHTML = _parentCats.map((p, i) => {
+    const icons = {'електромобіл':'⚡','дитячий транспорт':'🚲','велосипед':'🚲','самокат':'🛴','іграшк':'🧸','запчастин':'🔧','аксесуар':'🎒'};
+    let icon = '📦';
+    for (const [k,v] of Object.entries(icons)) { if ((p.name||'').toLowerCase().includes(k)) { icon=v; break; } }
+    const imgEl = p.image_url
+      ? `<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover;border-radius:8px" onerror="this.parentNode.innerHTML='<span style=font-size:32px>${icon}</span>'">`
+      : `<span style="font-size:32px">${icon}</span>`;
+    return `<div style="background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r);padding:12px;display:flex;flex-direction:column;gap:8px">
+      <div style="height:80px;background:var(--bg-soft);border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer" onclick="document.getElementById('mcImgInput_${p.id}').click()" title="Натисни для завантаження зображення">${imgEl}</div>
+      <input type="file" id="mcImgInput_${p.id}" accept="image/*" style="display:none" onchange="catImgUpload(${p.id},'main_categories',this.files)">
+      <div style="font-weight:700;font-size:13px;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${_esc(p.name)}">${_esc(p.name)}</div>
+      <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">
+        <label title="Змінити зображення" style="cursor:pointer;padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:11px;font-weight:700;color:var(--text-muted);background:var(--bg-soft);display:inline-flex;align-items:center;gap:3px" onmouseover="this.style.borderColor='var(--orange)';this.style.color='var(--orange)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)'">📷<span>Фото</span><input type="file" accept="image/*" style="display:none" onchange="catImgUpload(${p.id},'main_categories',this.files)"></label>
+        <button onclick="reorderParentCategory(${p.id},'up')" title="Вгору" ${i===0?'disabled':''} style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 7px;cursor:${i===0?'not-allowed':'pointer'};color:var(--text-muted);font-size:11px;opacity:${i===0?'.3':'1'}">▲</button>
+        <button onclick="reorderParentCategory(${p.id},'down')" title="Вниз" ${i===_parentCats.length-1?'disabled':''} style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 7px;cursor:${i===_parentCats.length-1?'not-allowed':'pointer'};color:var(--text-muted);font-size:11px;opacity:${i===_parentCats.length-1?'.3':'1'}">▼</button>
+        <button onclick="deleteParentCategory(${p.id},'${_esc(p.name)}')" title="Видалити" style="background:none;border:1px solid rgba(229,57,53,.3);border-radius:6px;padding:4px 7px;cursor:pointer;color:var(--red);font-size:12px;font-weight:700;margin-left:auto">✕</button>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 async function reorderParentCategory(id, direction) {
@@ -7359,6 +7366,81 @@ async function deleteParentCategory(id, name) {
   }
 }
 
+// ── CATEGORY IMAGE UPLOAD ────────────────────────────────────────────────────
+async function catReadFileAsDataUrl(file) {
+  return new Promise((resolve) => {
+    const r = new FileReader();
+    r.onload = e => resolve(e.target.result);
+    r.onerror = () => resolve(null);
+    r.readAsDataURL(file);
+  });
+}
+
+async function catImgUpload(catId, tableName, fileList) {
+  if (!fileList || !fileList.length) return;
+  const file = fileList[0];
+  if (!file || !file.type || !file.type.startsWith('image/')) {
+    showToast('Оберіть файл зображення (JPG, PNG, WebP)', 'error'); return;
+  }
+  showToast('⏳ Завантаження зображення…', 'info');
+
+  // Try Supabase Storage upload first
+  try {
+    const ext = file.name.split('.').pop().toLowerCase() || 'jpg';
+    const path = `categories/${tableName}_${catId}_${Date.now()}.${ext}`;
+    const uploadRes = await fetch(`${SUPABASE_URL}/storage/v1/object/product-images/${path}`, {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY,
+                 'Content-Type': file.type, 'x-upsert': 'true' },
+      body: file
+    });
+    if (uploadRes.ok) {
+      const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/product-images/${path}`;
+      await saveCategoryImageUrl(catId, tableName, imageUrl);
+      showToast('✅ Зображення завантажено та збережено', 'success');
+      await loadParentCategories();
+      if (tableName === 'categories') renderFilteredCategories();
+      return;
+    }
+  } catch(_) {}
+
+  // Fallback: store as data URL
+  const dataUrl = await catReadFileAsDataUrl(file);
+  if (!dataUrl) { showToast('Не вдалося прочитати файл', 'error'); return; }
+  await saveCategoryImageUrl(catId, tableName, dataUrl);
+  showToast('✅ Зображення збережено', 'success');
+  await loadParentCategories();
+  if (tableName === 'categories') renderFilteredCategories();
+}
+
+async function saveCategoryImageUrl(catId, tableName, imageUrl) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${tableName}?id=eq.${catId}`, {
+    method: 'PATCH',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal'
+    },
+    body: JSON.stringify({ image_url: imageUrl })
+  });
+  if (!res.ok) {
+    const t = await res.text();
+    throw new Error('HTTP ' + res.status + ': ' + t);
+  }
+  // Update local cache
+  if (tableName === 'main_categories') {
+    const pc = _parentCats.find(c => c.id === catId);
+    if (pc) pc.image_url = imageUrl;
+  } else {
+    const cc = _catsCache.find(c => c.id === catId);
+    if (cc) cc.image_url = imageUrl;
+    const sc = (window._subCatsData || []).find(c => c.id === catId);
+    if (sc) sc.image_url = imageUrl;
+  }
+}
+
+
 // ── Призначити підкатегорію до головної (або зняти) ──────────────────────────
 async function setParentCategory(subId, parentId) {
   const val = parentId === '' ? null : parseInt(parentId);
@@ -7415,7 +7497,7 @@ function renderFilteredCategories() {
     (_parentCats||[]).map(p => `<option value="${p.id}">${_esc(p.name)}</option>`).join('');
 
   if (!data.length) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:32px">Нічого не знайдено за обраними фільтрами</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:32px">Нічого не знайдено за обраними фільтрами</td></tr>';
     return;
   }
 
@@ -7436,9 +7518,13 @@ function renderFilteredCategories() {
           ${parentOptions.replace(`value="${currentParentId}"`, `value="${currentParentId}" selected`)}
         </select>`
       : `<span style="color:var(--text-muted);font-size:11px">Немає головних категорій</span>`;
+    const catThumb = cat.image_url
+      ? `<img src="${cat.image_url}" style="width:36px;height:36px;border-radius:6px;object-fit:cover;display:block;margin:0 auto" onerror="this.style.display='none'">`
+      : `<label style="cursor:pointer;display:flex;align-items:center;justify-content:center;width:36px;height:36px;background:var(--bg-soft);border:1.5px dashed var(--border);border-radius:6px;margin:0 auto;font-size:16px" title="Завантажити фото">📷<input type="file" accept="image/*" style="display:none" onchange="catImgUpload(${cat.id},'categories',this.files)"></label>`;
     return `<tr style="border-top:1px solid var(--border-light);transition:background .15s" onmouseenter="this.style.background='var(--bg)'" onmouseleave="this.style.background=''">
       <td style="padding:10px 16px;font-family:monospace;font-size:12px;color:var(--text-muted)">${cat.id}</td>
       <td style="padding:10px 16px;font-weight:600;color:var(--navy)">${_esc(cat.name || '—')}</td>
+      <td style="padding:6px 12px;text-align:center">${catThumb}<label style="display:block;font-size:9px;color:var(--text-muted);margin-top:2px;cursor:pointer" title="Клікни для завантаження"><input type="file" accept="image/*" style="display:none" onchange="catImgUpload(${cat.id},'categories',this.files)">змінити</label></td>
       <td style="padding:10px 16px;min-width:180px">${parentSelect}</td>
       <td style="padding:10px 16px;text-align:center">
         ${cnt > 0
@@ -7461,7 +7547,7 @@ async function loadCategories() {
   const status = document.getElementById('categoriesStatus');
   if (!tbody) return;
 
-  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px"><div class="spinner" style="margin:0 auto"></div></td></tr>';
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px"><div class="spinner" style="margin:0 auto"></div></td></tr>';
   if (status) status.textContent = 'Завантаження…';
 
   try {
@@ -7471,7 +7557,7 @@ async function loadCategories() {
 
     // Головні категорії завантажуємо окремо з main_categories
     try {
-      const mainCats = await sbFetch('main_categories?select=id,name,active&order=sort_order.asc,name.asc');
+      const mainCats = await sbFetch('main_categories?select=id,name,active,image_url,sort_order&order=sort_order.asc,name.asc');
       _parentCats = mainCats || [];
     } catch(_) {
       _parentCats = [];
