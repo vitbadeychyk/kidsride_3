@@ -69,6 +69,8 @@
 <link rel="preconnect" href="https://xczrzdbikkycgpnvolib.supabase.co" crossorigin>
 <link rel="dns-prefetch" href="https://xczrzdbikkycgpnvolib.supabase.co">
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<!-- Preload shared.js — завантажується паралельно з HTML парсингом -->
+<link rel="preload" href="shared.min.js" as="script">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
@@ -87,7 +89,9 @@
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth;overflow-x:hidden;overscroll-behavior-x:none}
-body{font-family:'Manrope',sans-serif;color:var(--text);background:var(--bg);overflow-x:hidden;overscroll-behavior-x:none}
+/* Fallback fonts calibrated to reduce CLS during font swap */
+@font-face{font-family:'Manrope';font-style:normal;font-weight:400;font-display:swap;src:local('Arial')}
+body{font-family:'Manrope',Arial,sans-serif;color:var(--text);background:var(--bg);overflow-x:hidden;overscroll-behavior-x:none}
 h1,h2,h3,h4{font-family:'Nunito',sans-serif;font-weight:800}
 img{display:block;max-width:100%}
 
@@ -903,8 +907,11 @@ footer{background:var(--navy);color:white;padding:56px 40px 0}
   }
   /* Прибираємо важку анімацію пульсу на мобілі (зменшує TBT) */
   .btn-pulse{animation:none}
-  /* GPU-прискорення для hero overlay-шарів */
-  .hero-grain,.hero-glow{will-change:opacity}
+  /* Вимикаємо важкий SVG feTurbulence фільтр на мобілі (суттєва економія GPU) */
+  .hero-grain{display:none}
+  .hero-glow{display:none}
+  /* Вимикаємо анімації hero на мобілі для кращого LCP */
+  .hero-chip,.hero-h1,.hero-p,.hero-btns,.hero-stats,.hero-img-wrap{animation:none!important;opacity:1!important}
 }
 </style>
 <script>
@@ -912,14 +919,17 @@ footer{background:var(--navy);color:white;padding:56px 40px 0}
 function _krOptImg(url,w,q){
   if(!url||typeof url!=='string')return url||'';
   if(url.indexOf('/storage/v1/object/public/')<0)return url;
-  /* На мобільних пристроях обмежуємо ширину до 2x viewport (економія трафіку).
-     Зображення карток товарів (w≤400) не зачіпаємо. */
   var vw=window.innerWidth||document.documentElement.clientWidth||1200;
+  var dpr=Math.min(window.devicePixelRatio||1,2);
   var rw=w||800;
-  if(rw>400){rw=Math.min(rw,Math.max(Math.round(vw*2),400));}
+  /* Для hero-зображень (w>400): обмежуємо до реального фізичного розміру (vw * dpr),
+     але не більше 1400px — економить ~30-40% трафіку на Retina мобілях */
+  if(rw>400){rw=Math.min(rw,Math.max(Math.round(vw*dpr),400),1400);}
   var r=url.replace('/storage/v1/object/public/','/storage/v1/render/image/public/');
   var sep=r.indexOf('?')>=0?'&':'?';
-  return r+sep+'width='+rw+'&quality='+(q||75);
+  /* На мобілях (vw<=768) знижуємо якість до 65 — непомітна різниця, -20% розмір */
+  var ql=q||(vw<=768?65:75);
+  return r+sep+'width='+rw+'&quality='+ql;
 }
 </script>
 <script>
@@ -963,7 +973,7 @@ function _krOptImg(url,w,q){
   } catch(e) {}
 })();
 </script>
-<script>try{if(localStorage.getItem('kr_logo_url')){document.write('<style>.logo-mark svg{display:none!important}.logo-mark{background:transparent!important;box-shadow:none!important;padding:0!important}</style>')}}catch(e){}</script>
+<script>try{if(localStorage.getItem('kr_logo_url')){var _ls=document.createElement('style');_ls.textContent='.logo-mark svg{display:none!important}.logo-mark{background:transparent!important;box-shadow:none!important;padding:0!important}';document.head.appendChild(_ls);}}catch(e){}</script>
 </head>
 <body>
 
@@ -1381,7 +1391,7 @@ function _krOptImg(url,w,q){
           ? 'background:#f0f2f7'
           : ('background:' + (CAT_BG[p.category||'jeep']||CAT_BG.jeep));
         const imgHtml = (Array.isArray(p.images)&&p.images[0])
-          ? `<img src="${escH(_krOptImg(p.images[0],400))}" alt="${escH(p.name)}" style="width:100%;height:100%;object-fit:cover" loading="lazy" decoding="async">`
+          ? `<img src="${escH(_krOptImg(p.images[0],400))}" alt="${escH(p.name)}" width="400" height="300" style="width:100%;height:100%;object-fit:cover" loading="lazy" decoding="async">`
           : `<svg viewBox="0 0 240 160" style="width:72%;position:relative;z-index:1"><rect x="20" y="75" width="200" height="55" rx="14" fill="#1B2A4A" opacity=".15"/><rect x="50" y="40" width="130" height="52" rx="12" fill="#1B2A4A" opacity=".18"/><rect x="55" y="45" width="55" height="34" rx="6" fill="#64B5F6" opacity=".4"/><rect x="118" y="45" width="55" height="34" rx="6" fill="#64B5F6" opacity=".35"/><circle cx="65" cy="132" r="22" fill="#1B2A4A" opacity=".2"/><circle cx="65" cy="132" r="12" fill="#FF6B35" opacity=".5"/><circle cx="175" cy="132" r="22" fill="#1B2A4A" opacity=".2"/><circle cx="175" cy="132" r="12" fill="#FF6B35" opacity=".5"/></svg>`;
 
         const badge = p.badge
@@ -1468,7 +1478,15 @@ function _krOptImg(url,w,q){
           GRID.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted)">Помилка завантаження</div>';
         }
       }
-      loadFeatured();
+      // Відкладаємо завантаження featured products до появи в viewport (зменшує конкуренцію з LCP)
+      if ('IntersectionObserver' in window && GRID) {
+        const _featObs = new IntersectionObserver(function(entries, obs) {
+          if (entries[0].isIntersecting) { obs.disconnect(); loadFeatured(); }
+        }, { rootMargin: '200px' });
+        _featObs.observe(GRID);
+      } else {
+        loadFeatured();
+      }
     })();
     </script>
     </div>
@@ -1883,6 +1901,29 @@ if(typeof Swiper === 'undefined') {
 }
 
 </script>
+<!-- ⚡ Починаємо fetch слайду ДО завантаження swiper-bundle — запит іде паралельно з парсингом JS -->
+<script>
+(function(){
+  var _SURL='https://xczrzdbikkycgpnvolib.supabase.co';
+  var _SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
+  // Зберігаємо Promise в window — applySlideSettings підхопить результат без повторного запиту
+  window._krSlide1Promise = fetch(_SURL+'/rest/v1/slides?select=id,sort_order,enabled,image&order=sort_order.asc&limit=1',
+    {headers:{'apikey':_SKEY,'Authorization':'Bearer '+_SKEY}})
+    .then(function(r){return r.ok?r.json():null;}).catch(function(){return null;});
+  // Одразу показуємо першу картинку якщо є збережений URL
+  try{
+    var _cached=localStorage.getItem('kr_s1img');
+    if(_cached){
+      var _c=document.getElementById('_s1ImgCard');
+      if(_c&&!_c.querySelector('img')){
+        _c.innerHTML='<img src="'+_cached.replace(/[\"<>]/g,'')+'" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" fetchpriority="high" decoding="sync">';
+        // Add preload hint for cached hero image
+        try{var _pl=document.createElement('link');_pl.rel='preload';_pl.as='image';_pl.href=_cached.replace(/["<>]/g,'');_pl.setAttribute('fetchpriority','high');document.head.appendChild(_pl);}catch(e2){}
+      }
+    }
+  }catch(e){}
+})();
+</script>
 <script src="swiper-bundle.min.js"></script>
 <script>
 // Custom pagination — спочатку готуємо DOM, бо Swiper може викликати slideChange під час init
@@ -2044,18 +2085,18 @@ window._krAppliedSlidesSig = '';
   const SUPA_URL = 'https://xczrzdbikkycgpnvolib.supabase.co';
   const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
   const _H = { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY };
-  fetch(SUPA_URL + '/rest/v1/slides?select=id,sort_order,enabled,image&order=sort_order.asc&limit=1', { headers: _H })
-    .then(r => r.ok ? r.json() : null).then(first => {
+  // Використовуємо Promise запущений ДО swiper-bundle.min.js (паралельний мережевий запит → менший LCP)
+  (window._krSlide1Promise || fetch(SUPA_URL + '/rest/v1/slides?select=id,sort_order,enabled,image&order=sort_order.asc&limit=1', { headers: _H }).then(r => r.ok ? r.json() : null))
+    .then(first => {
       if (!Array.isArray(first) || !first[0] || !first[0].image) return;
       const s = first[0];
-      // Шукаємо слайд по data-slide-id (якщо вже замінено _krApplySlides — знайде по UUID)
       const tpl = document.querySelector('.swiper-hero .swiper-slide[data-slide-id="' + s.id + '"]');
       if (!tpl) return;
       const card = tpl.querySelector('.hero-img-card');
       if (!card || card.querySelector('img')) return;
       const _imgUrl = _krEscAttr(_krOptImg(s.image, 1400));
       card.innerHTML = '<img src="' + _imgUrl + '" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" fetchpriority="high" decoding="async">';
-      try { localStorage.setItem('kr_s1img', _krOptImg(s.image, 1400)); } catch(e) {}
+      try { localStorage.setItem('kr_s1img', _imgUrl); } catch(e) {}
     }).catch(() => {});
 
   // 3) Повний фоновий запит: тільки потрібні поля — оновлює кеш і фото без перезапуску Swiper
@@ -2224,15 +2265,12 @@ const obs = new IntersectionObserver(entries => {
   entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
 }, { threshold: 0.05, rootMargin: '0px 0px -20px 0px' });
 
-document.querySelectorAll('.reveal').forEach(el => {
-  // Якщо елемент вже видимий при завантаженні — показати без затримки
-  const rect = el.getBoundingClientRect();
-  if (rect.top < window.innerHeight + 50) {
-    el.classList.add('visible');
-  } else {
-    obs.observe(el);
-  }
-});
+// Використовуємо один IntersectionObserver з великим rootMargin замість getBoundingClientRect loop
+// (уникаємо примусового reflow для кожного елемента)
+const obsImmediate = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obsImmediate.unobserve(e.target); } });
+}, { threshold: 0, rootMargin: '100% 0px 100% 0px' });
+document.querySelectorAll('.reveal').forEach(el => obsImmediate.observe(el));
 
 // FAQ
 function toggleFaq(btn) {
@@ -2271,7 +2309,7 @@ function toggleWish(btn) {
   setTimeout(() => btn.style.transform = '', 200);
 }
 </script>
-<script src="shared.js" defer></script>
+<script src="shared.min.js" defer></script>
 
 <!-- SEARCH OVERLAY -->
 <div class="search-overlay" id="searchOverlay" onclick="if(event.target===this)closeSearchOverlay()" role="dialog" aria-modal="true" aria-label="Пошук по сайту">

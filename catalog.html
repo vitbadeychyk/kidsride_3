@@ -496,10 +496,11 @@ nav a.active{color:var(--orange)}
   document.head.appendChild(el);}catch(e){}
 })();
 </script>
-<script>try{if(localStorage.getItem('kr_logo_url')){document.write('<style>.logo-mark svg{display:none!important}.logo-mark{background:transparent!important;box-shadow:none!important;padding:0!important}</style>')}}catch(e){}</script>
+<script>try{if(localStorage.getItem('kr_logo_url')){var _ls=document.createElement('style');_ls.textContent='.logo-mark svg{display:none!important}.logo-mark{background:transparent!important;box-shadow:none!important;padding:0!important}';document.head.appendChild(_ls);}}catch(e){}</script>
+<link rel="preload" href="shared.min.js" as="script">
 </head>
 <body>
-<script src="shared.js"></script>
+<script src="shared.min.js"></script>
 
 <!-- HEADER -->
 <header class="header" id="hdr">
@@ -823,15 +824,11 @@ const obs = new IntersectionObserver(entries => {
   entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
 }, { threshold: 0.05, rootMargin: '0px 0px -40px 0px' });
 
-document.querySelectorAll('.reveal').forEach(el => {
-  const rect = el.getBoundingClientRect();
-  if (rect.top < window.innerHeight) {
-    // Already in viewport on load — show immediately
-    el.classList.add('visible');
-  } else {
-    obs.observe(el);
-  }
-});
+// Використовуємо один IO з великим rootMargin замість getBoundingClientRect (уникаємо reflow)
+const obsImmediate = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obsImmediate.unobserve(e.target); } });
+}, { threshold: 0, rootMargin: '100% 0px 100% 0px' });
+document.querySelectorAll('.reveal').forEach(el => obsImmediate.observe(el));
 
 // Filter toggle (collapse/expand)
 function toggleFilter(title) {
@@ -2434,7 +2431,7 @@ function renderCard(p) {
   const bg = BG_BY_TYPE[p.img] || BG_BY_TYPE.default;
   const photoUrl = (Array.isArray(p.images) && p.images.length > 0) ? p.images[0] : '';
   const visual = photoUrl
-    ? `<img src="${(function(u){if(!u||u.indexOf('/storage/v1/object/public/')<0)return u;return u.replace('/storage/v1/object/public/','/storage/v1/render/image/public/')+'?width=400&quality=75';})(photoUrl)}" alt="${escAttr(p.name)}" loading="lazy" style="width:100%;height:100%;object-fit:cover;position:relative;z-index:1">`
+    ? `<img src="${(function(u){if(!u||u.indexOf('/storage/v1/object/public/')<0)return u;var _q=(window.innerWidth||1200)<=768?65:75;return u.replace('/storage/v1/object/public/','/storage/v1/render/image/public/')+'?width=400&quality='+_q;})(photoUrl)}" alt="${escAttr(p.name)}" loading="lazy" style="width:100%;height:100%;object-fit:cover;position:relative;z-index:1">`
     : svg;
   const wrapBg = photoUrl ? '#fff' : bg;
   const badge = p.badge === 'sale' && p.oldPrice

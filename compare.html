@@ -237,7 +237,7 @@ table.cmp{width:100%;border-collapse:collapse;min-width:640px}
   document.head.appendChild(el);}catch(e){}
 })();
 </script>
-<script>try{if(localStorage.getItem('kr_logo_url')){document.write('<style>.logo-mark svg{display:none!important}.logo-mark{background:transparent!important;box-shadow:none!important;padding:0!important}</style>')}}catch(e){}</script>
+<script>try{if(localStorage.getItem('kr_logo_url')){var _ls=document.createElement('style');_ls.textContent='.logo-mark svg{display:none!important}.logo-mark{background:transparent!important;box-shadow:none!important;padding:0!important}';document.head.appendChild(_ls);}}catch(e){}</script>
 </head>
 <body>
 
@@ -314,7 +314,7 @@ table.cmp{width:100%;border-collapse:collapse;min-width:640px}
   <div id="compareContent"></div>
 </div>
 
-<script src="shared.js"></script>
+<script src="shared.min.js"></script>
 <script>
 // Demo products for comparison
 const DEMO_PRODUCTS = [

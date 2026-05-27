@@ -279,7 +279,7 @@ a{text-decoration:none;color:inherit}
   document.head.appendChild(el);}catch(e){}
 })();
 </script>
-<script>try{if(localStorage.getItem('kr_logo_url')){document.write('<style>.logo-mark svg{display:none!important}.logo-mark{background:transparent!important;box-shadow:none!important;padding:0!important}</style>')}}catch(e){}</script>
+<script>try{if(localStorage.getItem('kr_logo_url')){var _ls=document.createElement('style');_ls.textContent='.logo-mark svg{display:none!important}.logo-mark{background:transparent!important;box-shadow:none!important;padding:0!important}';document.head.appendChild(_ls);}}catch(e){}</script>
 </head>
 <body>
 
@@ -1813,6 +1813,6 @@ if (document.readyState === 'loading') {
 window.addEventListener('storage', e => { if (e.key === 'kr_cart') renderOrderSummary(); });
 window.addEventListener('kr:cart-changed', renderOrderSummary);
 </script>
-<script src="shared.js"></script>
+<script src="shared.min.js"></script>
 </body>
 </html>
