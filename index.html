@@ -2048,15 +2048,21 @@ window._krAppliedSlidesSig = '';
     .then(r => r.ok ? r.json() : null).then(first => {
       if (!Array.isArray(first) || !first[0] || !first[0].image) return;
       const s = first[0];
-      const tpl = document.querySelector('.swiper-hero .swiper-slide[data-slide-id="' + s.id + '"]');
-      if (!tpl) return;
-      const card = tpl.querySelector('.hero-img-card');
-      // Застосовуємо тільки якщо ще не завантажено з кешу
-      if (card && !card.querySelector('img')) {
-        const _imgUrl = _krEscAttr(_krOptImg(s.image,1400));
-        card.innerHTML = '<img src="' + _imgUrl + '" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" fetchpriority="high">';
-        try { localStorage.setItem('kr_s1img', _krOptImg(s.image,1400)); } catch(e) {}
-      }
+      // Використовуємо id="#_s1ImgCard" напряму (статичний HTML завжди має цей id)
+      // Попередній код шукав data-slide-id по UUID — ніколи не знаходив "slide-1" → LCP 10.6s
+      const card = document.getElementById('_s1ImgCard');
+      if (!card || card.querySelector('img')) return; // вже вставлено
+      const _imgUrl = _krEscAttr(_krOptImg(s.image, 800, 65)); // 800px/65q для мобільних
+      card.innerHTML = '<img src="' + _imgUrl + '" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" fetchpriority="high">';
+      // Зберігаємо для preload при наступному відвідуванні
+      try { localStorage.setItem('kr_s1img', _krOptImg(s.image, 800, 65)); } catch(e) {}
+      // Додатковий preload-hint щоб браузер завантажив зображення максимально швидко
+      try {
+        const _pl = document.createElement('link');
+        _pl.rel='preload'; _pl.as='image'; _pl.href=_imgUrl;
+        _pl.setAttribute('fetchpriority','high');
+        document.head.appendChild(_pl);
+      } catch(e) {}
     }).catch(() => {});
 
   // 3) Повний фоновий запит: тільки потрібні поля — оновлює кеш і фото без перезапуску Swiper
@@ -2067,11 +2073,24 @@ window._krAppliedSlidesSig = '';
     const newSig = _krSlidesSig(data);
     // Завжди оновлюємо кеш для наступного відвідування
     try { localStorage.setItem('kr_slides', JSON.stringify(data)); } catch(e) {}
-    // Зберігаємо URL першого фото окремо для швидшого preload в <head>
+    // Зберігаємо URL першого фото (800px/65q — швидше для мобільних)
     try {
       const _s1d = data.filter(s => s.enabled !== false).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0))[0];
-      if (_s1d && _s1d.image) localStorage.setItem('kr_s1img', _krOptImg(_s1d.image, 1400));
+      if (_s1d && _s1d.image) localStorage.setItem('kr_s1img', _krOptImg(_s1d.image, 800, 65));
     } catch(e) {}
+    // Фоново оновлюємо заглушку з налаштувань (для відвідувачів у яких немає в кешу)
+    fetch(SUPA_URL + '/rest/v1/settings?select=value&key=eq.hero_placeholder_image&limit=1', { headers: _H })
+      .then(r => r.ok ? r.json() : [])
+      .then(rows => {
+        if (!Array.isArray(rows) || !rows[0] || !rows[0].value) return;
+        try { localStorage.setItem('kr_hero_placeholder', rows[0].value); } catch(e) {}
+        // Якщо в #_s1ImgCard ще немає img — показуємо заглушку
+        const _phCard = document.getElementById('_s1ImgCard');
+        if (_phCard && !_phCard.querySelector('img')) {
+          const _phUrl = rows[0].value.replace(/["<>]/g, '');
+          _phCard.innerHTML = '<img src="' + _phUrl + '" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" fetchpriority="high">';
+        }
+      }).catch(() => {});
     // Нічого не змінилось — нічого не робимо
     if (newSig && newSig === window._krAppliedSlidesSig) return;
 
