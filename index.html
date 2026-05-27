@@ -937,6 +937,17 @@ function _krOptImg(url,w,q){
 // Preload першого слайду зі збереженого кешу (щоб зображення показувалось одразу)
 (function(){
   try {
+    // Спочатку пробуємо швидкий ключ (тільки URL без парсингу великого JSON)
+    var directUrl = localStorage.getItem('kr_s1img');
+    if (directUrl) {
+      var link = document.createElement('link');
+      link.rel = 'preload'; link.as = 'image';
+      link.href = directUrl;
+      link.setAttribute('fetchpriority', 'high');
+      document.head.appendChild(link);
+      return;
+    }
+    // Fallback: старий механізм через kr_slides
     var slides = JSON.parse(localStorage.getItem('kr_slides') || 'null');
     if (!Array.isArray(slides) || !slides.length) return;
     var sorted = slides.filter(function(x){return x.enabled !== false;})
@@ -946,7 +957,6 @@ function _krOptImg(url,w,q){
     var link = document.createElement('link');
     link.rel = 'preload';
     link.as = 'image';
-    // Використовуємо transform-версію (менше байт, особливо на мобільних)
     link.href = typeof _krOptImg === 'function' ? _krOptImg(img, 1400) : img;
     link.setAttribute('fetchpriority', 'high');
     document.head.appendChild(link);
@@ -2039,7 +2049,9 @@ window._krAppliedSlidesSig = '';
       const card = tpl.querySelector('.hero-img-card');
       // Застосовуємо тільки якщо ще не завантажено з кешу
       if (card && !card.querySelector('img')) {
-        card.innerHTML = '<img src="' + _krEscAttr(_krOptImg(s.image,1400)) + '" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" fetchpriority="high">';
+        const _imgUrl = _krEscAttr(_krOptImg(s.image,1400));
+        card.innerHTML = '<img src="' + _imgUrl + '" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" fetchpriority="high">';
+        try { localStorage.setItem('kr_s1img', _krOptImg(s.image,1400)); } catch(e) {}
       }
     }).catch(() => {});
 
@@ -2051,6 +2063,11 @@ window._krAppliedSlidesSig = '';
     const newSig = _krSlidesSig(data);
     // Завжди оновлюємо кеш для наступного відвідування
     try { localStorage.setItem('kr_slides', JSON.stringify(data)); } catch(e) {}
+    // Зберігаємо URL першого фото окремо для швидшого preload в <head>
+    try {
+      const _s1d = data.filter(s => s.enabled !== false).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0))[0];
+      if (_s1d && _s1d.image) localStorage.setItem('kr_s1img', _krOptImg(_s1d.image, 1400));
+    } catch(e) {}
     // Нічого не змінилось — нічого не робимо
     if (newSig && newSig === window._krAppliedSlidesSig) return;
 
