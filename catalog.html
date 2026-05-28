@@ -3204,18 +3204,6 @@ function applyUrlFilters() {
     if (bcCur)  bcCur.textContent = name;
     if (titleEl) titleEl.textContent = name;
     _applyCategoryFilters(name);
-
-    // ── Тип транспорту з URL (?vType=jeep) — від карток categories.html
-    const _vTypeParam = params.get('vType') || params.get('vtype') || '';
-    const _VALID_VT   = new Set(['jeep','quad','moto','car','tractor','walker','truck','buggy']);
-    if (_vTypeParam && _VALID_VT.has(_vTypeParam)) {
-      _activeVehicleType = _vTypeParam;
-      _isDefaultMode     = false;
-      const _TYPE_UA_URL = {jeep:'Джипи',quad:'Квадроцикли',moto:'Мотоцикли',car:'Машини',tractor:'Трактори',walker:'Каталки-толокари',truck:'Вантажівки',buggy:'Баggі'};
-      const _typeName    = _TYPE_UA_URL[_vTypeParam] || _vTypeParam;
-      if (bcCur)   bcCur.textContent   = _typeName;
-      if (titleEl) titleEl.textContent = _typeName;
-    }
   }
   // ── Фільтр по батьківській категорії (parentId)
   else if (parentId && !isNaN(parseInt(parentId))) {
