@@ -2068,6 +2068,7 @@ document.addEventListener('DOMContentLoaded', applyCatalogUISettings);
 let _mobNavLevel = 'main';  // 'main' | 'sub' | 'products'
 let _mobNavParentId = 0;    // selected main_category id when at sub/products level
 let _mobNavInitDone = false;
+let _mobNavCatId = 0;    // selected subcategory id when at vehicleType level
 
 function _isMobileView() {
   return true; // block nav shown on all screen sizes
@@ -2181,6 +2182,21 @@ function _mobNavShowSub(parentId) {
 
 function _mobNavSelectSub(catId) {
   if (!_isMobileView()) return;
+
+  // ── Перевіряємо чи є підкатегорії (типи транспорту) ─────────────────────
+  const _VT_UA = {'jeep':'Джипи','quad':'Квадроцикли','moto':'Мотоцикли','car':'Машини',
+    'tractor':'Трактори','walker':'Каталки-толокари','truck':'Вантажівки','buggy':'Баggі'};
+  const _avail = (allProducts || []).filter(p => !(p.stock != null && p.stock <= 0 && !(Number(p.preorderDays) > 0)));
+  const _subP  = _avail.filter(p => p.category_id === catId);
+  const _vtypes = [...new Set(_subP.map(p => p.category).filter(c => c && _VT_UA[c]))];
+
+  if (_vtypes.length >= 2) {
+    _mobNavShowVehicleTypes(catId, _vtypes);
+    return;
+  }
+
+  // ── Стандартна поведінка — одразу до товарів ─────────────────────────────
+  _mobNavCatId = 0;
   const nav = document.getElementById('mob-cat-nav');
   if (nav) nav.style.display = 'none';
   _mobCatNavToggleProductsArea(true);
@@ -2195,6 +2211,74 @@ function _mobNavSelectSub(catId) {
   }
 
   selectCategory(catId, 0);
+  window.scrollTo({ top: 0, behavior: 'instant' });
+}
+
+// ── Показати тайли типів транспорту для підкатегорії ──────────────────────────
+function _mobNavShowVehicleTypes(catId, vtypes) {
+  if (!_isMobileView()) return;
+  _mobNavLevel  = 'vehicleType';
+  _mobNavCatId  = catId;
+
+  const cat = (_allCategories || []).find(c => c.id === catId);
+  const nav = document.getElementById('mob-cat-nav');
+  if (!nav) return;
+  nav.style.display = 'block';
+  _mobCatNavToggleProductsArea(false);
+
+  const heading = document.getElementById('mobCatHeading');
+  const backBtn = document.getElementById('mobCatBack');
+  if (heading) heading.textContent = cat ? cat.name : 'Типи';
+  if (backBtn) backBtn.style.display = 'flex';
+
+  const _VT_UA   = {'jeep':'Джипи','quad':'Квадроцикли','moto':'Мотоцикли','car':'Машини',
+    'tractor':'Трактори','walker':'Каталки-толокари','truck':'Вантажівки','buggy':'Баggі'};
+  const _VT_ICON = {'jeep':'🚙','quad':'🏎️','moto':'🏍️','car':'🚘','tractor':'🚜',
+    'walker':'🧸','truck':'🚛','buggy':'🏁'};
+
+  const grid = document.getElementById('mobCatGrid');
+  if (!grid) return;
+
+  const _avail = (allProducts || []).filter(p => !(p.stock != null && p.stock <= 0 && !(Number(p.preorderDays) > 0)));
+  const _subP  = _avail.filter(p => p.category_id === catId);
+
+  const sorted = [...vtypes].sort((a,b) => (_VT_UA[a]||a).localeCompare(_VT_UA[b]||b,'uk'));
+
+  grid.innerHTML = sorted.map(code => {
+    const cnt  = _subP.filter(p => p.category === code).length;
+    const icon = _VT_ICON[code] || '📦';
+    const name = _VT_UA[code] || code;
+    return `<div class="mob-cat-tile" onclick="_mobNavSelectVehicleType('${code}',${catId})">
+      <div class="mob-cat-tile-icon" style="font-size:2.4rem;display:flex;align-items:center;justify-content:center;width:100%;height:100%">${icon}</div>
+      <div class="mob-cat-tile-grad"></div>
+      <div class="mob-cat-tile-name">${name}${cnt ? ' (' + cnt + ')' : ''}</div>
+    </div>`;
+  }).join('');
+
+  window.scrollTo({ top: 0, behavior: 'instant' });
+}
+
+// ── Клік на тип транспорту у тайл-навігації ──────────────────────────────────
+function _mobNavSelectVehicleType(code, catId) {
+  if (!_isMobileView()) return;
+  const nav = document.getElementById('mob-cat-nav');
+  if (nav) nav.style.display = 'none';
+  _mobCatNavToggleProductsArea(true);
+  _mobNavLevel = 'products';
+
+  const _VT_UA = {'jeep':'Джипи','quad':'Квадроцикли','moto':'Мотоцикли','car':'Машини',
+    'tractor':'Трактори','walker':'Каталки-толокари','truck':'Вантажівки','buggy':'Баggі'};
+
+  const bb = document.getElementById('mob-back-bar');
+  const bl = document.getElementById('mob-back-label');
+  if (bb) bb.style.display = 'flex';
+  if (bl) bl.textContent = _VT_UA[code] || code;
+
+  // Встановлюємо фільтр підкатегорії + тип транспорту
+  selectCategory(catId, 0);
+  _activeVehicleType = code;
+  applyFiltersAndRender();
+
   window.scrollTo({ top: 0, behavior: 'instant' });
 }
 
@@ -2219,29 +2303,48 @@ function _mobNavSelectParent(parentId) {
 }
 
 function _mobNavBack() {
-  // Back button inside sub-category grid → go to main categories
-  if (_mobNavLevel === 'sub') {
+  // Back button inside sub/vehicleType grid → go up one level
+  if (_mobNavLevel === 'vehicleType') {
+    if (_mobNavParentId) {
+      _mobNavShowSub(_mobNavParentId);
+    } else {
+      _mobNavShowMain();
+    }
+  } else if (_mobNavLevel === 'sub') {
     _mobNavShowMain();
   }
 }
 
 function _mobNavGoBack() {
-  // Back bar above products → go back to subcategory grid (or main if no parent)
+  // Back bar above products → go back one level
   const bb = document.getElementById('mob-back-bar');
   if (bb) bb.style.display = 'none';
   _mobCatNavToggleProductsArea(false);
   const nav = document.getElementById('mob-cat-nav');
   if (nav) nav.style.display = 'block';
 
+  // Reset active category selection
+  selectCategory(0, 0);
+  _isDefaultMode = true;
+
+  // Якщо прийшли з рівня vehicleType → повертаємось до тайлів типів транспорту
+  if (_mobNavCatId) {
+    const _VT_UA = {'jeep':'Джипи','quad':'Квадроцикли','moto':'Мотоцикли','car':'Машини',
+      'tractor':'Трактори','walker':'Каталки-толокари','truck':'Вантажівки','buggy':'Баggі'};
+    const _avail = (allProducts || []).filter(p => !(p.stock != null && p.stock <= 0 && !(Number(p.preorderDays) > 0)));
+    const _subP  = _avail.filter(p => p.category_id === _mobNavCatId);
+    const _vtypes = [...new Set(_subP.map(p => p.category).filter(c => c && _VT_UA[c]))];
+    if (_vtypes.length >= 2) {
+      _mobNavShowVehicleTypes(_mobNavCatId, _vtypes);
+      return;
+    }
+  }
+
   if (_mobNavParentId) {
     _mobNavShowSub(_mobNavParentId);
   } else {
     _mobNavShowMain();
   }
-
-  // Reset active category selection
-  selectCategory(0, 0);
-  _isDefaultMode = true;
 }
 
 function _initMobileCatNav() {
