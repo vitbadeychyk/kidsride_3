@@ -1516,6 +1516,7 @@ tr:hover td{background:rgba(240,242,248,.5)}
         <button class="settings-tab" onclick="switchSettingsTab('export',this)">📊 Дані</button>
         <button class="settings-tab" onclick="switchSettingsTab('security',this)">🔐 Безпека</button>
         <button class="settings-tab" onclick="switchSettingsTab('promo',this);renderPromoHistory()">🎁 Промо</button>
+        <button class="settings-tab" onclick="switchSettingsTab('catalog',this);loadCatalogUISettings()">🗂️ Каталог</button>
       </div>
 
       <!-- TAB: STORE -->
@@ -2568,7 +2569,62 @@ CREATE POLICY "admin_write_promo" ON promo_codes FOR ALL USING (auth.role()='aut
             <div style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px">Перейдіть на вкладку «Промо» для завантаження.</div>
           </div>
         </div>
+
       </div><!-- /stab-promo -->
+
+      <!-- TAB: CATALOG UI -->
+      <div class="settings-section" id="stab-catalog">
+        <div class="import-card" style="margin-bottom:16px">
+          <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:6px;color:var(--navy)">🗂️ Бічне меню каталогу</h3>
+          <p style="font-size:13px;color:var(--text-muted);margin-bottom:20px">Керуйте видимістю блоків бічного меню на сторінці товарів — зміни застосовуються одразу на сайті (і на десктопі, і на мобільному).</p>
+          <div style="display:flex;flex-direction:column;gap:0">
+            <!-- row helper -->
+            <div id="cuiRow_catTree" class="cui-row" style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border)">
+              <div>
+                <div style="font-size:14px;font-weight:700;color:var(--navy)">Дерево категорій</div>
+                <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Навігація по категоріях / підкатегоріях у боковій панелі</div>
+              </div>
+              <button class="slide-toggle" id="cui_catTree" onclick="toggleCatalogUI('showCatTree','cui_catTree')" title="Увімкнути/вимкнути"></button>
+            </div>
+            <div id="cuiRow_sidebarSearch" class="cui-row" style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border)">
+              <div>
+                <div style="font-size:14px;font-weight:700;color:var(--navy)">Пошук у боковій панелі</div>
+                <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Рядок пошуку товарів всередині сайдбару</div>
+              </div>
+              <button class="slide-toggle" id="cui_sidebarSearch" onclick="toggleCatalogUI('showSidebarSearch','cui_sidebarSearch')" title="Увімкнути/вимкнути"></button>
+            </div>
+            <div id="cuiRow_age" class="cui-row" style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border)">
+              <div>
+                <div style="font-size:14px;font-weight:700;color:var(--navy)">Фільтр за віком</div>
+                <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Блок «Вік дитини» у бічній панелі</div>
+              </div>
+              <button class="slide-toggle" id="cui_age" onclick="toggleCatalogUI('showAge','cui_age')" title="Увімкнути/вимкнути"></button>
+            </div>
+            <div id="cuiRow_brand" class="cui-row" style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border)">
+              <div>
+                <div style="font-size:14px;font-weight:700;color:var(--navy)">Фільтр за брендом</div>
+                <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Блок «Бренд» у бічній панелі</div>
+              </div>
+              <button class="slide-toggle" id="cui_brand" onclick="toggleCatalogUI('showBrand','cui_brand')" title="Увімкнути/вимкнути"></button>
+            </div>
+            <div id="cuiRow_voltage" class="cui-row" style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border)">
+              <div>
+                <div style="font-size:14px;font-weight:700;color:var(--navy)">Фільтр за вольтажем</div>
+                <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Блок «Напруга акумулятора» у бічній панелі</div>
+              </div>
+              <button class="slide-toggle" id="cui_voltage" onclick="toggleCatalogUI('showVoltage','cui_voltage')" title="Увімкнути/вимкнути"></button>
+            </div>
+            <div id="cuiRow_price" class="cui-row" style="display:flex;align-items:center;justify-content:space-between;padding:14px 0">
+              <div>
+                <div style="font-size:14px;font-weight:700;color:var(--navy)">Фільтр за ціною</div>
+                <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Блок «Ціна» у бічній панелі</div>
+              </div>
+              <button class="slide-toggle" id="cui_price" onclick="toggleCatalogUI('showPrice','cui_price')" title="Увімкнути/вимкнути"></button>
+            </div>
+          </div>
+          <div id="cuiSaveStatus" style="margin-top:14px;font-size:12px;color:var(--green);display:none">✅ Збережено! Налаштування застосовані в каталозі.</div>
+        </div>
+      </div><!-- /stab-catalog -->
 
     </div>
 
@@ -6148,6 +6204,59 @@ function loadSettings() {
 }
 function _cacheSettings(obj) {
   localStorage.setItem(SETTINGS_KEY, JSON.stringify({ ...loadSettings(), ...obj }));
+}
+
+
+// ── CATALOG UI SETTINGS ──────────────────────────────────────────────────
+const KR_CATALOG_UI_KEY = 'kr_catalog_ui';
+const CATALOG_UI_DEFAULTS = {
+  showCatTree: true,
+  showSidebarSearch: true,
+  showAge: true,
+  showBrand: true,
+  showVoltage: true,
+  showPrice: true
+};
+const CATALOG_UI_TOGGLE_MAP = {
+  showCatTree:         'cui_catTree',
+  showSidebarSearch:   'cui_sidebarSearch',
+  showAge:             'cui_age',
+  showBrand:           'cui_brand',
+  showVoltage:         'cui_voltage',
+  showPrice:           'cui_price'
+};
+
+function _getCatalogUISettings() {
+  try { return { ...CATALOG_UI_DEFAULTS, ...JSON.parse(localStorage.getItem(KR_CATALOG_UI_KEY) || '{}') }; }
+  catch(e) { return { ...CATALOG_UI_DEFAULTS }; }
+}
+
+function _saveCatalogUISettings(s) {
+  localStorage.setItem(KR_CATALOG_UI_KEY, JSON.stringify(s));
+}
+
+function loadCatalogUISettings() {
+  const s = _getCatalogUISettings();
+  for (const [key, btnId] of Object.entries(CATALOG_UI_TOGGLE_MAP)) {
+    const btn = document.getElementById(btnId);
+    if (!btn) continue;
+    if (s[key]) btn.classList.add('on'); else btn.classList.remove('on');
+  }
+}
+
+function toggleCatalogUI(key, btnId) {
+  const s = _getCatalogUISettings();
+  s[key] = !s[key];
+  _saveCatalogUISettings(s);
+  const btn = document.getElementById(btnId);
+  if (btn) { if (s[key]) btn.classList.add('on'); else btn.classList.remove('on'); }
+  // Show save confirmation
+  const status = document.getElementById('cuiSaveStatus');
+  if (status) {
+    status.style.display = 'block';
+    clearTimeout(status._t);
+    status._t = setTimeout(() => { status.style.display = 'none'; }, 2500);
+  }
 }
 
 // ── DEFAULT CATALOG CATEGORY ─────────────────────────────────

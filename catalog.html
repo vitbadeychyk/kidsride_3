@@ -2021,6 +2021,46 @@ function selectVehicleType(code, parentId) {
 }
 
 
+// ── CATALOG UI SETTINGS (controlled from admin panel) ────────────────────
+const KR_CATALOG_UI_KEY = 'kr_catalog_ui';
+
+function _getCatalogUISettings() {
+  try { return JSON.parse(localStorage.getItem(KR_CATALOG_UI_KEY) || '{}'); } catch(e) { return {}; }
+}
+
+function applyCatalogUISettings() {
+  const s = _getCatalogUISettings();
+  // Default: all visible (true) unless explicitly set to false
+  const show = (key, def) => s[key] === undefined ? def : s[key];
+
+  // Category tree block
+  const catTreeBlock = document.getElementById('catTreeBlock');
+  if (catTreeBlock) catTreeBlock.style.display = show('showCatTree', true) ? '' : 'none';
+
+  // Sidebar search
+  const sidebarSearch = document.querySelector('.sidebar-search');
+  if (sidebarSearch) sidebarSearch.style.display = show('showSidebarSearch', true) ? '' : 'none';
+
+  // Price filter
+  const priceBlock = document.getElementById('filterBlockPrice');
+  if (priceBlock) priceBlock.style.display = show('showPrice', true) ? '' : 'none';
+
+  // Age filter (only hidden explicitly; updateDynamicFilters also controls it)
+  const ageBlock = document.getElementById('filterBlockAge');
+  if (ageBlock && !show('showAge', true)) ageBlock.style.display = 'none';
+
+  // Brand filter
+  const brandBlock = document.getElementById('filterBlockBrand');
+  if (brandBlock && !show('showBrand', true)) brandBlock.style.display = 'none';
+
+  // Voltage filter
+  const voltBlock = document.getElementById('filterBlockVoltage');
+  if (voltBlock && !show('showVoltage', true)) voltBlock.style.display = 'none';
+}
+
+// Apply settings as early as possible (before products load)
+document.addEventListener('DOMContentLoaded', applyCatalogUISettings);
+
 // ── MOBILE CATEGORY NAVIGATION ──────────────────────────────────────────────
 let _mobNavLevel = 'main';  // 'main' | 'sub' | 'products'
 let _mobNavParentId = 0;    // selected main_category id when at sub/products level
@@ -2208,6 +2248,17 @@ function _initMobileCatNav() {
   const p = new URLSearchParams(location.search);
   const catId     = p.get('catId');
   const mainCatId = p.get('mainCatId') || p.get('parentId');
+  const searchQ   = p.get('search') || p.get('q') || '';
+
+  // ── Search query: bypass category nav, show products directly ─────────
+  if (searchQ.trim()) {
+    _mobNavInitDone = true;
+    _mobNavLevel    = 'products';
+    const nav = document.getElementById('mob-cat-nav');
+    if (nav) nav.style.display = 'none';
+    _mobCatNavToggleProductsArea(true);
+    return;
+  }
 
   if (catId) {
     // Arrived with a specific subcategory from URL
@@ -2654,7 +2705,13 @@ async function renderCatalog() {
     return;
   }
 
-  // ── Немає кешу: показуємо shimmer в сітці категорій, товари йдуть у фон ──
+  // ── Немає кешу ───────────────────────────────────────────────────────────
+  // If ?search= is present — show products area immediately (no category nav)
+  if (_hasSearchParam) {
+    _mobNavLevel = 'products';
+    _mobCatNavToggleProductsArea(true);
+  }
+  // ── Показуємо shimmer в сітці категорій, товари йдуть у фон ─────────────
   const _sk = (w1,w2,w3) => `<div class="skel-card"><div class="skel-line" style="height:190px;border-radius:0"></div><div style="padding:14px 16px"><div class="skel-line" style="height:13px;width:${w1}%;margin-bottom:8px"></div><div class="skel-line" style="height:11px;width:${w2}%;margin-bottom:14px"></div><div class="skel-line" style="height:22px;width:${w3}%;margin-bottom:12px"></div><div class="skel-line" style="height:38px;border-radius:10px"></div></div></div>`;
   grid.innerHTML = _sk(80,55,45)+_sk(75,60,50)+_sk(85,50,42)+_sk(70,65,48);
   // Shimmer tiles in category nav while cats load
