@@ -2035,7 +2035,11 @@ function applyCatalogUISettings() {
 
   // Category tree block
   const catTreeBlock = document.getElementById('catTreeBlock');
-  if (catTreeBlock) catTreeBlock.style.display = show('showCatTree', true) ? '' : 'none';
+  const showCatTree = show('showCatTree', true);
+  if (catTreeBlock) catTreeBlock.style.display = showCatTree ? '' : 'none';
+  // Also hide mobile category navigation when tree is disabled
+  const mobCatNav = document.getElementById('mob-cat-nav');
+  if (mobCatNav && !showCatTree) mobCatNav.style.display = 'none';
 
   // Sidebar search
   const sidebarSearch = document.querySelector('.sidebar-search');
@@ -2079,7 +2083,7 @@ function _mobCatNavToggleProductsArea(show) {
   if (ch) ch.style.display = show ? '' : 'none';
   if (cl) cl.style.display = show ? '' : 'none';
   if (af) af.style.display = show ? '' : 'none';
-  if (fb) fb.style.display = show ? 'flex' : 'none';
+  if (fb) fb.style.display = (show && window.innerWidth <= 900) ? 'flex' : 'none';
   if (!show && bb) bb.style.display = 'none';
 }
 
