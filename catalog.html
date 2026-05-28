@@ -2171,33 +2171,39 @@ function _mobNavShowSub(parentId) {
 
   const tiles = [];
   subs.forEach(sub => {
-    const _subP   = _avail2.filter(p => p.category_id === sub.id);
-    const _vtypes = [...new Set(_subP.map(p => p.category).filter(c => c && _VT_UA_SUB[c]))];
+    // "Запчастини" та подібні — завжди звичайний тайл, не розгортаємо
+    const _subNameLow = (sub.name || '').toLowerCase();
+    const _isParts    = /запчастин|запч|аксесуар/.test(_subNameLow);
 
-    if (_vtypes.length >= 2) {
-      // Розгортаємо підкатегорію транспорту одразу в тайли типів — без додаткового кліку
-      const sorted = _vtypes.sort((a, b) => (_VT_UA_SUB[a] || a).localeCompare(_VT_UA_SUB[b] || b, 'uk'));
-      sorted.forEach(code => {
-        const vtCnt = _subP.filter(p => p.category === code).length;
-        const icon  = _VT_ICON_SUB[code] || '📦';
-        const name  = _VT_UA_SUB[code]   || code;
-        tiles.push(`<div class="mob-cat-tile" onclick="_mobNavSelectVehicleType('${code}',${sub.id})">
-          <div class="mob-cat-tile-icon" style="font-size:2.4rem;display:flex;align-items:center;justify-content:center;width:100%;height:100%">${icon}</div>
-          <div class="mob-cat-tile-grad"></div>
-          <div class="mob-cat-tile-name">${name}</div>
-        </div>`);
-      });
-    } else {
-      // Звичайний тайл підкатегорії (Запчастини тощо)
-      const thumb = sub.image_url
-        ? `<img class="mob-cat-tile-img" src="${sub.image_url}" alt="${escAttr ? escAttr(sub.name) : sub.name}" loading="lazy">`
-        : `<div class="mob-cat-tile-icon">${_getCatIcon(sub.name)}</div>`;
-      tiles.push(`<div class="mob-cat-tile" onclick="_mobNavSelectSub(${sub.id})">
-        ${thumb}
-        <div class="mob-cat-tile-grad"></div>
-        <div class="mob-cat-tile-name">${sub.name}</div>
-      </div>`);
+    if (!_isParts) {
+      const _subP   = _avail2.filter(p => p.category_id === sub.id);
+      const _vtypes = [...new Set(_subP.map(p => p.category).filter(c => c && _VT_UA_SUB[c]))];
+
+      if (_vtypes.length >= 2) {
+        // Розгортаємо підкатегорію транспорту одразу в тайли типів — без додаткового кліку
+        const sorted = _vtypes.sort((a, b) => (_VT_UA_SUB[a] || a).localeCompare(_VT_UA_SUB[b] || b, 'uk'));
+        sorted.forEach(code => {
+          const icon = _VT_ICON_SUB[code] || '📦';
+          const name = _VT_UA_SUB[code]   || code;
+          tiles.push(`<div class="mob-cat-tile" onclick="_mobNavSelectVehicleType('${code}',${sub.id})">
+            <div class="mob-cat-tile-icon" style="font-size:2.4rem;display:flex;align-items:center;justify-content:center;width:100%;height:100%">${icon}</div>
+            <div class="mob-cat-tile-grad"></div>
+            <div class="mob-cat-tile-name">${name}</div>
+          </div>`);
+        });
+        return; // не додаємо тайл самої підкатегорії
+      }
     }
+
+    // Звичайний тайл підкатегорії (Запчастини, аксесуари тощо)
+    const thumb = sub.image_url
+      ? `<img class="mob-cat-tile-img" src="${sub.image_url}" alt="${escAttr ? escAttr(sub.name) : sub.name}" loading="lazy">`
+      : `<div class="mob-cat-tile-icon">${_getCatIcon(sub.name)}</div>`;
+    tiles.push(`<div class="mob-cat-tile" onclick="_mobNavSelectSub(${sub.id})">
+      ${thumb}
+      <div class="mob-cat-tile-grad"></div>
+      <div class="mob-cat-tile-name">${sub.name}</div>
+    </div>`);
   });
 
   grid.innerHTML = tiles.join('');
