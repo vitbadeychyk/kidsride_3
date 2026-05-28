@@ -2054,9 +2054,8 @@ function applyCatalogUISettings() {
   const catTreeBlock = document.getElementById('catTreeBlock');
   const showCatTree = show('showCatTree', true);
   if (catTreeBlock) catTreeBlock.style.display = showCatTree ? '' : 'none';
-  // Also hide mobile category navigation when tree is disabled
-  const mobCatNav = document.getElementById('mob-cat-nav');
-  if (mobCatNav && !showCatTree) mobCatNav.style.display = 'none';
+  // NOTE: mob-cat-nav visibility is handled by _mobNavShowMain dynamically
+  // (hides and shows products directly when showCatTree is disabled)
 
   // Sidebar search
   const sidebarSearch = document.querySelector('.sidebar-search');
@@ -2111,11 +2110,19 @@ function _mobNavShowMain() {
 
   const nav = document.getElementById('mob-cat-nav');
   if (!nav) return;
-  _mobCatNavToggleProductsArea(false);
-  // Respect admin setting: if catTree is disabled, skip showing mobile nav
+  // Respect admin setting: if catTree is disabled, show products directly
   const _catUIS = _getCatalogUISettings();
   const _showCatTreeEnabled = _catUIS.showCatTree === undefined ? true : _catUIS.showCatTree;
-  if (!_showCatTreeEnabled) return;
+  if (!_showCatTreeEnabled) {
+    // Category nav is OFF — show products area and load all products
+    _mobCatNavToggleProductsArea(true);
+    _mobNavLevel = 'products';
+    if (typeof _loadProductsForSelection === 'function') {
+      _loadProductsForSelection('').catch(() => {});
+    }
+    return;
+  }
+  _mobCatNavToggleProductsArea(false);
   nav.style.display = 'block';
 
   const heading = document.getElementById('mobCatHeading');
@@ -2815,8 +2822,8 @@ async function renderCatalog() {
     applyUrlFilters();
     await _loadProductsForSelection(_hasSearchParam ? (_p.get('search') || '') : undefined);
   }
-  // Якщо немає параметрів — просто показуємо категорії (без товарів)
-  // Покупець сам оберає категорію
+  // Якщо немає параметрів — _initMobileCatNav вже показує категорії або товари
+  // (залежно від налаштування showCatTree в адмінці)
 }
 
 // Повертає масив category_id для поточного вибору в дереві категорій
