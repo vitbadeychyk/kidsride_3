@@ -2214,16 +2214,22 @@ function _mobNavShowSub(parentId) {
 function _mobNavSelectSub(catId) {
   if (!_isMobileView()) return;
 
-  // ── Перевіряємо чи є підкатегорії (типи транспорту) ─────────────────────
-  const _VT_UA = {'jeep':'Джипи','quad':'Квадроцикли','moto':'Мотоцикли','car':'Машини',
-    'tractor':'Трактори','walker':'Каталки-толокари','truck':'Вантажівки','buggy':'Баggі'};
-  const _avail = (allProducts || []).filter(p => !(p.stock != null && p.stock <= 0 && !(Number(p.preorderDays) > 0)));
-  const _subP  = _avail.filter(p => p.category_id === catId);
-  const _vtypes = [...new Set(_subP.map(p => p.category).filter(c => c && _VT_UA[c]))];
+  // ── Перевіряємо чи є підкатегорії (типи транспорту), але не для Запчастин ─
+  const _selCat = (_allCategories || []).find(c => c.id === catId);
+  const _selNameLow = (_selCat ? _selCat.name || '' : '').toLowerCase();
+  const _selIsParts = /запчастин|запч|аксесуар/.test(_selNameLow);
 
-  if (_vtypes.length >= 2) {
-    _mobNavShowVehicleTypes(catId, _vtypes);
-    return;
+  if (!_selIsParts) {
+    const _VT_UA = {'jeep':'Джипи','quad':'Квадроцикли','moto':'Мотоцикли','car':'Машини',
+      'tractor':'Трактори','walker':'Каталки-толокари','truck':'Вантажівки','buggy':'Баggі'};
+    const _avail = (allProducts || []).filter(p => !(p.stock != null && p.stock <= 0 && !(Number(p.preorderDays) > 0)));
+    const _subP  = _avail.filter(p => p.category_id === catId);
+    const _vtypes = [...new Set(_subP.map(p => p.category).filter(c => c && _VT_UA[c]))];
+
+    if (_vtypes.length >= 2) {
+      _mobNavShowVehicleTypes(catId, _vtypes);
+      return;
+    }
   }
 
   // ── Стандартна поведінка — одразу до товарів ─────────────────────────────
