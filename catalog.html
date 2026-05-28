@@ -2030,7 +2030,7 @@ function _mobNavShowMain() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function _mobNavShowSub(parentId) {
+async function _mobNavShowSub(parentId) {
   if (!_isMobileView()) return;
   _mobNavLevel = 'sub';
   _mobNavParentId = parentId;
@@ -2052,7 +2052,7 @@ function _mobNavShowSub(parentId) {
   if (!grid) return;
 
   if (!subs.length) {
-    _mobNavSelectParent(parentId);
+    await _mobNavSelectParent(parentId);
     return;
   }
 
@@ -2096,9 +2096,10 @@ async function _mobNavSelectSub(catId) {
     if (pg) pg.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px 20px">'
       + '<div style="width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--orange);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px"></div>'
       + '<div style="font-family:Nunito,sans-serif;font-size:14px;color:var(--text-muted)">Завантаження товарів…</div></div>';
-    await window._krProductsPromise;
+    try { await window._krProductsPromise; } catch(_) { /* завжди продовжуємо */ }
   }
 
+  // Завжди викликаємо selectCategory — навіть якщо завантаження не вдалось
   selectCategory(catId, 0);
   window.scrollTo({ top: 0, behavior: 'instant' });
 }
@@ -2125,9 +2126,10 @@ async function _mobNavSelectParent(parentId) {
     if (pg) pg.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px 20px">'
       + '<div style="width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--orange);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px"></div>'
       + '<div style="font-family:Nunito,sans-serif;font-size:14px;color:var(--text-muted)">Завантаження товарів…</div></div>';
-    await window._krProductsPromise;
+    try { await window._krProductsPromise; } catch(_) { /* завжди продовжуємо */ }
   }
 
+  // Завжди викликаємо selectCategory — навіть якщо завантаження не вдалось
   selectCategory(0, parentId);
   window.scrollTo({ top: 0, behavior: 'instant' });
 }
@@ -2592,26 +2594,26 @@ async function renderCatalog() {
       allProducts = (prods || []).filter(p => p.active !== false);
       try { localStorage.setItem(PRODUCTS_CACHE_KEY, JSON.stringify(allProducts)); } catch(_) {}
 
-      const countEl = document.getElementById('catalogCount');
-      if (countEl) countEl.textContent = allProducts.length + ' товарів';
+      // Оновлюємо UI — весь блок в try/catch щоб promise ніколи не відхилявся
+      try {
+        const countEl = document.getElementById('catalogCount');
+        if (countEl) countEl.textContent = allProducts.length + ' товарів';
 
-      // Оновлюємо фільтри та дерево категорій (з реальними лічильниками)
-      updateDynamicFilters();
-      if (typeof loadCategoryTree === 'function') loadCategoryTree();
+        updateDynamicFilters();
+        if (typeof loadCategoryTree === 'function') loadCategoryTree();
 
-      // Оновлюємо поточний вигляд з реальними даними
-      if (typeof _mobNavLevel !== 'undefined') {
-        if (_mobNavLevel === 'products') {
-          // Покупець вже обрав категорію — показуємо товари
-          if (typeof applyUrlFilters === 'function') applyUrlFilters();
-          applyFiltersAndRender();
-        } else if (_mobNavLevel === 'main') {
-          // Оновлюємо плитки з реальними лічильниками товарів
-          if (typeof _mobNavShowMain === 'function') _mobNavShowMain();
-        } else if (_mobNavLevel === 'sub' && typeof _mobNavParentId !== 'undefined') {
-          if (typeof _mobNavShowSub === 'function') _mobNavShowSub(_mobNavParentId);
+        // Оновлюємо поточний вигляд з реальними даними
+        if (typeof _mobNavLevel !== 'undefined') {
+          if (_mobNavLevel === 'products') {
+            if (typeof applyUrlFilters === 'function') applyUrlFilters();
+            applyFiltersAndRender();
+          } else if (_mobNavLevel === 'main') {
+            if (typeof _mobNavShowMain === 'function') _mobNavShowMain();
+          } else if (_mobNavLevel === 'sub' && typeof _mobNavParentId !== 'undefined') {
+            if (typeof _mobNavShowSub === 'function') _mobNavShowSub(_mobNavParentId);
+          }
         }
-      }
+      } catch(_e) { /* UI update errors don't block navigation */ }
 
       // Фонове оновлення з Supabase якщо брали з кешу (без блокування)
       if (usedCache) {
