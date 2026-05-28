@@ -458,39 +458,86 @@ nav a.active{color:var(--orange)}
   .search-foot kbd{font-family:'Manrope',sans-serif;background:white;border:1px solid var(--border);padding:2px 7px;border-radius:5px;font-size:10px;font-weight:700;color:var(--navy)}
   @media(max-width:520px){.search-overlay{padding:60px 12px 12px}.search-form{padding:14px 16px}.search-form input{font-size:15px}.search-foot{display:none}.search-kbd{display:none}}
 /* ── MOBILE CATEGORY NAVIGATION ── */
-#mob-cat-nav{display:none;padding:16px 12px;min-height:calc(100vh - 140px);background:var(--bg-soft)}
-#mob-back-bar{display:none;align-items:center;gap:10px;padding:11px 16px;background:white;border-bottom:1px solid var(--border);cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+#mob-cat-nav{display:block;padding:16px 12px;min-height:calc(100vh - 200px);background:var(--bg-soft)}
+#mob-back-bar{display:none;align-items:center;gap:10px;padding:12px 16px;background:white;border-bottom:2px solid var(--border);cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;position:sticky;top:0;z-index:50;box-shadow:0 2px 8px rgba(27,42,74,.06)}
 #mob-back-bar:active{background:var(--bg-soft)}
 #mob-back-bar svg{stroke:var(--orange);flex-shrink:0;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
 #mob-back-bar span{font-size:13px;font-weight:700;color:var(--navy)}
 .mob-cat-header{display:flex;align-items:center;gap:12px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border)}
 .mob-cat-back{width:36px;height:36px;border:none;background:white;border-radius:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:var(--shadow-sm);flex-shrink:0;-webkit-tap-highlight-color:transparent}
 .mob-cat-back svg{stroke:var(--navy);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
-.mob-cat-heading{font-family:'Nunito',sans-serif;font-weight:800;font-size:18px;color:var(--navy);flex:1}
-.mob-cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-@media(max-width:400px){.mob-cat-grid{grid-template-columns:repeat(2,1fr)}}
-.mob-cat-tile{background:white;border-radius:12px;border:1.5px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:12px 8px 10px;cursor:pointer;transition:transform .15s,box-shadow .15s;text-align:center;touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none}
-.mob-cat-tile:active{transform:scale(.95);background:var(--bg-soft)}
-.mob-cat-tile-img{width:72px;height:72px;border-radius:12px;object-fit:contain;margin-bottom:8px;flex-shrink:0;background:var(--bg-soft);padding:4px}
-.mob-cat-tile-icon{width:72px;height:72px;border-radius:12px;background:linear-gradient(135deg,var(--bg-soft) 0%,var(--bg-warm) 100%);display:flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:8px;flex-shrink:0}
-.mob-cat-tile-name{font-family:'Nunito',sans-serif;font-weight:700;font-size:12px;color:var(--navy);line-height:1.3;word-break:break-word}
-.mob-cat-tile-cnt{font-size:10px;color:var(--text-muted);margin-top:3px;font-weight:600}
-/* === DESKTOP CATEGORY GRID (same tile-nav for all screen sizes) === */
+.mob-cat-heading{font-family:'Nunito',sans-serif;font-weight:800;font-size:18px;color:var(--navy);flex:1;letter-spacing:-.01em}
+/* ── Category tile grid ──────────────────────────────────────── */
+.mob-cat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+@media(min-width:480px){.mob-cat-grid{grid-template-columns:repeat(3,1fr)}}
+/* ── Single tile: full-bleed image card ─────────────────────── */
+.mob-cat-tile{
+  position:relative;overflow:hidden;border-radius:18px;
+  aspect-ratio:4/3;cursor:pointer;user-select:none;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+  box-shadow:0 4px 20px rgba(27,42,74,.10);
+  transition:transform .25s cubic-bezier(.34,1.3,.64,1),box-shadow .25s;
+  background:linear-gradient(135deg,#dce4f0 0%,#c8d4e8 100%);
+}
+.mob-cat-tile:hover{transform:translateY(-5px) scale(1.02);box-shadow:0 18px 44px rgba(27,42,74,.18)}
+.mob-cat-tile:active{transform:scale(.97);box-shadow:0 2px 8px rgba(27,42,74,.12)}
+/* Full-cover photo */
+.mob-cat-tile-img{
+  position:absolute;inset:0;width:100%;height:100%;
+  object-fit:cover;object-position:center;
+  transition:transform .4s cubic-bezier(.25,.46,.45,.94);
+  border-radius:0;margin:0;padding:0;
+}
+.mob-cat-tile:hover .mob-cat-tile-img{transform:scale(1.08)}
+/* Emoji / icon fallback (no image) */
+.mob-cat-tile-icon{
+  position:absolute;inset:0;display:flex;align-items:center;
+  justify-content:center;font-size:48px;
+}
+/* Dark gradient overlay */
+.mob-cat-tile-grad{
+  position:absolute;inset:0;
+  background:linear-gradient(to bottom,transparent 30%,rgba(14,27,55,.78) 100%);
+  pointer-events:none;
+}
+/* Category name at bottom */
+.mob-cat-tile-name{
+  position:absolute;bottom:0;left:0;right:0;
+  padding:10px 13px 12px;
+  color:#fff;font-family:'Nunito',sans-serif;
+  font-weight:800;font-size:13px;line-height:1.25;
+  text-shadow:0 1px 6px rgba(0,0,0,.5);
+  z-index:2;
+}
+/* Product count badge top-right */
+.mob-cat-tile-cnt{
+  position:absolute;top:10px;right:10px;
+  background:rgba(255,255,255,.22);backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  color:#fff;font-size:10px;font-weight:700;
+  padding:3px 9px;border-radius:100px;
+  border:1px solid rgba(255,255,255,.35);
+  z-index:2;
+}
+/* ── Desktop / tablet responsive ────────────────────────────── */
+@media(min-width:768px){
+  .mob-cat-grid{grid-template-columns:repeat(3,1fr);gap:16px}
+  .mob-cat-tile{aspect-ratio:3/4}
+  .mob-cat-tile-name{font-size:15px;padding:12px 16px 14px}
+}
 @media(min-width:1025px){
-  #mob-cat-nav{padding:24px 32px;min-height:unset;background:transparent}
-  #mob-back-bar{padding:13px 24px}
-  #mob-back-bar span{font-size:14px}
-  .mob-cat-grid{grid-template-columns:repeat(5,1fr);gap:16px}
-  .mob-cat-tile{padding:18px 12px 14px;border-radius:16px}
-  .mob-cat-tile-img,.mob-cat-tile-icon{width:100px;height:100px;border-radius:14px;margin-bottom:10px}
-  .mob-cat-tile-icon{font-size:38px}
-  .mob-cat-tile-name{font-size:13px}
-  .mob-cat-tile:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(27,42,74,.12)}
-  .mob-cat-heading{font-size:22px}
+  .mob-cat-grid{grid-template-columns:repeat(4,1fr);gap:20px}
+  .mob-cat-tile{border-radius:22px;aspect-ratio:2/3}
+  .mob-cat-tile-name{font-size:16px;padding:14px 18px 18px}
+  .mob-cat-tile-icon{font-size:64px}
+  .mob-cat-tile-cnt{font-size:11px;padding:4px 11px}
+  .mob-cat-heading{font-size:24px}
 }
 @media(min-width:1280px){
-  .mob-cat-grid{grid-template-columns:repeat(6,1fr)}
+  .mob-cat-grid{grid-template-columns:repeat(5,1fr)}
+  #mob-cat-nav{padding:24px 36px}
 }
+/* desktop override removed — nav shown on all screen sizes */
 </style>
 <script>
 (function(){
@@ -573,7 +620,7 @@ nav a.active{color:var(--orange)}
 </div>
 
 <!-- ACTIVE FILTERS -->
-<div class="active-filters" id="activeFilters">
+<div class="active-filters" id="activeFilters" style="display:none">
   <!-- populated by JS -->
 </div>
 
@@ -596,7 +643,7 @@ nav a.active{color:var(--orange)}
   </div>
 </div>
 
-<!-- CATALOG HEAD --><div class="catalog-head">
+<!-- CATALOG HEAD --><div class="catalog-head" style="display:none">
   <div class="catalog-title-row">
     <h1 class="catalog-title" id="catalogTitle">Каталог товарів</h1>
     <span class="catalog-count" id="catalogCount">Завантаження…</span>
@@ -628,7 +675,7 @@ nav a.active{color:var(--orange)}
 </div>
 
 <!-- CATALOG LAYOUT -->
-<div class="catalog-layout">
+<div class="catalog-layout" style="display:none">
 
   <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
@@ -1980,7 +2027,7 @@ let _mobNavParentId = 0;    // selected main_category id when at sub/products le
 let _mobNavInitDone = false;
 
 function _isMobileView() {
-  return true; // Block nav shown on all screen sizes
+  return true; // block nav shown on all screen sizes
 }
 
 function _mobCatNavToggleProductsArea(show) {
@@ -2036,8 +2083,9 @@ function _mobNavShowMain() {
       : `<div class="mob-cat-tile-icon">${_getCatIcon(mc.name)}</div>`;
     return `<div class="mob-cat-tile" onclick="_mobNavShowSub(${mc.id})">
       ${thumb}
+      <div class="mob-cat-tile-grad"></div>
+      ${cnt ? `<div class="mob-cat-tile-cnt">${cnt}</div>` : ''}
       <div class="mob-cat-tile-name">${mc.name}</div>
-      ${cnt ? `<div class="mob-cat-tile-cnt">${cnt} товарів</div>` : ''}
     </div>`;
   }).join('');
 
@@ -2081,8 +2129,9 @@ function _mobNavShowSub(parentId) {
       : `<div class="mob-cat-tile-icon">${_getCatIcon(sub.name)}</div>`;
     return `<div class="mob-cat-tile" onclick="_mobNavSelectSub(${sub.id})">
       ${thumb}
+      <div class="mob-cat-tile-grad"></div>
+      ${cnt ? `<div class="mob-cat-tile-cnt">${cnt}</div>` : ''}
       <div class="mob-cat-tile-name">${sub.name}</div>
-      ${cnt ? `<div class="mob-cat-tile-cnt">${cnt} товарів</div>` : ''}
     </div>`;
   }).join('');
 
@@ -2193,7 +2242,7 @@ function _initMobileCatNav() {
   _mobNavShowMain();
 }
 
-// Block nav now works on all screen sizes — no resize override needed
+// Block nav works on all screen sizes — no resize override needed
 
 
 // Завантажити товари з Supabase (з fallback на localStorage/дефолтні)
@@ -2572,6 +2621,12 @@ async function renderCatalog() {
     if (countEl) countEl.textContent = allProducts.length + ' товарів';
     updateDynamicFilters();
     applyUrlFilters();
+    // Якщо категорій ще немає в пам'яті — показуємо shimmer одразу
+    if (!_mainCategories.length) {
+      if(!document.getElementById('_shimmerStyle')){const _ss=document.createElement('style');_ss.id='_shimmerStyle';_ss.textContent='@keyframes _shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}';document.head.appendChild(_ss);}
+      const _cg=document.getElementById('mobCatGrid');
+      if(_cg){const _cs=()=>`<div class="mob-cat-tile" style="pointer-events:none"><div style="position:absolute;inset:0;background:linear-gradient(90deg,#dce4f0 25%,#c8d4e8 50%,#dce4f0 75%);background-size:200% 100%;animation:_shimmer 1.4s infinite"></div></div>`;_cg.innerHTML=_cs()+_cs()+_cs()+_cs()+_cs()+_cs();}
+    }
     // Дерево будуємо вже з allProducts заповненим
     loadCategoryTree();
     applyFiltersAndRender();
@@ -2601,9 +2656,13 @@ async function renderCatalog() {
     return;
   }
 
-  // ── Немає кешу: показуємо скелетон, запускаємо товари + категорії ПАРАЛЕЛЬНО ──
+  // ── Немає кешу: показуємо shimmer в сітці категорій, товари йдуть у фон ──
   const _sk = (w1,w2,w3) => `<div class="skel-card"><div class="skel-line" style="height:190px;border-radius:0"></div><div style="padding:14px 16px"><div class="skel-line" style="height:13px;width:${w1}%;margin-bottom:8px"></div><div class="skel-line" style="height:11px;width:${w2}%;margin-bottom:14px"></div><div class="skel-line" style="height:22px;width:${w3}%;margin-bottom:12px"></div><div class="skel-line" style="height:38px;border-radius:10px"></div></div></div>`;
-  grid.innerHTML = _sk(80,55,45)+_sk(75,60,50)+_sk(85,50,42)+_sk(70,65,48)+_sk(78,52,44)+_sk(82,58,46)+_sk(72,62,53)+_sk(77,57,41);
+  grid.innerHTML = _sk(80,55,45)+_sk(75,60,50)+_sk(85,50,42)+_sk(70,65,48);
+  // Shimmer tiles in category nav while cats load
+  if(!document.getElementById('_shimmerStyle')){const _ss=document.createElement('style');_ss.id='_shimmerStyle';_ss.textContent='@keyframes _shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}';document.head.appendChild(_ss);}
+  const _catNavGrid2=document.getElementById('mobCatGrid');
+  if(_catNavGrid2){const _cs2=()=>`<div class="mob-cat-tile" style="pointer-events:none"><div style="position:absolute;inset:0;background:linear-gradient(90deg,#dce4f0 25%,#c8d4e8 50%,#dce4f0 75%);background-size:200% 100%;animation:_shimmer 1.4s infinite"></div></div>`;_catNavGrid2.innerHTML=_cs2()+_cs2()+_cs2()+_cs2()+_cs2()+_cs2();}
 
   // Запускаємо товари та категорії одночасно — категорії завантажаться першими
   // і покажуться без затримки (без підрахунку товарів — він з'явиться після)
