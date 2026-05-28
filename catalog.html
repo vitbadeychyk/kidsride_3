@@ -2095,10 +2095,12 @@ function _mobNavShowMain() {
   if (!nav) return;
 
   // Якщо "Дерево категорій" вимкнено в адмінці — не показуємо навігацію,
-  // залишаємо видимою область товарів (щоб екран не був порожнім).
+  // але ОБОВ'ЯЗКОВО відкриваємо область товарів (вони стартують display:none).
   const _uiCat = _getCatalogUISettings();
-  if ((_uiCat.showCatTree === false)) {
+  const _treeEnabled = _uiCat.showCatTree === undefined ? true : !!_uiCat.showCatTree;
+  if (!_treeEnabled) {
     nav.style.display = 'none';
+    _mobCatNavToggleProductsArea(true);  // ← відкриваємо товари
     return;
   }
 
