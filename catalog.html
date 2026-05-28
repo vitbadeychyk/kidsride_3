@@ -2165,17 +2165,42 @@ function _mobNavShowSub(parentId) {
   const prodCounts = {};
   available.forEach(p => { if (p.category_id != null) prodCounts[p.category_id] = (prodCounts[p.category_id] || 0) + 1; });
 
-  grid.innerHTML = subs.map(sub => {
-    const cnt = prodCounts[sub.id] || 0;
-    const thumb = sub.image_url
-      ? `<img class="mob-cat-tile-img" src="${sub.image_url}" alt="${escAttr ? escAttr(sub.name) : sub.name}" loading="lazy">`
-      : `<div class="mob-cat-tile-icon">${_getCatIcon(sub.name)}</div>`;
-    return `<div class="mob-cat-tile" onclick="_mobNavSelectSub(${sub.id})">
-      ${thumb}
-      <div class="mob-cat-tile-grad"></div>
-      <div class="mob-cat-tile-name">${sub.name}</div>
-    </div>`;
-  }).join('');
+  const _VT_UA_SUB   = {'jeep':'Джипи','quad':'Квадроцикли','moto':'Мотоцикли','car':'Машини','tractor':'Трактори','walker':'Каталки-толокари','truck':'Вантажівки','buggy':'Баггі'};
+  const _VT_ICON_SUB = {'jeep':'🚙','quad':'🏎️','moto':'🏍️','car':'🚘','tractor':'🚜','walker':'🧸','truck':'🚛','buggy':'🏁'};
+  const _avail2 = (allProducts || []).filter(p => !(p.stock != null && p.stock <= 0 && !(Number(p.preorderDays) > 0)));
+
+  const tiles = [];
+  subs.forEach(sub => {
+    const _subP   = _avail2.filter(p => p.category_id === sub.id);
+    const _vtypes = [...new Set(_subP.map(p => p.category).filter(c => c && _VT_UA_SUB[c]))];
+
+    if (_vtypes.length >= 2) {
+      // Розгортаємо підкатегорію транспорту одразу в тайли типів — без додаткового кліку
+      const sorted = _vtypes.sort((a, b) => (_VT_UA_SUB[a] || a).localeCompare(_VT_UA_SUB[b] || b, 'uk'));
+      sorted.forEach(code => {
+        const vtCnt = _subP.filter(p => p.category === code).length;
+        const icon  = _VT_ICON_SUB[code] || '📦';
+        const name  = _VT_UA_SUB[code]   || code;
+        tiles.push(`<div class="mob-cat-tile" onclick="_mobNavSelectVehicleType('${code}',${sub.id})">
+          <div class="mob-cat-tile-icon" style="font-size:2.4rem;display:flex;align-items:center;justify-content:center;width:100%;height:100%">${icon}</div>
+          <div class="mob-cat-tile-grad"></div>
+          <div class="mob-cat-tile-name">${name}</div>
+        </div>`);
+      });
+    } else {
+      // Звичайний тайл підкатегорії (Запчастини тощо)
+      const thumb = sub.image_url
+        ? `<img class="mob-cat-tile-img" src="${sub.image_url}" alt="${escAttr ? escAttr(sub.name) : sub.name}" loading="lazy">`
+        : `<div class="mob-cat-tile-icon">${_getCatIcon(sub.name)}</div>`;
+      tiles.push(`<div class="mob-cat-tile" onclick="_mobNavSelectSub(${sub.id})">
+        ${thumb}
+        <div class="mob-cat-tile-grad"></div>
+        <div class="mob-cat-tile-name">${sub.name}</div>
+      </div>`);
+    }
+  });
+
+  grid.innerHTML = tiles.join('');
 
   window.scrollTo({ top: 0, behavior: 'instant' });
 }
@@ -3204,6 +3229,18 @@ function applyUrlFilters() {
     if (bcCur)  bcCur.textContent = name;
     if (titleEl) titleEl.textContent = name;
     _applyCategoryFilters(name);
+
+    // ── Тип транспорту з URL (?vType=jeep) — від карток categories.html
+    const _vTypeParam = params.get('vType') || params.get('vtype') || '';
+    const _VALID_VT   = new Set(['jeep','quad','moto','car','tractor','walker','truck','buggy']);
+    if (_vTypeParam && _VALID_VT.has(_vTypeParam)) {
+      _activeVehicleType = _vTypeParam;
+      _isDefaultMode     = false;
+      const _TYPE_UA_URL = {jeep:'Джипи',quad:'Квадроцикли',moto:'Мотоцикли',car:'Машини',tractor:'Трактори',walker:'Каталки-толокари',truck:'Вантажівки',buggy:'Баggі'};
+      const _typeName    = _TYPE_UA_URL[_vTypeParam] || _vTypeParam;
+      if (bcCur)   bcCur.textContent   = _typeName;
+      if (titleEl) titleEl.textContent = _typeName;
+    }
   }
   // ── Фільтр по батьківській категорії (parentId)
   else if (parentId && !isNaN(parseInt(parentId))) {
