@@ -2093,15 +2093,6 @@ function _mobNavShowMain() {
 
   const nav = document.getElementById('mob-cat-nav');
   if (!nav) return;
-
-  // Якщо "Дерево категорій" вимкнено в адмінці — не показуємо навігацію,
-  // залишаємо видимою область товарів (щоб екран не був порожнім).
-  const _uiCat = _getCatalogUISettings();
-  if ((_uiCat.showCatTree === false)) {
-    nav.style.display = 'none';
-    return;
-  }
-
   _mobCatNavToggleProductsArea(false);
   nav.style.display = 'block';
 
