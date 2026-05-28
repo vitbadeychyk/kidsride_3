@@ -339,8 +339,7 @@ nav a.active{color:var(--orange)}
   .products-grid.list .p-price{font-size:17px}
   .products-grid.list .p-specs{display:none}
 
-  /* Mobile filter button — shown only via JS when products list is open */
-  /* .mobile-filter-btn intentionally NOT shown here via CSS */
+  /* Mobile filter button — керується лише через JS (_mobCatNavToggleProductsArea) */
 
   /* Pagination */
   .pagination{padding:20px 0 80px}
@@ -934,8 +933,6 @@ function removeFilter(btn, label) {
 }
 
 function resetFilters() {
-    // Скидаємо ЛИШЕ фільтри (ціна, пошук, бренди, вік, напруга).
-    // Категорія/підкатегорія ЗБЕРІГАЄТЬСЯ — покупець лишається там де був.
     document.querySelectorAll('.filter-option.checked').forEach(opt => {
       if (opt.querySelector('.filter-label').textContent !== 'В наявності') {
         opt.classList.remove('checked');
@@ -945,28 +942,22 @@ function resetFilters() {
     const pm = document.getElementById('priceMin');
     const px = document.getElementById('priceMax');
     if (si) si.value = '';
-    // Ціновий діапазон — тільки з товарів поточної категорії (не всіх)
-    { const catProds = (allProducts || []).filter(p => {
-        if (_activeCatIdFilter && p.category_id !== _activeCatIdFilter) return false;
-        if (_activeParentIdFilter && !_activeCatIdFilter) {
-          const sub = (_allCategories || []).find(c => c.id === p.category_id);
-          if (!sub || sub.main_category_id !== _activeParentIdFilter) return false;
-        }
-        return p.price > 0;
-      });
-      const prices = catProds.length ? catProds.map(p => p.price) : (allProducts || []).filter(p => p.price > 0).map(p => p.price);
-      const pMin = prices.length ? Math.floor(Math.min(...prices)) : 0;
-      const pMax = prices.length ? Math.ceil(Math.max(...prices)) : 999999;
-      if (pm) { pm.min = pMin; pm.value = pMin; pm.setAttribute('min', pMin); }
-      if (px) { px.max = pMax; px.value = pMax; px.setAttribute('max', pMax); }
-    }
-    // Скидаємо тільки не-категорійні фільтри
+    // Динамічно встановлюємо ціну з реальних даних
+      { const prices=(allProducts||[]).filter(p=>p.price>0).map(p=>p.price);
+        const pMin=prices.length?Math.floor(Math.min(...prices)):0;
+        const pMax=prices.length?Math.ceil(Math.max(...prices)):999999;
+        if(pm){pm.min=pMin;pm.value=pMin;pm.setAttribute('min',pMin);}
+        if(px){px.max=pMax;px.value=pMax;px.setAttribute('max',pMax);}
+      }
+    // Скидаємо стан категорій та вмикаємо дефолтний режим
+    if (typeof _activeCatIdFilter !== 'undefined') { _activeCatIdFilter = 0; _activeParentIdFilter = 0; _activeVehicleType = ''; _isDefaultMode = true; }
     if (typeof activeFilters !== 'undefined') {
       activeFilters.types = []; activeFilters.ages = []; activeFilters.brands = []; activeFilters.voltages = [];
       activeFilters.priceMin = 0; activeFilters.priceMax = 999999; activeFilters.search = '';
     }
-    // НЕ скидаємо _activeCatIdFilter / _activeParentIdFilter / _activeVehicleType
-    // Активна підсвітка категорії в дереві ЗАЛИШАЄТЬСЯ
+    // Знімаємо активний клас з усіх категорій (жодна не підсвічена)
+    document.querySelectorAll('.cat-tree-all, .ctree-parent-row, .ctree-sub-row').forEach(el => el.classList.remove('active'));
+    // Якщо є Supabase-дані — повний рендер (ховає запчастини за замовчуванням)
     if (typeof applyFiltersAndRender === 'function') {
       applyFiltersAndRender();
     } else {
@@ -2102,17 +2093,6 @@ function _mobNavShowMain() {
 
   const nav = document.getElementById('mob-cat-nav');
   if (!nav) return;
-
-  // Якщо "Дерево категорій" вимкнено в адмінці — не показуємо навігацію,
-  // одразу показуємо область товарів (щоб не було порожнього екрану).
-  const _uiS = _getCatalogUISettings();
-  const _treeOn = _uiS.showCatTree === undefined ? true : _uiS.showCatTree;
-  if (!_treeOn) {
-    nav.style.display = 'none';
-    _mobCatNavToggleProductsArea(true);
-    return;
-  }
-
   _mobCatNavToggleProductsArea(false);
   nav.style.display = 'block';
 
@@ -3276,41 +3256,31 @@ function applyFilters() {
 }
 
 function resetFilters() {
-  // Скидаємо ЛИШЕ фільтри (ціна, пошук, бренди, вік, напруга).
-  // Категорія/підкатегорія ЗБЕРІГАЄТЬСЯ.
-  activeFilters.types = []; activeFilters.ages = []; activeFilters.brands = [];
-  activeFilters.voltages = []; activeFilters.priceMin = 0; activeFilters.priceMax = 999999;
-  activeFilters.search = '';
-  // НЕ скидаємо _activeCatIdFilter / _activeParentIdFilter / _activeVehicleType / _isDefaultMode
+  activeFilters = { types: [], ages: [], brands: [], voltages: [], priceMin: 0, priceMax: 999999, search: '' };
+  _activeCatIdFilter    = 0;
+  _activeParentIdFilter = 0;
+  _activeVehicleType    = '';
+  _isDefaultMode        = true;
   document.querySelectorAll('.filter-option.checked').forEach(o => o.classList.remove('checked'));
   const searchInput = document.getElementById('searchInput');
   if (searchInput) searchInput.value = '';
-  // Ціна — лише з товарів поточної категорії
-  const _catProds = (allProducts || []).filter(p => {
-    if (_activeCatIdFilter && p.category_id !== _activeCatIdFilter) return false;
-    if (_activeParentIdFilter && !_activeCatIdFilter) {
-      const _sub = (_allCategories || []).find(c => c.id === p.category_id);
-      if (!_sub || _sub.main_category_id !== _activeParentIdFilter) return false;
-    }
-    return p.price > 0;
-  });
-  const _prices = _catProds.length ? _catProds.map(p => p.price) : (allProducts || []).filter(p => p.price > 0).map(p => p.price);
-  const _pMin = _prices.length ? Math.floor(Math.min(..._prices)) : 0;
-  const _pMax = _prices.length ? Math.ceil(Math.max(..._prices)) : 999999;
   const priceMin = document.getElementById('priceMin');
   const priceMax = document.getElementById('priceMax');
-  if (priceMin) { priceMin.min = _pMin; priceMin.value = _pMin; priceMin.setAttribute('min', _pMin); }
-  if (priceMax) { priceMax.max = _pMax; priceMax.value = _pMax; priceMax.setAttribute('max', _pMax); }
-  const afEl = document.getElementById('activeFilters');
-  if (afEl) afEl.innerHTML = '';
-  // Прибираємо search з URL, але НЕ чіпаємо catId/parentId
+  if (priceMin) priceMin.value = 664;
+  if (priceMax) priceMax.value = 86610;
+  document.getElementById('activeFilters').innerHTML = '';
+  const titleEl = document.getElementById('catalogTitle');
+  if (titleEl) titleEl.textContent = 'Каталог товарів';
+  const bcCur = document.getElementById('bcCurrent');
+  if (bcCur) bcCur.textContent = 'Каталог';
+  // Clear search from URL
   try {
     const url = new URL(location.href);
     url.searchParams.delete('search');
     history.replaceState(null, '', url.toString());
   } catch(e) {}
   applyFiltersAndRender();
-  loadCategoryTree(); // освіжити підсвітку категорії (залишиться активною)
+  loadCategoryTree(); // оновити активний стан у дереві
 }
 
 // Знайти товар у завантаженому списку (для отримання img URL, sku та інших полів)
