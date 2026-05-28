@@ -522,12 +522,12 @@ nav a.active{color:var(--orange)}
 /* ── Desktop / tablet responsive ────────────────────────────── */
 @media(min-width:768px){
   .mob-cat-grid{grid-template-columns:repeat(3,1fr);gap:16px}
-  .mob-cat-tile{aspect-ratio:3/4}
+  .mob-cat-tile{aspect-ratio:1/1}
   .mob-cat-tile-name{font-size:15px;padding:12px 16px 14px}
 }
 @media(min-width:1025px){
   .mob-cat-grid{grid-template-columns:repeat(4,1fr);gap:20px}
-  .mob-cat-tile{border-radius:22px;aspect-ratio:2/3}
+  .mob-cat-tile{border-radius:22px;aspect-ratio:1/1}
   .mob-cat-tile-name{font-size:16px;padding:14px 18px 18px}
   .mob-cat-tile-icon{font-size:64px}
   .mob-cat-tile-cnt{font-size:11px;padding:4px 11px}
@@ -2039,7 +2039,7 @@ function _mobCatNavToggleProductsArea(show) {
   if (ch) ch.style.display = show ? '' : 'none';
   if (cl) cl.style.display = show ? '' : 'none';
   if (af) af.style.display = show ? '' : 'none';
-  if (!show && fb) fb.style.display = 'none';
+  if (fb) fb.style.display = show ? 'flex' : 'none';
   if (!show && bb) bb.style.display = 'none';
 }
 
@@ -2084,7 +2084,6 @@ function _mobNavShowMain() {
     return `<div class="mob-cat-tile" onclick="_mobNavShowSub(${mc.id})">
       ${thumb}
       <div class="mob-cat-tile-grad"></div>
-      ${cnt ? `<div class="mob-cat-tile-cnt">${cnt}</div>` : ''}
       <div class="mob-cat-tile-name">${mc.name}</div>
     </div>`;
   }).join('');
@@ -2130,7 +2129,6 @@ function _mobNavShowSub(parentId) {
     return `<div class="mob-cat-tile" onclick="_mobNavSelectSub(${sub.id})">
       ${thumb}
       <div class="mob-cat-tile-grad"></div>
-      ${cnt ? `<div class="mob-cat-tile-cnt">${cnt}</div>` : ''}
       <div class="mob-cat-tile-name">${sub.name}</div>
     </div>`;
   }).join('');
