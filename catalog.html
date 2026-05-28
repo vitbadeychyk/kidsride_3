@@ -339,8 +339,7 @@ nav a.active{color:var(--orange)}
   .products-grid.list .p-price{font-size:17px}
   .products-grid.list .p-specs{display:none}
 
-  /* Mobile filter button */
-  .mobile-filter-btn{display:flex}
+  /* Mobile filter button — shown only by JS when products view is active */
 
   /* Pagination */
   .pagination{padding:20px 0 80px}
@@ -812,7 +811,7 @@ nav a.active{color:var(--orange)}
 </div>
 
 <!-- MOBILE FILTER BUTTON -->
-<button class="mobile-filter-btn" onclick="openDrawer()">
+<button class="mobile-filter-btn" onclick="openDrawer()" style="display:none">
   <svg viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="12" y1="18" x2="20" y2="18"/></svg>
   Фільтри
 </button>
@@ -939,26 +938,35 @@ function resetFilters() {
         opt.classList.remove('checked');
       }
     });
-    const si = document.getElementById('searchInput');
-    const pm = document.getElementById('priceMin');
-    const px = document.getElementById('priceMax');
-    if (si) si.value = '';
-    // Динамічно встановлюємо ціну з реальних даних
-      { const prices=(allProducts||[]).filter(p=>p.price>0).map(p=>p.price);
-        const pMin=prices.length?Math.floor(Math.min(...prices)):0;
-        const pMax=prices.length?Math.ceil(Math.max(...prices)):999999;
-        if(pm){pm.min=pMin;pm.value=pMin;pm.setAttribute('min',pMin);}
-        if(px){px.max=pMax;px.value=pMax;px.setAttribute('max',pMax);}
-      }
-    // Скидаємо стан категорій та вмикаємо дефолтний режим
-    if (typeof _activeCatIdFilter !== 'undefined') { _activeCatIdFilter = 0; _activeParentIdFilter = 0; _activeVehicleType = ''; _isDefaultMode = true; }
+    // (search input and price range are reset below with category-scoped data)
+    // Скидаємо лише фільтри (ціна, пошук, бренд, вік, напруга)
+    // Категорія/підкатегорія ЗБЕРІГАЄТЬСЯ — покупець лишається у своїй категорії
     if (typeof activeFilters !== 'undefined') {
-      activeFilters.types = []; activeFilters.ages = []; activeFilters.brands = []; activeFilters.voltages = [];
-      activeFilters.priceMin = 0; activeFilters.priceMax = 999999; activeFilters.search = '';
+      activeFilters.ages = []; activeFilters.brands = []; activeFilters.voltages = [];
+      activeFilters.types = []; activeFilters.search = '';
+      // Ціну скидаємо до реального діапазону поточної категорії
+      const _catProds = (allProducts || []).filter(p => {
+        if (p.stock != null && p.stock <= 0 && !(Number(p.preorderDays) > 0)) return false;
+        const ids = _getActiveCategoryIds();
+        if (ids.length && !ids.includes(p.category_id)) return false;
+        if (_activeVehicleType && p.category !== _activeVehicleType) return false;
+        return true;
+      });
+      const _prices = _catProds.filter(p => p.price > 0).map(p => p.price);
+      const _pMin = _prices.length ? Math.floor(Math.min(..._prices)) : 0;
+      const _pMax = _prices.length ? Math.ceil(Math.max(..._prices)) : 999999;
+      activeFilters.priceMin = 0; activeFilters.priceMax = 999999;
+      const pm = document.getElementById('priceMin');
+      const px = document.getElementById('priceMax');
+      const si = document.getElementById('searchInput');
+      if (si) si.value = '';
+      if (pm) { pm.min = _pMin; pm.value = _pMin; pm.setAttribute('min', _pMin); }
+      if (px) { px.max = _pMax; px.value = _pMax; px.setAttribute('max', _pMax); }
     }
-    // Знімаємо активний клас з усіх категорій (жодна не підсвічена)
-    document.querySelectorAll('.cat-tree-all, .ctree-parent-row, .ctree-sub-row').forEach(el => el.classList.remove('active'));
-    // Якщо є Supabase-дані — повний рендер (ховає запчастини за замовчуванням)
+    // Знімаємо активні фільтр-чекбокси, але НЕ торкаємось дерева категорій
+    document.querySelectorAll('.filter-option.checked').forEach(opt => {
+      if (opt.querySelector('.filter-label')?.textContent !== 'В наявності') opt.classList.remove('checked');
+    });
     if (typeof applyFiltersAndRender === 'function') {
       applyFiltersAndRender();
     } else {
@@ -1671,12 +1679,20 @@ function _dispatchTreeAction(row) {
 
 // ── CATEGORIES CACHE ─────────────────────────────────────────────────────────
 const CATS_CACHE_KEY = 'kidsride_cats_v2';
+const CATS_CACHE_TTL = 10 * 60 * 1000; // 10 хвилин
 function _loadCatsFromStorage() {
   try {
     const raw = localStorage.getItem(CATS_CACHE_KEY);
     if (!raw) return false;
     const d = JSON.parse(raw);
     if (d && d.main && d.cats) {
+      // Якщо кеш свіжий (< 10 хв) — використовуємо без перезавантаження
+      if (d.ts && (Date.now() - d.ts) < CATS_CACHE_TTL) {
+        _mainCategories = d.main;
+        _allCategories  = d.cats;
+        return 'fresh'; // свіжий кеш — не треба re-fetch
+      }
+      // Кеш застарілий, але дані є — показуємо одразу, оновимо у фоні
       _mainCategories = d.main;
       _allCategories  = d.cats;
       return true;
@@ -1685,14 +1701,14 @@ function _loadCatsFromStorage() {
   return false;
 }
 function _saveCatsToStorage() {
-  try { localStorage.setItem(CATS_CACHE_KEY, JSON.stringify({ main: _mainCategories, cats: _allCategories })); } catch(_) {}
+  try { localStorage.setItem(CATS_CACHE_KEY, JSON.stringify({ main: _mainCategories, cats: _allCategories, ts: Date.now() })); } catch(_) {}
 }
 
 async function _fetchCategoriesFromSupabase() {
   const headers = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY };
   const _ctFetch = (url) => {
     const ctrl = new AbortController();
-    const tid = setTimeout(() => ctrl.abort(), 10000);
+    const tid = setTimeout(() => ctrl.abort(), 5000);
     return fetch(url, { headers, signal: ctrl.signal }).finally(() => clearTimeout(tid));
   };
   const [mcRes, catRes] = await Promise.all([
@@ -2095,6 +2111,10 @@ function _mobNavShowMain() {
   const nav = document.getElementById('mob-cat-nav');
   if (!nav) return;
   _mobCatNavToggleProductsArea(false);
+  // Respect admin setting: if catTree is disabled, skip showing mobile nav
+  const _catUIS = _getCatalogUISettings();
+  const _showCatTreeEnabled = _catUIS.showCatTree === undefined ? true : _catUIS.showCatTree;
+  if (!_showCatTreeEnabled) return;
   nav.style.display = 'block';
 
   const heading = document.getElementById('mobCatHeading');
@@ -2123,7 +2143,7 @@ function _mobNavShowMain() {
   grid.innerHTML = _mainCategories.map(mc => {
     const cnt = prodCounts[mc.id] || 0;
     const thumb = mc.image_url
-      ? `<img class="mob-cat-tile-img" src="${mc.image_url}" alt="${escAttr ? escAttr(mc.name) : mc.name}" loading="lazy">`
+      ? `<img class="mob-cat-tile-img" src="${mc.image_url}" alt="${escAttr ? escAttr(mc.name) : mc.name}" loading="eager" decoding="async">`
       : `<div class="mob-cat-tile-icon">${_getCatIcon(mc.name)}</div>`;
     return `<div class="mob-cat-tile" onclick="_mobNavShowSub(${mc.id})">
       ${thumb}
@@ -2168,7 +2188,7 @@ function _mobNavShowSub(parentId) {
   grid.innerHTML = subs.map(sub => {
     const cnt = prodCounts[sub.id] || 0;
     const thumb = sub.image_url
-      ? `<img class="mob-cat-tile-img" src="${sub.image_url}" alt="${escAttr ? escAttr(sub.name) : sub.name}" loading="lazy">`
+      ? `<img class="mob-cat-tile-img" src="${sub.image_url}" alt="${escAttr ? escAttr(sub.name) : sub.name}" loading="eager" decoding="async">`
       : `<div class="mob-cat-tile-icon">${_getCatIcon(sub.name)}</div>`;
     return `<div class="mob-cat-tile" onclick="_mobNavSelectSub(${sub.id})">
       ${thumb}
@@ -2734,11 +2754,13 @@ async function renderCatalog() {
   }
 
   // Завантажуємо товари і категорії паралельно
-  // Якщо категорії НЕ в кеші — завантажуємо їх окремо і показуємо одразу, як тільки прийдуть
+  // Якщо кеш свіжий (< 10 хв) — не перезавантажуємо категорії зовсім
+  const _skipCatsFetch = (catsAlreadyCached === 'fresh');
   let _catsFetchDone = false;
-  const catsPromise = catsAlreadyCached
+  const catsPromise = (catsAlreadyCached && _skipCatsFetch)
     ? Promise.resolve()
-    : _fetchCategoriesFromSupabase()
+    : catsAlreadyCached
+    ? _fetchCategoriesFromSupabase()
         .then(() => {
           _saveCatsToStorage();
           _catsFetchDone = true;
