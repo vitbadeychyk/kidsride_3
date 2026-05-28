@@ -611,7 +611,7 @@ nav a.active{color:var(--orange)}
   <span class="breadcrumb-sep">
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
   </span>
-  <a href="categories.html" id="bcCategories" style="display:none;color:var(--text-muted);transition:color .2s">Категорії</a>
+  <a href="#" id="bcCategories" onclick="(window.innerWidth<=900?(_mobNavGoBack&&_mobNavGoBack()):selectCategory(0,0));return false;" style="display:none;color:var(--text-muted);transition:color .2s">Категорії</a>
   <span class="breadcrumb-sep" id="bcSep2" style="display:none">
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
   </span>
@@ -1102,7 +1102,7 @@ function clearSearch() {
 
 // View toggle
 const _KR_VIEW_KEY = 'kr_catalog_view';
-let currentView = (function(){ try { return localStorage.getItem(_KR_VIEW_KEY) || 'grid'; } catch(_){ return 'grid'; } })();
+let currentView = (function(){ try { const _sv=localStorage.getItem(_KR_VIEW_KEY); return _sv||((window.innerWidth<=900)?'list':'grid'); } catch(_){ return 'grid'; } })();
 function setView(view, btn) {
   currentView = view;
   try { localStorage.setItem(_KR_VIEW_KEY, view); } catch(_) {}
