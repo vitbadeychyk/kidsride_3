@@ -2032,36 +2032,35 @@ function applyCatalogUISettings() {
   // Default: all visible (true) unless explicitly set to false
   const show = (key, def) => s[key] === undefined ? def : s[key];
 
-  // Category tree block — separate settings for desktop and mobile
-  // Backward compat: if old showCatTree exists, use it as fallback default
-  const _legacyCatTree = show('showCatTree', true);
-  const showCatTreeDesktop = show('showCatTreeDesktop', _legacyCatTree);
-  const showCatTreeMobile  = show('showCatTreeMobile',  _legacyCatTree);
+  // Category tree block (original logic — unchanged)
   const catTreeBlock = document.getElementById('catTreeBlock');
-  if (catTreeBlock) {
-    const isMobile = window.matchMedia('(max-width: 767px)').matches;
-    const visible = isMobile ? showCatTreeMobile : showCatTreeDesktop;
-    catTreeBlock.style.display = visible ? '' : 'none';
+  const showCatTree = show('showCatTree', true);
+  if (catTreeBlock) catTreeBlock.style.display = showCatTree ? '' : 'none';
+  // Also hide mobile category navigation when tree is disabled
+  const mobCatNav = document.getElementById('mob-cat-nav');
+  if (mobCatNav && !showCatTree) mobCatNav.style.display = 'none';
+
+  // ── NEW: «Категорії у фільтрі» — separate desktop / mobile control ──────
+  // Applies on top of showCatTree: if the master is on, these can hide per device
+  const showFilterCatDesktop = show('showFilterCatDesktop', true);
+  const showFilterCatMobile  = show('showFilterCatMobile',  true);
+  function _applyFilterCatVisibility() {
+    const mob = window.matchMedia('(max-width: 767px)').matches;
+    const block = document.getElementById('catTreeBlock');
+    if (!block) return;
+    // Master toggle takes priority; device toggle applies only when master is ON
+    if (!showCatTree) { block.style.display = 'none'; return; }
+    block.style.display = (mob ? showFilterCatMobile : showFilterCatDesktop) ? '' : 'none';
+    // Mobile category nav follows mobile setting
+    const nav = document.getElementById('mob-cat-nav');
+    if (nav) nav.style.display = showFilterCatMobile ? '' : 'none';
   }
-  // Rebuild on resize so switching between views works correctly
+  _applyFilterCatVisibility();
+  // Re-evaluate on resize (e.g. DevTools responsive toggle)
   if (!applyCatalogUISettings._resizeBound) {
     applyCatalogUISettings._resizeBound = true;
-    window.addEventListener('resize', () => {
-      const s2 = _getCatalogUISettings();
-      const show2 = (k, d) => s2[k] === undefined ? d : s2[k];
-      const _lg2 = show2('showCatTree', true);
-      const desktop2 = show2('showCatTreeDesktop', _lg2);
-      const mobile2  = show2('showCatTreeMobile',  _lg2);
-      const block = document.getElementById('catTreeBlock');
-      if (block) {
-        const mob = window.matchMedia('(max-width: 767px)').matches;
-        block.style.display = (mob ? mobile2 : desktop2) ? '' : 'none';
-      }
-    });
+    window.addEventListener('resize', _applyFilterCatVisibility);
   }
-  // Also hide mobile category navigation when tree is disabled on mobile
-  const mobCatNav = document.getElementById('mob-cat-nav');
-  if (mobCatNav && !showCatTreeMobile) mobCatNav.style.display = 'none';
 
   // Sidebar search
   const sidebarSearch = document.querySelector('.sidebar-search');

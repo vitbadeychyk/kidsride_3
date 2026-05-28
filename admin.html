@@ -2579,25 +2579,32 @@ CREATE POLICY "admin_write_promo" ON promo_codes FOR ALL USING (auth.role()='aut
           <p style="font-size:13px;color:var(--text-muted);margin-bottom:20px">Керуйте видимістю блоків бічного меню на сторінці товарів — зміни застосовуються одразу на сайті (і на десктопі, і на мобільному).</p>
           <div style="display:flex;flex-direction:column;gap:0">
             <!-- row helper -->
-            <div id="cuiRow_catTreeDesktop" class="cui-row" style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border)">
+            <div id="cuiRow_catTree" class="cui-row" style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border)">
               <div>
-                <div style="display:flex;align-items:center;gap:8px">
-                  <div style="font-size:14px;font-weight:700;color:var(--navy)">Дерево категорій — ПК</div>
-                  <span style="font-size:11px;font-weight:600;color:#fff;background:var(--navy);border-radius:4px;padding:1px 7px;opacity:.65">🖥</span>
-                </div>
-                <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Навігація по категоріях у боковій панелі фільтрів (тільки на десктопі)</div>
+                <div style="font-size:14px;font-weight:700;color:var(--navy)">Дерево категорій</div>
+                <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Навігація по категоріях / підкатегоріях у боковій панелі</div>
               </div>
-              <button class="slide-toggle" id="cui_catTreeDesktop" onclick="toggleCatalogUI('showCatTreeDesktop','cui_catTreeDesktop')" title="Увімкнути/вимкнути"></button>
+              <button class="slide-toggle" id="cui_catTree" onclick="toggleCatalogUI('showCatTree','cui_catTree')" title="Увімкнути/вимкнути"></button>
             </div>
-            <div id="cuiRow_catTreeMobile" class="cui-row" style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border)">
+            <div id="cuiRow_filterCatDesktop" class="cui-row" style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border)">
               <div>
                 <div style="display:flex;align-items:center;gap:8px">
-                  <div style="font-size:14px;font-weight:700;color:var(--navy)">Дерево категорій — Мобільна</div>
-                  <span style="font-size:11px;font-weight:600;color:#fff;background:#e07b2a;border-radius:4px;padding:1px 7px;opacity:.8">📱</span>
+                  <div style="font-size:14px;font-weight:700;color:var(--navy)">Категорії у фільтрі — ПК</div>
+                  <span style="font-size:11px;font-weight:600;color:#fff;background:var(--navy);border-radius:4px;padding:2px 8px;letter-spacing:.02em">🖥 ПК</span>
                 </div>
-                <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Навігація по категоріях у панелі фільтрів (тільки на мобільних)</div>
+                <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Блок «Категорії» у боковому фільтрі при перегляді товарів — тільки на десктопі</div>
               </div>
-              <button class="slide-toggle" id="cui_catTreeMobile" onclick="toggleCatalogUI('showCatTreeMobile','cui_catTreeMobile')" title="Увімкнути/вимкнути"></button>
+              <button class="slide-toggle" id="cui_filterCatDesktop" onclick="toggleCatalogUI('showFilterCatDesktop','cui_filterCatDesktop')" title="Увімкнути/вимкнути"></button>
+            </div>
+            <div id="cuiRow_filterCatMobile" class="cui-row" style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border)">
+              <div>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div style="font-size:14px;font-weight:700;color:var(--navy)">Категорії у фільтрі — Мобільна</div>
+                  <span style="font-size:11px;font-weight:600;color:#fff;background:#e07b2a;border-radius:4px;padding:2px 8px;letter-spacing:.02em">📱 Mobile</span>
+                </div>
+                <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Блок «Категорії» у боковому фільтрі при перегляді товарів — тільки на мобільних</div>
+              </div>
+              <button class="slide-toggle" id="cui_filterCatMobile" onclick="toggleCatalogUI('showFilterCatMobile','cui_filterCatMobile')" title="Увімкнути/вимкнути"></button>
             </div>
             <div id="cuiRow_sidebarSearch" class="cui-row" style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border)">
               <div>
@@ -6223,8 +6230,9 @@ function _cacheSettings(obj) {
 // ── CATALOG UI SETTINGS ──────────────────────────────────────────────────
 const KR_CATALOG_UI_KEY = 'kr_catalog_ui';
 const CATALOG_UI_DEFAULTS = {
-  showCatTreeDesktop: true,
-  showCatTreeMobile: true,
+  showCatTree: true,
+  showFilterCatDesktop: true,
+  showFilterCatMobile: true,
   showSidebarSearch: true,
   showAge: true,
   showBrand: true,
@@ -6232,13 +6240,14 @@ const CATALOG_UI_DEFAULTS = {
   showPrice: true
 };
 const CATALOG_UI_TOGGLE_MAP = {
-  showCatTreeDesktop:  'cui_catTreeDesktop',
-  showCatTreeMobile:   'cui_catTreeMobile',
-  showSidebarSearch:   'cui_sidebarSearch',
-  showAge:             'cui_age',
-  showBrand:           'cui_brand',
-  showVoltage:         'cui_voltage',
-  showPrice:           'cui_price'
+  showCatTree:           'cui_catTree',
+  showFilterCatDesktop:  'cui_filterCatDesktop',
+  showFilterCatMobile:   'cui_filterCatMobile',
+  showSidebarSearch:     'cui_sidebarSearch',
+  showAge:               'cui_age',
+  showBrand:             'cui_brand',
+  showVoltage:           'cui_voltage',
+  showPrice:             'cui_price'
 };
 
 function _getCatalogUISettings() {
