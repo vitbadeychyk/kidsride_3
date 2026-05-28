@@ -313,8 +313,8 @@ nav a.active{color:var(--orange)}
   /* Breadcrumb */
   .breadcrumb{margin-top:60px;padding:12px 16px;font-size:12px}
 
-  /* Catalog head */
-  .catalog-head{padding:14px 16px;flex-wrap:wrap;gap:10px}
+  /* Catalog head — hidden on mobile by default; shown by JS when product view active */
+  .catalog-head{display:none;padding:14px 16px;flex-wrap:wrap;gap:10px}
   .catalog-title{font-size:18px}
   .catalog-controls{width:100%;justify-content:space-between;gap:6px;overflow:hidden}
   .page-size-select{display:none}
@@ -324,8 +324,8 @@ nav a.active{color:var(--orange)}
   /* Active filters */
   .active-filters{padding:10px 16px}
 
-  /* Layout — hide sidebar, show full width */
-  .catalog-layout{grid-template-columns:1fr;margin-top:0}
+  /* Layout — hidden on mobile by default; shown by JS when product view active */
+  .catalog-layout{display:none;grid-template-columns:1fr;margin-top:0}
   .sidebar{display:none}
 
   /* Products area */
@@ -339,8 +339,8 @@ nav a.active{color:var(--orange)}
   .products-grid.list .p-price{font-size:17px}
   .products-grid.list .p-specs{display:none}
 
-  /* Mobile filter button */
-  .mobile-filter-btn{display:flex}
+  /* Mobile filter button — shown by JS only when in product view */
+  .mobile-filter-btn{display:none}
 
   /* Pagination */
   .pagination{padding:20px 0 80px}
@@ -458,7 +458,7 @@ nav a.active{color:var(--orange)}
   .search-foot kbd{font-family:'Manrope',sans-serif;background:white;border:1px solid var(--border);padding:2px 7px;border-radius:5px;font-size:10px;font-weight:700;color:var(--navy)}
   @media(max-width:520px){.search-overlay{padding:60px 12px 12px}.search-form{padding:14px 16px}.search-form input{font-size:15px}.search-foot{display:none}.search-kbd{display:none}}
 /* ── MOBILE CATEGORY NAVIGATION ── */
-#mob-cat-nav{display:none;padding:16px 12px;min-height:calc(100vh - 140px);background:var(--bg-soft)}
+#mob-cat-nav{display:block;padding:16px 12px;min-height:calc(100vh - 140px);background:var(--bg-soft)}
 #mob-back-bar{display:none;align-items:center;gap:10px;padding:11px 16px;background:white;border-bottom:1px solid var(--border);cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 #mob-back-bar:active{background:var(--bg-soft)}
 #mob-back-bar svg{stroke:var(--orange);flex-shrink:0;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
@@ -1974,10 +1974,11 @@ function _mobCatNavToggleProductsArea(show) {
   const af = document.getElementById('activeFilters');
   const fb = document.querySelector('.mobile-filter-btn');
   const bb = document.getElementById('mob-back-bar');
-  if (ch) ch.style.display = show ? '' : 'none';
-  if (cl) cl.style.display = show ? '' : 'none';
+  // Explicit display values — CSS hides these on mobile by default
+  if (ch) ch.style.display = show ? 'flex' : 'none';
+  if (cl) cl.style.display = show ? 'grid' : 'none';
   if (af) af.style.display = show ? '' : 'none';
-  if (!show && fb) fb.style.display = 'none';
+  if (fb) fb.style.display = show ? 'flex' : 'none';
   if (!show && bb) bb.style.display = 'none';
 }
 
