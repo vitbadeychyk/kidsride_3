@@ -933,6 +933,12 @@ function removeFilter(btn, label) {
 }
 
 function resetFilters() {
+    // Зберігаємо поточну категорію — вона НЕ скидається кнопкою "Скинути всі"
+    const _savedCatId    = (typeof _activeCatIdFilter    !== 'undefined') ? _activeCatIdFilter    : 0;
+    const _savedParentId = (typeof _activeParentIdFilter !== 'undefined') ? _activeParentIdFilter : 0;
+    const _savedVType    = (typeof _activeVehicleType    !== 'undefined') ? _activeVehicleType    : '';
+
+    // Скидаємо лише нокатегорійні фільтри
     document.querySelectorAll('.filter-option.checked').forEach(opt => {
       if (opt.querySelector('.filter-label').textContent !== 'В наявності') {
         opt.classList.remove('checked');
@@ -942,28 +948,29 @@ function resetFilters() {
     const pm = document.getElementById('priceMin');
     const px = document.getElementById('priceMax');
     if (si) si.value = '';
-    // Динамічно встановлюємо ціну з реальних даних
-      { const prices=(allProducts||[]).filter(p=>p.price>0).map(p=>p.price);
-        const pMin=prices.length?Math.floor(Math.min(...prices)):0;
-        const pMax=prices.length?Math.ceil(Math.max(...prices)):999999;
-        if(pm){pm.min=pMin;pm.value=pMin;pm.setAttribute('min',pMin);}
-        if(px){px.max=pMax;px.value=pMax;px.setAttribute('max',pMax);}
-      }
-    // Скидаємо стан категорій та вмикаємо дефолтний режим
-    if (typeof _activeCatIdFilter !== 'undefined') { _activeCatIdFilter = 0; _activeParentIdFilter = 0; _activeVehicleType = ''; _isDefaultMode = true; }
+    { const prices=(allProducts||[]).filter(p=>p.price>0).map(p=>p.price);
+      const pMin=prices.length?Math.floor(Math.min(...prices)):0;
+      const pMax=prices.length?Math.ceil(Math.max(...prices)):999999;
+      if(pm){pm.min=pMin;pm.value=pMin;pm.setAttribute('min',pMin);}
+      if(px){px.max=pMax;px.value=pMax;px.setAttribute('max',pMax);}
+    }
     if (typeof activeFilters !== 'undefined') {
       activeFilters.types = []; activeFilters.ages = []; activeFilters.brands = []; activeFilters.voltages = [];
       activeFilters.priceMin = 0; activeFilters.priceMax = 999999; activeFilters.search = '';
     }
-    // Знімаємо активний клас з усіх категорій (жодна не підсвічена)
-    document.querySelectorAll('.cat-tree-all, .ctree-parent-row, .ctree-sub-row').forEach(el => el.classList.remove('active'));
-    // Якщо є Supabase-дані — повний рендер (ховає запчастини за замовчуванням)
+    // Відновлюємо категорію
+    if (typeof _activeCatIdFilter !== 'undefined') {
+      _activeCatIdFilter    = _savedCatId;
+      _activeParentIdFilter = _savedParentId;
+      _activeVehicleType    = _savedVType;
+      _isDefaultMode        = (_savedCatId === 0 && _savedParentId === 0 && _savedVType === '');
+    }
     if (typeof applyFiltersAndRender === 'function') {
       applyFiltersAndRender();
     } else {
       applyFilters();
     }
-    updateActiveFilters();
+    if (typeof updateActiveFilters === 'function') updateActiveFilters();
   }
 
 // Помічники для парсингу даних картки
@@ -3447,31 +3454,41 @@ function applyFilters() {
 }
 
 function resetFilters() {
+  // Зберігаємо поточну категорію — вона НЕ скидається кнопкою "Скинути всі"
+  const _savedCatId    = _activeCatIdFilter    || 0;
+  const _savedParentId = _activeParentIdFilter || 0;
+  const _savedVType    = _activeVehicleType    || '';
+
+  // Скидаємо лише нокатегорійні фільтри
   activeFilters = { types: [], ages: [], brands: [], voltages: [], priceMin: 0, priceMax: 999999, search: '' };
-  _activeCatIdFilter    = 0;
-  _activeParentIdFilter = 0;
-  _activeVehicleType    = '';
-  _isDefaultMode        = true;
   document.querySelectorAll('.filter-option.checked').forEach(o => o.classList.remove('checked'));
   const searchInput = document.getElementById('searchInput');
   if (searchInput) searchInput.value = '';
+  // Ціна — динамічно з реальних даних
   const priceMin = document.getElementById('priceMin');
   const priceMax = document.getElementById('priceMax');
-  if (priceMin) priceMin.value = 664;
-  if (priceMax) priceMax.value = 86610;
-  document.getElementById('activeFilters').innerHTML = '';
-  const titleEl = document.getElementById('catalogTitle');
-  if (titleEl) titleEl.textContent = 'Каталог товарів';
-  const bcCur = document.getElementById('bcCurrent');
-  if (bcCur) bcCur.textContent = 'Каталог';
+  const _prices = (allProducts || []).filter(p => p.price > 0).map(p => p.price);
+  const _pMin = _prices.length ? Math.floor(Math.min(..._prices)) : 0;
+  const _pMax = _prices.length ? Math.ceil(Math.max(..._prices))  : 999999;
+  if (priceMin) { priceMin.min = _pMin; priceMin.value = _pMin; priceMin.setAttribute('min', _pMin); }
+  if (priceMax) { priceMax.max = _pMax; priceMax.value = _pMax; priceMax.setAttribute('max', _pMax); }
+  const afEl = document.getElementById('activeFilters');
+  if (afEl) afEl.innerHTML = '';
   // Clear search from URL
   try {
     const url = new URL(location.href);
     url.searchParams.delete('search');
     history.replaceState(null, '', url.toString());
   } catch(e) {}
+
+  // Відновлюємо категорію яку покупець обрав
+  _activeCatIdFilter    = _savedCatId;
+  _activeParentIdFilter = _savedParentId;
+  _activeVehicleType    = _savedVType;
+  _isDefaultMode        = (_savedCatId === 0 && _savedParentId === 0 && _savedVType === '');
+
   applyFiltersAndRender();
-  loadCategoryTree(); // оновити активний стан у дереві
+  loadCategoryTree(); // відновити підсвічення категорії у дереві
 }
 
 // Знайти товар у завантаженому списку (для отримання img URL, sku та інших полів)
