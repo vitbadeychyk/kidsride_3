@@ -2075,7 +2075,7 @@ function _mobNavShowSub(parentId) {
   window.scrollTo({ top: 0, behavior: 'instant' });
 }
 
-function _mobNavSelectSub(catId) {
+async function _mobNavSelectSub(catId) {
   if (!_isMobileView()) return;
   const nav = document.getElementById('mob-cat-nav');
   if (nav) nav.style.display = 'none';
@@ -2090,11 +2090,20 @@ function _mobNavSelectSub(catId) {
     bl.textContent = parent ? parent.name : 'Каталог';
   }
 
+  // Якщо товари ще не завантажені — показуємо спіннер і чекаємо
+  if (!allProducts.length && window._krProductsPromise) {
+    const pg = document.getElementById('productsGrid');
+    if (pg) pg.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px 20px">'
+      + '<div style="width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--orange);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px"></div>'
+      + '<div style="font-family:Nunito,sans-serif;font-size:14px;color:var(--text-muted)">Завантаження товарів…</div></div>';
+    await window._krProductsPromise;
+  }
+
   selectCategory(catId, 0);
   window.scrollTo({ top: 0, behavior: 'instant' });
 }
 
-function _mobNavSelectParent(parentId) {
+async function _mobNavSelectParent(parentId) {
   if (!_isMobileView()) return;
   const nav = document.getElementById('mob-cat-nav');
   if (nav) nav.style.display = 'none';
@@ -2108,6 +2117,15 @@ function _mobNavSelectParent(parentId) {
   if (bl) {
     const parent = (_mainCategories || []).find(c => c.id === parentId);
     bl.textContent = parent ? parent.name : 'Каталог';
+  }
+
+  // Якщо товари ще не завантажені — показуємо спіннер і чекаємо
+  if (!allProducts.length && window._krProductsPromise) {
+    const pg = document.getElementById('productsGrid');
+    if (pg) pg.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px 20px">'
+      + '<div style="width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--orange);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px"></div>'
+      + '<div style="font-family:Nunito,sans-serif;font-size:14px;color:var(--text-muted)">Завантаження товарів…</div></div>';
+    await window._krProductsPromise;
   }
 
   selectCategory(0, parentId);
@@ -2161,6 +2179,10 @@ function _initMobileCatNav() {
       const parent = (_mainCategories || []).find(c => c.id === _mobNavParentId);
       bl.textContent = parent ? parent.name : 'Каталог';
     }
+    // Ensure products area is visible (CSS hides it by default on mobile)
+    _mobCatNavToggleProductsArea(true);
+    const _mn = document.getElementById('mob-cat-nav');
+    if (_mn) _mn.style.display = 'none';
     return;
   }
 
@@ -2530,7 +2552,6 @@ async function renderCatalog() {
   const grid = document.getElementById('productsGrid');
   if (!grid) return;
 
-  // Spin CSS
   if (!document.getElementById('_spinStyle')) {
     const s = document.createElement('style');
     s.id = '_spinStyle';
@@ -2538,17 +2559,81 @@ async function renderCatalog() {
     document.head.appendChild(s);
   }
 
-  // ── Крок 1: Показати кешовані товари ОДРАЗУ (якщо є в localStorage) ─────
-  const PRODUCTS_CACHE_KEY = 'kidsride_products_v6'; // v6: parallel ostatok fetch (performance fix)
+  const PRODUCTS_CACHE_KEY = 'kidsride_products_v6';
+  const _hasSearchParam = !!new URLSearchParams(location.search).get('search');
+
+  // ── MOBILE FAST PATH ────────────────────────────────────────────────────────
+  // Мета: показати категорії за < 1 секунду; товари завантажуються в фоні
+  // Покупець вибирає категорію поки 2800+ товарів вантажаться (3-5 сек)
+  if (typeof _isMobileView === 'function' && _isMobileView() && !_hasSearchParam) {
+
+    // 1. Категорії: з кешу (миттєво) або fetch (~0.5s)
+    if (!_loadCatsFromStorage()) {
+      try { await _fetchCategoriesFromSupabase(); _saveCatsToStorage(); } catch(_) {}
+    }
+
+    // 2. Відразу показуємо категорійну сітку
+    const treeEl = document.getElementById('catTree');
+    if (treeEl) _renderCategoryTree(treeEl);
+    _initMobileCatNav();
+
+    // 3. Товари — в фоні, не блокуємо UI
+    window._krProductsPromise = (async () => {
+      // Спочатку перевіряємо localStorage (парс ~100ms для 2800 товарів)
+      let prods = null, usedCache = false;
+      try {
+        const raw = localStorage.getItem(PRODUCTS_CACHE_KEY);
+        if (raw) { prods = JSON.parse(raw); usedCache = !!prods && prods.length > 0; }
+      } catch(_) {}
+
+      // Якщо кешу немає — завантажуємо з Supabase (3 паралельних запити)
+      if (!usedCache) prods = await loadProductsFromSupabase().catch(() => []);
+
+      allProducts = (prods || []).filter(p => p.active !== false);
+      try { localStorage.setItem(PRODUCTS_CACHE_KEY, JSON.stringify(allProducts)); } catch(_) {}
+
+      const countEl = document.getElementById('catalogCount');
+      if (countEl) countEl.textContent = allProducts.length + ' товарів';
+
+      // Оновлюємо фільтри та дерево категорій (з реальними лічильниками)
+      updateDynamicFilters();
+      if (typeof loadCategoryTree === 'function') loadCategoryTree();
+
+      // Оновлюємо поточний вигляд з реальними даними
+      if (typeof _mobNavLevel !== 'undefined') {
+        if (_mobNavLevel === 'products') {
+          // Покупець вже обрав категорію — показуємо товари
+          if (typeof applyUrlFilters === 'function') applyUrlFilters();
+          applyFiltersAndRender();
+        } else if (_mobNavLevel === 'main') {
+          // Оновлюємо плитки з реальними лічильниками товарів
+          if (typeof _mobNavShowMain === 'function') _mobNavShowMain();
+        } else if (_mobNavLevel === 'sub' && typeof _mobNavParentId !== 'undefined') {
+          if (typeof _mobNavShowSub === 'function') _mobNavShowSub(_mobNavParentId);
+        }
+      }
+
+      // Фонове оновлення з Supabase якщо брали з кешу (без блокування)
+      if (usedCache) {
+        loadProductsFromSupabase().then(fresh => {
+          if (!fresh || !fresh.length) return;
+          allProducts = fresh.filter(p => p.active !== false);
+          try { localStorage.setItem(PRODUCTS_CACHE_KEY, JSON.stringify(allProducts)); } catch(_) {}
+        }).catch(() => {});
+      }
+    })();
+
+    return; // ← Не чекаємо товарів, категорійна сітка вже видна
+  }
+  // ── КІНЕЦЬ MOBILE FAST PATH ─────────────────────────────────────────────────
+
+  // ── Desktop/Search: Крок 1 — кешовані товари ОДРАЗУ (якщо є) ───────────────
+  const PRODUCTS_CACHE_KEY = 'kidsride_products_v6';
   let cached = null;
   try {
     const raw = localStorage.getItem(PRODUCTS_CACHE_KEY);
     if (raw) cached = JSON.parse(raw);
   } catch(_) {}
-
-  // Якщо в URL є параметр search — не використовуємо кеш, щоб одразу показати
-  // актуальні результати (кеш може бути застарілим і не мати нових товарів).
-  const _hasSearchParam = !!new URLSearchParams(location.search).get('search');
 
   if (cached && cached.length > 0 && !_hasSearchParam) {
     // ── Є кеш і немає пошукового запиту: показуємо одразу ───────────────────
@@ -2673,6 +2758,15 @@ function applyFiltersAndRender() {
       typeof _mobNavLevel !== 'undefined' && _mobNavLevel !== 'products') {
     updateDynamicFilters();
     return;
+  }
+
+  // On mobile in products mode: ensure products area is visible
+  // (needed when navigating via URL params or from background products load)
+  if (typeof _isMobileView === 'function' && _isMobileView() &&
+      typeof _mobNavLevel !== 'undefined' && _mobNavLevel === 'products') {
+    _mobCatNavToggleProductsArea(true);
+    const _mn = document.getElementById('mob-cat-nav');
+    if (_mn) _mn.style.display = 'none';
   }
 
   // Оновити панель фільтрів (бренди, напруга, вік) відповідно до поточної категорії
