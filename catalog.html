@@ -2062,7 +2062,28 @@ function applyCatalogUISettings() {
 }
 
 // Apply settings as early as possible (before products load)
-document.addEventListener('DOMContentLoaded', applyCatalogUISettings);
+document.addEventListener('DOMContentLoaded', () => {
+  applyCatalogUISettings();
+  // Then fetch from Supabase to sync settings across all devices (mobile etc.)
+  _loadCatalogUISettingsFromServer();
+});
+
+async function _loadCatalogUISettingsFromServer() {
+  try {
+    const res = await fetch(
+      SUPABASE_URL + '/rest/v1/settings?select=value&key=eq.catalog_ui',
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
+    );
+    if (!res.ok) return;
+    const rows = await res.json();
+    if (!rows || !rows[0] || !rows[0].value) return;
+    const serverSettings = JSON.parse(rows[0].value);
+    // Server settings override local (admin may have changed from another device)
+    const merged = { ..._getCatalogUISettings(), ...serverSettings };
+    try { localStorage.setItem(KR_CATALOG_UI_KEY, JSON.stringify(merged)); } catch(e) {}
+    applyCatalogUISettings();
+  } catch(e) {}
+}
 
 // ── MOBILE CATEGORY NAVIGATION ──────────────────────────────────────────────
 let _mobNavLevel = 'main';  // 'main' | 'sub' | 'products'
