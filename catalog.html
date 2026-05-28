@@ -2036,24 +2036,20 @@ function applyCatalogUISettings() {
   const catTreeBlock = document.getElementById('catTreeBlock');
   const showCatTree = show('showCatTree', true);
   if (catTreeBlock) catTreeBlock.style.display = showCatTree ? '' : 'none';
-  // Also hide mobile category navigation when tree is disabled
-  const mobCatNav = document.getElementById('mob-cat-nav');
-  if (mobCatNav && !showCatTree) mobCatNav.style.display = 'none';
+  // NOTE: mob-cat-nav is the main mobile category photo grid — must never be hidden here
 
   // ── NEW: «Категорії у фільтрі» — separate desktop / mobile control ──────
-  // Applies on top of showCatTree: if the master is on, these can hide per device
+  // Controls only catTreeBlock (the "Категорії" section inside the filter sidebar/drawer)
   const showFilterCatDesktop = show('showFilterCatDesktop', true);
   const showFilterCatMobile  = show('showFilterCatMobile',  true);
   function _applyFilterCatVisibility() {
     const mob = window.matchMedia('(max-width: 767px)').matches;
     const block = document.getElementById('catTreeBlock');
     if (!block) return;
-    // Master toggle takes priority; device toggle applies only when master is ON
+    // Master toggle (showCatTree) takes priority
     if (!showCatTree) { block.style.display = 'none'; return; }
+    // Device-specific toggle
     block.style.display = (mob ? showFilterCatMobile : showFilterCatDesktop) ? '' : 'none';
-    // Mobile category nav follows mobile setting
-    const nav = document.getElementById('mob-cat-nav');
-    if (nav) nav.style.display = showFilterCatMobile ? '' : 'none';
   }
   _applyFilterCatVisibility();
   // Re-evaluate on resize (e.g. DevTools responsive toggle)
