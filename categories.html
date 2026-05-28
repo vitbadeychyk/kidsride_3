@@ -344,6 +344,30 @@ function getCatStyle(name) {
 // ── RENDER HELPERS ────────────────────────────────────────────────────────────
 let allCats = [];
 
+const TYPE_UA_CAT    = {jeep:'Джипи',quad:'Квадроцикли',moto:'Мотоцикли',car:'Машини',tractor:'Трактори',walker:'Каталки-толокари',truck:'Вантажівки',buggy:'Баггі'};
+const TYPE_ICON_CAT  = {jeep:'🚙',quad:'🏎️',moto:'🏍️',car:'🚘',tractor:'🚜',walker:'🧸',truck:'🚛',buggy:'🏁'};
+const TYPE_BG_CAT    = {jeep:'#e8f4ff',quad:'#f3e8ff',moto:'#fff8e1',car:'#e8f4ff',tractor:'#e8f5e9',walker:'#fff3e0',truck:'#fff8e1',buggy:'#fff3ee'};
+const TYPE_ACCENT_CAT= {jeep:'rgba(33,150,243,.04)',quad:'rgba(156,39,176,.04)',moto:'rgba(255,193,7,.04)',car:'rgba(33,150,243,.04)',tractor:'rgba(39,174,96,.04)',walker:'rgba(255,152,0,.04)',truck:'rgba(255,193,7,.04)',buggy:'rgba(255,107,53,.04)'};
+const VEHICLE_TYPES_SET = new Set(['jeep','quad','moto','car','tractor','walker','truck','buggy']);
+
+function renderVehicleTypeCard(code, catId, count) {
+  const name  = TYPE_UA_CAT[code]   || code;
+  const icon  = TYPE_ICON_CAT[code] || '🚗';
+  const bg    = TYPE_BG_CAT[code]   || '#f8f9fc';
+  const accent= TYPE_ACCENT_CAT[code] || 'transparent';
+  const url   = 'catalog.html?catId=' + encodeURIComponent(catId) + '&vType=' + encodeURIComponent(code);
+  const countText = count != null ? count + ' товарів' : '';
+  return `
+    <a class="cat-card reveal" href="${url}" style="--card-accent:${accent}" data-name="${name.toLowerCase()}">
+      <div class="cat-icon" style="background:${bg}">${icon}</div>
+      <div class="cat-name">${name}</div>
+      ${countText ? `<div class="cat-count">${countText}</div>` : ''}
+      <div class="cat-arrow">
+        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </a>`;
+}
+
 function renderCategoryCard(cat, count) {
   const { icon, bg, accent } = getCatStyle(cat.name);
   const url = 'catalog.html?catId=' + encodeURIComponent(cat.id) + '&catName=' + encodeURIComponent(cat.name);
@@ -407,17 +431,27 @@ async function loadCategories() {
       return;
     }
 
-    // Завантажити кількість товарів по кожній категорії
+    // Завантажити кількість товарів по кожній категорії (+ тип транспорту для розгортки)
     let countMap = {};
+    let vehicleTypeMap  = {}; // catId → Set of vehicle type codes
+    let vehicleCountMap = {}; // catId → {code: count}
     try {
       const cRes = await fetch(
-        SUPABASE_URL + '/rest/v1/products?select=category_id&active=eq.true',
+        SUPABASE_URL + '/rest/v1/products?select=category_id,category&active=eq.true',
         { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Prefer': 'count=none' } }
       );
       if (cRes.ok) {
         const prods = await cRes.json();
         (prods || []).forEach(p => {
-          if (p.category_id) countMap[p.category_id] = (countMap[p.category_id] || 0) + 1;
+          if (p.category_id) {
+            countMap[p.category_id] = (countMap[p.category_id] || 0) + 1;
+            if (p.category && VEHICLE_TYPES_SET.has(p.category)) {
+              if (!vehicleTypeMap[p.category_id])  vehicleTypeMap[p.category_id]  = new Set();
+              if (!vehicleCountMap[p.category_id]) vehicleCountMap[p.category_id] = {};
+              vehicleTypeMap[p.category_id].add(p.category);
+              vehicleCountMap[p.category_id][p.category] = (vehicleCountMap[p.category_id][p.category] || 0) + 1;
+            }
+          }
         });
       }
     } catch(e) {}
@@ -456,7 +490,17 @@ async function loadCategories() {
             <div class="cats-grid">`;
 
         subs.forEach(sub => {
-          html += renderCategoryCard(sub, countMap[sub.id] ?? null);
+          const vtypes = vehicleTypeMap[sub.id] ? [...vehicleTypeMap[sub.id]] : [];
+          if (vtypes.length >= 2) {
+            // Розгортаємо підкатегорію транспорту у картки по типах
+            const sorted = vtypes.sort((a, b) => (TYPE_UA_CAT[a] || a).localeCompare(TYPE_UA_CAT[b] || b, 'uk'));
+            sorted.forEach(code => {
+              const cnt = vehicleCountMap[sub.id]?.[code] ?? null;
+              html += renderVehicleTypeCard(code, sub.id, cnt);
+            });
+          } else {
+            html += renderCategoryCard(sub, countMap[sub.id] ?? null);
+          }
         });
 
         if (!subs.length) {
