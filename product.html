@@ -1682,6 +1682,18 @@ document.addEventListener('keydown', e => {
 });
 
 // ── Динамічне завантаження товару (галерея + варіанти кольору) — KidsRide v3.1 ──
+
+// Найвища якість зображення: metr-plus → size=12, Supabase → без трансформацій
+function bestImgUrl(u) {
+  if (!u) return u;
+  if (u.indexOf('metr-plus.com.ua') >= 0) {
+    if (/[?&]size=/.test(u)) return u.replace(/([?&]size=)\d+/, '$112');
+    return u + (u.indexOf('?') >= 0 ? '&' : '?') + 'size=12';
+  }
+  if (u.indexOf('/storage/v1/render/image/public/') >= 0)
+    return u.replace('/storage/v1/render/image/public/', '/storage/v1/object/public/').replace(/\?.*$/, '');
+  return u;
+}
 console.log('[KidsRide] product.html v3.9 — працюють: копіювання посилання, список бажань, порівняння');
 (async function loadFullProduct(){
   try{
@@ -2197,7 +2209,7 @@ function buildPhotoGallery(images){
   imgWrap.style.cssText = 'position:absolute;inset:0;overflow:hidden;display:flex;align-items:center;justify-content:center';
   const mainImg = document.createElement('img');
   mainImg.id = 'mainProductImg';
-  mainImg.src = (function(u){if(!u||u.indexOf('/storage/v1/object/public/')<0)return u;return u.replace('/storage/v1/object/public/','/storage/v1/render/image/public/')+'?width=900&quality=80';})(images[0]);
+  mainImg.src = bestImgUrl(images[0]);
   mainImg.alt = '';
   mainImg.style.cssText = 'display:block;width:100%;height:100%;object-fit:contain;min-width:0;min-height:0;transition:opacity .25s';
   imgWrap.appendChild(mainImg);
@@ -2237,12 +2249,13 @@ function buildPhotoGallery(images){
     const t = document.createElement('div');
     t.className = 'thumb' + (i === 0 ? ' active' : '');
     t.style.cssText = 'background:#fff;padding:4px';
-    t.innerHTML = '<img src="' + url + '" alt="" style="width:100%;height:100%;object-fit:contain">';
+    t.innerHTML = '<img src="' + bestImgUrl(url) + '" alt="" style="width:100%;height:100%;object-fit:contain">';
     t.onclick = () => galleryGoTo(i);
     thumbs.appendChild(t);
   });
 
-  window._gallery = { images, idx: 0 };
+  const _bestImages = images.map(bestImgUrl);
+  window._gallery = { images: _bestImages, idx: 0 };
 }
 
 function galleryGoTo(i){
