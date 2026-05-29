@@ -5275,7 +5275,7 @@ function productPhotoProcessOne(file, cb) {
   reader.onload = function(e) {
     const img = new Image();
     img.onload = function() {
-      const maxDim = 1800;
+      const maxDim = 1200;
       let w = img.naturalWidth, h = img.naturalHeight;
       if (Math.max(w, h) > maxDim) {
         const k = maxDim / Math.max(w, h);
@@ -5286,7 +5286,7 @@ function productPhotoProcessOne(file, cb) {
       const ctx = canvas.getContext('2d');
       ctx.drawImage(img, 0, 0, w, h);
       const isPng = file.type === 'image/png';
-      const out = isPng ? canvas.toDataURL('image/png') : canvas.toDataURL('image/jpeg', 0.95);
+      const out = isPng ? canvas.toDataURL('image/png') : canvas.toDataURL('image/jpeg', 0.85);
       cb(out);
     };
     img.onerror = function() { cb(e.target.result); };
@@ -7275,7 +7275,7 @@ function osReadFileAsDataUrl(file) {
         canvas.width = w; canvas.height = h;
         canvas.getContext('2d').drawImage(img, 0, 0, w, h);
         const isPng = file.type === 'image/png';
-        resolve(isPng ? canvas.toDataURL('image/png') : canvas.toDataURL('image/jpeg', 0.95));
+        resolve(isPng ? canvas.toDataURL('image/png') : canvas.toDataURL('image/jpeg', 0.85));
       };
       img.onerror = function() { resolve(e.target.result); };
       img.src = e.target.result;
