@@ -2998,6 +2998,65 @@ async function updateNavBadges() {
 let _adminToken = null;
 let _adminUser  = null;
 
+// ── AUTO TOKEN REFRESH ────────────────────────────────────────────────────
+// Перевіряє чи токен протухне в найближчі 5 хв
+function _isTokenExpiringSoon() {
+  try {
+    const raw = localStorage.getItem('kr_admin_session') || sessionStorage.getItem('kr_admin_session');
+    if (!raw) return true;
+    const s = JSON.parse(raw);
+    if (!s.expires_at) return false;
+    return (Date.now() / 1000) > (s.expires_at - 300); // 5-хв буфер
+  } catch { return true; }
+}
+
+// Оновлює access_token через refresh_token
+async function _tryRefreshAdminToken() {
+  try {
+    const raw = localStorage.getItem('kr_admin_session') || sessionStorage.getItem('kr_admin_session');
+    if (!raw) return false;
+    const session = JSON.parse(raw);
+    if (!session.refresh_token) return false;
+
+    const res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=refresh_token', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: session.refresh_token })
+    });
+    if (!res.ok) return false;
+    const d = await res.json();
+    if (!d.access_token) return false;
+
+    const updated = {
+      ...session,
+      access_token:  d.access_token,
+      refresh_token: d.refresh_token || session.refresh_token,
+      expires_at:    d.expires_at || (Math.floor(Date.now() / 1000) + (d.expires_in || 3600))
+    };
+    const useLs = !!localStorage.getItem('kr_admin_session');
+    (useLs ? localStorage : sessionStorage).setItem('kr_admin_session', JSON.stringify(updated));
+    _adminToken = d.access_token;
+    console.log('[Auth] Token refreshed successfully');
+    return true;
+  } catch (e) {
+    console.warn('[Auth] Token refresh failed:', e);
+    return false;
+  }
+}
+
+// Авто-оновлення кожні 50 хв
+setTimeout(function _scheduleRefresh() {
+  if (_isTokenExpiringSoon()) {
+    _tryRefreshAdminToken().then(ok => {
+      if (!ok && typeof showToast === 'function') {
+        showToast('⚠️ Сесія закінчилась. Увійдіть знову.', 'error');
+        setTimeout(() => { window.location.href = 'auth.html'; }, 2500);
+      }
+    });
+  }
+  setTimeout(_scheduleRefresh, 50 * 60 * 1000);
+}, 50 * 60 * 1000);
+
 // Отримати сесію з localStorage
 function getAdminSession() {
   try {
@@ -3076,6 +3135,11 @@ function adminLogout() {
 
 // Базові запити до Supabase
 async function sbFetch(path, options = {}) {
+  // Якщо токен протухає — оновлюємо перед запитом
+  if (_isTokenExpiringSoon()) {
+    const ok = await _tryRefreshAdminToken();
+    if (!ok) { window.location.href = 'auth.html'; throw new Error('Session expired'); }
+  }
   // Використовуємо актуальний токен адміна
   const token = _adminToken || (typeof _sb !== 'undefined' ? (await _sb.auth.getSession())?.data?.session?.access_token : null) || SUPABASE_KEY;
 
@@ -7650,9 +7714,10 @@ async function catImgUpload(catId, tableName, fileList) {
   try {
     const ext = file.name.split('.').pop().toLowerCase() || 'jpg';
     const path = `categories/${tableName}_${catId}_${Date.now()}.${ext}`;
+    const _storageToken = _adminToken || SUPABASE_KEY;
     const uploadRes = await fetch(`${SUPABASE_URL}/storage/v1/object/product-images/${path}`, {
       method: 'POST',
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY,
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + _storageToken,
                  'Content-Type': file.type, 'x-upsert': 'true' },
       body: file
     });
@@ -7676,11 +7741,14 @@ async function catImgUpload(catId, tableName, fileList) {
 }
 
 async function saveCategoryImageUrl(catId, tableName, imageUrl) {
+  // Оновити токен якщо потрібно
+  if (_isTokenExpiringSoon()) await _tryRefreshAdminToken();
+  const _writeToken = _adminToken || SUPABASE_KEY;
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${tableName}?id=eq.${catId}`, {
     method: 'PATCH',
     headers: {
       'apikey': SUPABASE_KEY,
-      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Authorization': 'Bearer ' + _writeToken,
       'Content-Type': 'application/json',
       'Prefer': 'return=minimal'
     },
