@@ -2196,7 +2196,7 @@ function _compressCatImg(url) {
   if (!url || url.startsWith('data:')) return url;
   try {
     if (url.includes('metr-plus.com.ua') || url.includes('metr-plus.com')) {
-      return url.replace(/([?&]size=)\d+/, '$14');
+      return url.replace(/([?&])size=\d+/, '$1size=4');
     }
     if (url.includes('/storage/v1/object/public/')) {
       return url.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/')
