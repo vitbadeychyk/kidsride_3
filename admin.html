@@ -7690,6 +7690,8 @@ async function saveCategoryImageUrl(catId, tableName, imageUrl) {
     const t = await res.text();
     throw new Error('HTTP ' + res.status + ': ' + t);
   }
+  // Очищаємо кеш каталогу щоб нове фото одразу відображалось
+  try { localStorage.removeItem('kidsride_cats_v2'); } catch(_) {}
   // Update local cache
   if (tableName === 'main_categories') {
     const pc = _parentCats.find(c => c.id === catId);
