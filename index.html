@@ -2045,34 +2045,39 @@ window._krAppliedSlidesSig = '';
   const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
   const _H = { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY };
 
-  // 0) Фото-заглушка — запускається ПАРАЛЕЛЬНО зі слайдами (не вкладено!)
-  // Якщо слайди ще не в кеші (перше відвідування) — заглушка приходить першою і закриває порожній квадрат
-  (function fetchPlaceholderEarly() {
-    var _phCard = document.getElementById('_s1ImgCard');
-    if (!_phCard) return;
-    // Вже є зображення — нічого не робимо
-    if (_phCard.querySelector('img')) return;
-    // Є в localStorage — застосовуємо одразу (без мережевого запиту)
-    var _phCached = null;
-    try { _phCached = localStorage.getItem('kr_hero_placeholder'); } catch(e) {}
-    if (_phCached) {
-      _phCard.innerHTML = '<img src= + _phCached.replace(/["<>]/g,) +  alt= style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" loading="eager" decoding="async" fetchpriority="high">';
-      return;
+
+
+  // 0) Фото-заглушка — запускається ПАРАЛЕЛЬНО зі слайдами
+  // На першому відвідуванні заглушка приходить швидше і закриває порожній квадрат
+  (function(){
+    var phCard = document.getElementById('_s1ImgCard');
+    if (!phCard || phCard.querySelector('img')) return;
+    function applyPh(url) {
+      var card = document.getElementById('_s1ImgCard');
+      if (!card || card.querySelector('img')) return;
+      var img = document.createElement('img');
+      img.src = url;
+      img.alt = '';
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;object-position:center;display:block';
+      img.setAttribute('loading', 'eager');
+      img.setAttribute('decoding', 'async');
+      img.setAttribute('fetchpriority', 'high');
+      card.innerHTML = '';
+      card.appendChild(img);
     }
-    // Немає в кеші — запит до Supabase паралельно зі слайдами (перше відвідування)
+    try {
+      var cached = localStorage.getItem('kr_hero_placeholder');
+      if (cached) { applyPh(cached); return; }
+    } catch(e) {}
     fetch(SUPA_URL + '/rest/v1/settings?select=value&key=eq.hero_placeholder_image&limit=1', { headers: _H })
-      .then(function(r) { return r.ok ? r.json() : []; })
-      .then(function(rows) {
+      .then(function(r){ return r.ok ? r.json() : []; })
+      .then(function(rows){
         if (!Array.isArray(rows) || !rows[0] || !rows[0].value) return;
-        var _phUrl = rows[0].value;
-        try { localStorage.setItem('kr_hero_placeholder', _phUrl); } catch(e) {}
-        // Застосовуємо тільки якщо справжній слайд ще не прийшов
-        var card = document.getElementById('_s1ImgCard');
-        if (card && !card.querySelector('img')) {
-          card.innerHTML = '<img src= + _phUrl.replace(/["<>]/g,) +  alt= style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" loading="eager" decoding="async" fetchpriority="high">';
-        }
-      }).catch(function() {});
+        try { localStorage.setItem('kr_hero_placeholder', rows[0].value); } catch(e) {}
+        applyPh(rows[0].value);
+      }).catch(function(){});
   })();
+
 
   fetch(SUPA_URL + '/rest/v1/slides?select=id,sort_order,enabled,image&order=sort_order.asc&limit=1', { headers: _H })
     .then(r => r.ok ? r.json() : null).then(first => {
