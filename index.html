@@ -604,7 +604,11 @@ footer{background:var(--navy);color:white;padding:56px 40px 0}
     pointer-events: auto !important;
   }
   .swiper-hero.swiper-initialized .swiper-slide:not(.swiper-slide-active):not(.swiper-slide-duplicate-active) {
-    display: none !important;
+    position: absolute !important;
+    inset: 0 !important;
+    display: block !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
   }
   /* Перед ініціалізацією — перший слайд теж relative */
   .swiper-hero:not(.swiper-initialized) .swiper-slide:first-child {
