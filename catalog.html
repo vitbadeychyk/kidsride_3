@@ -538,7 +538,6 @@ nav a.active{color:var(--orange)}
   #mob-cat-nav{padding:24px 36px}
 }
 /* desktop override removed — nav shown on all screen sizes */
-/* ── Shimmer animation for instant skeleton tiles ── */
 @keyframes _shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 .mob-cat-tile-skel{pointer-events:none;background:linear-gradient(90deg,#dce4f0 25%,#c8d4e8 50%,#dce4f0 75%);background-size:200% 100%;animation:_shimmer 1.4s infinite}
 </style>
@@ -658,12 +657,12 @@ nav a.active{color:var(--orange)}
     <div class="mob-cat-heading" id="mobCatHeading">Каталог</div>
   </div>
   <div class="mob-cat-grid" id="mobCatGrid">
-    <div class="mob-cat-tile mob-cat-tile-skel" style="border-radius:18px"></div>
-    <div class="mob-cat-tile mob-cat-tile-skel" style="border-radius:18px"></div>
-    <div class="mob-cat-tile mob-cat-tile-skel" style="border-radius:18px"></div>
-    <div class="mob-cat-tile mob-cat-tile-skel" style="border-radius:18px"></div>
-    <div class="mob-cat-tile mob-cat-tile-skel" style="border-radius:18px"></div>
-    <div class="mob-cat-tile mob-cat-tile-skel" style="border-radius:18px"></div>
+    <div class="mob-cat-tile mob-cat-tile-skel"></div>
+    <div class="mob-cat-tile mob-cat-tile-skel"></div>
+    <div class="mob-cat-tile mob-cat-tile-skel"></div>
+    <div class="mob-cat-tile mob-cat-tile-skel"></div>
+    <div class="mob-cat-tile mob-cat-tile-skel"></div>
+    <div class="mob-cat-tile mob-cat-tile-skel"></div>
   </div>
 </div>
 
@@ -1726,55 +1725,14 @@ async function _fetchCategoriesFromSupabase() {
     const tid = setTimeout(() => ctrl.abort(), 10000);
     return fetch(url, { headers, signal: ctrl.signal }).finally(() => clearTimeout(tid));
   };
-  // ВАЖЛИВО: НЕ вибираємо image_url тут — вони можуть бути base64 і важити 3+ МБ!
-  // Зображення завантажуються окремо у фоні через _fetchCategoryImagesBackground().
   const [mcRes, catRes] = await Promise.all([
-    _ctFetch(SUPABASE_URL + '/rest/v1/main_categories?select=id,name&active=eq.true&order=sort_order.asc,name.asc'),
-    _ctFetch(SUPABASE_URL + '/rest/v1/categories?select=id,name,main_category_id&active=eq.true&order=name.asc')
+    _ctFetch(SUPABASE_URL + '/rest/v1/main_categories?select=id,name,image_url&active=eq.true&order=sort_order.asc,name.asc'),
+    _ctFetch(SUPABASE_URL + '/rest/v1/categories?select=id,name,main_category_id,image_url&active=eq.true&order=name.asc')
   ]);
   if (!mcRes.ok || !catRes.ok) throw new Error('HTTP error');
-  // Зберігаємо вже наявні image_url (з кешу) щоб не затирати їх
-  const _prevImgs = {};
-  (_mainCategories || []).forEach(mc => { if (mc.image_url) _prevImgs[mc.id] = mc.image_url; });
-  const freshMc = await mcRes.json() || [];
-  _mainCategories = freshMc.map(mc => ({ ...mc, image_url: _prevImgs[mc.id] || null }));
+  _mainCategories = await mcRes.json() || [];
   _allCategories  = await catRes.json() || [];
   return true;
-}
-
-// Завантажує image_url категорій у фоні (окремо від основних даних).
-// Це дозволяє показати категорії МОМЕНТАЛЬНО (emoji-іконки),
-// а зображення підтягуються після і замінюють іконки.
-function _fetchCategoryImagesBackground() {
-  if (!_mainCategories.length) return;
-  const headers = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY };
-  const ctrl = new AbortController();
-  const tid = setTimeout(() => ctrl.abort(), 20000);
-  fetch(SUPABASE_URL + '/rest/v1/main_categories?select=id,image_url&active=eq.true',
-    { headers, signal: ctrl.signal })
-    .finally(() => clearTimeout(tid))
-    .then(r => r.ok ? r.json() : null)
-    .then(imgs => {
-      if (!Array.isArray(imgs) || !imgs.length) return;
-      const byId = {};
-      imgs.forEach(m => { if (m.image_url) byId[m.id] = m.image_url; });
-      let changed = false;
-      _mainCategories.forEach(mc => {
-        if (byId[mc.id] && mc.image_url !== byId[mc.id]) {
-          mc.image_url = byId[mc.id];
-          changed = true;
-        }
-      });
-      if (!changed) return;
-      // Оновлюємо тайли категорій якщо зараз показується головна сітка
-      if (typeof _mobNavLevel !== 'undefined' && _mobNavLevel === 'main') {
-        const grid = document.getElementById('mobCatGrid');
-        if (grid && typeof _mobNavShowMain === 'function') _mobNavShowMain();
-      }
-      // Зберігаємо у кеш вже з зображеннями
-      _saveCatsToStorage();
-    })
-    .catch(() => {});
 }
 
 function _renderCategoryTree(treeEl) {
@@ -1953,21 +1911,16 @@ async function loadCategoryTree() {
       // Рендеримо дерево з кешу відразу, потім оновлюємо у фоні
       _renderCategoryTree(treeEl);
       if (typeof _initMobileCatNav === 'function') _initMobileCatNav();
-      // Оновлюємо категорії у фоні (тільки id,name — без важких image_url)
+      // Оновлюємо категорії у фоні, без блокування
       _fetchCategoriesFromSupabase().then(ok => {
-        if (ok) {
-          // Зображення вже є в _mainCategories (збережено з кешу), просто зберігаємо
-          _saveCatsToStorage();
-          // Оновлюємо зображення у фоні (на випадок якщо вони змінились)
-          _fetchCategoryImagesBackground();
-        }
+        if (ok) { _saveCatsToStorage(); }
       }).catch(() => {});
       return;
     }
-    // Немає кешу — завантажуємо з Supabase (тільки id,name — миттєво)
+    // Немає кешу — завантажуємо з Supabase (блокуємо тільки цей перший раз)
     try {
       await _fetchCategoriesFromSupabase();
-      _saveCatsToStorage(); // Зберігаємо без зображень, вони прийдуть у фоні
+      _saveCatsToStorage();
     } catch(e) {
       treeEl.innerHTML = '<div class="cat-tree-loading" style="color:var(--text-muted)">—</div>';
       return;
@@ -1976,8 +1929,6 @@ async function loadCategoryTree() {
 
   _renderCategoryTree(treeEl);
   if (typeof _initMobileCatNav === 'function') _initMobileCatNav();
-  // Завантажуємо зображення категорій у фоні (щоб не блокувати рендер)
-  _fetchCategoryImagesBackground();
   // Повторний рендер після визначення spare-parts категорій
   applyFiltersAndRender();
 }
@@ -2238,16 +2189,18 @@ function _mobCatNavToggleProductsArea(show) {
   if (!show && bb) bb.style.display = 'none';
 }
 
-// Оптимізує URL зображення категорії через Supabase Image Transform API
-// Зменшує розмір фото до 400px — критично для LCP на мобільних (~10x менше даних)
-function _optCatImg(url, w) {
-  if (!url) return url;
-  w = w || 400;
+// Стискає URL зображення для відображення у маленьких тайлах категорій.
+// metr-plus: замінює size=12 (макс якість) на size=4 (достатньо для ~200px тайлів)
+// Supabase Storage: використовує Image Transform API (width=280, quality=72)
+function _compressCatImg(url) {
+  if (!url || url.startsWith('data:')) return url;
   try {
-    // Supabase storage: /storage/v1/object/public/ → /storage/v1/render/image/public/
+    if (url.includes('metr-plus.com.ua') || url.includes('metr-plus.com')) {
+      return url.replace(/([?&]size=)\d+/, '$14');
+    }
     if (url.includes('/storage/v1/object/public/')) {
       return url.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/')
-             + (url.includes('?') ? '&' : '?') + 'width=' + w + '&quality=75';
+             + (url.includes('?') ? '&' : '?') + 'width=280&quality=72';
     }
   } catch(_) {}
   return url;
@@ -2272,9 +2225,7 @@ function _mobNavShowMain() {
   if (!grid) return;
 
   if (!_mainCategories.length) {
-    // Показуємо shimmer-скелетон поки категорії завантажуються
-    const _cs = () => `<div class="mob-cat-tile mob-cat-tile-skel" style="border-radius:18px"></div>`;
-    grid.innerHTML = _cs()+_cs()+_cs()+_cs()+_cs()+_cs();
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted)">Категорії завантажуються…</div>';
     return;
   }
 
@@ -2290,11 +2241,8 @@ function _mobNavShowMain() {
 
   grid.innerHTML = _mainCategories.map((mc, idx) => {
     const cnt = prodCounts[mc.id] || 0;
-    // ВАЖЛИВО: НЕ використовуємо loading="lazy" для зображень категорій —
-    // вони є головним (LCP) елементом сторінки і мають завантажуватись одразу.
-    // Використовуємо Supabase Image Transform для зменшення розміру (~10x менше даних).
     const thumb = mc.image_url
-      ? `<img class="mob-cat-tile-img" src="${_optCatImg(mc.image_url, 400)}" alt="${escAttr ? escAttr(mc.name) : mc.name}" decoding="async"${idx < 4 ? ' fetchpriority="high"' : ''}>`
+      ? `<img class="mob-cat-tile-img" src="${_compressCatImg(mc.image_url)}" alt="${escAttr ? escAttr(mc.name) : mc.name}" decoding="async"${idx < 4 ? ' fetchpriority="high"' : ''}>`
       : `<div class="mob-cat-tile-icon">${_getCatIcon(mc.name)}</div>`;
     return `<div class="mob-cat-tile" onclick="_mobNavShowSub(${mc.id})">
       ${thumb}
@@ -2376,7 +2324,7 @@ function _mobNavShowSub(parentId) {
 
     // Звичайний тайл підкатегорії (Запчастини, аксесуари тощо)
     const thumb = sub.image_url
-      ? `<img class="mob-cat-tile-img" src="${sub.image_url}" alt="${escAttr ? escAttr(sub.name) : sub.name}" loading="lazy">`
+      ? `<img class="mob-cat-tile-img" src="${_compressCatImg(sub.image_url)}" alt="${escAttr ? escAttr(sub.name) : sub.name}" decoding="async">`
       : `<div class="mob-cat-tile-icon">${_getCatIcon(sub.name)}</div>`;
     tiles.push(`<div class="mob-cat-tile" onclick="_mobNavSelectSub(${sub.id})">
       ${thumb}
@@ -3086,8 +3034,6 @@ async function renderCatalog() {
     const treeEl = document.getElementById('catTree');
     if (treeEl) _renderCategoryTree(treeEl);
     if (typeof _initMobileCatNav === 'function') _initMobileCatNav();
-    // Зображення вже є в кеші — просто підтягуємо їх оновлення у фоні
-    _fetchCategoryImagesBackground();
   }
 
   // Завантажуємо товари і категорії паралельно
@@ -3097,7 +3043,7 @@ async function renderCatalog() {
     ? Promise.resolve()
     : _fetchCategoriesFromSupabase()
         .then(() => {
-          _saveCatsToStorage(); // Зберігаємо без зображень (вони йдуть окремо)
+          _saveCatsToStorage();
           _catsFetchDone = true;
           // Показуємо дерево категорій одразу (без лічильників товарів — з'являться після)
           const treeEl = document.getElementById('catTree');
@@ -3105,8 +3051,6 @@ async function renderCatalog() {
             _renderCategoryTree(treeEl);
             if (typeof _initMobileCatNav === 'function') _initMobileCatNav();
           }
-          // Зображення завантажуються у фоні — категорії вже видимі з emoji-іконками
-          _fetchCategoryImagesBackground();
         })
         .catch(() => {});
 
