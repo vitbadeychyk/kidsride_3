@@ -13,6 +13,7 @@
 <meta name="keywords" content="дитячий електромобіль, купити електромобіль для дітей, дитячий джип електро, електромобіль 12v, електромобіль 24v, дитячий квадроцикл купити, дитячий мотоцикл електро, дитячий самокат, дитячий велосипед, дитячий скутер, дитяча машинка електро, трактор дитячий електро, дитячий багі, каталка дитяча, автокрісло дитяче купити, автокрісло для новонародженого, коляска дитяча купити, меблі дитячі купити, басейн дитячий, товари для немовлят, пакунок малюка, виплата 7000 грн до 1 року, активний відпочинок для дітей, товари для дівчаток, дитячі товари інтернет магазин Україна, купити дитячі товари Київ, електромобіль Україна, дитячий електромобіль з пультом">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.kidsride.com.ua/">
+<link rel="preload" as="image" href="/hero-placeholder.jpg">
 <!-- Open Graph -->
 <meta property="og:type" content="website">
 <meta property="og:title" content="KidsRide — Електромобілі, Автокрісла та Дитячі Товари | Україна">
@@ -947,28 +948,19 @@ function _krOptImg(url,w,q){
       document.head.appendChild(link);
       return;
     }
-    // Fallback через kr_slides
+    // Fallback: старий механізм через kr_slides
     var slides = JSON.parse(localStorage.getItem('kr_slides') || 'null');
-    if (Array.isArray(slides) && slides.length) {
-      var sorted = slides.filter(function(x){return x.enabled !== false;})
-        .sort(function(a,b){return (a.sort_order||0)-(b.sort_order||0);});
-      var img = sorted[0] && sorted[0].image;
-      if (img) {
-        var link = document.createElement('link');
-        link.rel = 'preload';
-        link.as = 'image';
-        link.href = typeof _krOptImg === 'function' ? _krOptImg(img, 1400) : img;
-        link.setAttribute('fetchpriority', 'high');
-        document.head.appendChild(link);
-        return;
-      }
-    }
-    // Остаточний fallback: статична заглушка — preload для першого відвідування
-    var phLink = document.createElement('link');
-    phLink.rel = 'preload'; phLink.as = 'image';
-    phLink.href = '/hero-placeholder.jpg';
-    phLink.setAttribute('fetchpriority', 'high');
-    document.head.appendChild(phLink);
+    if (!Array.isArray(slides) || !slides.length) return;
+    var sorted = slides.filter(function(x){return x.enabled !== false;})
+      .sort(function(a,b){return (a.sort_order||0)-(b.sort_order||0);});
+    var img = sorted[0] && sorted[0].image;
+    if (!img) return;
+    var link = document.createElement('link');
+    link.rel = 'preload';
+    link.as = 'image';
+    link.href = typeof _krOptImg === 'function' ? _krOptImg(img, 1400) : img;
+    link.setAttribute('fetchpriority', 'high');
+    document.head.appendChild(link);
   } catch(e) {}
 })();
 </script>
@@ -1113,21 +1105,7 @@ function _krOptImg(url,w,q){
             </div>
             <div class="hero-img-wrap">
               <div class="hero-img-card" id="_s1ImgCard">
-                <div id="_s1SvgPh" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.04)">
-                <svg viewBox="0 0 240 160" xmlns="http://www.w3.org/2000/svg" style="width:65%;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)">
-  <rect x="20" y="75" width="200" height="55" rx="14" fill="#1B2A4A" opacity=".15"/>
-  <rect x="50" y="40" width="130" height="52" rx="12" fill="#1B2A4A" opacity=".18"/>
-  <rect x="55" y="45" width="55" height="34" rx="6" fill="#64B5F6" opacity=".35"/>
-  <rect x="118" y="45" width="55" height="34" rx="6" fill="#64B5F6" opacity=".35"/>
-  <rect x="185" y="72" width="32" height="34" rx="5" fill="#1B2A4A" opacity=".12"/>
-  <rect x="18" y="82" width="25" height="26" rx="4" fill="#1B2A4A" opacity=".12"/>
-  <circle cx="65" cy="132" r="22" fill="#1B2A4A" opacity=".2"/>
-  <circle cx="65" cy="132" r="12" fill="#FF6B35" opacity=".3"/>
-  <circle cx="175" cy="132" r="22" fill="#1B2A4A" opacity=".2"/>
-  <circle cx="175" cy="132" r="12" fill="#FF6B35" opacity=".3"/>
-  <rect x="100" y="78" width="45" height="6" rx="3" fill="#FF6B35" opacity=".3"/>
-</svg>
-              </div>
+                <img src="/hero-placeholder.jpg" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" fetchpriority="high" decoding="async">
               </div>
             </div>
           </div>
@@ -1145,8 +1123,9 @@ function _krOptImg(url,w,q){
             var s=sl.find(function(x){return x.id==='slide-1'&&x.enabled!==false&&x.image;});
             if(s){c.innerHTML='<img src="'+_krOptImg(s.image.replace(/["<>]/g,''),1400)+'" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" fetchpriority="high" decoding="async">';return;}
           }
-          // Fallback: статична заглушка з репозиторію — миттєво, без жодного API запиту
-          c.innerHTML='<img src="/hero-placeholder.jpg" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" fetchpriority="high" decoding="async">';
+          // Fallback: фото-заглушка з адмінки (якщо kr_slides ще немає — перше відвідування)
+          var ph=localStorage.getItem('kr_hero_placeholder');
+          if(ph)c.innerHTML='<img src="'+ph.replace(/["<>]/g,'')+'" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" fetchpriority="high" decoding="async">';
         }catch(e){}
       })();
       </script>
@@ -2055,19 +2034,49 @@ window._krAppliedSlidesSig = '';
 
 
 
+  // 0) Фото-заглушка — запускається ПАРАЛЕЛЬНО зі слайдами
+  // На першому відвідуванні заглушка приходить швидше і закриває порожній квадрат
+  (function(){
+    var phCard = document.getElementById('_s1ImgCard');
+    if (!phCard || phCard.querySelector('img')) return;
+    function applyPh(url) {
+      var card = document.getElementById('_s1ImgCard');
+      if (!card || card.querySelector('img')) return;
+      var img = document.createElement('img');
+      img.src = url;
+      img.alt = '';
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;object-position:center;display:block';
+      img.setAttribute('loading', 'eager');
+      img.setAttribute('decoding', 'async');
+      img.setAttribute('fetchpriority', 'high');
+      card.innerHTML = '';
+      card.appendChild(img);
+    }
+    try {
+      var cached = localStorage.getItem('kr_hero_placeholder');
+      if (cached) { applyPh(cached); return; }
+    } catch(e) {}
+    fetch(SUPA_URL + '/rest/v1/settings?select=value&key=eq.hero_placeholder_image&limit=1', { headers: _H })
+      .then(function(r){ return r.ok ? r.json() : []; })
+      .then(function(rows){
+        if (!Array.isArray(rows) || !rows[0] || !rows[0].value) return;
+        try { localStorage.setItem('kr_hero_placeholder', rows[0].value); } catch(e) {}
+        applyPh(rows[0].value);
+      }).catch(function(){});
+  })();
+
 
   fetch(SUPA_URL + '/rest/v1/slides?select=id,sort_order,enabled,image&order=sort_order.asc&limit=1', { headers: _H })
     .then(r => r.ok ? r.json() : null).then(first => {
       if (!Array.isArray(first) || !first[0] || !first[0].image) return;
       const s = first[0];
       // Шукаємо слайд по data-slide-id (якщо вже замінено _krApplySlides — знайде по UUID)
-      // querySelectorAll — оновлюємо і оригінал, і Swiper-клони
-      document.querySelectorAll('.swiper-hero .swiper-slide[data-slide-id="' + s.id + '"]').forEach(function(tpl) {
-        const card = tpl.querySelector('.hero-img-card');
-        if (!card || card.querySelector('img')) return;
-        const _imgUrl = _krEscAttr(_krOptImg(s.image, 1400));
-        card.innerHTML = '<img src="' + _imgUrl + '" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" fetchpriority="high" decoding="async">';
-      });
+      const tpl = document.querySelector('.swiper-hero .swiper-slide[data-slide-id="' + s.id + '"]');
+      if (!tpl) return;
+      const card = tpl.querySelector('.hero-img-card');
+      if (!card || card.querySelector('img')) return;
+      const _imgUrl = _krEscAttr(_krOptImg(s.image, 1400));
+      card.innerHTML = '<img src="' + _imgUrl + '" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" fetchpriority="high" decoding="async">';
       try { localStorage.setItem('kr_s1img', _krOptImg(s.image, 1400)); } catch(e) {}
     }).catch(() => {});
 
@@ -2092,11 +2101,10 @@ window._krAppliedSlidesSig = '';
     if (window.heroSwiper && window.heroSwiper.el) {
       data.forEach(s => {
         if (!s.image) return;
-        // querySelectorAll — оновлюємо і оригінал, і Swiper-клони (loop mode)
-        document.querySelectorAll('.swiper-hero .swiper-slide[data-slide-id="' + s.id + '"]').forEach(function(tpl) {
-          const card = tpl.querySelector('.hero-img-card');
-          if (card) card.innerHTML = '<img src="' + _krEscAttr(_krOptImg(s.image,1400)) + '" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" decoding="async">';
-        });
+        const tpl = document.querySelector('.swiper-hero .swiper-slide[data-slide-id="' + s.id + '"]');
+        if (!tpl) return;
+        const card = tpl.querySelector('.hero-img-card');
+        if (card) card.innerHTML = '<img src="' + _krEscAttr(_krOptImg(s.image,1400)) + '" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" decoding="async">';
       });
       window._krAppliedSlidesSig = newSig;
       return;
