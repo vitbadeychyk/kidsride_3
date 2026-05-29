@@ -15,8 +15,6 @@ const STATIC_URLS = [
   { loc: SITE + '/kataly-tolokary',               changefreq: 'weekly',  priority: '0.75' },
   { loc: SITE + '/dityachi-vantazhivky',          changefreq: 'weekly',  priority: '0.75' },
   { loc: SITE + '/dityachi-bahhi',                changefreq: 'weekly',  priority: '0.75' },
-  { loc: SITE + '/calculator.html',               changefreq: 'monthly', priority: '0.60' },
-  { loc: SITE + '/compare.html',                  changefreq: 'monthly', priority: '0.50' },
 ];
 
 function escapeXml(s) {

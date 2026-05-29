@@ -1,6 +1,10 @@
 {
   "cleanUrls": false,
   "trailingSlash": false,
+  "redirects": [
+    { "source": "/index.html",      "destination": "/",               "permanent": true },
+    { "source": "/categories.html", "destination": "/catalog.html",   "permanent": true }
+  ],
   "rewrites": [
     { "source": "/sitemap.xml",                "destination": "/api/sitemap" },
     { "source": "/product/:slug",              "destination": "/api/resolve-product?slug=:slug" },
@@ -15,6 +19,12 @@
     { "source": "/",                           "destination": "/index.html" }
   ],
   "headers": [
+    {
+      "source": "/product/:slug",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=3600" }
+      ]
+    },
     {
       "source": "/(.*\\.html)",
       "headers": [

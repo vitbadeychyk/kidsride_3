@@ -9,7 +9,7 @@
 <meta name="description" content="Великий вибір дитячих електромобілів: джипи, квадроцикли, мотоцикли, машини, трактори. Фільтр за віком, ціною та маркою. Доставка по всій Україні.">
 <meta name="keywords" content="каталог дитячих електромобілів, купити дитячий електромобіль, джип дитячий електро, квадроцикл дитячий купити, електромобіль 12V 24V">
 <meta name="robots" content="index, follow">
-<link rel="canonical" href="https://www.kidsride.com.ua/catalog.html">
+<link rel="canonical" href="https://www.kidsride.com.ua/catalog.html" id="seo-canonical">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Каталог дитячих електромобілів — KidsRide">
 <meta property="og:description" content="Великий вибір дитячих електромобілів: джипи, квадроцикли, мотоцикли. Фільтр за віком, ціною та маркою.">
@@ -558,6 +558,22 @@ nav a.active{color:var(--orange)}
 })();
 </script>
 <script>try{if(localStorage.getItem('kr_logo_url')){document.write('<style>.logo-mark svg{display:none!important}.logo-mark{background:transparent!important;box-shadow:none!important;padding:0!important}</style>')}}catch(e){}</script>
+<script>
+(function(){
+  var CLEAN={
+    '/dityachi-dzhypy':       'https://www.kidsride.com.ua/dityachi-dzhypy',
+    '/dityachi-kvadratsykly': 'https://www.kidsride.com.ua/dityachi-kvadratsykly',
+    '/dityachi-motosykly':    'https://www.kidsride.com.ua/dityachi-motosykly',
+    '/dityachi-mashynky':     'https://www.kidsride.com.ua/dityachi-mashynky',
+    '/dityachi-traktory':     'https://www.kidsride.com.ua/dityachi-traktory',
+    '/kataly-tolokary':       'https://www.kidsride.com.ua/kataly-tolokary',
+    '/dityachi-vantazhivky':  'https://www.kidsride.com.ua/dityachi-vantazhivky',
+    '/dityachi-bahhi':        'https://www.kidsride.com.ua/dityachi-bahhi'
+  };
+  var p=window.location.pathname,c=document.getElementById('seo-canonical');
+  if(c&&CLEAN[p])c.setAttribute('href',CLEAN[p]);
+})();
+</script>
 </head>
 <body>
 <script src="shared.js"></script>
