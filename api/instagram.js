@@ -49,9 +49,9 @@ export default async function handler(req, res) {
   }
 
   try {
-    // limit=12 замість 50 — показуємо лише 8, беремо 12 з запасом на відео/рілси
+    // limit=25 замість 50 — беремо з запасом, бо рілси/відео фільтруються; для 8 фото вистачає
     const fields = 'id,media_type,media_url,thumbnail_url,permalink,caption';
-    const url = 'https://graph.instagram.com/v22.0/me/media?fields=' + fields + '&limit=12&access_token=' + TOKEN;
+    const url = 'https://graph.instagram.com/v22.0/me/media?fields=' + fields + '&limit=25&access_token=' + TOKEN;
 
     const r = await fetch(url);
     const json = await r.json();
