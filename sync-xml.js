@@ -33,6 +33,12 @@ const CONFIG = {
   batchSize:   50,    // скільки нових товарів вставляти за один POST
   photoMax:    10,    // максимум фото на товар
   onlyUpdate:  false, // true — лише оновлювати наявні, не додавати нові
+
+  // Фото Metr Plus у XML часто приходять як /img/917771.jpg — це стиснене превʼю.
+  // Для кращої якості конвертуємо їх у /img.php?id=917771&size=12.
+  // Можна змінити через env: PHOTO_SIZE=20 або вимкнути PHOTO_HD=false.
+  photoHd:   String(process.env.PHOTO_HD || 'true').toLowerCase() !== 'false',
+  photoSize: process.env.PHOTO_SIZE || '12',
 };
 
 // ── ЗАЛЕЖНОСТІ ────────────────────────────────────────────────────────────────
@@ -110,6 +116,33 @@ function guessModelCode(sku) {
   return m ? m[1] : '';
 }
 
+// Конвертує URL стисненого превью Metr Plus у URL з максимальною якістю:
+//   https://metr-plus.com.ua/img/917771.jpg  →  https://metr-plus.com.ua/img.php?id=917771&size=12
+//   /img/917771.jpeg                          →  https://metr-plus.com.ua/img.php?id=917771&size=12
+// Якщо URL вже у форматі img.php?id=...&size=... — оновлює size до CONFIG.photoSize.
+// Всі інші URL (Supabase, інші домени) — повертає без змін.
+function improveSupplierImageUrl(src) {
+  const raw = String(src || '').trim();
+  if (!raw || !CONFIG.photoHd) return raw;
+
+  // Якщо вже img.php?id=...&size=... — оновити size
+  if (/metr-plus\.com\.ua\/img\.php/.test(raw)) {
+    if (/[?&]size=/.test(raw)) return raw.replace(/([?&]size=)\d+/, `$1${CONFIG.photoSize}`);
+    return raw + (raw.includes('?') ? '&' : '?') + `size=${encodeURIComponent(CONFIG.photoSize)}`;
+  }
+
+  // /img/NUMBER.jpg → /img.php?id=NUMBER&size=12
+  const m = raw.match(/^(https?:\/\/(?:www\.)?metr-plus\.com\.ua)?\/img\/(\d+)\.(?:jpe?g|png|webp)(?:[?#].*)?$/i);
+  if (!m) return raw;
+
+  const origin = m[1] || 'https://metr-plus.com.ua';
+  return `${origin}/img.php?id=${m[2]}&size=${encodeURIComponent(CONFIG.photoSize)}`;
+}
+
+function normalizeImages(images) {
+  return [...new Set(images.map(improveSupplierImageUrl).filter(Boolean))];
+}
+
 function parseOffer(node) {
   const name = xmlText(node, 'name_ua') || xmlText(node, 'name');
   if (!name) return null;
@@ -168,7 +201,7 @@ function parseOffer(node) {
     preorder_days:  0,
     badge:          '',
     features:       features.slice(0, 30),
-    images:         [...new Set(images)].slice(0, CONFIG.photoMax),
+    images:         normalizeImages(images).slice(0, CONFIG.photoMax),
     description:    desc || null,
     stock:          supplierStock,
     active:         supplierActive,
