@@ -2061,12 +2061,13 @@ window._krAppliedSlidesSig = '';
       if (!Array.isArray(first) || !first[0] || !first[0].image) return;
       const s = first[0];
       // Шукаємо слайд по data-slide-id (якщо вже замінено _krApplySlides — знайде по UUID)
-      const tpl = document.querySelector('.swiper-hero .swiper-slide[data-slide-id="' + s.id + '"]');
-      if (!tpl) return;
-      const card = tpl.querySelector('.hero-img-card');
-      if (!card || card.querySelector('img')) return;
-      const _imgUrl = _krEscAttr(_krOptImg(s.image, 1400));
-      card.innerHTML = '<img src="' + _imgUrl + '" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" fetchpriority="high" decoding="async">';
+      // querySelectorAll — оновлюємо і оригінал, і Swiper-клони
+      document.querySelectorAll('.swiper-hero .swiper-slide[data-slide-id="' + s.id + '"]').forEach(function(tpl) {
+        const card = tpl.querySelector('.hero-img-card');
+        if (!card || card.querySelector('img')) return;
+        const _imgUrl = _krEscAttr(_krOptImg(s.image, 1400));
+        card.innerHTML = '<img src="' + _imgUrl + '" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" fetchpriority="high" decoding="async">';
+      });
       try { localStorage.setItem('kr_s1img', _krOptImg(s.image, 1400)); } catch(e) {}
     }).catch(() => {});
 
@@ -2091,10 +2092,11 @@ window._krAppliedSlidesSig = '';
     if (window.heroSwiper && window.heroSwiper.el) {
       data.forEach(s => {
         if (!s.image) return;
-        const tpl = document.querySelector('.swiper-hero .swiper-slide[data-slide-id="' + s.id + '"]');
-        if (!tpl) return;
-        const card = tpl.querySelector('.hero-img-card');
-        if (card) card.innerHTML = '<img src="' + _krEscAttr(_krOptImg(s.image,1400)) + '" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" decoding="async">';
+        // querySelectorAll — оновлюємо і оригінал, і Swiper-клони (loop mode)
+        document.querySelectorAll('.swiper-hero .swiper-slide[data-slide-id="' + s.id + '"]').forEach(function(tpl) {
+          const card = tpl.querySelector('.hero-img-card');
+          if (card) card.innerHTML = '<img src="' + _krEscAttr(_krOptImg(s.image,1400)) + '" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" decoding="async">';
+        });
       });
       window._krAppliedSlidesSig = newSig;
       return;
