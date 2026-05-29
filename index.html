@@ -2080,9 +2080,9 @@ window._krAppliedSlidesSig = '';
       try { localStorage.setItem('kr_s1img', _krOptImg(s.image, 1400)); } catch(e) {}
     }).catch(() => {});
 
-  // 3) Повний фоновий запит: тільки потрібні поля — оновлює кеш і фото без перезапуску Swiper
-  // Без поля `link` — це JS-fallback, не реальна колонка БД (давало 400 Bad Request)
-  fetch(SUPA_URL + '/rest/v1/slides?select=id,sort_order,enabled,image,bg,title,cta1_text,cta1_link,cta2_text,cta2_link&order=sort_order.asc', { headers: _H })
+  // 3) Повний фоновий запит: select=* — повертає всі колонки що є в БД, не падає на відсутніх
+  // (cta1_text, cta1_link, cta2_text, cta2_link відсутні в базовій схемі → 400 якщо запитувати явно)
+  fetch(SUPA_URL + '/rest/v1/slides?select=*&order=sort_order.asc', { headers: _H })
   .then(r => r.ok ? r.json() : null).then(data => {
     if (!Array.isArray(data) || !data.length) return;
     const newSig = _krSlidesSig(data);
