@@ -2044,6 +2044,36 @@ window._krAppliedSlidesSig = '';
   const SUPA_URL = 'https://xczrzdbikkycgpnvolib.supabase.co';
   const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
   const _H = { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY };
+
+  // 0) Фото-заглушка — запускається ПАРАЛЕЛЬНО зі слайдами (не вкладено!)
+  // Якщо слайди ще не в кеші (перше відвідування) — заглушка приходить першою і закриває порожній квадрат
+  (function fetchPlaceholderEarly() {
+    var _phCard = document.getElementById('_s1ImgCard');
+    if (!_phCard) return;
+    // Вже є зображення — нічого не робимо
+    if (_phCard.querySelector('img')) return;
+    // Є в localStorage — застосовуємо одразу (без мережевого запиту)
+    var _phCached = null;
+    try { _phCached = localStorage.getItem('kr_hero_placeholder'); } catch(e) {}
+    if (_phCached) {
+      _phCard.innerHTML = '<img src= + _phCached.replace(/["<>]/g,) +  alt= style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" loading="eager" decoding="async" fetchpriority="high">';
+      return;
+    }
+    // Немає в кеші — запит до Supabase паралельно зі слайдами (перше відвідування)
+    fetch(SUPA_URL + '/rest/v1/settings?select=value&key=eq.hero_placeholder_image&limit=1', { headers: _H })
+      .then(function(r) { return r.ok ? r.json() : []; })
+      .then(function(rows) {
+        if (!Array.isArray(rows) || !rows[0] || !rows[0].value) return;
+        var _phUrl = rows[0].value;
+        try { localStorage.setItem('kr_hero_placeholder', _phUrl); } catch(e) {}
+        // Застосовуємо тільки якщо справжній слайд ще не прийшов
+        var card = document.getElementById('_s1ImgCard');
+        if (card && !card.querySelector('img')) {
+          card.innerHTML = '<img src= + _phUrl.replace(/["<>]/g,) +  alt= style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" loading="eager" decoding="async" fetchpriority="high">';
+        }
+      }).catch(function() {});
+  })();
+
   fetch(SUPA_URL + '/rest/v1/slides?select=id,sort_order,enabled,image&order=sort_order.asc&limit=1', { headers: _H })
     .then(r => r.ok ? r.json() : null).then(first => {
       if (!Array.isArray(first) || !first[0] || !first[0].image) return;
@@ -2071,21 +2101,7 @@ window._krAppliedSlidesSig = '';
       const _s1d = data.filter(s => s.enabled !== false).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0))[0];
       if (_s1d && _s1d.image) localStorage.setItem('kr_s1img', _krOptImg(_s1d.image, 1400));
     } catch(e) {}
-    // Заглушку з налаштувань фетчимо ТІЛЬКИ якщо її ще немає в кеші (не кожен pageload)
-    if (!localStorage.getItem('kr_hero_placeholder')) {
-      fetch(SUPA_URL + '/rest/v1/settings?select=value&key=eq.hero_placeholder_image&limit=1', { headers: _H })
-        .then(r => r.ok ? r.json() : [])
-        .then(rows => {
-          if (!Array.isArray(rows) || !rows[0] || !rows[0].value) return;
-          const _phUrl = rows[0].value;
-          try { localStorage.setItem('kr_hero_placeholder', _phUrl); } catch(e) {}
-          // Показуємо заглушку тільки якщо слайд ще не завантажено
-          const _phCard = document.getElementById('_s1ImgCard');
-          if (_phCard && !_phCard.querySelector('img')) {
-            _phCard.innerHTML = '<img src="' + _phUrl.replace(/["<>]/g,'') + '" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" loading="eager" decoding="async">';
-          }
-        }).catch(() => {});
-    }
+
     // Нічого не змінилось — нічого не робимо
     if (newSig && newSig === window._krAppliedSlidesSig) return;
 
