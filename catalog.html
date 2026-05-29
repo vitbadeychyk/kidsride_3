@@ -2788,7 +2788,14 @@ function catOpenProduct(id) {
       catLabel: _currentCatLabel()
     }));
   } catch {}
-  window.location.href = _slug ? 'product/' + _slug : 'product.html?id=' + encodeURIComponent(id);
+  // Зберігаємо шлях категорії в URL товару
+  const _catPathN = (() => {
+    const pp = window.location.pathname;
+    if (!pp || pp === '/' || /catalog.html/.test(pp)) return '';
+    const pts = pp.replace(//$/, '').split('/').filter(Boolean);
+    return pts.length >= 2 ? pp.replace(//$/, '') : '';
+  })();
+  window.location.href = _slug ? (_catPathN ? _catPathN + '/' + _slug : 'product/' + _slug) : 'product.html?id=' + encodeURIComponent(id);
 }
 
 // Рендер однієї картки
@@ -2830,7 +2837,14 @@ function renderCard(p) {
   }
 
   const _pSlug = p.slug || slugify(p.name || "");
-  const productHref = _pSlug ? 'product/' + _pSlug : (p.id ? 'product.html?id=' + encodeURIComponent(p.id) : 'product.html');
+  // Будуємо URL товару: якщо обрано підкатегорію — додаємо шлях категорії
+  const _catPathR = (() => {
+    const pp = window.location.pathname;
+    if (!pp || pp === '/' || /catalog.html/.test(pp)) return '';
+    const pts = pp.replace(//$/, '').split('/').filter(Boolean);
+    return pts.length >= 2 ? pp.replace(//$/, '') : '';
+  })();
+  const productHref = _pSlug ? (_catPathR ? _catPathR + '/' + _pSlug : 'product/' + _pSlug) : (p.id ? 'product.html?id=' + encodeURIComponent(p.id) : 'product.html');
 
   return `
     <div class="p-card reveal" data-id="${escAttr(p.id)}" data-category="${escAttr(p.category)}" data-age="${escAttr(p.age)}" data-voltage="${escAttr(p.voltage)}" data-price="${p.price}" data-brand="${escAttr(p.brand)}">

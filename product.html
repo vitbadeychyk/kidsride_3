@@ -2093,25 +2093,34 @@ function applyProductData(p){
     bcScript.textContent = JSON.stringify(bcSchema);
     document.head.appendChild(bcScript);
   })(p);
-  // Категорія в хлібних крихтах — беремо збережений контекст каталогу,
-  // або fallback на тип транспорту продукту
+  // Категорія в хлібних крихтах — з URL-шляху або з sessionStorage
   {
     const _ret = (() => { try { return JSON.parse(sessionStorage.getItem('kr_catalog_return') || 'null'); } catch {} return null; })();
     const CAT_LABELS = { jeep:'Джипи', quad:'Квадроцикли', moto:'Мотоцикли', car:'Машини', tractor:'Трактори', walker:'Каталки-толокари', truck:'Вантажівки', buggy:'Баггі' };
     const catEl = document.getElementById('breadcrumbCat');
-    if (_ret && _ret.catLabel) {
-      if (catEl) {
-        catEl.textContent = _ret.catLabel;
-        catEl.href = _ret.url || 'catalog.html';
-      }
-      // Показуємо кнопку "← Назад"
+
+    // Якщо URL вигляду /:mainCat/:subCat/:productSlug — зчитуємо назву підкатегорії з URL
+    const _ppParts = window.location.pathname.replace(/\/$/, '').split('/').filter(Boolean);
+    const _hasCatInUrl = _ppParts.length >= 3;
+
+    if (_hasCatInUrl) {
+      const _subCatSlug = _ppParts[1];
+      const _catUrl = '/' + _ppParts[0] + '/' + _subCatSlug;
+      const _subLabel = _subCatSlug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+      if (catEl) { catEl.textContent = _subLabel; catEl.href = _catUrl; }
+      const bar = document.getElementById('backToCatalogBar');
+      const lbl = document.getElementById('backToCatalogLabel');
+      if (bar) bar.style.display = '';
+      if (lbl) lbl.textContent = '← ' + _subLabel;
+    } else if (_ret && _ret.catLabel) {
+      if (catEl) { catEl.textContent = _ret.catLabel; catEl.href = _ret.url || '/catalog.html'; }
       const bar = document.getElementById('backToCatalogBar');
       const lbl = document.getElementById('backToCatalogLabel');
       if (bar) bar.style.display = '';
       if (lbl) lbl.textContent = '← ' + _ret.catLabel;
     } else if (p.category && catEl) {
       catEl.textContent = CAT_LABELS[p.category] || 'Каталог';
-      catEl.href = 'catalog.html?cat=' + encodeURIComponent(p.category);
+      catEl.href = '/catalog.html?cat=' + encodeURIComponent(p.category);
     }
   }
   if (p.brand && !/^без\s*бренд/i.test(p.brand)){
