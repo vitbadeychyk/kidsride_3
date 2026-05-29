@@ -538,8 +538,6 @@ nav a.active{color:var(--orange)}
   #mob-cat-nav{padding:24px 36px}
 }
 /* desktop override removed — nav shown on all screen sizes */
-@keyframes _shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
-.mob-cat-tile-skel{pointer-events:none;background:linear-gradient(90deg,#dce4f0 25%,#c8d4e8 50%,#dce4f0 75%);background-size:200% 100%;animation:_shimmer 1.4s infinite}
 </style>
 <script>
 (function(){
@@ -657,12 +655,7 @@ nav a.active{color:var(--orange)}
     <div class="mob-cat-heading" id="mobCatHeading">Каталог</div>
   </div>
   <div class="mob-cat-grid" id="mobCatGrid">
-    <div class="mob-cat-tile mob-cat-tile-skel"></div>
-    <div class="mob-cat-tile mob-cat-tile-skel"></div>
-    <div class="mob-cat-tile mob-cat-tile-skel"></div>
-    <div class="mob-cat-tile mob-cat-tile-skel"></div>
-    <div class="mob-cat-tile mob-cat-tile-skel"></div>
-    <div class="mob-cat-tile mob-cat-tile-skel"></div>
+    <div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:var(--text-muted);font-size:14px">Завантаження…</div>
   </div>
 </div>
 
@@ -2189,23 +2182,6 @@ function _mobCatNavToggleProductsArea(show) {
   if (!show && bb) bb.style.display = 'none';
 }
 
-// Стискає URL зображення для відображення у маленьких тайлах категорій.
-// metr-plus: замінює size=12 (макс якість) на size=4 (достатньо для ~200px тайлів)
-// Supabase Storage: використовує Image Transform API (width=280, quality=72)
-function _compressCatImg(url) {
-  if (!url || url.startsWith('data:')) return url;
-  try {
-    if (url.includes('metr-plus.com.ua') || url.includes('metr-plus.com')) {
-      return url.replace(/([?&])size=\d+/, '$1size=4');
-    }
-    if (url.includes('/storage/v1/object/public/')) {
-      return url.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/')
-             + (url.includes('?') ? '&' : '?') + 'width=280&quality=72';
-    }
-  } catch(_) {}
-  return url;
-}
-
 function _mobNavShowMain() {
   if (!_isMobileView()) return;
   _mobNavLevel = 'main';
@@ -2239,10 +2215,10 @@ function _mobNavShowMain() {
     }
   });
 
-  grid.innerHTML = _mainCategories.map((mc, idx) => {
+  grid.innerHTML = _mainCategories.map(mc => {
     const cnt = prodCounts[mc.id] || 0;
     const thumb = mc.image_url
-      ? `<img class="mob-cat-tile-img" src="${_compressCatImg(mc.image_url)}" alt="${escAttr ? escAttr(mc.name) : mc.name}" decoding="async"${idx < 4 ? ' fetchpriority="high"' : ''}>`
+      ? `<img class="mob-cat-tile-img" src="${mc.image_url}" alt="${escAttr ? escAttr(mc.name) : mc.name}" loading="lazy">`
       : `<div class="mob-cat-tile-icon">${_getCatIcon(mc.name)}</div>`;
     return `<div class="mob-cat-tile" onclick="_mobNavShowSub(${mc.id})">
       ${thumb}
@@ -2324,7 +2300,7 @@ function _mobNavShowSub(parentId) {
 
     // Звичайний тайл підкатегорії (Запчастини, аксесуари тощо)
     const thumb = sub.image_url
-      ? `<img class="mob-cat-tile-img" src="${_compressCatImg(sub.image_url)}" alt="${escAttr ? escAttr(sub.name) : sub.name}" decoding="async">`
+      ? `<img class="mob-cat-tile-img" src="${sub.image_url}" alt="${escAttr ? escAttr(sub.name) : sub.name}" loading="lazy">`
       : `<div class="mob-cat-tile-icon">${_getCatIcon(sub.name)}</div>`;
     tiles.push(`<div class="mob-cat-tile" onclick="_mobNavSelectSub(${sub.id})">
       ${thumb}
