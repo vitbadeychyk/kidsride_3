@@ -538,6 +538,9 @@ nav a.active{color:var(--orange)}
   #mob-cat-nav{padding:24px 36px}
 }
 /* desktop override removed — nav shown on all screen sizes */
+/* ── Shimmer animation for instant skeleton tiles ── */
+@keyframes _shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.mob-cat-tile-skel{pointer-events:none;background:linear-gradient(90deg,#dce4f0 25%,#c8d4e8 50%,#dce4f0 75%);background-size:200% 100%;animation:_shimmer 1.4s infinite}
 </style>
 <script>
 (function(){
@@ -655,7 +658,12 @@ nav a.active{color:var(--orange)}
     <div class="mob-cat-heading" id="mobCatHeading">Каталог</div>
   </div>
   <div class="mob-cat-grid" id="mobCatGrid">
-    <div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:var(--text-muted);font-size:14px">Завантаження…</div>
+    <div class="mob-cat-tile mob-cat-tile-skel" style="border-radius:18px"></div>
+    <div class="mob-cat-tile mob-cat-tile-skel" style="border-radius:18px"></div>
+    <div class="mob-cat-tile mob-cat-tile-skel" style="border-radius:18px"></div>
+    <div class="mob-cat-tile mob-cat-tile-skel" style="border-radius:18px"></div>
+    <div class="mob-cat-tile mob-cat-tile-skel" style="border-radius:18px"></div>
+    <div class="mob-cat-tile mob-cat-tile-skel" style="border-radius:18px"></div>
   </div>
 </div>
 
@@ -2182,6 +2190,21 @@ function _mobCatNavToggleProductsArea(show) {
   if (!show && bb) bb.style.display = 'none';
 }
 
+// Оптимізує URL зображення категорії через Supabase Image Transform API
+// Зменшує розмір фото до 400px — критично для LCP на мобільних (~10x менше даних)
+function _optCatImg(url, w) {
+  if (!url) return url;
+  w = w || 400;
+  try {
+    // Supabase storage: /storage/v1/object/public/ → /storage/v1/render/image/public/
+    if (url.includes('/storage/v1/object/public/')) {
+      return url.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/')
+             + (url.includes('?') ? '&' : '?') + 'width=' + w + '&quality=75';
+    }
+  } catch(_) {}
+  return url;
+}
+
 function _mobNavShowMain() {
   if (!_isMobileView()) return;
   _mobNavLevel = 'main';
@@ -2201,7 +2224,9 @@ function _mobNavShowMain() {
   if (!grid) return;
 
   if (!_mainCategories.length) {
-    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted)">Категорії завантажуються…</div>';
+    // Показуємо shimmer-скелетон поки категорії завантажуються
+    const _cs = () => `<div class="mob-cat-tile mob-cat-tile-skel" style="border-radius:18px"></div>`;
+    grid.innerHTML = _cs()+_cs()+_cs()+_cs()+_cs()+_cs();
     return;
   }
 
@@ -2215,10 +2240,13 @@ function _mobNavShowMain() {
     }
   });
 
-  grid.innerHTML = _mainCategories.map(mc => {
+  grid.innerHTML = _mainCategories.map((mc, idx) => {
     const cnt = prodCounts[mc.id] || 0;
+    // ВАЖЛИВО: НЕ використовуємо loading="lazy" для зображень категорій —
+    // вони є головним (LCP) елементом сторінки і мають завантажуватись одразу.
+    // Використовуємо Supabase Image Transform для зменшення розміру (~10x менше даних).
     const thumb = mc.image_url
-      ? `<img class="mob-cat-tile-img" src="${mc.image_url}" alt="${escAttr ? escAttr(mc.name) : mc.name}" loading="lazy">`
+      ? `<img class="mob-cat-tile-img" src="${_optCatImg(mc.image_url, 400)}" alt="${escAttr ? escAttr(mc.name) : mc.name}" decoding="async"${idx < 4 ? ' fetchpriority="high"' : ''}>`
       : `<div class="mob-cat-tile-icon">${_getCatIcon(mc.name)}</div>`;
     return `<div class="mob-cat-tile" onclick="_mobNavShowSub(${mc.id})">
       ${thumb}
