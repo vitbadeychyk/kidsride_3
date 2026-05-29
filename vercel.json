@@ -16,6 +16,8 @@
     { "source": "/kataly-tolokary",            "destination": "/catalog.html?cat=walker" },
     { "source": "/dityachi-vantazhivky",       "destination": "/catalog.html?cat=truck" },
     { "source": "/dityachi-bahhi",             "destination": "/catalog.html?cat=buggy" },
+    { "source": "/:mainCat/:subCat",           "destination": "/catalog.html" },
+    { "source": "/:mainCat",                   "destination": "/catalog.html" },
     { "source": "/",                           "destination": "/index.html" }
   ],
   "headers": [

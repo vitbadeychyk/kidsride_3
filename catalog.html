@@ -1954,7 +1954,7 @@ function toggleParent(rowEl, parentId) {
 let _activeCatIdFilter = 0;
 let _activeParentIdFilter = 0;
 
-function selectCategory(catId, parentId) {
+function selectCategory(catId, parentId, _noPush) {
   _activeCatIdFilter    = catId;
   _activeParentIdFilter = parentId;
   _activeVehicleType    = ''; // скидаємо тип при виборі категорії
@@ -2000,12 +2000,33 @@ function selectCategory(catId, parentId) {
     if (bcSep2)  bcSep2.style.display = 'none';
   }
 
+  // Оновити URL в браузері (чисті шляхи без параметрів)
+  if (!_noPush) {
+    try {
+      let newUrl;
+      if (!catId && !parentId) {
+        newUrl = '/catalog.html';
+      } else if (catId) {
+        const cat = _allCategories.find(c => c.id === catId);
+        const realParentId = (cat && cat.main_category_id) ? cat.main_category_id : parentId;
+        const parent = _mainCategories.find(c => c.id === realParentId);
+        const parentSlug = parent ? slugify(parent.name) : '';
+        const catSlug = cat ? slugify(cat.name) : String(catId);
+        newUrl = '/' + (parentSlug ? parentSlug + '/' + catSlug : catSlug);
+      } else if (parentId) {
+        const parent = _mainCategories.find(c => c.id === parentId);
+        newUrl = '/' + (parent ? slugify(parent.name) : String(parentId));
+      }
+      history.pushState({ catId: catId || 0, parentId: parentId || 0, vType: '' }, '', newUrl);
+    } catch(e) {}
+  }
+
   currentPage = 1;
   applyFiltersAndRender(); // оновить товари + updateDynamicFilters всередині
 }
 
 // Клік на тип транспорту в дереві (Джипи, Квадроцикли тощо)
-function selectVehicleType(code, parentId) {
+function selectVehicleType(code, parentId, _noPush) {
   _activeCatIdFilter    = 0;
   _activeParentIdFilter = parentId;
   _activeVehicleType    = code;
@@ -2037,6 +2058,17 @@ function selectVehicleType(code, parentId) {
   if (bcCur)   bcCur.textContent   = fullName;
   if (bcCats)  bcCats.style.display = '';
   if (bcSep2)  bcSep2.style.display = '';
+
+
+  // Оновити URL в браузері
+  if (!_noPush) {
+    try {
+      const parentSlug = parent ? slugify(parent.name) : '';
+      const typeSlug   = slugify(typeName);
+      const newUrl = '/' + (parentSlug ? parentSlug + '/' + typeSlug : typeSlug);
+      history.pushState({ catId: 0, parentId: parentId || 0, vType: code }, '', newUrl);
+    } catch(e) {}
+  }
 
   currentPage = 1;
   applyFiltersAndRender();
@@ -3281,6 +3313,79 @@ function updateDynamicFilters() {
 // Також зворотна сумісність: ?cat=jeep,car, ?type=, ?category=
 // + ?search=… для пошуку, + ?brand=… для бренду
 function applyUrlFilters() {
+
+  // ── Розбір URL-шляху (нові чисті адреси) ──────────────────────────────────
+  // Наприклад: /dytiachyi-transport  або  /dytiachyi-transport/bihovely
+  try {
+    const _pathname = window.location.pathname.replace(/\/+$/g, '');
+    const _skipPaths = new Set(['', '/', '/catalog.html', '/catalog', '/index.html',
+      '/cart.html', '/checkout.html', '/compare.html', '/product.html',
+      '/calculator.html', '/auth.html', '/admin.html']);
+    const _hasQueryCat = !!(new URLSearchParams(location.search).get('catId') ||
+      new URLSearchParams(location.search).get('mainCatId') ||
+      new URLSearchParams(location.search).get('parentId'));
+    if (!_skipPaths.has(_pathname) && !_pathname.startsWith('/product') &&
+        !_pathname.startsWith('/api') && !_hasQueryCat &&
+        _mainCategories.length && _allCategories.length) {
+      const _parts = _pathname.split('/').filter(Boolean);
+      if (_parts.length >= 1) {
+        const _mainSlug = _parts[0];
+        const _subSlug  = _parts[1];
+        const _mainCat  = _mainCategories.find(c => slugify(c.name) === _mainSlug);
+        if (_mainCat) {
+          if (_subSlug) {
+            const _subCat = _allCategories.find(c =>
+              c.main_category_id === _mainCat.id && slugify(c.name) === _subSlug);
+            if (_subCat) {
+              _activeCatIdFilter    = _subCat.id;
+              _activeParentIdFilter = 0;
+              _isDefaultMode = false;
+              const bcCats2 = document.getElementById('bcCategories');
+              const bcSep22 = document.getElementById('bcSep2');
+              const bcCur2  = document.getElementById('bcCurrent');
+              const titleEl2 = document.getElementById('catalogTitle');
+              if (bcCats2) bcCats2.style.display = '';
+              if (bcSep22) bcSep22.style.display = '';
+              if (bcCur2)  bcCur2.textContent  = _subCat.name;
+              if (titleEl2) titleEl2.textContent = _subCat.name;
+            } else {
+              // slug підкатегорії не знайдено — шукаємо тип транспорту
+              const _TYPE_SLUG_MAP = {
+                'dzhypy':'jeep','kvadrotsykly':'quad','motosykly':'moto','mashyny':'car',
+                'traktory':'tractor','katalky-tolokary':'walker','vantazhivky':'truck','bahhi':'buggy',
+                'dzhypy':'jeep'
+              };
+              const _vType = _TYPE_SLUG_MAP[_subSlug] || null;
+              if (_vType) {
+                _activeCatIdFilter    = 0;
+                _activeParentIdFilter = _mainCat.id;
+                _activeVehicleType    = _vType;
+                _isDefaultMode = false;
+              } else {
+                _activeCatIdFilter    = 0;
+                _activeParentIdFilter = _mainCat.id;
+                _isDefaultMode = false;
+              }
+            }
+          } else {
+            _activeCatIdFilter    = 0;
+            _activeParentIdFilter = _mainCat.id;
+            _isDefaultMode = false;
+            const bcCats2 = document.getElementById('bcCategories');
+            const bcSep22 = document.getElementById('bcSep2');
+            const bcCur2  = document.getElementById('bcCurrent');
+            const titleEl2 = document.getElementById('catalogTitle');
+            if (bcCats2) bcCats2.style.display = '';
+            if (bcSep22) bcSep22.style.display = '';
+            if (bcCur2)  bcCur2.textContent  = _mainCat.name;
+            if (titleEl2) titleEl2.textContent = _mainCat.name;
+          }
+        }
+      }
+    }
+  } catch(_e) {}
+  // ── Кінець розбору URL-шляху ─────────────────────────────────────────────
+
   const params = new URLSearchParams(location.search);
 
   const catId      = params.get('catId')      || '';
@@ -3612,6 +3717,20 @@ function showToastLocal(msg) {
   t.textContent=msg;t.style.opacity='1';
   clearTimeout(t._t);t._t=setTimeout(()=>t.style.opacity='0',2500);
 }
+
+
+// ── POPSTATE: відновлення стану каталогу при натисканні «Назад» ─────────────
+window.addEventListener('popstate', function(e) {
+  const st = e.state;
+  if (st && (st.catId !== undefined || st.parentId !== undefined)) {
+    if (st.vType) {
+      selectVehicleType(st.vType, st.parentId || 0, true);
+    } else {
+      selectCategory(st.catId || 0, st.parentId || 0, true);
+    }
+    loadCategoryTree();
+  }
+});
 
 // Ініціалізація каталогу
 document.addEventListener('DOMContentLoaded', () => {
