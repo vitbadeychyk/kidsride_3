@@ -2,6 +2,7 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
+<base href="/">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="shortcut icon" href="favicon.svg">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -2247,6 +2248,14 @@ function _mobNavShowSub(parentId) {
   if (heading) heading.textContent = parent ? parent.name : 'Підкатегорії';
   if (backBtn) backBtn.style.display = 'flex';
 
+  // Оновити URL при переході до підкатегорій основної категорії
+  try {
+    if (parent) {
+      const _mainSlugNav = slugify(parent.name);
+      history.pushState({ catId: 0, parentId: parentId || 0, vType: '' }, '', '/' + _mainSlugNav);
+    }
+  } catch(_e) {}
+
   const grid = document.getElementById('mobCatGrid');
   if (!grid) return;
 
@@ -2406,9 +2415,22 @@ function _mobNavSelectVehicleType(code, catId) {
   if (bl) bl.textContent = _VT_UA[code] || code;
 
   // Встановлюємо фільтр підкатегорії + тип транспорту
-  selectCategory(catId, 0);
+  selectCategory(catId, 0, true); // true = не оновлювати URL тут
   _activeVehicleType = code;
   applyFiltersAndRender();
+
+  // Оновити URL: /{основна-категорія}/{тип-транспорту}
+  try {
+    const _vTypeName = {'jeep':'Джипи','quad':'Квадроцикли','moto':'Мотоцикли','car':'Машини',
+      'tractor':'Трактори','walker':'Каталки-толокари','truck':'Вантажівки','buggy':'Баggі'}[code] || code;
+    const _vCat = _allCategories.find(c => c.id === catId);
+    const _vMainId = _vCat ? _vCat.main_category_id : 0;
+    const _vMain = _mainCategories.find(c => c.id === _vMainId);
+    const _vMainSlug = _vMain ? slugify(_vMain.name) : '';
+    const _vTypeSlug = slugify(_vTypeName);
+    const _vUrl = _vMainSlug ? '/' + _vMainSlug + '/' + _vTypeSlug : '/' + _vTypeSlug;
+    history.pushState({ catId: catId || 0, parentId: 0, vType: code }, '', _vUrl);
+  } catch(_e) {}
 
   window.scrollTo({ top: 0, behavior: 'instant' });
 }
