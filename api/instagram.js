@@ -1,7 +1,7 @@
 // Vercel Serverless Function: отримує фото-пости з Instagram
 // Токен зберігається у Supabase (settings → instagram_token), автоматично оновлюється cron job.
 
-const CACHE_DURATION = 10 * 60 * 1000; // 10 хвилин
+const CACHE_DURATION = 30 * 60 * 1000; // 30 хвилин (було 10)
 let cache = null;
 let cacheTime = 0;
 
@@ -38,7 +38,7 @@ export default async function handler(req, res) {
   }
 
   if (cache && Date.now() - cacheTime < CACHE_DURATION) {
-    res.setHeader('Cache-Control', 'public, max-age=600');
+    res.setHeader('Cache-Control', 'public, max-age=1800');
     return res.status(200).json({ ok: true, data: cache });
   }
 
@@ -49,8 +49,9 @@ export default async function handler(req, res) {
   }
 
   try {
+    // limit=12 замість 50 — показуємо лише 8, беремо 12 з запасом на відео/рілси
     const fields = 'id,media_type,media_url,thumbnail_url,permalink,caption';
-    const url = 'https://graph.instagram.com/v22.0/me/media?fields=' + fields + '&limit=50&access_token=' + TOKEN;
+    const url = 'https://graph.instagram.com/v22.0/me/media?fields=' + fields + '&limit=12&access_token=' + TOKEN;
 
     const r = await fetch(url);
     const json = await r.json();
@@ -69,7 +70,7 @@ export default async function handler(req, res) {
     cache = posts;
     cacheTime = Date.now();
 
-    res.setHeader('Cache-Control', 'public, max-age=600');
+    res.setHeader('Cache-Control', 'public, max-age=1800');
     return res.status(200).json({ ok: true, data: posts });
   } catch (e) {
     console.error('Instagram fetch error:', e);
