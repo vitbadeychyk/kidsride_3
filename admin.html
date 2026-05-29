@@ -5275,7 +5275,7 @@ function productPhotoProcessOne(file, cb) {
   reader.onload = function(e) {
     const img = new Image();
     img.onload = function() {
-      const maxDim = 1200;
+      const maxDim = 1800;
       let w = img.naturalWidth, h = img.naturalHeight;
       if (Math.max(w, h) > maxDim) {
         const k = maxDim / Math.max(w, h);
