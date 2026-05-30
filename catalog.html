@@ -1719,8 +1719,8 @@ async function _fetchCategoriesFromSupabase() {
     return fetch(url, { headers, signal: ctrl.signal }).finally(() => clearTimeout(tid));
   };
   const [mcRes, catRes] = await Promise.all([
-    _ctFetch(SUPABASE_URL + '/rest/v1/main_categories?select=id,name,image_url&active=eq.true&order=sort_order.asc,name.asc'),
-    _ctFetch(SUPABASE_URL + '/rest/v1/categories?select=id,name,main_category_id,image_url&active=eq.true&order=name.asc')
+    _ctFetch(SUPABASE_URL + '/rest/v1/main_categories?select=id,name,slug,image_url&active=eq.true&order=sort_order.asc,name.asc'),
+    _ctFetch(SUPABASE_URL + '/rest/v1/categories?select=id,name,slug,main_category_id,image_url&active=eq.true&order=name.asc')
   ]);
   if (!mcRes.ok || !catRes.ok) throw new Error('HTTP error');
   _mainCategories = await mcRes.json() || [];
@@ -3377,11 +3377,11 @@ function applyUrlFilters() {
       if (_parts.length >= 1) {
         const _mainSlug = _parts[0];
         const _subSlug  = _parts[1];
-        const _mainCat  = _mainCategories.find(c => slugify(c.name) === _mainSlug);
+        const _mainCat  = _mainCategories.find(c => (c.slug || slugify(c.name)) === _mainSlug);
         if (_mainCat) {
           if (_subSlug) {
             const _subCat = _allCategories.find(c =>
-              c.main_category_id === _mainCat.id && slugify(c.name) === _subSlug);
+              c.main_category_id === _mainCat.id && (c.slug || slugify(c.name)) === _subSlug);
             if (_subCat) {
               _activeCatIdFilter    = _subCat.id;
               _activeParentIdFilter = 0;
