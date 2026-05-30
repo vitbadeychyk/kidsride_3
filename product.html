@@ -2117,8 +2117,13 @@ function applyProductData(p){
 
     if (_hasCatInUrl) {
       const _subCatSlug = _ppParts[1];
-      const _catUrl = '/' + _ppParts[0] + '/' + _subCatSlug;
-      const _subLabel = _subCatSlug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+      const _catUrl = (window.__KR_CAT_URL__ && window.__KR_CAT_URL__ !== '/')
+        ? window.__KR_CAT_URL__
+        : '/' + _ppParts[0] + '/' + _subCatSlug;
+      // Беремо реальну назву категорії з SSR (resolve-product.js), фолбек — капіталізація slug
+      const _subLabel = (window.__KR_CAT_NAME__ && window.__KR_CAT_NAME__ !== '')
+        ? window.__KR_CAT_NAME__
+        : _subCatSlug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
       if (catEl) { catEl.textContent = _subLabel; catEl.href = _catUrl; }
       const bar = document.getElementById('backToCatalogBar');
       const lbl = document.getElementById('backToCatalogLabel');
