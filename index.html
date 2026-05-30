@@ -3140,7 +3140,7 @@ function _runInitDynamicData() {
     if (post.caption && post.caption.length > 80) caption += '…';
 
     return '<a href="' + post.permalink + '" target="_blank" rel="noopener" class="ig-post" style="display:block;text-decoration:none">'
-      + '<img src="' + imgUrl + '" alt="Instagram пост" loading="lazy" decoding="async" width="300" height="300">'
+      + '<img src="' + imgUrl + '" alt="Instagram пост" loading="eager" decoding="async" width="300" height="300">'
       + typeIcon
       + '<div class="ig-post-ov">' + HEART_SVG + (caption ? '<span style="max-width:80%;text-align:center;font-size:11px;font-weight:400;line-height:1.4;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">' + caption + '</span>' : '') + '</div>'
       + '</a>';
@@ -3194,7 +3194,7 @@ function _runInitDynamicData() {
         obs.disconnect();
         loadInstagramFeed();
       }
-    }, { rootMargin: '200px' });
+    }, { rootMargin: '800px' });
     igObs.observe(igSection);
   } else {
     if (document.readyState === 'loading') {
