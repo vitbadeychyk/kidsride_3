@@ -2,126 +2,37 @@
   "cleanUrls": false,
   "trailingSlash": false,
   "redirects": [
-    {
-      "source": "/index.html",
-      "destination": "/",
-      "permanent": true
-    },
-    {
-      "source": "/categories.html",
-      "destination": "/catalog.html",
-      "permanent": true
-    }
+    { "source": "/index.html",      "destination": "/",             "permanent": true },
+    { "source": "/categories.html", "destination": "/catalog.html", "permanent": true }
   ],
   "rewrites": [
-    {
-      "source": "/sitemap.xml",
-      "destination": "/api/sitemap"
-    },
-    {
-      "source": "/product/:slug",
-      "destination": "/api/resolve-product?slug=:slug"
-    },
-    {
-      "source": "/dityachi-dzhypy",
-      "destination": "/catalog.html?cat=jeep"
-    },
-    {
-      "source": "/dityachi-kvadratsykly",
-      "destination": "/catalog.html?cat=quad"
-    },
-    {
-      "source": "/dityachi-motosykly",
-      "destination": "/catalog.html?cat=moto"
-    },
-    {
-      "source": "/dityachi-mashynky",
-      "destination": "/catalog.html?cat=car"
-    },
-    {
-      "source": "/dityachi-traktory",
-      "destination": "/catalog.html?cat=tractor"
-    },
-    {
-      "source": "/kataly-tolokary",
-      "destination": "/catalog.html?cat=walker"
-    },
-    {
-      "source": "/dityachi-vantazhivky",
-      "destination": "/catalog.html?cat=truck"
-    },
-    {
-      "source": "/dityachi-bahhi",
-      "destination": "/catalog.html?cat=buggy"
-    },
-    {
-      "source": "/:mainCat/:subCat/:productSlug",
-      "destination": "/api/resolve-product?slug=:productSlug"
-    },
-    {
-      "source": "/:mainCat/:subCat",
-      "destination": "/catalog.html"
-    },
-    {
-      "source": "/:mainCat",
-      "destination": "/catalog.html"
-    },
-    {
-      "source": "/",
-      "destination": "/index.html"
-    }
+    { "source": "/sitemap.xml",          "destination": "/api/sitemap" },
+    { "source": "/product/:slug",        "destination": "/api/resolve-product?slug=:slug" },
+    { "source": "/",                     "destination": "/index.html" },
+    { "source": "/:main_slug/:cat_slug", "destination": "/api/resolve-category?main_slug=:main_slug&cat_slug=:cat_slug" },
+    { "source": "/:main_slug",           "destination": "/api/resolve-category?main_slug=:main_slug" }
   ],
   "headers": [
     {
-      "source": "/:mainCat/:subCat/:productSlug",
+      "source": "/product/:path*",
       "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=3600"
-        }
-      ]
-    },
-    {
-      "source": "/product/:slug",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=3600"
-        }
+        { "key": "Cache-Control", "value": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=3600" }
       ]
     },
     {
       "source": "/(.*\\.html)",
       "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store, no-cache, must-revalidate, max-age=0"
-        },
-        {
-          "key": "Pragma",
-          "value": "no-cache"
-        },
-        {
-          "key": "Expires",
-          "value": "0"
-        }
+        { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate, max-age=0" },
+        { "key": "Pragma",        "value": "no-cache" },
+        { "key": "Expires",       "value": "0" }
       ]
     },
     {
       "source": "/",
       "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store, no-cache, must-revalidate, max-age=0"
-        },
-        {
-          "key": "Pragma",
-          "value": "no-cache"
-        },
-        {
-          "key": "Expires",
-          "value": "0"
-        }
+        { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate, max-age=0" },
+        { "key": "Pragma",        "value": "no-cache" },
+        { "key": "Expires",       "value": "0" }
       ]
     }
   ],
