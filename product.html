@@ -2510,55 +2510,56 @@ async function buildColorVariants(currentSku, currentId, supaUrl, supaKey, model
 
   let arr = Array.from(merged.values());
 
-  // ── POST-FILTER: category_id — головний ключ розділення ──────────────────
-  // Логіка:
-  //  ✓ Той самий category_id → показуємо завжди
-  //  ✓ Виняток "запчастини↔авто": якщо той самий model_code І типи є
-  //    (авто+запчастина або запчастина+авто) — показуємо
-  //  ✗ Все інше — прибираємо (навіть якщо однакові цифри в SKU)
+  // ── POST-FILTER: суворий поділ по category_id ────────────────────────────
+  // Правила:
+  //  ✓ Той самий category_id → показуємо
+  //  ✓ Виняток: варіант у категорії "Запчастини/Аксесуари" (ID 195, 543, 556)
+  //             + поточний товар є транспортом → показуємо
+  //  ✓ Виняток: поточний у категорії запчастин, варіант — транспорт → показуємо
+  //  ✗ Все інше (різні category_id, не запчастини) → прибираємо
   {
-    const _PF_VEHICLE_CATS = new Set(['jeep','car','quad','moto','tractor','truck','buggy','walker']);
-    const curCatStr = String(currentCategory || '').toLowerCase();
-    const curCatId  = catId; // вже визначено вище рядком: const catId = ...
+    // ID категорій запчастин та аксесуарів (з categories таблиці Supabase)
+    const SPARE_PART_CAT_IDS = new Set([195, 543, 556]);
+
+    const curCatIdNum = catId ? Number(catId) : null;
+    const curIsSpare  = SPARE_PART_CAT_IDS.has(curCatIdNum);
+    const _PF_V       = new Set(['jeep','car','quad','moto','tractor','truck','buggy','walker']);
+    const curCatStr   = String(currentCategory || '').toLowerCase();
 
     arr = arr.filter(v => {
-      const vCatId = (v.category_id != null && v.category_id !== '') ? String(v.category_id) : '';
-      const vCat   = String(v.category || '').toLowerCase();
+      const vCatIdNum = (v.category_id != null && v.category_id !== '')
+        ? Number(v.category_id) : null;
+      const vCat = String(v.category || '').toLowerCase();
 
-      // ── Головне правило: той самий category_id ───────────────────────────
-      if (curCatId && vCatId) {
-        if (curCatId === vCatId) return true;   // та сама підкатегорія → беремо
-        // category_id відрізняється → перевіряємо виняток для запчастин нижче
-      }
-      // Фолбек (category_id не заповнено): порівнюємо рядок category
-      else if (!curCatId || !vCatId) {
-        if (curCatStr && vCat && curCatStr === vCat) return true;
-      }
+      // Правило 1: той самий category_id → завжди показуємо
+      if (curCatIdNum && vCatIdNum && curCatIdNum === vCatIdNum) return true;
 
-      // ── Виняток: запчастини ↔ транспортний засіб ─────────────────────────
-      // Дозволяємо ЛИШЕ якщо:
-      //   a) той самий model_code (явно пов'язані товари)
-      //   b) один тип — транспорт (_VEHICLE_CATS), інший — ні (запчастина)
-      const sameCode = !!(code && v.model_code && String(v.model_code).trim() === code);
-      if (sameCode) {
-        const curIsVehicle = _PF_VEHICLE_CATS.has(curCatStr);
-        const vIsVehicle   = _PF_VEHICLE_CATS.has(vCat);
-        // Транспорт + запчастина → OK
-        if (curIsVehicle && !vIsVehicle) return true;
-        // Запчастина + транспорт → OK
-        if (!curIsVehicle && vIsVehicle) return true;
+      // Фолбек: обидва без category_id → порівнюємо рядок category
+      if (!curCatIdNum && !vCatIdNum) {
+        return !!(curCatStr && vCat && curCatStr === vCat);
       }
 
-      // Все інше — відкидаємо
+      // Правило 2: поточний — транспорт, варіант — запчастина
+      const curIsVehicle = isCurrentVehicle || _PF_V.has(curCatStr);
+      if (curIsVehicle && SPARE_PART_CAT_IDS.has(vCatIdNum)) return true;
+
+      // Правило 3: поточний — запчастина, варіант — транспорт
+      if (curIsSpare && _PF_V.has(vCat)) return true;
+      if (curIsSpare && vCatIdNum && !SPARE_PART_CAT_IDS.has(vCatIdNum)) {
+        // запчастина поруч з запчастиною — дозволяємо якщо той самий model_code
+        const sameCode = !!(code && v.model_code && String(v.model_code).trim() === code);
+        if (sameCode) return true;
+      }
+
+      // Все інше → прибираємо
       return false;
     });
 
     if (arr.length < merged.size) {
-      console.log('[KidsRide variants] post-filter: видалено', merged.size - arr.length,
-        'товарів з інших категорій (category_id не збігається)');
+      console.log('[KidsRide variants] post-filter: прибрано', merged.size - arr.length,
+        'товарів з інших категорій');
     }
   }
-
   if (arr.length === 0) {
     console.warn('[KidsRide variants] жодної моделі не знайдено. Заповніть поле "Код моделі для кольорів" в адмінці (напр. 4259) для всіх варіантів.');
     return;
