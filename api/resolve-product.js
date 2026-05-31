@@ -20,7 +20,7 @@ function escJson(s) {
   return String(s || '').replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/&/g, '\\u0026');
 }
 
-function buildSchema(product, pageUrl, desc, catName, catUrl) {
+function buildSchema(product, pageUrl, desc, catName, catUrl, reviews = []) {
   const inStock = (typeof product.stock === 'number' ? product.stock > 0 : true) && product.active !== false;
   const imgList = Array.isArray(product.images) && product.images.length
     ? product.images.filter(Boolean)
@@ -42,6 +42,29 @@ function buildSchema(product, pageUrl, desc, catName, catUrl) {
     image: imgList,
     url: pageUrl,
     category: catName,
+    ...(reviews.length > 0 ? {
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: String(
+          (reviews.reduce((sum, r) => sum + (Number(r.rating) || 0), 0) / reviews.length).toFixed(1)
+        ),
+        reviewCount: String(reviews.length),
+        bestRating: '5',
+        worstRating: '1',
+      },
+      review: reviews.slice(0, 5).map(r => ({
+        '@type': 'Review',
+        author: { '@type': 'Person', name: r.author_name || 'Покупець' },
+        reviewRating: {
+          '@type': 'Rating',
+          ratingValue: String(r.rating || 5),
+          bestRating: '5',
+          worstRating: '1',
+        },
+        reviewBody: r.text || '',
+        datePublished: r.created_at ? r.created_at.substring(0, 10) : '',
+      })),
+    } : {}),
     offers: {
       '@type': 'Offer',
       '@id': pageUrl + '#offer',
@@ -148,7 +171,18 @@ export default async function handler(req, res) {
     return res.redirect(302, '/catalog.html');
   }
 
-  // ── 2. Завантажуємо категорії для хлібних крихт ──────────────────────────
+  // ── 2. Завантажуємо відгуки для aggregateRating + review ───────────────
+  let reviews = [];
+  try {
+    const r = await fetch(
+      supaUrl + '/rest/v1/reviews?select=author_name,rating,text,created_at&product_id=eq.' +
+        encodeURIComponent(product.id) + '&approved=eq.true&order=created_at.desc&limit=10',
+      { headers }
+    );
+    if (r.ok) reviews = (await r.json()) || [];
+  } catch (_) {}
+
+  // ── 3. Завантажуємо категорії для хлібних крихт ──────────────────────────
   let catName = '';
   let catUrl  = '';
 
@@ -183,7 +217,7 @@ export default async function handler(req, res) {
     } catch (_) {}
   }
 
-  // ── 3. Визначаємо canonical URL ──────────────────────────────────────────
+  // ── 4. Визначаємо canonical URL ──────────────────────────────────────────
   // Пріоритет: 3-сегментний URL > /product/:slug
   let pageUrl;
   if (mainSlug && catSlug && product.slug) {
@@ -192,7 +226,7 @@ export default async function handler(req, res) {
     pageUrl = SITE + '/product/' + product.slug;
   }
 
-  // ── 4. Зчитуємо шаблон product.html ─────────────────────────────────────
+  // ── 5. Зчитуємо шаблон product.html ─────────────────────────────────────
   let html;
   try {
     html = fs.readFileSync(path.join(process.cwd(), 'product.html'), 'utf8');
@@ -208,7 +242,7 @@ export default async function handler(req, res) {
   const priceStr = product.price ? String(Math.round(Number(product.price))) : '';
   const pageUrlE = escHtml(pageUrl);
 
-  // ── 5. Вставляємо meta теги ──────────────────────────────────────────────
+  // ── 6. Вставляємо meta теги ──────────────────────────────────────────────
   html = html
     .replace(/<title>[^<]*<\/title>/, `<title>${title}</title>`)
     .replace(/(<meta\s+name="description"\s+content=")[^"]*"/,       `$1${desc}"`)
@@ -222,11 +256,11 @@ export default async function handler(req, res) {
     .replace(/(<meta[^>]+id="tw-image"[^>]+content=")[^"]*"/,         `$1${img}"`)
     .replace(/(<meta[^>]+id="og-price"[^>]+content=")[^"]*"/,         `$1${priceStr}"`);
 
-  // ── 6. Вставляємо Schema.org + window vars ───────────────────────────────
+  // ── 7. Вставляємо Schema.org + window vars ───────────────────────────────
   html = html.replace(
     '</head>',
     `<script>window.__KR_PRODUCT_ID__="${product.id}";window.__KR_CAT_NAME__=${JSON.stringify(catName||"")};window.__KR_CAT_URL__=${JSON.stringify(catUrl||"")};</script>\n` +
-    buildSchema(product, pageUrl, rawDesc, catName, catUrl) + '\n' +
+    buildSchema(product, pageUrl, rawDesc, catName, catUrl, reviews) + '\n' +
     '</head>'
   );
 
