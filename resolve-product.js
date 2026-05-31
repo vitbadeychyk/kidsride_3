@@ -1,149 +1,236 @@
-// Vercel Serverless Function: приймає заявку "Купити в 1 клік" та звичайні замовлення
-// Зберігає в Supabase (таблиця leads) і шле повідомлення в Telegram
+// Vercel Serverless Function: SSR-lite handler для SEO-friendly product URLs
+// Підтримує два формати URL:
+//   /product/:slug                        — старий формат
+//   /:main_slug/:cat_slug/:product_slug   — новий SEO-формат (3 сегменти)
+
+import fs from 'fs';
+import path from 'path';
+
+const SITE = 'https://www.kidsride.com.ua';
+
+function escHtml(s) {
+  return String(s || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function escJson(s) {
+  return String(s || '').replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/&/g, '\\u0026');
+}
+
+function buildSchema(product, pageUrl, desc, catName, catUrl) {
+  const inStock = (typeof product.stock === 'number' ? product.stock > 0 : true) && product.active !== false;
+  const imgList = Array.isArray(product.images) && product.images.length
+    ? product.images.filter(Boolean)
+    : [SITE + '/opengraph.jpg'];
+
+  const pvu = new Date();
+  pvu.setFullYear(pvu.getFullYear() + 1);
+  const priceValidUntil = pvu.toISOString().substring(0, 10);
+
+  const productSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    '@id': pageUrl + '#product',
+    name: product.name || '',
+    description: desc,
+    brand: { '@type': 'Brand', name: product.brand || 'KidsRide' },
+    sku: (product.sku || String(product.id || '')).replace(/\s+/g, ''),
+    mpn: (product.sku || String(product.id || '')).replace(/\s+/g, ''),
+    image: imgList,
+    url: pageUrl,
+    category: catName,
+    offers: {
+      '@type': 'Offer',
+      '@id': pageUrl + '#offer',
+      url: pageUrl,
+      priceCurrency: 'UAH',
+      price: String(Math.round(Number(product.price || 0))),
+      priceValidUntil,
+      availability: inStock
+        ? 'https://schema.org/InStock'
+        : 'https://schema.org/OutOfStock',
+      itemCondition: 'https://schema.org/NewCondition',
+      seller: { '@type': 'Organization', name: 'KidsRide', url: SITE },
+      shippingDetails: {
+        '@type': 'OfferShippingDetails',
+  
+        shippingDestination: {
+          '@type': 'DefinedRegion',
+          addressCountry: 'UA',
+        },
+        deliveryTime: {
+          '@type': 'ShippingDeliveryTime',
+          handlingTime: {
+            '@type': 'QuantitativeValue',
+            minValue: 1,
+            maxValue: 2,
+            unitCode: 'DAY',
+          },
+          transitTime: {
+            '@type': 'QuantitativeValue',
+            minValue: 1,
+            maxValue: 3,
+            unitCode: 'DAY',
+          },
+        },
+      },
+      hasMerchantReturnPolicy: {
+        '@type': 'MerchantReturnPolicy',
+        applicableCountry: 'UA',
+        returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+        merchantReturnDays: 14,
+        returnMethod: 'https://schema.org/ReturnByMail',
+        returnFees: 'https://schema.org/OriginalShippingFees',
+      },
+    },
+  };
+
+  const breadcrumbItems = [
+    { '@type': 'ListItem', position: 1, name: 'Головна', item: SITE + '/' },
+  ];
+  if (catUrl && catName) {
+    breadcrumbItems.push({ '@type': 'ListItem', position: 2, name: catName, item: SITE + catUrl });
+  }
+  breadcrumbItems.push({ '@type': 'ListItem', position: breadcrumbItems.length + 1, name: product.name || '', item: pageUrl });
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: breadcrumbItems,
+  };
+
+  return (
+    `<script type="application/ld+json" id="schema-product">${escJson(JSON.stringify(productSchema))}</script>\n` +
+    `<script type="application/ld+json" id="schema-breadcrumb">${escJson(JSON.stringify(breadcrumbSchema))}</script>`
+  );
+}
 
 export default async function handler(req, res) {
-  // CORS (на випадок якщо викликається не з того ж origin)
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') return res.status(200).end();
+  const slug     = (req.query.slug      || '').trim().toLowerCase();
+  const mainSlug = (req.query.main_slug || '').trim().toLowerCase();
+  const catSlug  = (req.query.cat_slug  || '').trim().toLowerCase();
+  const supaUrl  = process.env.SUPABASE_URL;
+  const supaKey  = process.env.SUPABASE_ANON_KEY;
 
-  if (req.method !== 'POST') {
-    return res.status(405).json({ ok: false, error: 'Method not allowed' });
+  if (!slug || !supaUrl || !supaKey) {
+    return res.redirect(302, '/catalog.html');
   }
 
+  const headers = { apikey: supaKey, Authorization: 'Bearer ' + supaKey };
+
+  // ── 1. Завантажуємо товар за slug ────────────────────────────────────────
+  let product = null;
   try {
-    const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
-    const { phone, name, productId, productName, productPrice, productBrand, source, comment, items } = body;
-
-    // Валідація номера: лишаємо тільки цифри/+, перевіряємо довжину
-    const phoneClean = String(phone || '').replace(/[^\d+]/g, '');
-    if (!phoneClean || phoneClean.replace(/\+/g, '').length < 7) {
-      return res.status(400).json({ ok: false, error: 'Невірний номер телефону' });
+    const r = await fetch(
+      supaUrl +
+        '/rest/v1/products?select=id,name,description,short_desc,price,old_price,images,category,brand,slug,sku,stock,active,updated_at&slug=eq.' +
+        encodeURIComponent(slug) + '&limit=1',
+      { headers }
+    );
+    if (r.ok) {
+      const arr = await r.json();
+      product = arr && arr[0] ? arr[0] : null;
     }
+  } catch (_) {}
 
-    const SUPABASE_URL = process.env.SUPABASE_URL;
-    const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
-    const TG_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-    const TG_CHAT  = process.env.TELEGRAM_CHAT_ID;
-
-    const lead = {
-      phone:         phoneClean.slice(0, 30),
-      name:          name ? String(name).slice(0, 100) : null,
-      product_id:    productId ? String(productId).slice(0, 100) : null,
-      product_name:  productName ? String(productName).slice(0, 200) : null,
-      product_price: (productPrice != null && !isNaN(Number(productPrice))) ? Number(productPrice) : null,
-      product_brand: productBrand ? String(productBrand).slice(0, 100) : null,
-      source:        source ? String(source).slice(0, 50) : 'quick_order',
-      status:        'new',
-      comment:       comment ? String(comment).slice(0, 1000) : null,
-      items:         Array.isArray(items) ? items.slice(0, 50) : null
-    };
-
-    // 1) Зберегти в Supabase
-    let saved = false, saveError = null;
-    if (SUPABASE_URL && SUPABASE_KEY) {
-      try {
-        const r = await fetch(`${SUPABASE_URL}/rest/v1/leads`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': SUPABASE_KEY,
-            'Authorization': `Bearer ${SUPABASE_KEY}`,
-            'Prefer': 'return=minimal'
-          },
-          body: JSON.stringify(lead)
-        });
-        if (r.ok) saved = true;
-        else saveError = await r.text();
-      } catch (e) { saveError = e.message; }
-    } else {
-      saveError = 'SUPABASE_URL / SUPABASE_KEY не задані';
+  if (!product) {
+    // Fallback: product.html без SEO (JS завантажить за ID)
+    let fallbackHtml;
+    try { fallbackHtml = fs.readFileSync(path.join(process.cwd(), 'product.html'), 'utf8'); } catch (_) {}
+    if (fallbackHtml) {
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-store');
+      return res.status(200).send(fallbackHtml);
     }
-
-    // 2) Telegram
-    let sent = false, tgError = null;
-    if (TG_TOKEN && TG_CHAT) {
-      const text = formatTelegram(lead);
-      try {
-        const r = await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            chat_id: TG_CHAT,
-            text,
-            parse_mode: 'HTML',
-            disable_web_page_preview: true
-          })
-        });
-        if (r.ok) sent = true;
-        else tgError = await r.text();
-      } catch (e) { tgError = e.message; }
-    } else {
-      tgError = 'TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID не задані';
-    }
-
-    // Якщо обидва канали впали — повідомляємо помилку
-    if (!saved && !sent) {
-      return res.status(500).json({ ok: false, error: 'Не вдалось обробити заявку', saveError, tgError });
-    }
-
-    return res.status(200).json({ ok: true, saved, sent });
-  } catch (e) {
-    return res.status(500).json({ ok: false, error: e.message || 'Server error' });
-  }
-}
-
-function esc(s) {
-  return String(s == null ? '' : s).replace(/[<>&]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]));
-}
-
-function formatTelegram(l) {
-  const sourceLabel = {
-    quick_order: '⚡ Купити в 1 клік',
-    product_page: '📄 Сторінка товару',
-    catalog: '🛒 З каталогу',
-    checkout: '🧾 Оформлення замовлення',
-    cart: '🛍 Кошик'
-  }[l.source] || l.source;
-
-  const lines = [
-    '🔔 <b>НОВА ЗАЯВКА</b>',
-    `<i>${esc(sourceLabel)}</i>`,
-    ''
-  ];
-  lines.push(`📞 <b>Телефон:</b> <code>${esc(l.phone)}</code>`);
-  if (l.name) lines.push(`👤 <b>Ім'я:</b> ${esc(l.name)}`);
-
-  if (l.product_name) {
-    lines.push('');
-    lines.push(`🛒 <b>Товар:</b> ${esc(l.product_name)}`);
-    if (l.product_brand) lines.push(`🏷 <b>Бренд:</b> ${esc(l.product_brand)}`);
-    if (l.product_price) lines.push(`💰 <b>Ціна:</b> ${Number(l.product_price).toLocaleString('uk-UA')} ₴`);
-    if (l.product_id) lines.push(`🔖 <b>ID:</b> <code>${esc(l.product_id)}</code>`);
+    return res.redirect(302, '/catalog.html');
   }
 
-  if (Array.isArray(l.items) && l.items.length) {
-    lines.push('');
-    lines.push(`🧾 <b>Товари (${l.items.length}):</b>`);
-    let total = 0;
-    l.items.slice(0, 20).forEach((it, i) => {
-      const qty = Number(it.qty || it.quantity || 1);
-      const price = Number(it.price || 0);
-      total += qty * price;
-      lines.push(`  ${i + 1}. ${esc(it.name || it.title || 'товар')} × ${qty} = ${(qty * price).toLocaleString('uk-UA')} ₴`);
-    });
-    if (total) lines.push(`<b>Разом:</b> ${total.toLocaleString('uk-UA')} ₴`);
+  // ── 2. Завантажуємо категорії для хлібних крихт ──────────────────────────
+  let catName = '';
+  let catUrl  = '';
+
+  // Якщо передані slugs з URL — беремо дані з Supabase (динамічно)
+  if (mainSlug && catSlug) {
+    try {
+      // Завантажуємо main_category та subcategory паралельно
+      const [mainRes, subRes] = await Promise.all([
+        fetch(supaUrl + '/rest/v1/main_categories?select=id,name,slug&slug=eq.' + encodeURIComponent(mainSlug) + '&limit=1', { headers }),
+        fetch(supaUrl + '/rest/v1/categories?select=id,name,slug&slug=eq.' + encodeURIComponent(catSlug) + '&limit=1', { headers }),
+      ]);
+      const mainArr = mainRes.ok ? await mainRes.json() : [];
+      const subArr  = subRes.ok  ? await subRes.json()  : [];
+      const mainCat = mainArr && mainArr[0];
+      const subCat  = subArr  && subArr[0];
+
+      if (subCat) {
+        catName = subCat.name;
+        catUrl  = '/' + mainSlug + '/' + catSlug;
+      } else if (mainCat) {
+        catName = mainCat.name;
+        catUrl  = '/' + mainSlug;
+      }
+    } catch (_) {}
+  } else if (mainSlug) {
+    try {
+      const r = await fetch(supaUrl + '/rest/v1/main_categories?select=id,name,slug&slug=eq.' + encodeURIComponent(mainSlug) + '&limit=1', { headers });
+      if (r.ok) {
+        const arr = await r.json();
+        if (arr && arr[0]) { catName = arr[0].name; catUrl = '/' + mainSlug; }
+      }
+    } catch (_) {}
   }
 
-  if (l.comment) {
-    lines.push('');
-    lines.push(`💬 <b>Коментар:</b> ${esc(l.comment)}`);
+  // ── 3. Визначаємо canonical URL ──────────────────────────────────────────
+  // Пріоритет: 3-сегментний URL > /product/:slug
+  let pageUrl;
+  if (mainSlug && catSlug && product.slug) {
+    pageUrl = SITE + '/' + mainSlug + '/' + catSlug + '/' + product.slug;
+  } else {
+    pageUrl = SITE + '/product/' + product.slug;
   }
 
-  lines.push('');
-  const time = new Date().toLocaleString('uk-UA', { timeZone: 'Europe/Kyiv', hour12: false });
-  lines.push(`🕒 ${esc(time)} (Київ)`);
+  // ── 4. Зчитуємо шаблон product.html ─────────────────────────────────────
+  let html;
+  try {
+    html = fs.readFileSync(path.join(process.cwd(), 'product.html'), 'utf8');
+  } catch (_) {
+    return res.redirect(302, '/product.html?id=' + encodeURIComponent(product.id));
+  }
 
-  return lines.join('\n');
+  const title    = escHtml(product.name) + ' — KidsRide';
+  const rawDesc  = product.short_desc || product.description ||
+    'Купити ' + product.name + ' в KidsRide. Гарантія 12 міс., доставка Новою Поштою.';
+  const desc     = escHtml(rawDesc.substring(0, 160));
+  const img      = escHtml((Array.isArray(product.images) && product.images[0]) || SITE + '/opengraph.jpg');
+  const priceStr = product.price ? String(Math.round(Number(product.price))) : '';
+  const pageUrlE = escHtml(pageUrl);
+
+  // ── 5. Вставляємо meta теги ──────────────────────────────────────────────
+  html = html
+    .replace(/<title>[^<]*<\/title>/, `<title>${title}</title>`)
+    .replace(/(<meta\s+name="description"\s+content=")[^"]*"/,       `$1${desc}"`)
+    .replace(/(<meta[^>]+id="og-title"[^>]+content=")[^"]*"/,         `$1${title}"`)
+    .replace(/(<meta[^>]+id="og-description"[^>]+content=")[^"]*"/,   `$1${desc}"`)
+    .replace(/(<meta[^>]+id="og-image"[^>]+content=")[^"]*"/,         `$1${img}"`)
+    .replace(/(<meta[^>]+id="og-url"[^>]+content=")[^"]*"/,           `$1${pageUrlE}"`)
+    .replace(/(<link[^>]+id="seo-canonical"[^>]+href=")[^"]*"/,       `$1${pageUrlE}"`)
+    .replace(/(<meta[^>]+id="tw-title"[^>]+content=")[^"]*"/,         `$1${title}"`)
+    .replace(/(<meta[^>]+id="tw-description"[^>]+content=")[^"]*"/,   `$1${desc}"`)
+    .replace(/(<meta[^>]+id="tw-image"[^>]+content=")[^"]*"/,         `$1${img}"`)
+    .replace(/(<meta[^>]+id="og-price"[^>]+content=")[^"]*"/,         `$1${priceStr}"`);
+
+  // ── 6. Вставляємо Schema.org + window vars ───────────────────────────────
+  html = html.replace(
+    '</head>',
+    `<script>window.__KR_PRODUCT_ID__="${product.id}";window.__KR_CAT_NAME__=${JSON.stringify(catName||"")};window.__KR_CAT_URL__=${JSON.stringify(catUrl||"")};</script>\n` +
+    buildSchema(product, pageUrl, rawDesc, catName, catUrl) + '\n' +
+    '</head>'
+  );
+
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.setHeader('Cache-Control', 'public, s-maxage=300, max-age=60');
+  res.status(200).send(html);
 }
