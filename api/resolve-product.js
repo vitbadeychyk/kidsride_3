@@ -37,8 +37,8 @@ function buildSchema(product, pageUrl, desc, catName, catUrl) {
     name: product.name || '',
     description: desc,
     brand: { '@type': 'Brand', name: product.brand || 'KidsRide' },
-    sku: product.sku || String(product.id || ''),
-    mpn: product.sku || String(product.id || ''),
+    sku: (product.sku || String(product.id || '')).replace(/\s+/g, ''),
+    mpn: (product.sku || String(product.id || '')).replace(/\s+/g, ''),
     image: imgList,
     url: pageUrl,
     category: catName,
@@ -54,6 +54,37 @@ function buildSchema(product, pageUrl, desc, catName, catUrl) {
         : 'https://schema.org/OutOfStock',
       itemCondition: 'https://schema.org/NewCondition',
       seller: { '@type': 'Organization', name: 'KidsRide', url: SITE },
+      shippingDetails: {
+        '@type': 'OfferShippingDetails',
+  
+        shippingDestination: {
+          '@type': 'DefinedRegion',
+          addressCountry: 'UA',
+        },
+        deliveryTime: {
+          '@type': 'ShippingDeliveryTime',
+          handlingTime: {
+            '@type': 'QuantitativeValue',
+            minValue: 1,
+            maxValue: 2,
+            unitCode: 'DAY',
+          },
+          transitTime: {
+            '@type': 'QuantitativeValue',
+            minValue: 1,
+            maxValue: 3,
+            unitCode: 'DAY',
+          },
+        },
+      },
+      hasMerchantReturnPolicy: {
+        '@type': 'MerchantReturnPolicy',
+        applicableCountry: 'UA',
+        returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+        merchantReturnDays: 14,
+        returnMethod: 'https://schema.org/ReturnByMail',
+        returnFees: 'https://schema.org/OriginalShippingFees',
+      },
     },
   };
 
@@ -195,7 +226,7 @@ export default async function handler(req, res) {
   html = html.replace(
     '</head>',
     `<script>window.__KR_PRODUCT_ID__="${product.id}";window.__KR_CAT_NAME__=${JSON.stringify(catName||"")};window.__KR_CAT_URL__=${JSON.stringify(catUrl||"")};</script>\n` +
-    buildSchema(product, pageUrl, rawDesc.substring(0, 300), catName, catUrl) + '\n' +
+    buildSchema(product, pageUrl, rawDesc, catName, catUrl) + '\n' +
     '</head>'
   );
 
