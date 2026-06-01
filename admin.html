@@ -8023,8 +8023,9 @@ async function loadCategories() {
     }
     renderParentCatsList();
 
-    // Підкатегорії — всі категорії з id < 9000 (прийшли з XML)
-    const subCats = _catsCache.filter(c => c.id < 9000);
+    // Підкатегорії — всі категорії крім тих що є в main_categories (включаючи кастомні id >= 9000)
+    const mainCatIds = new Set((_parentCats || []).map(c => c.id));
+    const subCats = _catsCache.filter(c => !mainCatIds.has(c.id));
 
     // Завантажити кількість товарів per category (з пагінацією — Supabase max 1000/запит)
     let counts = {};
