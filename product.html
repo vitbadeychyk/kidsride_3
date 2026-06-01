@@ -2648,6 +2648,7 @@ async function buildColorVariants(currentSku, currentId, supaUrl, supaKey, model
     const el = document.createElement(tag);
     if (!isCur) el.href = v.slug ? '/product/' + v.slug : '/product.html?id=' + encodeURIComponent(v.id);
     el.title = (v.name || v.sku || '') + (isCur ? ' (поточний)' : (inStock ? '' : ' — під замовлення'));
+    el.setAttribute('data-kr-el', '1');
     el.style.cssText =
       'display:flex;flex-direction:column;align-items:center;gap:6px;'
       + 'flex:0 0 78px;width:78px;text-decoration:none;color:inherit;'
@@ -2655,6 +2656,7 @@ async function buildColorVariants(currentSku, currentId, supaUrl, supaKey, model
       + (inStock ? '' : 'opacity:.5;');
 
     const tile = document.createElement('div');
+    tile.setAttribute('data-kr-tile', '1');
     tile.style.cssText =
       'width:78px;height:78px;border-radius:12px;overflow:hidden;background:#fff;'
       + 'border:2px solid ' + (isCur ? 'var(--orange)' : 'var(--border)') + ';'
@@ -2669,13 +2671,35 @@ async function buildColorVariants(currentSku, currentId, supaUrl, supaKey, model
     el.appendChild(tile);
 
     if (!isCur){
-      el.addEventListener('mouseenter', () => { tile.style.transform = 'scale(1.06)'; tile.style.borderColor = 'var(--orange)'; });
-      el.addEventListener('mouseleave', () => { tile.style.transform = ''; tile.style.borderColor = 'var(--border)'; });
+      el.addEventListener('mouseenter', () => {
+        // Не змінюємо hover-стилі якщо цей варіант вже активний (оптимістично вибраний)
+        if (el.dataset.krActive) return;
+        tile.style.transform = 'scale(1.06)';
+        tile.style.borderColor = 'var(--orange)';
+      });
+      el.addEventListener('mouseleave', () => {
+        if (el.dataset.krActive) return;
+        tile.style.transform = '';
+        tile.style.borderColor = 'var(--border)';
+      });
       // ── In-place перемикання без перезавантаження сторінки ──
       el.addEventListener('click', (ev) => {
         // Дозволяємо ctrl/cmd/shift-click та клік середньою — відкриватимуться у новій вкладці як завжди
         if (ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.button === 1) return;
         ev.preventDefault();
+
+        // ── Оптимістичне оновлення рамки — одразу, без очікування Supabase ──
+        const allTiles = scroller.querySelectorAll('[data-kr-tile]');
+        allTiles.forEach(t => {
+          t.style.borderColor = 'var(--border)';
+          t.style.boxShadow = '';
+          delete t.closest('[data-kr-el]')?.dataset.krActive;
+        });
+        tile.style.borderColor = 'var(--orange)';
+        tile.style.boxShadow = '0 0 0 3px rgba(255,107,53,.15)';
+        tile.style.transform = '';
+        el.dataset.krActive = '1';
+
         switchToVariant(v.id, supaUrl, supaKey);
       });
     }
