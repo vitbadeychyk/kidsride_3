@@ -2288,8 +2288,12 @@ function _mobNavShowSub(parentId) {
         sorted.forEach(code => {
           const icon = _VT_ICON_SUB[code] || '📦';
           const name = _VT_UA_SUB[code]   || code;
+          const _vtCat = (_allCategories||[]).find(c=>c.slug===code);
+          const _vtThumb = _vtCat && _vtCat.image_url
+            ? `<img class="mob-cat-tile-img" src="${_vtCat.image_url}" alt="${name}" loading="lazy">`
+            : `<div class="mob-cat-tile-icon" style="font-size:2.4rem;display:flex;align-items:center;justify-content:center;width:100%;height:100%">${icon}</div>`;
           tiles.push(`<div class="mob-cat-tile" onclick="_mobNavSelectVehicleType('${code}',${sub.id})">
-            <div class="mob-cat-tile-icon" style="font-size:2.4rem;display:flex;align-items:center;justify-content:center;width:100%;height:100%">${icon}</div>
+            ${_vtThumb}
             <div class="mob-cat-tile-grad"></div>
             <div class="mob-cat-tile-name">${name}</div>
           </div>`);
@@ -2388,8 +2392,12 @@ function _mobNavShowVehicleTypes(catId, vtypes) {
     const cnt  = _subP.filter(p => p.category === code).length;
     const icon = _VT_ICON[code] || '📦';
     const name = _VT_UA[code] || code;
+    const _vtCat2 = (_allCategories||[]).find(c=>c.slug===code);
+    const _vtThumb2 = _vtCat2 && _vtCat2.image_url
+      ? `<img class="mob-cat-tile-img" src="${_vtCat2.image_url}" alt="${name}" loading="lazy">`
+      : `<div class="mob-cat-tile-icon" style="font-size:2.4rem;display:flex;align-items:center;justify-content:center;width:100%;height:100%">${icon}</div>`;
     return `<div class="mob-cat-tile" onclick="_mobNavSelectVehicleType('${code}',${catId})">
-      <div class="mob-cat-tile-icon" style="font-size:2.4rem;display:flex;align-items:center;justify-content:center;width:100%;height:100%">${icon}</div>
+      ${_vtThumb2}
       <div class="mob-cat-tile-grad"></div>
       <div class="mob-cat-tile-name">${name}${cnt ? ' (' + cnt + ')' : ''}</div>
     </div>`;
