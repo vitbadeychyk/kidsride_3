@@ -7868,6 +7868,34 @@ async function setParentCategory(subId, parentId) {
 
 // ── Основна функція завантаження таблиці категорій ───────────────────────────
 // ── SUBCATEGORY CARDS BY PARENT ──────────────────────────────────────────────
+// ── Reorder subcategory (▲▼) ───────────────────────────────────────────────
+async function reorderSubCategory(id, parentId, direction) {
+  const data = (window._subCatsData || []).filter(c => c.main_category_id === parentId);
+  data.sort((a,b) => {
+    if (a.sort_order != null && b.sort_order != null) return a.sort_order - b.sort_order;
+    if (a.sort_order != null) return -1;
+    if (b.sort_order != null) return 1;
+    return (a.name||'').localeCompare(b.name||'','uk');
+  });
+  const idx = data.findIndex(c => c.id === id);
+  if (idx < 0) return;
+  const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+  if (swapIdx < 0 || swapIdx >= data.length) { showToast('Вже крайня позиція', 'info'); return; }
+  const a = data[idx], b = data[swapIdx];
+  const h = {'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'};
+  try {
+    await Promise.all([
+      fetch(SUPABASE_URL+'/rest/v1/categories?id=eq.'+a.id,{method:'PATCH',headers:h,body:JSON.stringify({sort_order:swapIdx})}),
+      fetch(SUPABASE_URL+'/rest/v1/categories?id=eq.'+b.id,{method:'PATCH',headers:h,body:JSON.stringify({sort_order:idx})})
+    ]);
+    const ca=(window._subCatsData||[]).find(c=>c.id===a.id);
+    const cb=(window._subCatsData||[]).find(c=>c.id===b.id);
+    if(ca)ca.sort_order=swapIdx; if(cb)cb.sort_order=idx;
+    renderSubCatsByParent();
+    showToast('✅ Порядок збережено','success');
+  } catch(e){showToast('Помилка: '+e.message,'error');}
+}
+
 function renderSubCatsByParent() {
   const el = document.getElementById('subCatsByParentList');
   if (!el) return;
@@ -7890,7 +7918,12 @@ function renderSubCatsByParent() {
   // Build HTML grouped by parent
   let html = '';
   parents.forEach(p => {
-    const cats = (groups[p.id] || []).sort((a,b)=>(a.name||'').localeCompare(b.name||'','uk'));
+    const cats = (groups[p.id] || []).sort((a,b) => {
+      if (a.sort_order != null && b.sort_order != null) return a.sort_order - b.sort_order;
+      if (a.sort_order != null) return -1;
+      if (b.sort_order != null) return 1;
+      return (a.name||'').localeCompare(b.name||'','uk');
+    });
     if (!cats.length) return;
     html += `<div style="margin-bottom:20px">
       <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)">${_esc(p.name)}</div>
@@ -7903,6 +7936,10 @@ function renderSubCatsByParent() {
           <div style="height:70px;background:var(--bg-soft);border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer" onclick="document.getElementById('scImgInput_${c.id}').click()" title="Натисни для завантаження">${imgEl}</div>
           <input type="file" id="scImgInput_${c.id}" accept="image/*" style="display:none" onchange="catImgUpload(${c.id},'categories',this.files)">
           <div style="font-weight:700;font-size:12px;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${_esc(c.name)}">${_esc(c.name)}</div>
+          <div style="display:flex;gap:3px">
+            <button onclick="reorderSubCategory(${c.id},${p.id},'up')" title="Вгору" style="flex:1;background:none;border:1px solid var(--border);border-radius:5px;padding:2px 0;cursor:pointer;font-size:10px;color:var(--text-muted)" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border)'">▲</button>
+            <button onclick="reorderSubCategory(${c.id},${p.id},'down')" title="Вниз" style="flex:1;background:none;border:1px solid var(--border);border-radius:5px;padding:2px 0;cursor:pointer;font-size:10px;color:var(--text-muted)" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border)'">▼</button>
+          </div>
           <label style="cursor:pointer;padding:3px 8px;border:1px solid var(--border);border-radius:6px;font-size:11px;font-weight:700;color:var(--text-muted);background:var(--bg-soft);display:inline-flex;align-items:center;gap:3px;justify-content:center" onmouseover="this.style.borderColor='var(--orange)';this.style.color='var(--orange)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)'">📷 Фото<input type="file" accept="image/*" style="display:none" onchange="catImgUpload(${c.id},'categories',this.files)"></label>
           <div style="display:flex;gap:3px">
             <input id="ccSku_${c.id}" type="text" placeholder="Артикул…" style="flex:1;min-width:0;padding:3px 6px;border:1.5px solid var(--border);border-radius:5px;font-size:10px;font-family:'Manrope',sans-serif;color:var(--navy);background:var(--bg-soft);outline:none" onkeydown="if(event.key==='Enter')catImgFromSku(${c.id},'categories')">

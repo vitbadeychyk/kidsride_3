@@ -2228,6 +2228,8 @@ function _mobNavShowMain() {
   }).join('');
 
   window.scrollTo({ top: 0, behavior: 'smooth' });
+  // Replace state with 'main' level so back button can return here
+  try { history.replaceState({ level: 'main', catId: 0, parentId: 0, vType: '' }, '', location.href); } catch(_){}
 }
 
 function _mobNavShowSub(parentId) {
@@ -2252,7 +2254,7 @@ function _mobNavShowSub(parentId) {
   try {
     if (parent) {
       const _mainSlugNav = slugify(parent.name);
-      history.pushState({ catId: 0, parentId: parentId || 0, vType: '' }, '', '/' + _mainSlugNav);
+      history.pushState({ catId: 0, parentId: parentId || 0, vType: '', level: 'sub' }, '', '/' + _mainSlugNav);
     }
   } catch(_e) {}
 
@@ -2406,6 +2408,8 @@ function _mobNavShowVehicleTypes(catId, vtypes) {
     </div>`;
   }).join('');
 
+  // Push state for browser back support
+  try { history.pushState({ catId: catId || 0, parentId: 0, vType: '', vtypes: [...vtypes], level: 'vehicleType' }, '', location.href); } catch(_){}
   window.scrollTo({ top: 0, behavior: 'instant' });
 }
 
@@ -3779,18 +3783,45 @@ function showToastLocal(msg) {
 // ── POPSTATE: відновлення стану каталогу при натисканні «Назад» ─────────────
 window.addEventListener('popstate', function(e) {
   const st = e.state;
-  if (st && (st.catId !== undefined || st.parentId !== undefined)) {
+  // No state = navigated back past the initial page → go to homepage
+  if (!st) { window.location.href = 'index.html'; return; }
+  // Mobile nav level restoration
+  const level = st.level;
+  if (level === 'main') {
+    _mobNavShowMain();
+  } else if (level === 'sub') {
+    if (st.parentId) _mobNavShowSub(st.parentId);
+    else _mobNavShowMain();
+  } else if (level === 'vehicleType') {
+    const _avail = (allProducts||[]).filter(p=>!(p.stock!=null&&p.stock<=0&&!(Number(p.preorderDays)>0)));
+    const _subP  = _avail.filter(p=>p.category_id===st.catId);
+    const _VT_UA = {'jeep':'Джипи','quad':'Квадроцикли','moto':'Мотоцикли','car':'Машини','tractor':'Трактори','walker':'Каталки-толокари','truck':'Вантажівки','buggy':'Баggі'};
+    const vtypes = st.vtypes || [...new Set(_subP.map(p=>p.category).filter(c=>c&&_VT_UA[c]))];
+    if (vtypes.length) _mobNavShowVehicleTypes(st.catId, vtypes);
+    else if (st.parentId) _mobNavShowSub(st.parentId);
+    else _mobNavShowMain();
+  } else {
+    // Products level — restore via selectCategory/selectVehicleType
     if (st.vType) {
-      selectVehicleType(st.vType, st.parentId || 0, true);
+      selectVehicleType(st.vType, st.parentId||0, true);
     } else {
-      selectCategory(st.catId || 0, st.parentId || 0, true);
+      selectCategory(st.catId||0, st.parentId||0, true);
     }
     loadCategoryTree();
+    // Show products area
+    _mobNavLevel = 'products';
+    _mobCatNavToggleProductsArea(true);
+    const nav = document.getElementById('mob-cat-nav');
+    if (nav) nav.style.display = 'none';
   }
 });
 
 // Ініціалізація каталогу
 document.addEventListener('DOMContentLoaded', () => {
+  // Set initial history state so back button works from first navigation
+  if (!history.state) {
+    history.replaceState({ level: 'main', catId: 0, parentId: 0, vType: '' }, '', location.href);
+  }
   wireTreeEvents(); // делеговані touch/click слухачі для дерева категорій
   renderCatalog().catch(err => {
     console.error('[KidsRide] renderCatalog failed:', err);
