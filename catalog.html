@@ -252,7 +252,7 @@ nav a.active{color:var(--orange)}
 .products-grid.list .p-img img{object-fit:contain !important;padding:8px}
 .products-grid.list .p-body{padding:14px 18px;display:flex;flex-direction:column;justify-content:space-between;min-height:140px}
 .products-grid.list .p-name{-webkit-line-clamp:unset;font-size:16px;margin-bottom:4px}
-.products-grid.list .p-desc2{-webkit-line-clamp:1;font-size:12px;margin-bottom:6px}
+.products-grid.list .p-desc2{-webkit-line-clamp:1;font-size:11px;margin:4px 0 6px;padding:3px 7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
 .products-grid.list .p-specs{gap:8px;margin-bottom:8px}
 .products-grid.list .p-overlay{display:none}
 /* transparent link overlay — allows "open in new tab" on long-press */
@@ -2901,7 +2901,6 @@ function renderCard(p) {
         </button>
       </div>
       <div class="p-body">
-        ${p.brand && !/^без\s*бренд/i.test(p.brand) ? `<div class="p-brand">${p.brand}</div>` : ''}
         <div class="p-name">${p.name}</div>
         ${p.sku ? `<div class="p-sku" style="font-size:11px;color:var(--text-muted);font-weight:600;margin:2px 0 4px;letter-spacing:.02em">Арт: ${escAttr(p.sku)}</div>` : ''}
         ${p.description2 ? `<div class="p-desc2">${escAttr(p.description2)}</div>` : ''}
