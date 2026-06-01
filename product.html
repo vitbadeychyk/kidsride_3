@@ -1737,9 +1737,9 @@ console.log('[KidsRide] product.html v3.9 — працюють: копіюван
     // Пробуємо МАКСИМАЛЬНИЙ select (description/features/age_range/voltage/...);
     // якщо PostgREST повертає 400 (колонок ще нема), скорочуємо до меншого набору.
     const SELECTS = [
-      'id,sku,model_code,color,category_id,name,brand,description,features,category,voltage,age_range,age,motor,battery,speed,max_load,weight,warranty,assembly_time,short_desc,price,old_price,stock,badge,images,active',
-      'id,sku,model_code,color,category_id,name,brand,description,features,category,voltage,age_range,price,old_price,stock,badge,images,active',
-      'id,sku,model_code,color,category_id,name,brand,description,features,price,old_price,stock,badge,images,active',
+      'id,sku,model_code,color,category_id,name,brand,description,description2,features,category,voltage,age_range,age,motor,battery,speed,max_load,weight,warranty,assembly_time,short_desc,price,old_price,stock,badge,images,active',
+      'id,sku,model_code,color,category_id,name,brand,description,description2,features,category,voltage,age_range,price,old_price,stock,badge,images,active',
+      'id,sku,model_code,color,category_id,name,brand,description,description2,features,price,old_price,stock,badge,images,active',
       'id,sku,model_code,color,category_id,name,brand,price,old_price,stock,badge,images,active',
       'id,sku,category_id,name,brand,price,old_price,stock,badge,images,active'
     ];
@@ -1800,7 +1800,9 @@ async function _krTrackView(productId, productName, productSku) {
 function renderProductDescription(p){
   const wrap = document.getElementById('productDescription');
   const featBox = document.getElementById('productFeatures');
-  const desc = (p && typeof p.description === 'string') ? p.description.trim() : '';
+  const desc = (p && typeof p.description === 'string' && p.description.trim())
+    ? p.description.trim()
+    : ((p && typeof p.description2 === 'string') ? p.description2.trim() : '');
   const short = (p && typeof p.short_desc === 'string') ? p.short_desc.trim() : '';
 
   if (wrap){
@@ -2023,8 +2025,10 @@ function applyProductData(p){
     const imgUrl = (Array.isArray(p.images) && p.images[0]) ? p.images[0] : (site + '/opengraph.jpg');
 
     // Генеруємо опис якщо немає в базі
-    const autoDesc = p.description && p.description.trim()
+    const autoDesc = (p.description && p.description.trim())
       ? p.description.substring(0, 160)
+      : (p.description2 && p.description2.trim())
+      ? p.description2.substring(0, 160)
       : (p.name || '') + ' — ' + catName.toLowerCase() + ' для дітей'
         + (p.age_range ? ' ' + p.age_range + ' років' : '')
         + (p.voltage ? ', акумулятор ' + p.voltage : '')
@@ -2310,7 +2314,7 @@ async function switchToVariant(id, supaUrl, supaKey){
 
   // Повний набір полів — включаючи опис і характеристики
   const baseSelect = 'id,sku,category_id,name,brand,price,old_price,stock,badge,images,active,slug,'
-    + 'description,short_desc,features,category,voltage,age_range,age,'
+    + 'description,description2,short_desc,features,category,voltage,age_range,age,'
     + 'motor,battery,speed,max_load,weight,warranty,assembly_time';
   const tryFetch = async (withExtras) => {
     const sel = withExtras ? ('model_code,color,' + baseSelect) : baseSelect;
