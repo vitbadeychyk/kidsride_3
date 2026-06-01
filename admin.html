@@ -7833,8 +7833,7 @@ async function catImgFromSkuConfirm(catId, tableName, btn) {
     const previewId = tableName === 'main_categories' ? 'mcSkuPreview_' + catId : 'ccSkuPreview_' + catId;
     const prev = document.getElementById(previewId);
     if (prev) prev.style.display = 'none';
-    await loadParentCategories();
-    if (tableName === 'categories') renderFilteredCategories();
+    await loadCategories();
   } catch(e) {
     showToast('Помилка: ' + e.message, 'error');
     if (btn) { btn.disabled = false; btn.textContent = 'Встановити'; }
@@ -7906,10 +7905,10 @@ function renderSubCatsByParent() {
           <div style="font-weight:700;font-size:12px;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${_esc(c.name)}">${_esc(c.name)}</div>
           <label style="cursor:pointer;padding:3px 8px;border:1px solid var(--border);border-radius:6px;font-size:11px;font-weight:700;color:var(--text-muted);background:var(--bg-soft);display:inline-flex;align-items:center;gap:3px;justify-content:center" onmouseover="this.style.borderColor='var(--orange)';this.style.color='var(--orange)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)'">📷 Фото<input type="file" accept="image/*" style="display:none" onchange="catImgUpload(${c.id},'categories',this.files)"></label>
           <div style="display:flex;gap:3px">
-            <input id="scSku_${c.id}" type="text" placeholder="Артикул…" style="flex:1;min-width:0;padding:3px 6px;border:1.5px solid var(--border);border-radius:5px;font-size:10px;font-family:'Manrope',sans-serif;color:var(--navy);background:var(--bg-soft);outline:none" onkeydown="if(event.key==='Enter')catImgFromSku(${c.id},'categories',true)">
-            <button onclick="catImgFromSku(${c.id},'categories',true)" title="Знайти за артикулом" style="padding:3px 6px;border:1.5px solid var(--border);border-radius:5px;background:var(--bg-soft);cursor:pointer;font-size:11px" onmouseover="this.style.borderColor='var(--orange)'" onmouseout="this.style.borderColor='var(--border)'">🔍</button>
+            <input id="ccSku_${c.id}" type="text" placeholder="Артикул…" style="flex:1;min-width:0;padding:3px 6px;border:1.5px solid var(--border);border-radius:5px;font-size:10px;font-family:'Manrope',sans-serif;color:var(--navy);background:var(--bg-soft);outline:none" onkeydown="if(event.key==='Enter')catImgFromSku(${c.id},'categories')">
+            <button onclick="catImgFromSku(${c.id},'categories')" title="Знайти за артикулом" style="padding:3px 6px;border:1.5px solid var(--border);border-radius:5px;background:var(--bg-soft);cursor:pointer;font-size:11px" onmouseover="this.style.borderColor='var(--orange)'" onmouseout="this.style.borderColor='var(--border)'">🔍</button>
           </div>
-          <div id="scSkuPreview_${c.id}" style="display:none"></div>
+          <div id="ccSkuPreview_${c.id}" style="display:none"></div>
         </div>`;
       }).join('') +
       '</div></div>';

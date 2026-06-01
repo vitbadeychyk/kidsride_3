@@ -2272,8 +2272,11 @@ function _mobNavShowSub(parentId) {
   const _VT_ICON_SUB = {'jeep':'🚙','quad':'🏎️','moto':'🏍️','car':'🚘','tractor':'🚜','walker':'🧸','truck':'🚛','buggy':'🏁'};
   const _avail2 = (allProducts || []).filter(p => !(p.stock != null && p.stock <= 0 && !(Number(p.preorderDays) > 0)));
 
+  const _VT_SLUG_CODES = ['jeep','quad','moto','car','tractor','truck','buggy','walker'];
   const tiles = [];
   subs.forEach(sub => {
+    // Пропустити тайли типів транспорту — вони рендеряться через vehicle types loop
+    if (sub.slug && _VT_SLUG_CODES.includes(sub.slug)) return;
     // "Запчастини" та подібні — завжди звичайний тайл, не розгортаємо
     const _subNameLow = (sub.name || '').toLowerCase();
     const _isParts    = /запчастин|запч|аксесуар/.test(_subNameLow);
