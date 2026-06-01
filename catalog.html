@@ -2904,7 +2904,7 @@ function renderCard(p) {
         ${p.brand && !/^без\s*бренд/i.test(p.brand) ? `<div class="p-brand">${p.brand}</div>` : ''}
         <div class="p-name">${p.name}</div>
         ${p.sku ? `<div class="p-sku" style="font-size:11px;color:var(--text-muted);font-weight:600;margin:2px 0 4px;letter-spacing:.02em">Арт: ${escAttr(p.sku)}</div>` : ''}
-        ${p.description2 ? `<div class="p-desc2">${escHtml(p.description2)}</div>` : ''}
+        ${p.description2 ? `<div class="p-desc2">${escAttr(p.description2)}</div>` : ''}
         ${stockBadge}
         <div class="p-bottom">
           <div>
