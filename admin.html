@@ -2664,30 +2664,26 @@ CREATE POLICY "admin_write_promo" ON promo_codes FOR ALL USING (auth.role()='aut
 <div class="modal-overlay" id="orderModal">
   <div class="modal">
     <div class="modal-head">
-      <h3 class="modal-title">Замовлення #KR-1847</h3>
+      <h3 class="modal-title" id="orderModalTitle">Замовлення</h3>
       <button class="modal-close" onclick="closeModal('orderModal')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div class="modal-body">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
-        <div><div style="font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Покупець</div><div style="font-weight:700;color:var(--navy)">Олена Савченко</div><div style="font-size:12px;color:var(--text-muted)">+380 67 123 45 67</div></div>
-        <div><div style="font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Доставка</div><div style="font-weight:700;color:var(--navy)">НП Відділення №14</div><div style="font-size:12px;color:var(--text-muted)">м. Київ</div></div>
-        <div><div style="font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Оплата</div><div style="font-weight:700;color:var(--navy)">Рахунок ФОП</div></div>
-        <div><div style="font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Статус</div><span class="status s-new">Новий</span></div>
+        <div><div style="font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Покупець</div><div style="font-weight:700;color:var(--navy)" id="orderModalCustomerName"></div><div style="font-size:12px;color:var(--text-muted)" id="orderModalCustomerPhone"></div></div>
+        <div><div style="font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Доставка</div><div style="font-weight:700;color:var(--navy)" id="orderModalDeliveryType"></div><div style="font-size:12px;color:var(--text-muted)" id="orderModalDeliveryCity"></div></div>
+        <div><div style="font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Оплата</div><div style="font-weight:700;color:var(--navy)" id="orderModalPayment"></div></div>
+        <div><div style="font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Статус</div><span id="orderModalStatus" class="status s-new"></span></div>
       </div>
       <div style="background:var(--bg);border-radius:var(--r-sm);padding:14px;margin-bottom:16px">
         <div style="font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">Склад замовлення</div>
-        <div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border-light)">
-          <div style="width:44px;height:38px;background:var(--bg-card);border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;border:1px solid var(--border)"><svg viewBox="0 0 40 30" style="width:36px"><rect x="3" y="8" width="34" height="14" rx="4" fill="#c8d0ea"/><circle cx="10" cy="24" r="4" fill="#2d3748"/><circle cx="30" cy="24" r="4" fill="#2d3748"/></svg></div>
-          <div style="flex:1"><div style="font-weight:600;font-size:13px">Джип M 3804EBLR-1</div><div style="font-size:11px;color:var(--text-muted)">Колір: Білий · 1 шт</div></div>
-          <div style="font-family:'Nunito',sans-serif;font-weight:800;color:var(--navy)">17 224 ₴</div>
-        </div>
-        <div style="display:flex;justify-content:space-between;margin-top:10px;font-size:14px"><span style="color:var(--text-muted)">Разом</span><span style="font-family:'Nunito',sans-serif;font-weight:900;font-size:18px;color:var(--navy)">17 224 ₴</span></div>
+        <div id="orderModalItems"></div>
+        <div style="display:flex;justify-content:space-between;margin-top:10px;font-size:14px"><span style="color:var(--text-muted)">Разом</span><span style="font-family:'Nunito',sans-serif;font-weight:900;font-size:18px;color:var(--navy)" id="orderModalTotal"></span></div>
       </div>
       <div class="f-row single">
         <div class="f-group"><label>ТТН Нова Пошта</label><input type="text" placeholder="20400000000000" id="ttnInput"></div>
       </div>
       <div class="f-row single">
-        <div class="f-group"><label>Коментар менеджера</label><textarea placeholder="Внутрішня нотатка..."></textarea></div>
+        <div class="f-group"><label>Коментар менеджера</label><textarea id="orderModalComment" placeholder="Внутрішня нотатка..."></textarea></div>
       </div>
     </div>
     <div class="modal-footer">
@@ -4626,9 +4622,64 @@ async function updateStatus(sel){
 
 // ── MODALS ────────────────────────────────────────────────────────────────
 let _editingOrderId = null;
+const _orderStatusClasses = {
+  'Новий':'s-new','Підтверджено':'s-confirmed','Відправлено':'s-sent',
+  'Доставлено':'s-delivered','Скасовано':'s-cancelled'
+};
+function _orderDeliveryText(o){
+  const t = o.delivery_type;
+  if (t === 'address') return { type: 'Адресна доставка НП', city: o.delivery_city || '' };
+  const head = t === 'postomat' ? 'Поштомат НП' : 'Відділення НП';
+  const num  = o.delivery_warehouse_number ? '№' + o.delivery_warehouse_number : '';
+  return { type: [head, num].filter(Boolean).join(' '), city: o.delivery_city || '' };
+}
 function openOrderModal(btn){
   const row = btn?.closest && btn.closest('tr');
   _editingOrderId = row?.dataset?.orderId || null;
+
+  const o = _editingOrderId && Array.isArray(_ordersCache)
+    ? _ordersCache.find(x => String(x.id) === String(_editingOrderId))
+    : null;
+
+  if (o) {
+    const num    = o.order_number ? '#' + o.order_number : '#' + String(o.id).slice(0, 8);
+    const fio    = [o.customer_first_name, o.customer_last_name].filter(Boolean).join(' ') || '—';
+    const status = o.status || 'Новий';
+    const del    = _orderDeliveryText(o);
+    const pay    = _payLabel(o);
+    const items  = Array.isArray(o.order_items) ? o.order_items : [];
+
+    document.getElementById('orderModalTitle').textContent       = 'Замовлення ' + num;
+    document.getElementById('orderModalCustomerName').textContent = fio;
+    document.getElementById('orderModalCustomerPhone').textContent = o.customer_phone || '';
+    document.getElementById('orderModalDeliveryType').textContent  = del.type;
+    document.getElementById('orderModalDeliveryCity').textContent  = del.city;
+    document.getElementById('orderModalPayment').textContent       = pay;
+
+    const stEl = document.getElementById('orderModalStatus');
+    stEl.textContent = status;
+    stEl.className   = 'status ' + (_orderStatusClasses[status] || 's-new');
+
+    document.getElementById('orderModalItems').innerHTML = items.length
+      ? items.map(it => {
+          const img = it.product_image
+            ? `<img src="${_escHtml(it.product_image)}" style="width:44px;height:38px;object-fit:contain;border-radius:var(--r-sm);border:1px solid var(--border)">`
+            : `<div style="width:44px;height:38px;background:var(--bg-card);border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;border:1px solid var(--border)"><svg viewBox="0 0 40 30" style="width:36px"><rect x="3" y="8" width="34" height="14" rx="4" fill="#c8d0ea"/><circle cx="10" cy="24" r="4" fill="#2d3748"/><circle cx="30" cy="24" r="4" fill="#2d3748"/></svg></div>`;
+          const color = it.color ? 'Колір: ' + it.color + ' · ' : '';
+          const price = _fmtPrice(it.subtotal || it.price * (it.quantity || 1));
+          return `<div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border-light)">
+            ${img}
+            <div style="flex:1"><div style="font-weight:600;font-size:13px">${_escHtml(it.product_name || '')}</div><div style="font-size:11px;color:var(--text-muted)">${_escHtml(color)}${it.quantity || 1} шт</div></div>
+            <div style="font-family:'Nunito',sans-serif;font-weight:800;color:var(--navy)">${price}</div>
+          </div>`;
+        }).join('')
+      : '<div style="color:var(--text-muted);font-size:13px">—</div>';
+
+    document.getElementById('orderModalTotal').textContent = _fmtPrice(o.total);
+    document.getElementById('ttnInput').value              = o.ttn || '';
+    document.getElementById('orderModalComment').value     = o.comment || '';
+  }
+
   document.getElementById('orderModal').classList.add('open');
   document.body.style.overflow='hidden';
 }
