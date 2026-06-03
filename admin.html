@@ -8147,15 +8147,22 @@ async function reorderSubCategory(id, parentId, direction) {
   const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
   if (swapIdx < 0 || swapIdx >= data.length) { showToast('Вже крайня позиція', 'info'); return; }
   const a = data[idx], b = data[swapIdx];
+  // Обмінюємо реальні sort_order значення (не індекси масиву)
+  const newSortA = b.sort_order ?? swapIdx;
+  const newSortB = a.sort_order ?? idx;
   const h = {'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'};
   try {
-    await Promise.all([
-      fetch(SUPABASE_URL+'/rest/v1/categories?id=eq.'+a.id,{method:'PATCH',headers:h,body:JSON.stringify({sort_order:swapIdx})}),
-      fetch(SUPABASE_URL+'/rest/v1/categories?id=eq.'+b.id,{method:'PATCH',headers:h,body:JSON.stringify({sort_order:idx})})
+    const [rA, rB] = await Promise.all([
+      fetch(SUPABASE_URL+'/rest/v1/categories?id=eq.'+a.id,{method:'PATCH',headers:h,body:JSON.stringify({sort_order:newSortA})}),
+      fetch(SUPABASE_URL+'/rest/v1/categories?id=eq.'+b.id,{method:'PATCH',headers:h,body:JSON.stringify({sort_order:newSortB})})
     ]);
+    if (!rA.ok || !rB.ok) {
+      const errText = await (rA.ok ? rB : rA).text();
+      throw new Error('Supabase: ' + errText.slice(0, 200));
+    }
     const ca=(window._subCatsData||[]).find(c=>c.id===a.id);
     const cb=(window._subCatsData||[]).find(c=>c.id===b.id);
-    if(ca)ca.sort_order=swapIdx; if(cb)cb.sort_order=idx;
+    if(ca)ca.sort_order=newSortA; if(cb)cb.sort_order=newSortB;
     renderSubCatsByParent();
     try { localStorage.removeItem('kidsride_cats_v2'); } catch(_) {}
     showToast('✅ Порядок збережено','success');
