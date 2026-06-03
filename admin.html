@@ -8310,8 +8310,20 @@ async function loadCategories() {
   if (status) status.textContent = 'Завантаження…';
 
   try {
-    // Завантажити всі категорії (включаючи parent_id)
-    const cats = await sbFetch('categories?select=*&order=name.asc');
+    // Завантажити всі категорії з пагінацією (обхід ліміту PostgREST)
+    let allCatsRaw = [];
+    {
+      let catPage = 0;
+      const catPageSize = 1000;
+      while (true) {
+        const batch = await sbFetch(`categories?select=*&order=name.asc&limit=${catPageSize}&offset=${catPage * catPageSize}`);
+        if (!batch || !batch.length) break;
+        allCatsRaw = allCatsRaw.concat(batch);
+        if (batch.length < catPageSize) break;
+        catPage++;
+      }
+    }
+    const cats = allCatsRaw;
     _catsCache = cats || [];
 
     // Головні категорії завантажуємо окремо з main_categories
