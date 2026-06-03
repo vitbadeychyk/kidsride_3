@@ -605,7 +605,7 @@ nav a.active{color:var(--orange)}
 </div>
 
 <!-- PAGE -->
-<div class="page">
+<div class="page" id="productPageWrap" style="opacity:0;transition:opacity .3s ease">
   <div class="product-grid">
 
     <!-- GALLERY -->
@@ -1731,7 +1731,7 @@ console.log('[KidsRide] product.html v3.9 — працюють: копіюван
       if (cnorm.sku || cnorm.model_code) buildColorVariants(cnorm.sku, cnorm.id, SUPA_URL, SUPA_KEY, cnorm.model_code, cnorm.category_id, cnorm.category);
     }
 
-    if (!id) return;
+    if (!id) { _revealProductPage(); return; }
 
     // ─ Точний рендер з БД (перекриває кеш найсвіжішими даними) ─
     // Пробуємо МАКСИМАЛЬНИЙ select (description/features/age_range/voltage/...);
@@ -1757,7 +1757,7 @@ console.log('[KidsRide] product.html v3.9 — працюють: копіюван
         if (r.status !== 400) { console.warn('[KidsRide] fetch product failed:', r.status); break; }
       } catch(e){ console.warn('[KidsRide] fetch error:', e); break; }
     }
-    if (!p) { console.warn('[KidsRide] product not found in DB:', id); return; }
+    if (!p) { console.warn('[KidsRide] product not found in DB:', id); _revealProductPage(); return; }
     console.log('[KidsRide] product loaded:', { sku: p.sku, model_code: p.model_code, name: p.name, images: Array.isArray(p.images) ? p.images.length : 0 });
 
     window.__krCurrentProduct = p;
@@ -1769,7 +1769,7 @@ console.log('[KidsRide] product.html v3.9 — працюють: копіюван
     loadReviewsFromSupabase(p.id);
     // ─ Трекінг перегляду ─
     _krTrackView(p.id, p.name, p.sku);
-  } catch(e){ console.warn('[KidsRide] loadFullProduct error:', e); }
+  } catch(e){ console.warn('[KidsRide] loadFullProduct error:', e); _revealProductPage(); }
 })();
 
 async function _krTrackView(productId, productName, productSku) {
@@ -2003,8 +2003,13 @@ function renderProductSpecs(p){
 }
 
 // Застосувати дані товару до DOM (текст, ціна, стан, галерея)
+function _revealProductPage(){
+  const wrap = document.getElementById('productPageWrap');
+  if (wrap) wrap.style.opacity = '1';
+}
 function applyProductData(p){
   if (!p) return;
+  _revealProductPage();
   const fmt = n => Number(n||0).toLocaleString('uk-UA').replace(/\u00A0/g,' ');
 
   if (p.name){
