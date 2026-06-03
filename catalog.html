@@ -1723,7 +1723,7 @@ async function _fetchCategoriesFromSupabase() {
   };
   const [mcRes, catRes] = await Promise.all([
     _ctFetch(SUPABASE_URL + '/rest/v1/main_categories?select=id,name,slug,image_url&active=eq.true&order=sort_order.asc,name.asc'),
-    _ctFetch(SUPABASE_URL + '/rest/v1/categories?select=id,name,slug,main_category_id,image_url&active=eq.true&order=name.asc')
+    _ctFetch(SUPABASE_URL + '/rest/v1/categories?select=id,name,slug,main_category_id,image_url,sort_order&active=eq.true&order=sort_order.asc.nullslast,name.asc')
   ]);
   if (!mcRes.ok || !catRes.ok) throw new Error('HTTP error');
   _mainCategories = await mcRes.json() || [];
