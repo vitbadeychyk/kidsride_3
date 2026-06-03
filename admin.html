@@ -7902,6 +7902,7 @@ async function reorderParentCategory(id, direction) {
     _parentCats.splice(swapIdx, 0, a);
     _parentCats[idx].sort_order   = newB;
     _parentCats[swapIdx].sort_order = newA;
+    try { localStorage.removeItem('kidsride_cats_v2'); } catch(_) {}
     renderParentCatsList();
     showToast('✅ Порядок категорій збережено', 'success');
   } catch(e) {
@@ -8156,6 +8157,7 @@ async function reorderSubCategory(id, parentId, direction) {
     const cb=(window._subCatsData||[]).find(c=>c.id===b.id);
     if(ca)ca.sort_order=swapIdx; if(cb)cb.sort_order=idx;
     renderSubCatsByParent();
+    try { localStorage.removeItem('kidsride_cats_v2'); } catch(_) {}
     showToast('✅ Порядок збережено','success');
   } catch(e){showToast('Помилка: '+e.message,'error');}
 }
