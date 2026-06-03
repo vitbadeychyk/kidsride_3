@@ -7755,11 +7755,11 @@ async function doRecalcCatMarkup() {
       const pageSize = 1000;
       while (true) {
         const batch = await sbFetch(
-          'products?select=id,supplier_price&category_id=eq.' + catId +
+          'products?select=id,name,supplier_price&category_id=eq.' + catId +
           '&supplier_price=gt.0&limit=' + pageSize + '&offset=' + (page * pageSize)
         );
         if (!Array.isArray(batch) || !batch.length) break;
-        batch.forEach(p => allProducts.push({ id: p.id, markup, supplier_price: p.supplier_price }));
+        batch.forEach(p => allProducts.push({ id: p.id, name: p.name, markup, supplier_price: p.supplier_price }));
         if (batch.length < pageSize) break;
         page++;
       }
@@ -7775,7 +7775,7 @@ async function doRecalcCatMarkup() {
     const updates = allProducts.map(p => {
       const newPrice    = Math.round(p.supplier_price * (1 + p.markup / 100) / 100) * 100;
       const newOldPrice = Math.round(newPrice * 1.3 / 100) * 100; // +30% as old_price
-      return { id: p.id, price: newPrice, old_price: newOldPrice };
+      return { id: p.id, name: p.name, price: newPrice, old_price: newOldPrice };
     });
 
     const chunkSize = 500;
