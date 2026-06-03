@@ -1897,9 +1897,24 @@ async function loadCategoryTree() {
   const treeEl = document.getElementById('catTree');
   if (!treeEl) return;
 
-  // Якщо категорії вже в пам'яті — одразу будуємо дерево (не йдемо в Supabase).
+  // Якщо категорії вже в пам'яті — рендеримо одразу,
+  // але ЗАВЖДИ робимо один фоновий fetch за сесію щоб порядок був актуальним.
   if (_mainCategories.length && _allCategories.length) {
-    // fallthrough to render
+    if (!window._catsFreshFetchDone) {
+      window._catsFreshFetchDone = true;
+      _fetchCategoriesFromSupabase().then(ok => {
+        if (ok) {
+          _saveCatsToStorage();
+          const t = document.getElementById('catTree');
+          if (t) {
+            _renderCategoryTree(t);
+            if (typeof _initMobileCatNav === 'function') _initMobileCatNav();
+          }
+          applyFiltersAndRender();
+        }
+      }).catch(() => {});
+    }
+    // fallthrough to render from memory immediately
   } else {
     // Спочатку перевіряємо localStorage-кеш для миттєвого відображення
     const fromCache = _loadCatsFromStorage();
@@ -1907,19 +1922,24 @@ async function loadCategoryTree() {
       // Рендеримо дерево з кешу відразу, потім оновлюємо у фоні
       _renderCategoryTree(treeEl);
       if (typeof _initMobileCatNav === 'function') _initMobileCatNav();
-      // Оновлюємо категорії у фоні, без блокування
-      _fetchCategoriesFromSupabase().then(ok => {
-        if (ok) {
-          _saveCatsToStorage();
-          // Перемальовуємо дерево з актуальними даними з Supabase
-          _renderCategoryTree(treeEl);
-          if (typeof _initMobileCatNav === 'function') _initMobileCatNav();
-          applyFiltersAndRender();
-        }
-      }).catch(() => {});
+      if (!window._catsFreshFetchDone) {
+        window._catsFreshFetchDone = true;
+        _fetchCategoriesFromSupabase().then(ok => {
+          if (ok) {
+            _saveCatsToStorage();
+            const t = document.getElementById('catTree');
+            if (t) {
+              _renderCategoryTree(t);
+              if (typeof _initMobileCatNav === 'function') _initMobileCatNav();
+            }
+            applyFiltersAndRender();
+          }
+        }).catch(() => {});
+      }
       return;
     }
     // Немає кешу — завантажуємо з Supabase (блокуємо тільки цей перший раз)
+    window._catsFreshFetchDone = true;
     try {
       await _fetchCategoriesFromSupabase();
       _saveCatsToStorage();
