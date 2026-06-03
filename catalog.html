@@ -1909,7 +1909,13 @@ async function loadCategoryTree() {
       if (typeof _initMobileCatNav === 'function') _initMobileCatNav();
       // Оновлюємо категорії у фоні, без блокування
       _fetchCategoriesFromSupabase().then(ok => {
-        if (ok) { _saveCatsToStorage(); }
+        if (ok) {
+          _saveCatsToStorage();
+          // Перемальовуємо дерево з актуальними даними з Supabase
+          _renderCategoryTree(treeEl);
+          if (typeof _initMobileCatNav === 'function') _initMobileCatNav();
+          applyFiltersAndRender();
+        }
       }).catch(() => {});
       return;
     }
