@@ -78,8 +78,6 @@ export default async function handler(req, res) {
       for (const c of cats) {
         if (!c.slug) continue;
         const mainSlug = mainCatMap.get(c.main_category_id);
-        // Якщо є main_category_id і ми знаємо slug батьківської → вкладений URL
-        // Якщо немає → плаский /slug (fallback)
         const loc = mainSlug
           ? SITE + '/' + mainSlug + '/' + c.slug
           : SITE + '/' + c.slug;
@@ -92,17 +90,17 @@ export default async function handler(req, res) {
       }
     } catch (_) {}
 
-    // ── Товари ─────────────────────────────────────────────────────────────
+    // ── Товари (через view products_sitemap) ───────────────────────────────
+    // View містить умову: active = true AND description IS NOT NULL AND length(trim(description)) >= 400
     try {
       const products = await supaFetch(
         supaUrl, supaKey,
-        'products?select=id,slug,updated_at&active=eq.true&order=id.asc'
+        'products_sitemap?select=id,slug,updated_at&order=id.asc'
       );
       for (const p of products) {
+        if (!p.slug) continue;
         productUrls.push({
-          loc:        p.slug
-            ? SITE + '/product/' + p.slug
-            : SITE + '/product.html?id=' + encodeURIComponent(p.id),
+          loc:        SITE + '/product/' + p.slug,
           lastmod:    p.updated_at ? p.updated_at.substring(0, 10) : '',
           changefreq: 'weekly',
           priority:   '0.70',
