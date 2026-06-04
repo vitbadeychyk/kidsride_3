@@ -11,12 +11,41 @@
       "source": "/categories.html",
       "destination": "/catalog.html",
       "permanent": true
+    },
+    {
+      "source": "/product.html",
+      "destination": "/catalog.html",
+      "permanent": true
     }
   ],
   "rewrites": [
     {
       "source": "/sitemap.xml",
       "destination": "/api/sitemap"
+    },
+    {
+      "source": "/robots.txt",
+      "destination": "/robots.txt"
+    },
+    {
+      "source": "/opengraph.jpg",
+      "destination": "/opengraph.jpg"
+    },
+    {
+      "source": "/apple-touch-icon.png",
+      "destination": "/apple-touch-icon.png"
+    },
+    {
+      "source": "/favicon.svg",
+      "destination": "/favicon.svg"
+    },
+    {
+      "source": "/favicon-32.png",
+      "destination": "/favicon-32.png"
+    },
+    {
+      "source": "/favicon-48.png",
+      "destination": "/favicon-48.png"
     },
     {
       "source": "/product/:slug",
@@ -45,7 +74,7 @@
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=3600"
+          "value": "public, max-age=300, s-maxage=3600, stale-while-revalidate=600"
         }
       ]
     },
