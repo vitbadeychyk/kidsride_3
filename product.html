@@ -1462,8 +1462,8 @@ function escHtml(s){ return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;'
 // Кеш product_id, який потрібен submitReview() для запису відгуку у БД.
 window.__krCurrentProductId = null;
 
-function _krSupaUrl(){ return (window.KR && KR._SUPA_URL) || 'https://xczrzdbikkycgpnvolib.supabase.co'; }
-function _krSupaKey(){ return (window.KR && KR._SUPA_KEY) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ'; }
+function _krSupaUrl(){ return (window.KR && KR._SUPA_URL) || 'https://gwslintdrtnvbfjvivbb.supabase.co'; }
+function _krSupaKey(){ return (window.KR && KR._SUPA_KEY) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3c2xpbnRkcnRudmJmanZpdmJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTU4MTUsImV4cCI6MjA5NzczMTgxNX0.2hhyX_PMrXpBa_Q5DW7KiUjf4Jy9nnBStto47_SVF7k'; }
 
 function formatRevDate(iso){
   const d = new Date(iso);
@@ -1698,8 +1698,8 @@ console.log('[KidsRide] product.html v3.9 — працюють: копіюван
 (async function loadFullProduct(){
   try{
     // Літерали Supabase (не залежимо від KR — щоб працювало навіть до завантаження shared.js)
-    const SUPA_URL = (window.KR && KR._SUPA_URL) || 'https://xczrzdbikkycgpnvolib.supabase.co';
-    const SUPA_KEY = (window.KR && KR._SUPA_KEY) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
+    const SUPA_URL = (window.KR && KR._SUPA_URL) || 'https://gwslintdrtnvbfjvivbb.supabase.co';
+    const SUPA_KEY = (window.KR && KR._SUPA_KEY) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3c2xpbnRkcnRudmJmanZpdmJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTU4MTUsImV4cCI6MjA5NzczMTgxNX0.2hhyX_PMrXpBa_Q5DW7KiUjf4Jy9nnBStto47_SVF7k';
 
     const params = new URLSearchParams(location.search);
     let id = (typeof window.__KR_PRODUCT_ID__ === 'string' && window.__KR_PRODUCT_ID__) || params.get('id');
@@ -2314,8 +2314,8 @@ function extractColorName(name){
 // Тягнемо новий товар з Supabase і просто перемальовуємо ті ж DOM-вузли.
 async function switchToVariant(id, supaUrl, supaKey){
   if (!id) return false;
-  supaUrl = supaUrl || (window.KR && KR._SUPA_URL) || 'https://xczrzdbikkycgpnvolib.supabase.co';
-  supaKey = supaKey || (window.KR && KR._SUPA_KEY) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
+  supaUrl = supaUrl || (window.KR && KR._SUPA_URL) || 'https://gwslintdrtnvbfjvivbb.supabase.co';
+  supaKey = supaKey || (window.KR && KR._SUPA_KEY) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3c2xpbnRkcnRudmJmanZpdmJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTU4MTUsImV4cCI6MjA5NzczMTgxNX0.2hhyX_PMrXpBa_Q5DW7KiUjf4Jy9nnBStto47_SVF7k';
 
   // Повний набір полів — включаючи опис і характеристики
   const baseSelect = 'id,sku,category_id,name,brand,price,old_price,stock,badge,images,active,slug,'
@@ -2377,8 +2377,8 @@ window.addEventListener('popstate', () => {
 //      "M 4259EBLR-1" → "M 4259EBLR-*".
 async function buildColorVariants(currentSku, currentId, supaUrl, supaKey, modelCode, categoryId, currentCategory){
   // Дозволяємо викликати без явних креденшіалів — беремо з KR або літералів
-  supaUrl = supaUrl || (window.KR && KR._SUPA_URL) || 'https://xczrzdbikkycgpnvolib.supabase.co';
-  supaKey = supaKey || (window.KR && KR._SUPA_KEY) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
+  supaUrl = supaUrl || (window.KR && KR._SUPA_URL) || 'https://gwslintdrtnvbfjvivbb.supabase.co';
+  supaKey = supaKey || (window.KR && KR._SUPA_KEY) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3c2xpbnRkcnRudmJmanZpdmJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTU4MTUsImV4cCI6MjA5NzczMTgxNX0.2hhyX_PMrXpBa_Q5DW7KiUjf4Jy9nnBStto47_SVF7k';
 
   console.log('[KidsRide variants] start: sku=', currentSku, 'id=', currentId, 'modelCode=', modelCode);
 
@@ -2831,8 +2831,8 @@ function _ytEmbedFromUrl(url){
       const pid = new URLSearchParams(window.location.search).get('id');
       if (pid) {
         // Async fallback: fetch from Supabase
-        const SUPA_URL = 'https://xczrzdbikkycgpnvolib.supabase.co';
-        const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYwMjUyNzIsImV4cCI6MjA2MTYwMTI3Mn0.XUyUm-NOFHZ2e43cFYnzP8jABPfHkR5UdGvRz6MBhyI';
+        const SUPA_URL = 'https://gwslintdrtnvbfjvivbb.supabase.co';
+        const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3c2xpbnRkcnRudmJmanZpdmJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTU4MTUsImV4cCI6MjA5NzczMTgxNX0.2hhyX_PMrXpBa_Q5DW7KiUjf4Jy9nnBStto47_SVF7k';
         fetch(SUPA_URL + '/rest/v1/products?id=eq.' + encodeURIComponent(pid) + '&select=*', {
           headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + SUPA_KEY }
         })
@@ -3150,7 +3150,7 @@ function _ytEmbedFromUrl(url){
   </script>
 <script>
   // ── SEARCH OVERLAY ──────────────────────────────────────────────────────────
-  const KR_SUPABASE_URL_SR=(typeof SUPABASE_URL!=='undefined'?SUPABASE_URL:'https://xczrzdbikkycgpnvolib.supabase.co');
+  const KR_SUPABASE_URL_SR=(typeof SUPABASE_URL!=='undefined'?SUPABASE_URL:'https://gwslintdrtnvbfjvivbb.supabase.co');
   const KR_SUPABASE_KEY_SR=(typeof SUPABASE_KEY!=='undefined'?SUPABASE_KEY:'');
   const KR_CAT_EMOJI={jeep:'🚙',car:'🚗',quad:'🏍️',moto:'🏍️',tractor:'🚜',truck:'🚚',buggy:'🛺',walker:'🛴'};
   let KR_PRODUCTS_CACHE=null,KR_PRODUCTS_PROMISE=null;

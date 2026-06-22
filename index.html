@@ -67,8 +67,8 @@
 }
 </script>
 <!-- Preconnect: Supabase (API/DB) та Google Fonts — встановлюємо TCP/TLS заздалегідь -->
-<link rel="preconnect" href="https://xczrzdbikkycgpnvolib.supabase.co" crossorigin>
-<link rel="dns-prefetch" href="https://xczrzdbikkycgpnvolib.supabase.co">
+<link rel="preconnect" href="https://gwslintdrtnvbfjvivbb.supabase.co" crossorigin>
+<link rel="dns-prefetch" href="https://gwslintdrtnvbfjvivbb.supabase.co">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
@@ -1437,8 +1437,8 @@ function _krOptImg(url,w,q){
 
       async function loadFeatured() {
         try {
-          const r = await fetch('https://xczrzdbikkycgpnvolib.supabase.co/rest/v1/products?select=*&is_featured=eq.true&active=eq.true&order=created_at.desc&limit=5',
-            { headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ'} });
+          const r = await fetch('https://gwslintdrtnvbfjvivbb.supabase.co/rest/v1/products?select=*&is_featured=eq.true&active=eq.true&order=created_at.desc&limit=5',
+            { headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3c2xpbnRkcnRudmJmanZpdmJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTU4MTUsImV4cCI6MjA5NzczMTgxNX0.2hhyX_PMrXpBa_Q5DW7KiUjf4Jy9nnBStto47_SVF7k','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3c2xpbnRkcnRudmJmanZpdmJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTU4MTUsImV4cCI6MjA5NzczMTgxNX0.2hhyX_PMrXpBa_Q5DW7KiUjf4Jy9nnBStto47_SVF7k'} });
           const products = r.ok ? await r.json() : [];
           if (products && products.length) {
             GRID.innerHTML = products.map((p,i) => renderFeaturedCard(p,i)).join('');
@@ -1448,8 +1448,8 @@ function _krOptImg(url,w,q){
         } catch(e) {}
         // Якщо немає is_featured товарів — показати перших 4 активних
         try {
-          const r2 = await fetch('https://xczrzdbikkycgpnvolib.supabase.co/rest/v1/products?select=*&active=eq.true&order=created_at.desc&limit=5',
-            { headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ'} });
+          const r2 = await fetch('https://gwslintdrtnvbfjvivbb.supabase.co/rest/v1/products?select=*&active=eq.true&order=created_at.desc&limit=5',
+            { headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3c2xpbnRkcnRudmJmanZpdmJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTU4MTUsImV4cCI6MjA5NzczMTgxNX0.2hhyX_PMrXpBa_Q5DW7KiUjf4Jy9nnBStto47_SVF7k','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3c2xpbnRkcnRudmJmanZpdmJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTU4MTUsImV4cCI6MjA5NzczMTgxNX0.2hhyX_PMrXpBa_Q5DW7KiUjf4Jy9nnBStto47_SVF7k'} });
           const fallback = r2.ok ? await r2.json() : [];
           GRID.innerHTML = fallback.length
             ? fallback.map((p,i)=>renderFeaturedCard(p,i)).join('')
@@ -1557,8 +1557,8 @@ function _krOptImg(url,w,q){
   var reviewsEl = document.getElementById('reviews');
   function _startLoadReviews() {
     (async function loadReviews() {
-  const SB_URL = 'https://xczrzdbikkycgpnvolib.supabase.co';
-  const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
+  const SB_URL = 'https://gwslintdrtnvbfjvivbb.supabase.co';
+  const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3c2xpbnRkcnRudmJmanZpdmJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTU4MTUsImV4cCI6MjA5NzczMTgxNX0.2hhyX_PMrXpBa_Q5DW7KiUjf4Jy9nnBStto47_SVF7k';
   const headers = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY };
 
   const AVATAR_COLORS = [
@@ -2032,8 +2032,8 @@ window._krAppliedSlidesSig = '';
   }
 
   // 2) Швидкий запит: тільки перший слайд (1/3 трафіку) → фото з'являється без затримки
-  const SUPA_URL = 'https://xczrzdbikkycgpnvolib.supabase.co';
-  const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
+  const SUPA_URL = 'https://gwslintdrtnvbfjvivbb.supabase.co';
+  const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3c2xpbnRkcnRudmJmanZpdmJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTU4MTUsImV4cCI6MjA5NzczMTgxNX0.2hhyX_PMrXpBa_Q5DW7KiUjf4Jy9nnBStto47_SVF7k';
   const _H = { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY };
 
 
@@ -2686,8 +2686,8 @@ const KR_SEARCH_INDEX = [
 ];
 
 // ── ДИНАМІЧНИЙ ПОШУК ПО РЕАЛЬНОМУ КАТАЛОГУ (SUPABASE) ──
-const KR_SUPABASE_URL = 'https://xczrzdbikkycgpnvolib.supabase.co';
-const KR_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
+const KR_SUPABASE_URL = 'https://gwslintdrtnvbfjvivbb.supabase.co';
+const KR_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3c2xpbnRkcnRudmJmanZpdmJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTU4MTUsImV4cCI6MjA5NzczMTgxNX0.2hhyX_PMrXpBa_Q5DW7KiUjf4Jy9nnBStto47_SVF7k';
 const KR_CAT_EMOJI = {jeep:'🚙',car:'🚗',quad:'🏍️',moto:'🏍️',tractor:'🚜',truck:'🚚',buggy:'🛺',walker:'🛴'};
 let KR_PRODUCTS_CACHE = null;
 let KR_PRODUCTS_PROMISE = null;
@@ -3058,8 +3058,8 @@ document.addEventListener('keydown', function(e) {
 // initDynamicData: на мобільних відкладаємо до першого scroll (не заважає LCP)
 function _runInitDynamicData() {
 (async function initDynamicData() {
-  const SURL = 'https://xczrzdbikkycgpnvolib.supabase.co';
-  const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
+  const SURL = 'https://gwslintdrtnvbfjvivbb.supabase.co';
+  const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3c2xpbnRkcnRudmJmanZpdmJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTU4MTUsImV4cCI6MjA5NzczMTgxNX0.2hhyX_PMrXpBa_Q5DW7KiUjf4Jy9nnBStto47_SVF7k';
   const hdrs = { 'apikey': SKEY, 'Authorization': 'Bearer ' + SKEY };
 
   // ── Лічильники моделей по напрузі ─────────────────────────────
@@ -3210,8 +3210,8 @@ function _runInitDynamicData() {
 // ── HOMEPAGE BLOCK ORDER ──────────────────────────────────────────
 (function(){
   var DEFAULT_ORDER = ['marquee','benefits','products','age-picker','instagram','reviews','delivery','warranty','faq','contacts'];
-  var SUPA_URL = 'https://xczrzdbikkycgpnvolib.supabase.co';
-  var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ';
+  var SUPA_URL = 'https://gwslintdrtnvbfjvivbb.supabase.co';
+  var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3c2xpbnRkcnRudmJmanZpdmJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTU4MTUsImV4cCI6MjA5NzczMTgxNX0.2hhyX_PMrXpBa_Q5DW7KiUjf4Jy9nnBStto47_SVF7k';
 
   function applyBlockOrder(order) {
     if (!order || !order.length) return;

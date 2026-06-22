@@ -25,8 +25,8 @@
 
 // ── CONFIG ────────────────────────────────────────────────────────────────────
 const CONFIG = {
-  supabaseUrl: process.env.SUPABASE_URL || 'https://xczrzdbikkycgpnvolib.supabase.co',
-  supabaseKey: process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjenJ6ZGJpa2t5Y2dwbnZvbGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjUyMTgsImV4cCI6MjA5MjkwMTIxOH0.2ClxkizpRUdaJaHndjsH4RIb_lnIJ_imrTRYBNhTqkQ',
+  supabaseUrl: process.env.SUPABASE_URL || 'https://gwslintdrtnvbfjvivbb.supabase.co',
+  supabaseKey: process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3c2xpbnRkcnRudmJmanZpdmJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTU4MTUsImV4cCI6MjA5NzczMTgxNX0.2hhyX_PMrXpBa_Q5DW7KiUjf4Jy9nnBStto47_SVF7k',
   xmlUrl:      process.env.XML_URL      || 'https://raw.githubusercontent.com/vitbadeychyk/product-feed-pipeline/cb030df7b703d5a48189ecf7faa412c74c14dd55/data/raw/supplier_feed.xml',
 
   minStock:    5,     // скільки показувати на сайті, якщо постачальник дає 1+ шт
