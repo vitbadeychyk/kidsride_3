@@ -1704,13 +1704,34 @@ console.log('[KidsRide] product.html v3.9 — працюють: копіюван
     const params = new URLSearchParams(location.search);
     let id = (typeof window.__KR_PRODUCT_ID__ === 'string' && window.__KR_PRODUCT_ID__) || params.get('id');
 
+    // Витягуємо slug з URL (наприклад /elektromobili/dzhyp/dzhyp-m-4259eblr-2 → 'dzhyp-m-4259eblr-2')
+    const _urlPathSlug = (() => {
+      const pts = window.location.pathname.split('/').filter(Boolean);
+      const last = pts[pts.length - 1];
+      return (last && !/\.(html|js|css|json)$/.test(last)) ? last : null;
+    })();
+
     // ─ Швидкий первинний рендер з sessionStorage (без очікування мережі) ─
     let cached = null;
     try {
       const stored = sessionStorage.getItem('kr_active_product');
       if (stored) cached = JSON.parse(stored);
     } catch{}
-    if (cached && cached.id && !id && !/^cat-|^default-/.test(cached.id)) id = cached.id;
+    // Використовуємо кеш лише якщо slug збігається з поточним URL — інакше це інший товар
+    if (cached && cached.id && !id && !/^cat-|^default-/.test(cached.id)) {
+      const cachedSlug = cached.slug || (cached.name ? cached.name.toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi,'-').replace(/^-+|-+$/g,'').substring(0,60) : null);
+      if (!_urlPathSlug || cachedSlug === _urlPathSlug) id = cached.id;
+    }
+
+    // Якщо id досі невідомий — шукаємо товар у Supabase за slug з URL
+    if (!id && _urlPathSlug) {
+      try {
+        const _sr = await fetch(SUPA_URL + '/rest/v1/products?select=id&slug=eq.' + encodeURIComponent(_urlPathSlug) + '&limit=1', {
+          headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
+        });
+        if (_sr.ok) { const _sa = await _sr.json(); if (_sa && _sa[0]) id = _sa[0].id; }
+      } catch(e) { console.warn('[KidsRide] slug lookup:', e); }
+    }
     if (cached && cached.id && String(cached.id) === String(id) && (cached.sku || (Array.isArray(cached.images) && cached.images.length))) {
       // Уніфікуємо формат camelCase → snake_case для applyProductData
       const cnorm = {
@@ -2651,7 +2672,7 @@ async function buildColorVariants(currentSku, currentId, supaUrl, supaKey, model
 
     const tag = isCur ? 'div' : 'a';
     const el = document.createElement(tag);
-    if (!isCur) el.href = v.slug ? '/product/' + v.slug : '/product.html?id=' + encodeURIComponent(v.id);
+    if (!isCur) el.href = v.slug ? '/product/' + v.slug : '/product/' + encodeURIComponent(v.id);
     el.title = (v.name || v.sku || '') + (isCur ? ' (поточний)' : (inStock ? '' : ' — під замовлення'));
     el.setAttribute('data-kr-el', '1');
     el.style.cssText =
@@ -3118,7 +3139,7 @@ function _ytEmbedFromUrl(url){
     if (empty) empty.style.display = 'none';
     items.forEach(p => {
       const a = document.createElement('a');
-      a.href = p.slug ? '/product/'+p.slug : (p.id ? '/product.html?id='+encodeURIComponent(p.id) : '/catalog.html?search='+encodeURIComponent(p.name));
+      const _ppSl=(p.slug||(p.name?p.name.toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi,'-').replace(/^-+|-+$/g,'').substring(0,60):null));a.href=_ppSl?'/product/'+_ppSl:'/catalog.html?search='+encodeURIComponent(p.name||'');
       a.className = 'search-sug';
       const sub = [p.brand, p.sku].filter(Boolean).join(' · Арт: ');
       const thumb = p.photo
@@ -3201,7 +3222,7 @@ function _ytEmbedFromUrl(url){
     if(empty)empty.style.display='none';
     items.forEach(p=>{
       const a=document.createElement('a');
-      a.href=p.slug?'/product/'+p.slug:(p.id?'/product.html?id='+encodeURIComponent(p.id):'/catalog.html?search='+encodeURIComponent(p.name));
+      const _ppSl2=(p.slug||(p.name?p.name.toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi,'-').replace(/^-+|-+$/g,'').substring(0,60):null));a.href=_ppSl2?'/product/'+_ppSl2:'/catalog.html?search='+encodeURIComponent(p.name||'');
       a.className='search-sug';
       const sub=[p.brand,p.sku].filter(Boolean).join(' · Арт: ');
       const thumb=p.photo?'<img class="search-sug-img" src="'+p.photo+'" alt="" loading="lazy">':'<span style="width:44px;height:44px;border-radius:8px;background:#f5f7fa;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px">'+(p.emoji||'🚗')+'</span>';

@@ -667,7 +667,7 @@ function renderCartItems() {
 
 
     const _cSlug = p.slug || slugify(p.name || "");
-    const productHref = _cSlug ? '/product/' + _cSlug : (p.id && !/^p-/.test(String(p.id)) ? '/product.html?id=' + encodeURIComponent(p.id) : '/product.html');
+    const productHref = _cSlug ? '/product/' + _cSlug : (p.id && !/^p-/.test(String(p.id)) ? '/product/' + encodeURIComponent(p.id) : '/catalog.html');
     const safeKey = escHtml(key);
     const imgHtml = p.img
       ? `<img src="${escHtml(String(p.img))}" alt="${escHtml(p.name||'')}" loading="lazy" data-sku="${escHtml(p.sku||'')}" style="width:100%;height:100%;object-fit:contain;background:#fff;border-radius:10px" onerror="this.style.display='none';this.parentNode.innerHTML+=genericSvg()">`
@@ -1133,7 +1133,7 @@ checkMobilePrices();
     if(empty)empty.style.display='none';
     items.forEach(p=>{
       const a=document.createElement('a');
-      a.href=p.id?'product.html?id='+encodeURIComponent(p.id):'catalog.html?search='+encodeURIComponent(p.name);
+      const _cSl=(p.slug||(p.name?p.name.toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi,'-').replace(/^-+|-+$/g,'').substring(0,60):null));a.href=_cSl?'product/'+_cSl:'catalog.html?search='+encodeURIComponent(p.name||'');
       a.className='search-sug';
       const sub=[p.brand,p.sku].filter(Boolean).join(' · Арт: ');
       const thumb=p.photo?'<img class="search-sug-img" src="'+p.photo+'" alt="" loading="lazy">':'<span style="width:44px;height:44px;border-radius:8px;background:#f5f7fa;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px">'+(p.emoji||'🚗')+'</span>';

@@ -1399,7 +1399,7 @@ function _krOptImg(url,w,q){
             <div class="p-img" style="${bg}">
               ${imgHtml}
               <div class="p-overlay">
-                <a href="${p.slug ? 'product/' + p.slug : 'product.html?id=' + pid}" class="p-overlay-btn ob-white" onclick="try{var _kp=window._krFeaturedMap&&window._krFeaturedMap['${_mapKey}'];if(_kp)sessionStorage.setItem('kr_active_product',JSON.stringify(_kp))}catch(e){}" >
+                <a href="${p.slug ? 'product/' + p.slug : 'product/' + pid}" class="p-overlay-btn ob-white" onclick="try{var _kp=window._krFeaturedMap&&window._krFeaturedMap['${_mapKey}'];if(_kp)sessionStorage.setItem('kr_active_product',JSON.stringify(_kp))}catch(e){}" >
                   <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                   Детальніше
                 </a>
@@ -2823,7 +2823,7 @@ function renderSearchSuggestions(query) {
   empty.style.display = 'none';
   items.forEach(p => {
     const a = document.createElement('a');
-    a.href = p.slug ? 'product/' + p.slug : (p.id ? 'product.html?id=' + encodeURIComponent(p.id) : 'product.html?model=' + encodeURIComponent(p.name));
+    const _srSlug=p.slug||(p.name?p.name.toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi,'-').replace(/^-+|-+$/g,'').substring(0,60):null);a.href=_srSlug?'product/'+_srSlug:'catalog.html?search='+encodeURIComponent(p.name||'');
     a.className = 'search-sug';
     const sub = [p.brand, p.sku].filter(Boolean).join(' · Арт: ');
     const thumb = p.photo
