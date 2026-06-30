@@ -160,14 +160,7 @@ export default async function handler(req, res) {
   } catch (_) {}
 
   if (!product) {
-    // Fallback: product.html без SEO (JS завантажить за ID)
-    let fallbackHtml;
-    try { fallbackHtml = fs.readFileSync(path.join(process.cwd(), 'product.html'), 'utf8'); } catch (_) {}
-    if (fallbackHtml) {
-      res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      res.setHeader('Cache-Control', 'no-store');
-      return res.status(200).send(fallbackHtml);
-    }
+    // Slug не знайдено — перенаправляємо на каталог (щоб не показувати кешований не той товар)
     return res.redirect(302, '/catalog.html');
   }
 
