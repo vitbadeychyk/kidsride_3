@@ -3198,7 +3198,7 @@ function _ytEmbedFromUrl(url){
         const base=KR_SUPABASE_URL_SR+'/rest/v1/products?select=id,name,brand,model_code,sku,category,price,images,slug&active=eq.true&order=created_at.desc&limit=1000';
         const pages=await Promise.all([0,1000,2000].map(off=>fetch(base+'&offset='+off,{headers:h}).then(r=>r.ok?r.json():[]).catch(()=>[])));
         const data=pages.flat();
-        if(data.length){const seen=new Set();KR_PRODUCTS_CACHE=data.filter(p=>{if(!p||seen.has(p.id))return false;seen.add(p.id);return true;}).map(p=>({id:p.id,name:p.name||'',brand:p.brand||'',model:p.model_code||p.sku||'',sku:p.sku||'',category:p.category||'',price:parseFloat(p.price)||0,emoji:KR_CAT_EMOJI[p.category]||'🚗',photo:Array.isArray(p.images)&&p.images[0]?p.images[0]:null}));return KR_PRODUCTS_CACHE;}
+        if(data.length){const seen=new Set();KR_PRODUCTS_CACHE=data.filter(p=>{if(!p||seen.has(p.id))return false;seen.add(p.id);return true;}).map(p=>({id:p.id,name:p.name||'',brand:p.brand||'',model:p.model_code||p.sku||'',sku:p.sku||'',slug:p.slug||null,category:p.category||'',price:parseFloat(p.price)||0,emoji:KR_CAT_EMOJI[p.category]||'🚗',photo:Array.isArray(p.images)&&p.images[0]?p.images[0]:null}));return KR_PRODUCTS_CACHE;}
       }catch(e){console.warn('KR search:',e);}
       KR_PRODUCTS_CACHE=[];return KR_PRODUCTS_CACHE;
     })();return KR_PRODUCTS_PROMISE;
@@ -3237,6 +3237,7 @@ function _ytEmbedFromUrl(url){
     items.forEach(p=>{
       const a=document.createElement('a');
       const _ppSl2=(p.slug||(p.name?p.name.toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi,'-').replace(/^-+|-+$/g,'').substring(0,60):null));a.href=_ppSl2?'/product/'+_ppSl2:'/catalog.html?search='+encodeURIComponent(p.name||'');
+      if(_ppSl2&&p.id)a.addEventListener('click',function(){try{sessionStorage.setItem('kr_slug_id_'+_ppSl2,p.id);}catch(e){}});
       a.className='search-sug';
       const sub=[p.brand,p.sku].filter(Boolean).join(' · Арт: ');
       const thumb=p.photo?'<img class="search-sug-img" src="'+p.photo+'" alt="" loading="lazy">':'<span style="width:44px;height:44px;border-radius:8px;background:#f5f7fa;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px">'+(p.emoji||'🚗')+'</span>';
