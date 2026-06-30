@@ -1736,7 +1736,17 @@ console.log('[KidsRide] product.html v3.9 — працюють: копіюван
         if (_sr.ok) { const _sa = await _sr.json(); if (_sa && _sa[0]) id = _sa[0].id; }
       } catch(e) { console.warn('[KidsRide] slug lookup:', e); }
     }
-    if (cached && cached.id && String(cached.id) === String(id) && (cached.sku || (Array.isArray(cached.images) && cached.images.length))) {
+    // Швидкий рендер з sessionStorage ТІЛЬКИ якщо:
+    // 1. id збігається з cached.id
+    // 2. І slug кешованого продукту збігається з URL-slug (захист від застарілого кешу з іншим товаром)
+    // 3. Або __KR_PRODUCT_ID__ НЕ прийшов від SSR (тобто немає server-side інʼєкції)
+    const _ssrInjected = typeof window.__KR_PRODUCT_ID__ === 'string' && window.__KR_PRODUCT_ID__;
+    const _cachedSlugOk = (() => {
+      if (!cached || !_urlPathSlug) return true; // немає slug у URL — не перевіряємо
+      const cs = cached.slug || '';
+      return cs === _urlPathSlug;
+    })();
+    if (!_ssrInjected && cached && cached.id && String(cached.id) === String(id) && _cachedSlugOk && (cached.sku || (Array.isArray(cached.images) && cached.images.length))) {
       // Уніфікуємо формат camelCase → snake_case для applyProductData
       const cnorm = {
         id: cached.id,
