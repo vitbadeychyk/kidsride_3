@@ -1723,7 +1723,11 @@ console.log('[KidsRide] product.html v3.9 — працюють: копіюван
       if (!_urlPathSlug || cachedSlug === _urlPathSlug) id = cached.id;
     }
 
-    // Якщо id досі невідомий — шукаємо товар у Supabase за slug з URL
+    // Якщо id досі невідомий — спочатку sessionStorage slug→id (швидко, без мережі)
+    if (!id && _urlPathSlug) {
+      try { const _ssi = sessionStorage.getItem('kr_slug_id_' + _urlPathSlug); if (_ssi) id = _ssi; } catch{}
+    }
+    // Якщо все ще не знайдено — шукаємо в Supabase за slug з URL
     if (!id && _urlPathSlug) {
       try {
         const _sr = await fetch(SUPA_URL + '/rest/v1/products?select=id&slug=eq.' + encodeURIComponent(_urlPathSlug) + '&limit=1', {

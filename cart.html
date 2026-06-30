@@ -1134,6 +1134,7 @@ checkMobilePrices();
     items.forEach(p=>{
       const a=document.createElement('a');
       const _cSl=(p.slug||(p.name?p.name.toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi,'-').replace(/^-+|-+$/g,'').substring(0,60):null));a.href=_cSl?'product/'+_cSl:'catalog.html?search='+encodeURIComponent(p.name||'');
+      if(_cSl&&p.id)a.addEventListener('click',function(){try{sessionStorage.setItem('kr_slug_id_'+_cSl,p.id);}catch(e){}});
       a.className='search-sug';
       const sub=[p.brand,p.sku].filter(Boolean).join(' · Арт: ');
       const thumb=p.photo?'<img class="search-sug-img" src="'+p.photo+'" alt="" loading="lazy">':'<span style="width:44px;height:44px;border-radius:8px;background:#f5f7fa;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px">'+(p.emoji||'🚗')+'</span>';

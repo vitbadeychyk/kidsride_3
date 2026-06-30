@@ -2824,6 +2824,7 @@ function renderSearchSuggestions(query) {
   items.forEach(p => {
     const a = document.createElement('a');
     const _srSlug=p.slug||(p.name?p.name.toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi,'-').replace(/^-+|-+$/g,'').substring(0,60):null);a.href=_srSlug?'product/'+_srSlug:'catalog.html?search='+encodeURIComponent(p.name||'');
+    if(_srSlug&&p.id)a.addEventListener('click',function(){try{sessionStorage.setItem('kr_slug_id_'+_srSlug,p.id);}catch(e){}});
     a.className = 'search-sug';
     const sub = [p.brand, p.sku].filter(Boolean).join(' · Арт: ');
     const thumb = p.photo
