@@ -2588,6 +2588,18 @@ function _initMobileCatNav() {
     return;
   }
 
+  // ?cat=jeep / ?type=quad — покажи список товарів одразу (без категорійної сітки)
+  const _catRawNav = (p.get('cat') || p.get('type') || p.get('category') || '').trim().toLowerCase().split(',')[0];
+  const _VALID_VT_NAV = new Set(['jeep','quad','moto','car','tractor','walker','truck','buggy']);
+  if (_catRawNav && _VALID_VT_NAV.has(_catRawNav)) {
+    _mobNavInitDone = true;
+    _mobNavLevel = 'products';
+    const nav = document.getElementById('mob-cat-nav');
+    if (nav) nav.style.display = 'none';
+    _mobCatNavToggleProductsArea(true);
+    return;
+  }
+
   // No category params — show main category grid instead of products
   _mobNavInitDone = true;
   _isDefaultMode  = false;
@@ -3549,8 +3561,21 @@ function applyUrlFilters() {
   // ── Стара логіка: ?cat=jeep,car (для зворотної сумісності)
   const catRaw = params.get('cat') || params.get('type') || params.get('category') || '';
   const TYPE_LABELS = { jeep:'Джип', quad:'Квадроцикл', moto:'Мотоцикл', car:'Машина', tractor:'Трактор', walker:'Каталка-толокар', truck:'Вантажівка', buggy:'Баггі' };
+  const _VT_UA_COMPAT = { jeep:'Джипи', quad:'Квадроцикли', moto:'Мотоцикли', car:'Машини', tractor:'Трактори', walker:'Каталки-толокари', truck:'Вантажівки', buggy:'Баггі' };
+  const _VALID_VT_COMPAT = new Set(['jeep','quad','moto','car','tractor','walker','truck','buggy']);
   if (catRaw) {
     const cats = catRaw.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+    // Встановлюємо активний тип транспорту (перший валідний) — щоб сторінка одразу фільтрувала
+    const firstVT = cats.find(c => _VALID_VT_COMPAT.has(c));
+    if (firstVT) {
+      _activeVehicleType = firstVT;
+      _isDefaultMode     = false;
+      const _vtName = _VT_UA_COMPAT[firstVT] || firstVT;
+      if (bcCats) bcCats.style.display = '';
+      if (bcSep2) bcSep2.style.display = '';
+      if (bcCur)  bcCur.textContent  = _vtName;
+      if (titleEl) titleEl.textContent = _vtName;
+    }
     const targets = cats.map(c => TYPE_LABELS[c]).filter(Boolean);
     if (targets.length) {
       document.querySelectorAll('.filter-option[data-group="type"]').forEach(opt => {
