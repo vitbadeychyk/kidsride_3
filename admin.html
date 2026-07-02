@@ -1106,6 +1106,9 @@ tr:hover td{background:rgba(240,242,248,.5)}
       <!-- Підкатегорії по групах (швидке редагування фото) -->
       <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r);padding:18px 20px;margin-bottom:22px">
         <div style="font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;color:var(--navy);margin-bottom:14px">🗃 Підкатегорії — фото по групах</div>
+        <div style="background:rgba(255,152,0,.08);border:1px solid rgba(255,152,0,.3);border-radius:8px;padding:12px 16px;margin-bottom:14px;font-size:12px;color:var(--navy);line-height:1.7">
+          <strong>⚠️ Як працює порядок категорій:</strong> Сайт відображає тайли <strong>рівно в тому порядку</strong>, що ви встановили тут за допомогою кнопок ▲▼. Якщо якийсь тип транспорту показується на сайті, але відсутній у цьому списку (наприклад «Каталки-толокари») — значить у вашій базі даних немає запису з відповідним <code>slug</code> для цього типу. Щоб категорія перестала відображатись на сайті — видаліть або деактивуйте відповідні товари. Щоб керувати нею тут — потрібно додати запис у таблицю <code>categories</code> з відповідним <code>slug</code> (напр. <code>walker</code>) та <code>main_category_id</code>.
+        </div>
         <div id="subCatsByParentList">
           <div style="font-size:12px;color:var(--text-muted)">Завантаження…</div>
         </div>

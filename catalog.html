@@ -1778,8 +1778,9 @@ function _renderCategoryTree(treeEl) {
     const subs = children.filter(c => c.main_category_id === parent.id);
     const subIds = subs.map(c => c.id);
     const parentProds = _availableProds.filter(p => subIds.includes(p.category_id));
-    const vehicleTypes = [...new Set(parentProds.map(p => p.category).filter(c => c && TYPE_UA_TREE[c]))]
-      .sort((a,b) => (TYPE_UA_TREE[a]||a).localeCompare(TYPE_UA_TREE[b]||b,'uk'));
+    const _catIdxTree={};(_allCategories||[]).forEach((c,i)=>{if(c.slug)_catIdxTree[c.slug]=i;});
+    const vehicleTypes = [...new Set(parentProds.map(p => p.category).filter(c => c && TYPE_UA_TREE[c] && c in _catIdxTree))]
+      .sort((a,b)=>{const ia=_catIdxTree[a]??9999,ib=_catIdxTree[b]??9999;return ia!==ib?ia-ib:(TYPE_UA_TREE[a]||a).localeCompare(TYPE_UA_TREE[b]||b,'uk');});
     const subNamesRedundant = subs.every(s => s.name.toLowerCase().includes(parent.name.toLowerCase()) || parent.name.toLowerCase().includes(s.name.toLowerCase()));
     const useVehicleTypes   = vehicleTypes.length >= 2;
     const isSingleSameName  = subs.length === 1 && subNamesRedundant && !useVehicleTypes;
@@ -2318,7 +2319,8 @@ function _mobNavShowSub(parentId) {
 
       if (_vtypes.length >= 2) {
         // Розгортаємо підкатегорію транспорту одразу в тайли типів — без додаткового кліку
-        const sorted = _vtypes.sort((a, b) => (_VT_UA_SUB[a] || a).localeCompare(_VT_UA_SUB[b] || b, 'uk'));
+        const _catIdx2={};(_allCategories||[]).forEach((c,i)=>{if(c.slug)_catIdx2[c.slug]=i;});
+        const sorted = _vtypes.filter(code=>code in _catIdx2).sort((a,b)=>{const ia=_catIdx2[a]??9999,ib=_catIdx2[b]??9999;return ia!==ib?ia-ib:(_VT_UA_SUB[a]||a).localeCompare(_VT_UA_SUB[b]||b,'uk');});
         sorted.forEach(code => {
           const icon = _VT_ICON_SUB[code] || '📦';
           const name = _VT_UA_SUB[code]   || code;
@@ -2420,7 +2422,8 @@ function _mobNavShowVehicleTypes(catId, vtypes) {
   const _avail = (allProducts || []).filter(p => !(p.stock != null && p.stock <= 0 && !(Number(p.preorderDays) > 0)));
   const _subP  = _avail.filter(p => p.category_id === catId);
 
-  const sorted = [...vtypes].sort((a,b) => (_VT_UA[a]||a).localeCompare(_VT_UA[b]||b,'uk'));
+  const _catIdx3={};(_allCategories||[]).forEach((c,i)=>{if(c.slug)_catIdx3[c.slug]=i;});
+  const sorted=[...vtypes].filter(code=>code in _catIdx3).sort((a,b)=>{const ia=_catIdx3[a]??9999,ib=_catIdx3[b]??9999;return ia!==ib?ia-ib:(_VT_UA[a]||a).localeCompare(_VT_UA[b]||b,'uk');});
 
   grid.innerHTML = sorted.map(code => {
     const cnt  = _subP.filter(p => p.category === code).length;
