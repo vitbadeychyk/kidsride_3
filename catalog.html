@@ -3570,6 +3570,12 @@ function applyUrlFilters() {
     if (firstVT) {
       _activeVehicleType = firstVT;
       _isDefaultMode     = false;
+      // Встановлюємо mob nav стан ДО виклику applyFiltersAndRender() — інакше він зробить early return
+      _mobNavLevel    = 'products';
+      _mobNavInitDone = true;
+      const _nav = document.getElementById('mob-cat-nav');
+      if (_nav) _nav.style.display = 'none';
+      if (typeof _mobCatNavToggleProductsArea === 'function') _mobCatNavToggleProductsArea(true);
       const _vtName = _VT_UA_COMPAT[firstVT] || firstVT;
       if (bcCats) bcCats.style.display = '';
       if (bcSep2) bcSep2.style.display = '';
