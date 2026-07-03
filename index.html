@@ -2969,11 +2969,36 @@ else document.addEventListener('DOMContentLoaded', initInstaFab);
   }
 
   function initPromoModal() {
-    var cfg = getPromoSettings();
-    if (cfg.enabled === false) return;
     if (new URLSearchParams(location.search).has('nopopup')) return;
-    var delaySec = (cfg.popup_delay_sec != null && !isNaN(Number(cfg.popup_delay_sec))) ? Number(cfg.popup_delay_sec) : 3;
-    setTimeout(showPromoModal, delaySec * 1000);
+
+    var SUPA_URL = 'https://gwslintdrtnvbfjvivbb.supabase.co';
+    var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3c2xpbnRkcnRudmJmanZpdmJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTU4MTUsImV4cCI6MjA5NzczMTgxNX0.2hhyX_PMrXpBa_Q5DW7KiUjf4Jy9nnBStto47_SVF7k';
+
+    fetch(SUPA_URL + '/rest/v1/settings?select=value&key=eq.promo_popup&limit=1', {
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
+    })
+    .then(function(r) { return r.ok ? r.json() : []; })
+    .then(function(rows) {
+      var remoteCfg = {};
+      if (rows && rows.length && rows[0].value) {
+        try { remoteCfg = JSON.parse(rows[0].value); } catch(e) {}
+        // Update local cache with fresh server data
+        try { localStorage.setItem(PROMO_SETTINGS_KEY, rows[0].value); } catch(e) {}
+      }
+      // Merge: remote takes priority over local cache
+      var localCfg = getPromoSettings();
+      var cfg = Object.keys(remoteCfg).length ? remoteCfg : localCfg;
+      if (cfg.enabled === false) return;
+      var delaySec = (cfg.popup_delay_sec != null && !isNaN(Number(cfg.popup_delay_sec))) ? Number(cfg.popup_delay_sec) : 3;
+      setTimeout(showPromoModal, delaySec * 1000);
+    })
+    .catch(function() {
+      // Supabase unavailable — fall back to localStorage
+      var cfg = getPromoSettings();
+      if (cfg.enabled === false) return;
+      var delaySec = (cfg.popup_delay_sec != null && !isNaN(Number(cfg.popup_delay_sec))) ? Number(cfg.popup_delay_sec) : 3;
+      setTimeout(showPromoModal, delaySec * 1000);
+    });
   }
 
   if (document.readyState !== 'loading') initPromoModal();
