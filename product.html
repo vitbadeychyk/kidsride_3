@@ -1972,43 +1972,111 @@ function renderProductDescription(p){
 }
 
 // ── Рендер блоку «Характеристики» ────────────────────────────────────────
-function renderProductSpecs(p){
+// Іконки SVG для кожного типу характеристики (базові + з product_attributes)
+const _SPEC_ICONS = {
+  sku:      '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>',
+  brand:    '<circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>',
+  cat:      '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
+  color:    '<circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20"/>',
+  age:      '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  warranty: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+  motor_count:      '<circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>',
+  motor_power:      '<circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>',
+  battery_count:    '<rect x="2" y="7" width="16" height="10" rx="2"/><line x1="22" y1="11" x2="22" y2="13"/><line x1="7" y1="12" x2="11" y2="12"/><line x1="9" y1="10" x2="9" y2="14"/>',
+  battery_voltage:  '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+  max_speed:        '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
+  max_load:         '<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>',
+  remote_control:   '<rect x="7" y="2" width="10" height="20" rx="3"/><line x1="12" y1="6" x2="12" y2="6.01"/><line x1="12" y1="18" x2="12" y2="18.01"/>',
+  bluetooth:        '<polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/>',
+  mp3:              '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
+  mp4:              '<rect x="2" y="4" width="20" height="16" rx="2"/><polygon points="10 9 15 12 10 15 10 9"/>',
+  lights:           '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>',
+  shocks:           '<path d="M4 20 L10 6 M10 6 L14 6 M14 6 L20 20"/><circle cx="10" cy="6" r="2"/>',
+  leather_seat:     '<path d="M5 12h14a2 2 0 0 1 2 2v6H3v-6a2 2 0 0 1 2-2z"/><path d="M7 12V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v6"/>',
+  wheels_material:  '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/>',
+  paint_type:       '<path d="M12 2l7 4v6c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6l7-4z"/>'
+};
+const _SPEC_UNITS = { motor_power: 'Вт', battery_voltage: 'В', max_speed: 'км/год', max_load: 'кг' };
+const _SPEC_BOOL_CODES = ['remote_control','bluetooth','mp3','mp4','lights','shocks','leather_seat'];
+const _SPEC_ENUM_CODES = ['wheels_material','paint_type'];
+
+async function renderProductSpecs(p){
   const panel = document.getElementById('tab-specs');
   if (!panel || !p) return;
   const CAT_LABELS = { jeep:'Джип', quad:'Квадроцикл', moto:'Мотоцикл', car:'Машина', tractor:'Трактор', walker:'Каталка-толокар', truck:'Вантажівка', buggy:'Баггі' };
 
-  // Іконки SVG для кожного типу характеристики
-  const ICONS = {
-    sku:     '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>',
-    brand:   '<circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>',
-    cat:     '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
-    color:   '<circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20"/>',
-    age:     '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
-    motor:   '<circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>',
-    battery: '<rect x="2" y="7" width="16" height="10" rx="2"/><line x1="22" y1="11" x2="22" y2="13"/><line x1="7" y1="12" x2="11" y2="12"/><line x1="9" y1="10" x2="9" y2="14"/>',
-    voltage: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
-    speed:   '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
-    load:    '<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>',
-    weight:  '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
-    assembly:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
-    warranty:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>'
-  };
-
-  const specs = [
-    { key:'sku',      label:'Артикул',              val: p.sku },
-    { key:'brand',    label:'Бренд',                val: (p.brand && !/^без\s*бренд/i.test(p.brand)) ? p.brand : '' },
-    { key:'cat',      label:'Тип',                  val: p.category ? (CAT_LABELS[p.category] || p.category) : '' },
-    { key:'color',    label:'Колір',                val: p.color },
-    { key:'age',      label:'Вік',                  val: p.age_range || p.age },
-    { key:'motor',    label:'Мотор / потужність',   val: p.motor },
-    { key:'battery',  label:'Акумулятор',           val: p.battery },
-    { key:'voltage',  label:'Напруга',              val: p.voltage },
-    { key:'speed',    label:'Максимальна швидкість', val: p.speed },
-    { key:'load',     label:'Макс. навантаження',   val: p.max_load },
-    { key:'weight',   label:'Вага',                 val: p.weight },
-    { key:'assembly', label:'Час складання',        val: p.assembly_time },
-    { key:'warranty', label:'Гарантія',             val: p.warranty || '12 місяців' }
+  // Базові характеристики (з таблиці products) — залишаються як були
+  const baseSpecs = [
+    { key:'sku',      label:'Артикул',  val: p.sku },
+    { key:'brand',    label:'Бренд',    val: (p.brand && !/^без\s*бренд/i.test(p.brand)) ? p.brand : '' },
+    { key:'cat',      label:'Тип',      val: p.category ? (CAT_LABELS[p.category] || p.category) : '' },
+    { key:'color',    label:'Колір',    val: p.color },
+    { key:'age',      label:'Вік',      val: p.age_range || p.age },
+    { key:'warranty', label:'Гарантія', val: p.warranty || '12 місяців' }
   ].filter(s => s.val !== null && s.val !== undefined && String(s.val).trim() !== '');
+
+  // Реальні характеристики товару з нової архітектури (product_attributes/product_attribute_values)
+  let attrSpecs = [];
+  if (p.id != null) {
+    try {
+      const SUPA_URL = _krSupaUrl(), SUPA_KEY = _krSupaKey();
+      const headers = { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY };
+      const valRes = await fetch(
+        SUPA_URL + '/rest/v1/product_attribute_values?select=value,product_attributes(code,name,unit,data_type)&product_id=eq.' + encodeURIComponent(p.id),
+        { headers }
+      );
+      const rows = valRes.ok ? await valRes.json() : [];
+
+      // Для enum-атрибутів (wheels_material, paint_type) підтягуємо людські мітки з product_attribute_options
+      const enumCodes = rows
+        .map(r => r.product_attributes && r.product_attributes.code)
+        .filter(c => c && _SPEC_ENUM_CODES.includes(c));
+      let optionsByAttrName = {};
+      if (enumCodes.length) {
+        const attrRes = await fetch(
+          SUPA_URL + '/rest/v1/product_attributes?select=id,code&code=in.(' + enumCodes.join(',') + ')',
+          { headers }
+        );
+        const attrRows = attrRes.ok ? await attrRes.json() : [];
+        const ids = attrRows.map(a => a.id);
+        if (ids.length) {
+          const optRes = await fetch(
+            SUPA_URL + '/rest/v1/product_attribute_options?select=attribute_id,value,label&attribute_id=in.(' + ids.join(',') + ')',
+            { headers }
+          );
+          const optRows = optRes.ok ? await optRes.json() : [];
+          const attrIdToCode = {};
+          attrRows.forEach(a => { attrIdToCode[a.id] = a.code; });
+          optRows.forEach(o => {
+            const code = attrIdToCode[o.attribute_id];
+            if (!code) return;
+            if (!optionsByAttrName[code]) optionsByAttrName[code] = {};
+            optionsByAttrName[code][String(o.value)] = o.label || o.value;
+          });
+        }
+      }
+
+      attrSpecs = rows.map(r => {
+        const meta = r.product_attributes || {};
+        const code = meta.code;
+        if (!code) return null;
+        let val;
+        if (_SPEC_BOOL_CODES.includes(code)) {
+          val = 'Так';
+        } else if (_SPEC_ENUM_CODES.includes(code)) {
+          val = (optionsByAttrName[code] && optionsByAttrName[code][String(r.value)]) || r.value;
+        } else {
+          const unit = meta.unit || _SPEC_UNITS[code] || '';
+          val = r.value + (unit ? ' ' + unit : '');
+        }
+        return { key: code, label: meta.name || code, val };
+      }).filter(Boolean);
+    } catch (e) {
+      // Supabase недоступний — показуємо лише базові характеристики
+    }
+  }
+
+  const specs = [...baseSpecs, ...attrSpecs];
 
   // Видаляємо стару таблицю, якщо є
   const oldGrid = panel.querySelector('.specs-grid');
@@ -2024,7 +2092,7 @@ function renderProductSpecs(p){
   grid.className = 'specs-grid';
   grid.innerHTML = specs.map(s => `
     <div class="spec-card">
-      <div class="spec-icon"><svg viewBox="0 0 24 24">${ICONS[s.key] || ICONS.weight}</svg></div>
+      <div class="spec-icon"><svg viewBox="0 0 24 24">${_SPEC_ICONS[s.key] || _SPEC_ICONS.warranty}</svg></div>
       <div>
         <div class="spec-label">${escHtml(s.label)}</div>
         <div class="spec-value">${escHtml(String(s.val))}</div>

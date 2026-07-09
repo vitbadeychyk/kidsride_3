@@ -2988,14 +2988,14 @@ else document.addEventListener('DOMContentLoaded', initInstaFab);
       // Merge: remote takes priority over local cache
       var localCfg = getPromoSettings();
       var cfg = Object.keys(remoteCfg).length ? remoteCfg : localCfg;
-      if (cfg.enabled === false) return;
+      if (cfg.enabled !== true) return;
       var delaySec = (cfg.popup_delay_sec != null && !isNaN(Number(cfg.popup_delay_sec))) ? Number(cfg.popup_delay_sec) : 3;
       setTimeout(showPromoModal, delaySec * 1000);
     })
     .catch(function() {
       // Supabase unavailable — fall back to localStorage
       var cfg = getPromoSettings();
-      if (cfg.enabled === false) return;
+      if (cfg.enabled !== true) return;
       var delaySec = (cfg.popup_delay_sec != null && !isNaN(Number(cfg.popup_delay_sec))) ? Number(cfg.popup_delay_sec) : 3;
       setTimeout(showPromoModal, delaySec * 1000);
     });

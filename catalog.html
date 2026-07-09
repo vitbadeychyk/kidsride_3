@@ -810,6 +810,9 @@ nav a.active{color:var(--orange)}
         <label class="filter-option" data-group="voltage" onclick="toggleCheck(this,'voltage')"><div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="filter-label">24V</span><span class="filter-cnt">—</span></label>
       </div>
     </div>
+
+    <!-- Динамічні фільтри характеристик (з product_attributes) -->
+    <div id="attrFiltersContainer"></div>
   </aside>
 
   <!-- PRODUCTS -->
@@ -2970,7 +2973,165 @@ function renderCard(p) {
 // ── RENDER CATALOG ──────────────────────────────────────────────────────────
 let allProducts = [];
 let filteredProducts = [];
-let activeFilters = { types: [], ages: [], brands: [], voltages: [], priceMin: 0, priceMax: 999999, search: '' };
+let activeFilters = { types: [], ages: [], brands: [], voltages: [], attrs: {}, priceMin: 0, priceMax: 999999, search: '' };
+
+// ── ДИНАМІЧНІ ФІЛЬТРИ ХАРАКТЕРИСТИК (product_attributes / product_attribute_values) ──
+// Категорії, для яких існують характеристики в новій архітектурі (див. документ архітектури)
+const _ATTR_CATEGORY_IDS = [77, 494, 347037];
+const _ATTR_BOOL_CODES = ['remote_control','bluetooth','mp3','mp4','lights','shocks','leather_seat'];
+const _ATTR_ENUM_CODES = ['wheels_material','paint_type'];
+const _ATTR_UNITS = { motor_power: 'Вт', battery_voltage: 'В', max_speed: 'км/год', max_load: 'кг' };
+let _attrDefs = [];              // [{code, name, unit, data_type}]
+let _attrOptionsMap = {};        // code -> [{value,label}]
+let _productAttrMap = {};        // product_id -> {code: value}
+let _attrLoadedForCatKey = null; // кеш-ключ, щоб не перезапитувати Supabase без потреби
+
+async function _ensureAttrDataForCategory() {
+  const relevantCatIds = _getActiveCategoryIds().filter(id => _ATTR_CATEGORY_IDS.includes(id));
+  const key = relevantCatIds.slice().sort((a,b)=>a-b).join(',');
+
+  if (!relevantCatIds.length) {
+    if (_attrDefs.length || _attrLoadedForCatKey !== null) {
+      _attrDefs = []; _productAttrMap = {}; _attrOptionsMap = {}; _attrLoadedForCatKey = null;
+      renderAttributeFilters();
+    }
+    return;
+  }
+
+  if (key === _attrLoadedForCatKey) { renderAttributeFilters(); return; }
+
+  try {
+    const headers = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY };
+    const inList = '(' + relevantCatIds.join(',') + ')';
+
+    const attrRes = await fetch(
+      SUPABASE_URL + '/rest/v1/product_attributes?select=id,category_id,code,name,data_type,unit,filterable,sort_order&category_id=in.' + inList + '&filterable=eq.true&order=sort_order.asc.nullslast',
+      { headers }
+    );
+    const attrRows = attrRes.ok ? await attrRes.json() : [];
+    if (!attrRows.length) {
+      _attrDefs = []; _productAttrMap = {}; _attrOptionsMap = {}; _attrLoadedForCatKey = key;
+      renderAttributeFilters();
+      return;
+    }
+
+    // Дедуплікація за code (той самий атрибут може існувати в кількох категоріях з різним id)
+    const byCode = {};
+    attrRows.forEach(a => { if (!byCode[a.code]) byCode[a.code] = a; });
+    _attrDefs = Object.values(byCode);
+    const attrIdToCode = {};
+    attrRows.forEach(a => { attrIdToCode[a.id] = a.code; });
+    const allAttrIds = attrRows.map(a => a.id);
+
+    // Опції для enum-атрибутів (wheels_material, paint_type)
+    _attrOptionsMap = {};
+    const enumAttrIds = attrRows.filter(a => _ATTR_ENUM_CODES.includes(a.code)).map(a => a.id);
+    if (enumAttrIds.length) {
+      const optRes = await fetch(
+        SUPABASE_URL + '/rest/v1/product_attribute_options?select=attribute_id,value,label,sort_order&attribute_id=in.(' + enumAttrIds.join(',') + ')&order=sort_order.asc.nullslast',
+        { headers }
+      );
+      const optRows = optRes.ok ? await optRes.json() : [];
+      optRows.forEach(o => {
+        const code = attrIdToCode[o.attribute_id];
+        if (!code) return;
+        if (!_attrOptionsMap[code]) _attrOptionsMap[code] = [];
+        _attrOptionsMap[code].push({ value: o.value, label: o.label || o.value });
+      });
+    }
+
+    // Значення атрибутів по товарах
+    const valRes = await fetch(
+      SUPABASE_URL + '/rest/v1/product_attribute_values?select=product_id,attribute_id,value&attribute_id=in.(' + allAttrIds.join(',') + ')',
+      { headers }
+    );
+    const valRows = valRes.ok ? await valRes.json() : [];
+    _productAttrMap = {};
+    valRows.forEach(v => {
+      const code = attrIdToCode[v.attribute_id];
+      if (!code) return;
+      if (!_productAttrMap[v.product_id]) _productAttrMap[v.product_id] = {};
+      _productAttrMap[v.product_id][code] = v.value;
+    });
+
+    _attrLoadedForCatKey = key;
+    renderAttributeFilters();
+    // Перезастосувати рендер, щоб оновити блоки фільтрів і, за потреби, вибірку товарів
+    applyFiltersAndRender();
+  } catch (e) {
+    // Supabase недоступний — фільтри характеристик просто не з'являться
+  }
+}
+
+function _attrOptionLabel(code, rawVal) {
+  const opts = _attrOptionsMap[code];
+  if (opts) {
+    const found = opts.find(o => String(o.value) === String(rawVal));
+    if (found) return found.label;
+  }
+  return String(rawVal);
+}
+
+function renderAttributeFilters() {
+  const container = document.getElementById('attrFiltersContainer');
+  if (!container) return;
+  if (!_attrDefs.length) { container.innerHTML = ''; return; }
+
+  const catProds = _getCategoryProducts();
+
+  const blocksHtml = _attrDefs.map(def => {
+    const code = def.code;
+    const isBool = _ATTR_BOOL_CODES.includes(code);
+    const isEnum = _ATTR_ENUM_CODES.includes(code);
+    const unit = def.unit || _ATTR_UNITS[code] || '';
+    const prevChecked = (activeFilters.attrs[code] || []);
+
+    let optionsHtml = '';
+    if (isBool) {
+      const cnt = catProds.filter(p => _productAttrMap[p.id] && _productAttrMap[p.id][code] != null).length;
+      if (!cnt) return '';
+      const checked = prevChecked.includes('__true__') ? ' checked' : '';
+      optionsHtml = `<label class="filter-option${checked}" data-group="attr:${code}" data-attr-kind="bool" onclick="toggleCheck(this,'attr:${code}')">
+        <div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <span class="filter-label">Так</span>
+        <span class="filter-cnt">${cnt}</span>
+      </label>`;
+    } else {
+      // enum або числовий — список унікальних значень серед товарів поточної категорії
+      const rawValues = [...new Set(
+        catProds.map(p => (_productAttrMap[p.id] || {})[code]).filter(v => v !== undefined && v !== null && String(v).trim() !== '')
+      )];
+      if (!rawValues.length) return '';
+      rawValues.sort((a, b) => {
+        const na = parseFloat(a), nb = parseFloat(b);
+        if (!isNaN(na) && !isNaN(nb)) return na - nb;
+        return String(a).localeCompare(String(b), 'uk');
+      });
+      optionsHtml = rawValues.map(raw => {
+        const cnt = catProds.filter(p => String((_productAttrMap[p.id] || {})[code]) === String(raw)).length;
+        const label = isEnum ? _attrOptionLabel(code, raw) : (String(raw) + (unit ? ' ' + unit : ''));
+        const checked = prevChecked.includes(String(raw)) ? ' checked' : '';
+        return `<label class="filter-option${checked}" data-group="attr:${code}" data-attr-kind="value" data-attr-value="${escAttr ? escAttr(String(raw)) : String(raw)}" onclick="toggleCheck(this,'attr:${code}')">
+          <div class="filter-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <span class="filter-label">${escHtml ? escHtml(label) : label}</span>
+          <span class="filter-cnt">${cnt}</span>
+        </label>`;
+      }).join('');
+    }
+
+    if (!optionsHtml) return '';
+
+    return `<div class="filter-block" data-attr-block="${code}">
+      <div class="filter-title" onclick="toggleFilter(this)">
+        ${escHtml ? escHtml(def.name) : def.name}
+        <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="filter-body">${optionsHtml}</div>
+    </div>`;
+  }).filter(Boolean).join('');
+
+  container.innerHTML = blocksHtml;
+}
 // Ідентифікатори підкатегорій для фільтрації (розраховуються з _activeCatIdFilter / _activeParentIdFilter)
 
 async function renderCatalog() {
@@ -3140,6 +3301,7 @@ function applyFiltersAndRender() {
 
   // Оновити панель фільтрів (бренди, напруга, вік) відповідно до поточної категорії
   updateDynamicFilters();
+  _ensureAttrDataForCategory();
 
   // Застосувати фільтри
   filteredProducts = allProducts.filter(p => {
@@ -3172,6 +3334,15 @@ function applyFiltersAndRender() {
     if (activeFilters.voltages.length) {
       const pv = String(p.voltage || '').toUpperCase().replace(/\s+/g, '');
       if (!activeFilters.voltages.includes(pv)) return false;
+    }
+    if (activeFilters.attrs && Object.keys(activeFilters.attrs).length) {
+      const attrsOk = Object.entries(activeFilters.attrs).every(([code, vals]) => {
+        if (!vals || !vals.length) return true;
+        const pv = (_productAttrMap[p.id] || {})[code];
+        if (vals.includes('__true__')) return pv != null;
+        return pv != null && vals.includes(String(pv));
+      });
+      if (!attrsOk) return false;
     }
     if (p.price < activeFilters.priceMin || p.price > activeFilters.priceMax) return false;
     if (activeFilters.search) {
@@ -3338,6 +3509,14 @@ function updateFilterCounts() {
     } else if (group === 'voltage') {
       const v = label.toUpperCase().replace(/\s+/g, '');
       n = catProds.filter(p => String(p.voltage || '').toUpperCase().replace(/\s+/g,'') === v).length;
+    } else if (group.startsWith('attr:')) {
+      const code = group.slice(5);
+      if (opt.dataset.attrKind === 'bool') {
+        n = catProds.filter(p => (_productAttrMap[p.id] || {})[code] != null).length;
+      } else {
+        const raw = opt.dataset.attrValue;
+        n = catProds.filter(p => String((_productAttrMap[p.id] || {})[code]) === String(raw)).length;
+      }
     }
     cntEl.textContent = n;
   });
@@ -3654,6 +3833,7 @@ function syncActiveFiltersFromDOM() {
   activeFilters.ages = [];
   activeFilters.brands = [];
   activeFilters.voltages = [];
+  activeFilters.attrs = {};
   document.querySelectorAll('.filter-option.checked').forEach(opt => {
     const group = opt.dataset.group;
     const val = (opt.querySelector('.filter-label')?.textContent || '').trim();
@@ -3667,6 +3847,11 @@ function syncActiveFiltersFromDOM() {
       activeFilters.brands.push(val);
     } else if (group === 'voltage') {
       activeFilters.voltages.push(val.toUpperCase().replace(/\s+/g, ''));
+    } else if (group.startsWith('attr:')) {
+      const code = group.slice(5);
+      const raw = opt.dataset.attrKind === 'bool' ? '__true__' : (opt.dataset.attrValue || val);
+      if (!activeFilters.attrs[code]) activeFilters.attrs[code] = [];
+      activeFilters.attrs[code].push(raw);
     }
   });
 }
@@ -3707,7 +3892,7 @@ function resetFilters() {
   const _savedVType    = _activeVehicleType    || '';
 
   // Скидаємо лише нокатегорійні фільтри
-  activeFilters = { types: [], ages: [], brands: [], voltages: [], priceMin: 0, priceMax: 999999, search: '' };
+  activeFilters = { types: [], ages: [], brands: [], voltages: [], attrs: {}, priceMin: 0, priceMax: 999999, search: '' };
   document.querySelectorAll('.filter-option.checked').forEach(o => o.classList.remove('checked'));
   const searchInput = document.getElementById('searchInput');
   if (searchInput) searchInput.value = '';
