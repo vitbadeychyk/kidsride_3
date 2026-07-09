@@ -9680,15 +9680,43 @@ function _renderCompareList(){
     row.className='block-row';
     row.dataset.key=item.key;
     row.style.opacity=item.enabled?'1':'.55';
-    row.innerHTML=
-      '<label style="display:flex;align-items:center;flex-shrink:0;cursor:pointer">'
-      +'<input type="checkbox" '+(item.enabled?'checked':'')+' onchange="_toggleCmp(\''+item.key+'\',this.checked)" style="width:18px;height:18px;cursor:pointer">'
-      +'</label>'
-      +'<div style="flex:1"><div style="font-weight:700;font-size:14px;color:var(--navy);font-family:Manrope,sans-serif">'+item.label+'</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px">'+(item.key)+'</div></div>'
-      +'<div style="display:flex;flex-direction:column;gap:3px;flex-shrink:0">'
-      +'<button onclick="_mvCmp(\''+item.key+'\',-1)" style="width:28px;height:22px;border:1.5px solid #e5e9f2;border-radius:5px;background:white;cursor:pointer;font-size:10px;color:#9ca3af">▲</button>'
-      +'<button onclick="_mvCmp(\''+item.key+'\',1)"  style="width:28px;height:22px;border:1.5px solid #e5e9f2;border-radius:5px;background:white;cursor:pointer;font-size:10px;color:#9ca3af">▼</button>'
-      +'</div>';
+
+    var checkboxLabel=document.createElement('label');
+    checkboxLabel.style.cssText='display:flex;align-items:center;flex-shrink:0;cursor:pointer';
+    var checkbox=document.createElement('input');
+    checkbox.type='checkbox';
+    checkbox.checked=!!item.enabled;
+    checkbox.style.cssText='width:18px;height:18px;cursor:pointer';
+    checkbox.addEventListener('change',function(){ _toggleCmp(item.key,checkbox.checked); });
+    checkboxLabel.appendChild(checkbox);
+
+    var infoDiv=document.createElement('div');
+    infoDiv.style.flex='1';
+    var titleDiv=document.createElement('div');
+    titleDiv.style.cssText='font-weight:700;font-size:14px;color:var(--navy);font-family:Manrope,sans-serif';
+    titleDiv.textContent=item.label; // безпечно: textContent, а не innerHTML — назва атрибута з БД не виконується як HTML
+    var codeDiv=document.createElement('div');
+    codeDiv.style.cssText='font-size:11px;color:var(--text-muted);margin-top:2px';
+    codeDiv.textContent=item.key;
+    infoDiv.appendChild(titleDiv);
+    infoDiv.appendChild(codeDiv);
+
+    var arrowsDiv=document.createElement('div');
+    arrowsDiv.style.cssText='display:flex;flex-direction:column;gap:3px;flex-shrink:0';
+    var upBtn=document.createElement('button');
+    upBtn.textContent='▲';
+    upBtn.style.cssText='width:28px;height:22px;border:1.5px solid #e5e9f2;border-radius:5px;background:white;cursor:pointer;font-size:10px;color:#9ca3af';
+    upBtn.addEventListener('click',function(){ _mvCmp(item.key,-1); });
+    var downBtn=document.createElement('button');
+    downBtn.textContent='▼';
+    downBtn.style.cssText='width:28px;height:22px;border:1.5px solid #e5e9f2;border-radius:5px;background:white;cursor:pointer;font-size:10px;color:#9ca3af';
+    downBtn.addEventListener('click',function(){ _mvCmp(item.key,1); });
+    arrowsDiv.appendChild(upBtn);
+    arrowsDiv.appendChild(downBtn);
+
+    row.appendChild(checkboxLabel);
+    row.appendChild(infoDiv);
+    row.appendChild(arrowsDiv);
     list.appendChild(row);
   });
 }

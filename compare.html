@@ -563,8 +563,12 @@ function render() {
 
       // Чи є хоч одне реальне (не "Не вказано") значення серед порівнюваних
       const known = rawValues.filter(v => v !== NOT_SPECIFIED);
-      // Числові значення (для визначення "кращого" по величині)
-      const numsWithIdx = rawValues.map((v, i) => ({ i, n: parseFloat(String(v)) })).filter(x => !isNaN(x.n));
+      // Числові значення (для визначення "кращого" по величині) — лише для реальних характеристик,
+      // а не ідентифікаторів товару (артикул/тип не мають "кращого" числового значення).
+      const isRankable = !CMP_BASE_FIELDS.some(f => f.key === key);
+      const numsWithIdx = isRankable
+        ? rawValues.map((v, i) => ({ i, n: parseFloat(String(v)) })).filter(x => !isNaN(x.n))
+        : [];
       const lowerIsBetter = _CMP_LOWER_IS_BETTER.has(key);
       let bestIdx = new Set();
       if (numsWithIdx.length > 1) {
