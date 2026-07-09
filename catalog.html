@@ -3004,6 +3004,27 @@ async function _ensureAttrDataForCategory() {
     const headers = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY };
     const inList = '(' + relevantCatIds.join(',') + ')';
 
+    // Supabase/PostgREST повертає максимум 1000 рядків за запит.
+    // Дані по characteristics (product_attribute_values) можуть налічувати
+    // десятки тисяч рядків, тому обов'язково "гортаємо" сторінки, інакше
+    // товари, чиї значення не влізли в перші 1000 рядків, лишаться без
+    // характеристик і фільтри для них не з'являться.
+    const PAGE_SIZE = 1000;
+    async function fetchAllPages(url) {
+      let all = [];
+      let offset = 0;
+      const sep = url.indexOf('?') >= 0 ? '&' : '?';
+      for (;;) {
+        const res = await fetch(url + sep + 'limit=' + PAGE_SIZE + '&offset=' + offset, { headers });
+        if (!res.ok) break;
+        const rows = await res.json();
+        all = all.concat(rows);
+        if (rows.length < PAGE_SIZE) break;
+        offset += PAGE_SIZE;
+      }
+      return all;
+    }
+
     const attrRes = await fetch(
       SUPABASE_URL + '/rest/v1/product_attributes?select=id,category_id,code,name,data_type,unit,filterable,sort_order&category_id=in.' + inList + '&filterable=eq.true&order=sort_order.asc.nullslast',
       { headers }
@@ -3027,11 +3048,9 @@ async function _ensureAttrDataForCategory() {
     _attrOptionsMap = {};
     const enumAttrIds = attrRows.filter(a => _ATTR_ENUM_CODES.includes(a.code)).map(a => a.id);
     if (enumAttrIds.length) {
-      const optRes = await fetch(
-        SUPABASE_URL + '/rest/v1/product_attribute_options?select=attribute_id,value,label,sort_order&attribute_id=in.(' + enumAttrIds.join(',') + ')&order=sort_order.asc.nullslast',
-        { headers }
+      const optRows = await fetchAllPages(
+        SUPABASE_URL + '/rest/v1/product_attribute_options?select=attribute_id,value,label,sort_order&attribute_id=in.(' + enumAttrIds.join(',') + ')&order=sort_order.asc.nullslast'
       );
-      const optRows = optRes.ok ? await optRes.json() : [];
       optRows.forEach(o => {
         const code = attrIdToCode[o.attribute_id];
         if (!code) return;
@@ -3041,11 +3060,9 @@ async function _ensureAttrDataForCategory() {
     }
 
     // Значення атрибутів по товарах
-    const valRes = await fetch(
-      SUPABASE_URL + '/rest/v1/product_attribute_values?select=product_id,attribute_id,value&attribute_id=in.(' + allAttrIds.join(',') + ')',
-      { headers }
+    const valRows = await fetchAllPages(
+      SUPABASE_URL + '/rest/v1/product_attribute_values?select=product_id,attribute_id,value&attribute_id=in.(' + allAttrIds.join(',') + ')'
     );
-    const valRows = valRes.ok ? await valRes.json() : [];
     _productAttrMap = {};
     valRows.forEach(v => {
       const code = attrIdToCode[v.attribute_id];
