@@ -134,6 +134,7 @@ table.cmp{width:100%;border-collapse:collapse;min-width:640px}
 .prod-brand{font-size:10px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
 .prod-name{font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;color:var(--navy);line-height:1.3;margin-bottom:10px}
 .prod-price{font-family:'Nunito',sans-serif;font-weight:900;font-size:20px;color:var(--navy);margin-bottom:12px}
+.prod-rank{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;color:#92610a;background:#FFF6DE;border:1px solid #F5D98B;border-radius:20px;padding:3px 10px;margin-bottom:8px}
 .prod-cart{width:100%;padding:10px;border-radius:9px;background:var(--orange);color:white;border:none;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s;box-shadow:0 4px 12px rgba(255,107,53,.3)}
 .prod-cart:hover{background:var(--orange-dark);transform:translateY(-1px)}
 .prod-cart svg{width:14px;height:14px;stroke:white;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
@@ -345,22 +346,17 @@ const _CMP_UNITS = { motor_power: 'Вт', battery_voltage: 'В', max_speed: 'к�
 // Характеристики, де МЕНШЕ значення вважається кращим (решта чисел — «більше краще»)
 const _CMP_LOWER_IS_BETTER = new Set(['weight']);
 
-// Базові поля товару (з таблиці products), які показуємо завжди поруч із динамічними характеристиками
+// Базові поля товару (з таблиці products), які показуємо завжди поруч із динамічними характеристиками.
+// Колір/Вік/Гарантія прибрано з порівняння (майже завжди "Не вказано" і не впливають на вибір товару).
 const CMP_BASE_FIELDS = [
-  { key: 'sku',      label: 'Артикул' },
-  { key: 'cat',      label: 'Тип' },
-  { key: 'color',    label: 'Колір' },
-  { key: 'age',      label: 'Вік' },
-  { key: 'warranty', label: 'Гарантія' },
+  { key: 'sku', label: 'Артикул' },
+  { key: 'cat', label: 'Тип' },
 ];
 
 function _cmpBaseSpecs(p){
   return {
     sku: p.sku || '',
     cat: p.category ? (CMP_CAT_LABELS[p.category] || p.category) : '',
-    color: p.color || '',
-    age: p.age_range || p.age || '',
-    warranty: p.warranty || '',
   };
 }
 
@@ -481,6 +477,41 @@ async function _cmpFetchLive(items){
   });
 }
 
+// ── Налаштування порівняння з адмінки (порядок/увімк.-вимк. параметрів) ──
+const CMP_SETTINGS_KEY = 'kr_compare_settings';
+let CMP_SETTINGS = null; // [{key, enabled}] у бажаному порядку; null = ще не завантажено → показуємо все
+
+function _cmpApplySettings(fields) {
+  if (!CMP_SETTINGS || !CMP_SETTINGS.length) return fields;
+  const order = {};
+  const enabled = {};
+  CMP_SETTINGS.forEach((s, i) => { order[s.key] = i; enabled[s.key] = s.enabled !== false; });
+  return fields
+    .filter(f => enabled[f.key] !== false) // невідомі (нема в налаштуваннях) — лишаємо увімкненими
+    .sort((a, b) => {
+      const oa = order[a.key] !== undefined ? order[a.key] : 999 + fields.indexOf(a);
+      const ob = order[b.key] !== undefined ? order[b.key] : 999 + fields.indexOf(b);
+      return oa - ob;
+    });
+}
+
+async function _cmpLoadSettings() {
+  try {
+    const cached = localStorage.getItem(CMP_SETTINGS_KEY);
+    if (cached) CMP_SETTINGS = JSON.parse(cached);
+  } catch (e) { CMP_SETTINGS = null; }
+  try {
+    const r = await fetch(_cmpSupaUrl() + '/rest/v1/settings?select=value&key=eq.compare_settings', {
+      headers: { 'apikey': _cmpSupaKey(), 'Authorization': 'Bearer ' + _cmpSupaKey() }
+    });
+    const rows = r.ok ? await r.json() : [];
+    if (rows && rows[0] && rows[0].value) {
+      CMP_SETTINGS = JSON.parse(rows[0].value);
+      localStorage.setItem(CMP_SETTINGS_KEY, JSON.stringify(CMP_SETTINGS));
+    }
+  } catch (e) { /* лишаємо кеш/усе увімкненим, якщо запит не вдався */ }
+}
+
 function render() {
   const content = document.getElementById('compareContent');
   const count = comparing.length;
@@ -497,15 +528,16 @@ function render() {
     return;
   }
 
-  // Find min price
+  // Find min price (для підсвітки найдешевшого — окремо від "переможця" за характеристиками)
   const minPrice = Math.min(...comparing.map(p => p.price));
 
   // Секції характеристик: базові поля товару завжди зверху,
   // далі — усі динамічні характеристики (product_attributes), знайдені хоч у одного з порівнюваних товарів.
-  // Показуємо МАКСИМУМ усіх параметрів — нічого не приховуємо; де значення немає, буде "Не вказано".
+  // Порядок і видимість керуються з адмінки (CMP_SETTINGS); показуємо МАКСИМУМ усіх параметрів —
+  // нічого не приховуємо через відсутність значення, де значення немає, буде "Не вказано".
   const specSections = {
-    'Основне': CMP_BASE_FIELDS.slice(),
-    'Характеристики': CMP_ATTR_DEFS.slice(),
+    'Основне': _cmpApplySettings(CMP_BASE_FIELDS.slice()),
+    'Характеристики': _cmpApplySettings(CMP_ATTR_DEFS.slice()),
   };
   for (const sec of Object.keys(specSections)) {
     if (!specSections[sec].length) delete specSections[sec];
@@ -514,42 +546,10 @@ function render() {
   // Empty slots to add
   const emptySlots = 3 - count;
 
-  let headerCols = `<th><div style="padding:16px 18px;font-size:12px;color:var(--text-muted);font-weight:600">Характеристики</div></th>`;
-  comparing.forEach((p, i) => {
-    headerCols += `
-      <th>
-        <div class="prod-header">
-          <button class="prod-remove" onclick="removeProduct(${i})" title="Видалити з порівняння">
-            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
-          <div class="prod-img">
-            <div class="prod-img-fallback" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">${SVG_MAP[p.img] || SVG_MAP.jeep}</div>
-            ${(p.photo || (p.img && /^(https?:|\/)/.test(p.img))) ? `<img src="${String(p.photo || p.img).replace(/"/g,'&quot;')}" alt="${(p.name||'').replace(/"/g,'&quot;')}" style="position:relative;z-index:2;width:100%;height:100%;object-fit:contain;background:#fff" loading="lazy" onerror="this.remove()">` : ''}
-          </div>
-          <div class="prod-brand">${p.brand}</div>
-          <div class="prod-name">${p.name}</div>
-          <div class="prod-price ${p.price === minPrice ? 'val-price-best' : ''}">${p.price.toLocaleString('uk-UA')} ₴${p.price === minPrice ? ' 🏆' : ''}</div>
-          <button class="prod-cart" onclick="addToCartFromCompare('${p.id}', ${p.price}, '${p.name}', '${p.brand}', this)">
-            <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-            В кошик
-          </button>
-        </div>
-      </th>`;
-  });
-
-  // Empty slots
-  for (let i = 0; i < emptySlots; i++) {
-    headerCols += `
-      <th>
-        <div class="empty-slot" onclick="location.href='catalog.html'">
-          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          <p>Додати товар</p>
-          <span>Перейти до каталогу</span>
-        </div>
-      </th>`;
-  }
-
-  // Build rows
+  // ── Крок 1: будуємо рядки характеристик і водночас рахуємо "переваги" кожного товару ──
+  // За кожним рядком товар(и) з об'єктивно кращим значенням отримують +1 бал.
+  // Це дає реальний рейтинг моделі (1/2/3 місце), а не довільну ознаку типу ціни.
+  const scores = comparing.map(() => 0);
   let rows = '';
   for (const [section, fields] of Object.entries(specSections)) {
     rows += `<tr class="section-row"><td colspan="${count + emptySlots + 1}">${section}</td></tr>`;
@@ -575,6 +575,7 @@ function render() {
         // Булева характеристика: є в одних, немає в інших — підсвічуємо тих, у кого є
         rawValues.forEach((v, i) => { if (v === 'Так') bestIdx.add(i); });
       }
+      bestIdx.forEach(i => { scores[i] += 1; });
 
       let cols = `<td>${label}</td>`;
       rawValues.forEach((val, i) => {
@@ -590,6 +591,56 @@ function render() {
       for (let e = 0; e < emptySlots; e++) cols += '<td style="background:rgba(248,249,252,.4)"></td>';
       rows += `<tr>${cols}</tr>`;
     });
+  }
+
+  // ── Крок 2: визначаємо реальне 1/2/3 місце за сумою переваг (не за ціною) ──
+  // При рівності балів вирішує нижча ціна (переможець — вигідніший при однаковій "силі" характеристик).
+  const ranking = comparing
+    .map((p, i) => ({ i, score: scores[i], price: p.price }))
+    .sort((a, b) => (b.score - a.score) || (a.price - b.price));
+  const placeByIdx = {};
+  const medals = ['🥇', '🥈', '🥉'];
+  ranking.forEach((r, place) => { placeByIdx[r.i] = place; });
+  // Місце присвоюємо лише якщо є за що порівнювати (хоч один бал у когось) — інакше нічия, без медалей
+  const hasAnyScore = scores.some(s => s > 0);
+
+  let headerCols = `<th><div style="padding:16px 18px;font-size:12px;color:var(--text-muted);font-weight:600">Характеристики</div></th>`;
+  comparing.forEach((p, i) => {
+    const place = placeByIdx[i];
+    const medal = (hasAnyScore && place < 3) ? medals[place] : '';
+    const placeLabel = hasAnyScore ? `${place + 1} місце` : '';
+    headerCols += `
+      <th>
+        <div class="prod-header">
+          <button class="prod-remove" onclick="removeProduct(${i})" title="Видалити з порівняння">
+            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+          <div class="prod-img">
+            <div class="prod-img-fallback" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">${SVG_MAP[p.img] || SVG_MAP.jeep}</div>
+            ${(p.photo || (p.img && /^(https?:|\/)/.test(p.img))) ? `<img src="${String(p.photo || p.img).replace(/"/g,'&quot;')}" alt="${(p.name||'').replace(/"/g,'&quot;')}" style="position:relative;z-index:2;width:100%;height:100%;object-fit:contain;background:#fff" loading="lazy" onerror="this.remove()">` : ''}
+          </div>
+          ${medal ? `<div class="prod-rank" title="${placeLabel}: ${scores[i]} переваг(и) серед порівнюваних">${medal} ${placeLabel}</div>` : ''}
+          <div class="prod-brand">${p.brand}</div>
+          <div class="prod-name">${p.name}</div>
+          <div class="prod-price ${p.price === minPrice ? 'val-price-best' : ''}">${p.price.toLocaleString('uk-UA')} ₴</div>
+          <button class="prod-cart" onclick="addToCartFromCompare('${p.id}', ${p.price}, '${p.name}', '${p.brand}', this)">
+            <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+            В кошик
+          </button>
+        </div>
+      </th>`;
+  });
+
+  // Empty slots
+  for (let i = 0; i < emptySlots; i++) {
+    headerCols += `
+      <th>
+        <div class="empty-slot" onclick="location.href='catalog.html'">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <p>Додати товар</p>
+          <span>Перейти до каталогу</span>
+        </div>
+      </th>`;
   }
 
   content.innerHTML = `
@@ -632,6 +683,8 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (Array.isArray(saved)) cached = saved;
   } catch { cached = []; }
   comparing = cached;
+  // Налаштування порядку/видимості параметрів з адмінки (кеш — миттєво, потім оновлюємо у фоні)
+  _cmpLoadSettings().then(() => render()).catch(() => {});
   // Перший рендер — щоб користувач одразу побачив товари (з кешем без характеристик)
   render();
   if (!cached.length) return;
