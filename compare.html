@@ -149,6 +149,7 @@ table.cmp{width:100%;border-collapse:collapse;min-width:640px}
 .val-yes{color:var(--green);font-weight:700;display:flex;align-items:center;justify-content:center;gap:4px}
 .val-yes svg{width:15px;height:15px;stroke:var(--green);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
 .val-no{color:var(--text-muted);font-size:18px;letter-spacing:2px}
+.val-unspecified{color:var(--text-light,#9ca3af);font-size:13px;font-style:italic}
 .val-highlight{background:rgba(39,174,96,.08);font-weight:700;color:var(--green)}
 .val-price-best{color:var(--green);font-family:'Nunito',sans-serif;font-weight:800}
 .val-price-high{color:var(--text-muted)}
@@ -316,79 +317,6 @@ table.cmp{width:100%;border-collapse:collapse;min-width:640px}
 
 <script src="shared.js"></script>
 <script>
-// Demo products for comparison
-const DEMO_PRODUCTS = [
-  {
-    id: 'jeep-1',
-    name: 'Джип M 3804EBLR-1',
-    brand: 'Bambi Racer',
-    price: 17224,
-    img: 'jeep',
-    specs: {
-      'Вік': '3 – 8 років',
-      'Акумулятор': '12V 10A',
-      'Кількість моторів': '4 × 45W',
-      'Швидкість': 'до 5 км/год',
-      'Тип коліс': 'EVA',
-      'Пульт ДК': '2.4G, 30 м',
-      'Шкіряне сидіння': true,
-      'MP3 / USB': true,
-      'Bluetooth': true,
-      'LED фари': true,
-      'Ремінь безпеки': true,
-      'Вага': '17.5 кг',
-      'Час їзди': 'до 1.5 год',
-      'Гарантія': '12 місяців',
-    }
-  },
-  {
-    id: 'quad-1',
-    name: 'Квадроцикл M 4795EBLR-6',
-    brand: 'Bambi Racer',
-    price: 12210,
-    img: 'quad',
-    specs: {
-      'Вік': '3 – 8 років',
-      'Акумулятор': '12V 7A',
-      'Кількість моторів': '2 × 35W',
-      'Швидкість': 'до 4 км/год',
-      'Тип коліс': 'EVA',
-      'Пульт ДК': '2.4G, 25 м',
-      'Шкіряне сидіння': false,
-      'MP3 / USB': true,
-      'Bluetooth': false,
-      'LED фари': true,
-      'Ремінь безпеки': true,
-      'Вага': '13.2 кг',
-      'Час їзди': 'до 1 год',
-      'Гарантія': '12 місяців',
-    }
-  },
-  {
-    id: 'moto-1',
-    name: 'Мотоцикл M 4274EL-8',
-    brand: 'Bambi Racer',
-    price: 8114,
-    img: 'moto',
-    specs: {
-      'Вік': '3 – 8 років',
-      'Акумулятор': '12V 7A',
-      'Кількість моторів': '1 × 35W',
-      'Швидкість': 'до 3 км/год',
-      'Тип коліс': 'EVA',
-      'Пульт ДК': 'Немає',
-      'Шкіряне сидіння': true,
-      'MP3 / USB': true,
-      'Bluetooth': false,
-      'LED фари': false,
-      'Ремінь безпеки': false,
-      'Вага': '10.8 кг',
-      'Час їзди': 'до 1 год',
-      'Гарантія': '12 місяців',
-    }
-  }
-];
-
 const SVG_MAP = {
   jeep: `<svg viewBox="0 0 240 160"><rect x="20" y="75" width="200" height="55" rx="14" fill="#c8d0ea"/><rect x="50" y="40" width="130" height="52" rx="12" fill="#d0d8f0"/><rect x="55" y="45" width="55" height="34" rx="6" fill="#64B5F6" opacity=".4"/><rect x="118" y="45" width="55" height="34" rx="6" fill="#64B5F6" opacity=".35"/><rect x="185" y="72" width="32" height="34" rx="5" fill="#c0c8e0"/><circle cx="65" cy="132" r="22" fill="#2d3748"/><circle cx="65" cy="132" r="12" fill="#FF6B35" opacity=".6"/><circle cx="175" cy="132" r="22" fill="#2d3748"/><circle cx="175" cy="132" r="12" fill="#FF6B35" opacity=".6"/></svg>`,
   quad: `<svg viewBox="0 0 240 160"><rect x="50" y="70" width="140" height="45" rx="10" fill="#3B4A8A" opacity=".25"/><rect x="70" y="42" width="100" height="42" rx="10" fill="#3B4A8A" opacity=".28"/><rect x="80" y="48" width="40" height="26" rx="5" fill="#90CAF9" opacity=".5"/><rect x="128" y="48" width="30" height="26" rx="5" fill="#90CAF9" opacity=".45"/><circle cx="68" cy="120" r="24" fill="#2d4270" opacity=".25"/><circle cx="68" cy="120" r="13" fill="#FF6B35" opacity=".4"/><circle cx="172" cy="120" r="24" fill="#2d4270" opacity=".25"/><circle cx="172" cy="120" r="13" fill="#FF6B35" opacity=".4"/></svg>`,
@@ -397,35 +325,115 @@ const SVG_MAP = {
 
 // State: currently comparing
 let comparing = []; // Буде завантажено з localStorage
+// Уніфікований, відсортований перелік усіх характеристик (динамічних + базових),
+// зібраний по товарах, що зараз порівнюються. Наповнюється в _cmpFetchLive().
+let CMP_ATTR_DEFS = [];
+
+const NOT_SPECIFIED = 'Не вказано';
 
 // ── Завантаження актуальної інформації по товарах з Supabase ──
 function _cmpSupaUrl(){ return (window.KR && KR._SUPA_URL) || 'https://gwslintdrtnvbfjvivbb.supabase.co'; }
 function _cmpSupaKey(){ return (window.KR && KR._SUPA_KEY) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3c2xpbnRkcnRudmJmanZpdmJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTU4MTUsImV4cCI6MjA5NzczMTgxNX0.2hhyX_PMrXpBa_Q5DW7KiUjf4Jy9nnBStto47_SVF7k'; }
 
-function _cmpBuildSpecs(p){
-  const features = Array.isArray(p && p.features) ? p.features.map(f => String(f||'')) : [];
-  const featStr = features.join('\n');
-  const has = re => re.test(featStr);
-  const find = re => { for (const f of features) { const m = f.match(re); if (m) return m[0]; } return null; };
-  const wheels = find(/EVA|поліурета[нм]|каучук|пневмо|гумов\w*|пластикові колеса/i);
-  const remoteRaw = find(/2\.?4\s*G\w*|пульт[^,;.\n]*/i);
-  const remote = has(/пульт|2\.?4\s*G|радіо/i) ? (remoteRaw || 'Є') : false;
+// Категорії — людські назви (як на сторінці товару)
+const CMP_CAT_LABELS = { jeep:'Джип', quad:'Квадроцикл', moto:'Мотоцикл', car:'Машина', tractor:'Трактор', walker:'Каталка-толокар', truck:'Вантажівка', buggy:'Баггі' };
+
+// Ті самі коди, що й на сторінці товару: булеві характеристики та характеристики-довідники (enum)
+const _CMP_BOOL_CODES = ['remote_control','bluetooth','mp3','mp4','lights','shocks','leather_seat'];
+const _CMP_ENUM_CODES = ['wheels_material','paint_type'];
+const _CMP_UNITS = { motor_power: 'Вт', battery_voltage: 'В', max_speed: 'км/год', max_load: 'кг' };
+// Характеристики, де МЕНШЕ значення вважається кращим (решта чисел — «більше краще»)
+const _CMP_LOWER_IS_BETTER = new Set(['weight']);
+
+// Базові поля товару (з таблиці products), які показуємо завжди поруч із динамічними характеристиками
+const CMP_BASE_FIELDS = [
+  { key: 'sku',      label: 'Артикул' },
+  { key: 'cat',      label: 'Тип' },
+  { key: 'color',    label: 'Колір' },
+  { key: 'age',      label: 'Вік' },
+  { key: 'warranty', label: 'Гарантія' },
+];
+
+function _cmpBaseSpecs(p){
   return {
-    'Вік': p.age_range || p.age || '',
-    'Акумулятор': p.battery || '',
-    'Кількість моторів': p.motor || '',
-    'Швидкість': p.speed || '',
-    'Тип коліс': wheels || '',
-    'Пульт ДК': remote,
-    'Шкіряне сидіння': has(/шкір|еко.?шкір/i),
-    'MP3 / USB': has(/MP3|USB|флешк|TF|SD карт/i),
-    'Bluetooth': has(/bluetooth|блютуз/i),
-    'LED фари': has(/\bLED\b|світлодіод/i),
-    'Ремінь безпеки': has(/ремін|безпек|пасок/i),
-    'Вага': p.weight || '',
-    'Час їзди': find(/до\s*[\d.,]+\s*год|[\d.,]+\s*год(?:ин)?\s*ї?зди?/i) || '',
-    'Гарантія': p.warranty || '',
+    sku: p.sku || '',
+    cat: p.category ? (CMP_CAT_LABELS[p.category] || p.category) : '',
+    color: p.color || '',
+    age: p.age_range || p.age || '',
+    warranty: p.warranty || '',
   };
+}
+
+function _cmpFormatAttrValue(code, rawValue, optionsByCode){
+  if (_CMP_BOOL_CODES.includes(code)) return 'Так';
+  if (_CMP_ENUM_CODES.includes(code)) {
+    return (optionsByCode[code] && optionsByCode[code][String(rawValue)]) || rawValue;
+  }
+  const unit = _CMP_UNITS[code] || '';
+  return unit ? (rawValue + ' ' + unit) : String(rawValue);
+}
+
+// Тягнемо реальні характеристики (product_attributes / product_attribute_values) для набору товарів —
+// та сама архітектура, що й на сторінці товару, замість парсингу тексту "features".
+async function _cmpFetchAttributes(ids){
+  const result = { byProductId: {}, defs: [] }; // defs: впорядкований унікальний перелік {key,label}
+  if (!ids.length) return result;
+  const headers = { 'apikey': _cmpSupaKey(), 'Authorization': 'Bearer ' + _cmpSupaKey() };
+  const idsList = ids.map(id => '"' + String(id).replace(/"/g,'\\"') + '"').join(',');
+  let rows = [];
+  try {
+    const r = await fetch(
+      _cmpSupaUrl() + '/rest/v1/product_attribute_values?select=product_id,value,product_attributes(id,code,name,unit,data_type)&product_id=in.(' + idsList + ')',
+      { headers }
+    );
+    rows = r.ok ? await r.json() : [];
+  } catch (e) { console.warn('compare: attribute fetch failed', e); rows = []; }
+  if (!Array.isArray(rows)) rows = [];
+
+  // Для enum-атрибутів підтягуємо людські мітки з product_attribute_options (як на сторінці товару)
+  const enumCodes = [...new Set(rows
+    .map(r => r.product_attributes && r.product_attributes.code)
+    .filter(c => c && _CMP_ENUM_CODES.includes(c)))];
+  let optionsByCode = {};
+  if (enumCodes.length) {
+    try {
+      const attrRes = await fetch(
+        _cmpSupaUrl() + '/rest/v1/product_attributes?select=id,code&code=in.(' + enumCodes.join(',') + ')',
+        { headers }
+      );
+      const attrRows = attrRes.ok ? await attrRes.json() : [];
+      const ids2 = attrRows.map(a => a.id);
+      if (ids2.length) {
+        const optRes = await fetch(
+          _cmpSupaUrl() + '/rest/v1/product_attribute_options?select=attribute_id,value,label&attribute_id=in.(' + ids2.join(',') + ')',
+          { headers }
+        );
+        const optRows = optRes.ok ? await optRes.json() : [];
+        const attrIdToCode = {};
+        attrRows.forEach(a => { attrIdToCode[a.id] = a.code; });
+        optRows.forEach(o => {
+          const code = attrIdToCode[o.attribute_id];
+          if (!code) return;
+          if (!optionsByCode[code]) optionsByCode[code] = {};
+          optionsByCode[code][String(o.value)] = o.label || o.value;
+        });
+      }
+    } catch (e) { /* enum-мітки — не критично, лишаємо сирі значення */ }
+  }
+
+  const seen = new Set();
+  rows.forEach(r => {
+    const meta = r.product_attributes || {};
+    const code = meta.code;
+    if (!code || r.value == null || r.value === '') return;
+    if (!result.byProductId[r.product_id]) result.byProductId[r.product_id] = {};
+    result.byProductId[r.product_id][code] = _cmpFormatAttrValue(code, r.value, optionsByCode);
+    if (!seen.has(code)) {
+      seen.add(code);
+      result.defs.push({ key: code, label: meta.name || code });
+    }
+  });
+  return result;
 }
 
 async function _cmpFetchLive(items){
@@ -433,10 +441,9 @@ async function _cmpFetchLive(items){
   const ids = items.map(p => '"' + String(p.id).replace(/"/g,'\\"') + '"').join(',');
   // Спробуємо з повним select; якщо БД старіша і колонки немає — впадемо назад на менший select
   const selects = [
-    'id,sku,name,brand,price,old_price,images,age_range,age,motor,battery,voltage,speed,max_load,weight,warranty,features,color,category,active,stock',
-    'id,sku,name,brand,price,old_price,images,age_range,age,features,color,category,active,stock',
-    'id,sku,name,brand,price,old_price,images,features,active,stock',
-    'id,name,brand,price,images,features',
+    'id,sku,name,brand,price,old_price,images,age_range,age,warranty,color,category,active,stock',
+    'id,sku,name,brand,price,old_price,images,color,category,active,stock',
+    'id,name,brand,price,images',
   ];
   let rows = null;
   for (const sel of selects) {
@@ -451,6 +458,12 @@ async function _cmpFetchLive(items){
   if (!Array.isArray(rows) || !rows.length) return items;
   const byId = {};
   for (const r of rows) byId[String(r.id)] = r;
+
+  // Реальні характеристики (product_attributes) для всіх товарів одним запитом
+  const attrIds = rows.map(r => r.id);
+  const { byProductId, defs } = await _cmpFetchAttributes(attrIds);
+  CMP_ATTR_DEFS = defs;
+
   return items.map(p => {
     const fresh = byId[String(p.id)];
     if (!fresh) return p; // нема в БД — лишаємо кешоване (наприклад товар видалений)
@@ -462,7 +475,7 @@ async function _cmpFetchLive(items){
       price: Number(fresh.price != null ? fresh.price : p.price) || p.price || 0,
       img: p.img,
       photo,
-      specs: _cmpBuildSpecs(fresh),
+      specs: { ..._cmpBaseSpecs(fresh), ...(byProductId[fresh.id] || {}) },
       _stale: !fresh.active, // якщо товар деактивовано — позначимо
     };
   });
@@ -487,21 +500,14 @@ function render() {
   // Find min price
   const minPrice = Math.min(...comparing.map(p => p.price));
 
-  // All spec keys (фільтруємо порожні рядки нижче)
+  // Секції характеристик: базові поля товару завжди зверху,
+  // далі — усі динамічні характеристики (product_attributes), знайдені хоч у одного з порівнюваних товарів.
+  // Показуємо МАКСИМУМ усіх параметрів — нічого не приховуємо; де значення немає, буде "Не вказано".
   const specSections = {
-    'Основне': ['Вік', 'Акумулятор', 'Кількість моторів', 'Швидкість', 'Тип коліс'],
-    'Управління': ['Пульт ДК'],
-    'Комфорт': ['Шкіряне сидіння', 'MP3 / USB', 'Bluetooth', 'LED фари', 'Ремінь безпеки'],
-    'Технічні': ['Вага', 'Час їзди', 'Гарантія'],
+    'Основне': CMP_BASE_FIELDS.slice(),
+    'Характеристики': CMP_ATTR_DEFS.slice(),
   };
-
-  // Прибираємо рядки, де у ВСІХ товарів значення пусте/невідоме (false теж вважаємо порожнім,
-  // якщо ніде немає true — щоб не показувати рядок "Bluetooth: — — —" коли ні в кого немає).
-  const isEmpty = v => v === undefined || v === null || v === '' || v === '—' || v === false;
   for (const sec of Object.keys(specSections)) {
-    specSections[sec] = specSections[sec].filter(key => {
-      return comparing.some(p => p && p.specs && !isEmpty(p.specs[key]));
-    });
     if (!specSections[sec].length) delete specSections[sec];
   }
 
@@ -545,26 +551,40 @@ function render() {
 
   // Build rows
   let rows = '';
-  for (const [section, keys] of Object.entries(specSections)) {
+  for (const [section, fields] of Object.entries(specSections)) {
     rows += `<tr class="section-row"><td colspan="${count + emptySlots + 1}">${section}</td></tr>`;
-    keys.forEach(key => {
-      const values = comparing.map(p => (p.specs && p.specs[key] !== undefined) ? p.specs[key] : '—');
-      // Highlight best: for booleans highlight true, for numbers highlight highest
-      let cols = `<td>${key}</td>`;
-      values.forEach((val, i) => {
-        let cell = '';
-        if (val === true) {
-          cell = `<td class="val-highlight"><span class="val-yes"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Є</span></td>`;
-        } else if (val === false) {
-          cell = `<td><span class="val-no">—</span></td>`;
+    fields.forEach(({ key, label }) => {
+      // Завжди показуємо рядок для параметра — навіть якщо він відомий лише в одного з товарів.
+      // Відсутнє значення позначаємо явно, а не пропускаємо рядок.
+      const rawValues = comparing.map(p => {
+        const v = p && p.specs ? p.specs[key] : undefined;
+        return (v === undefined || v === null || v === '') ? NOT_SPECIFIED : v;
+      });
+
+      // Чи є хоч одне реальне (не "Не вказано") значення серед порівнюваних
+      const known = rawValues.filter(v => v !== NOT_SPECIFIED);
+      // Числові значення (для визначення "кращого" по величині)
+      const numsWithIdx = rawValues.map((v, i) => ({ i, n: parseFloat(String(v)) })).filter(x => !isNaN(x.n));
+      const lowerIsBetter = _CMP_LOWER_IS_BETTER.has(key);
+      let bestIdx = new Set();
+      if (numsWithIdx.length > 1) {
+        const target = lowerIsBetter ? Math.min(...numsWithIdx.map(x => x.n)) : Math.max(...numsWithIdx.map(x => x.n));
+        const allEqual = numsWithIdx.every(x => x.n === numsWithIdx[0].n);
+        if (!allEqual) numsWithIdx.forEach(x => { if (x.n === target) bestIdx.add(x.i); });
+      } else if (_CMP_BOOL_CODES.includes(key) && known.length && known.length < rawValues.length) {
+        // Булева характеристика: є в одних, немає в інших — підсвічуємо тих, у кого є
+        rawValues.forEach((v, i) => { if (v === 'Так') bestIdx.add(i); });
+      }
+
+      let cols = `<td>${label}</td>`;
+      rawValues.forEach((val, i) => {
+        if (val === NOT_SPECIFIED) {
+          cols += `<td><span class="val-unspecified">${NOT_SPECIFIED}</span></td>`;
+        } else if (val === 'Так' && bestIdx.has(i)) {
+          cols += `<td class="val-highlight"><span class="val-yes"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>${val}</span></td>`;
         } else {
-          // Check if this value is better (numerically)
-          const numVal = parseFloat(String(val));
-          const allNums = values.map(v => parseFloat(String(v))).filter(n => !isNaN(n));
-          const isBest = !isNaN(numVal) && allNums.length > 1 && numVal === Math.max(...allNums);
-          cell = `<td ${isBest ? 'class="val-highlight"' : ''}>${val}</td>`;
+          cols += `<td ${bestIdx.has(i) ? 'class="val-highlight"' : ''}>${val}</td>`;
         }
-        cols += cell;
       });
       // Empty slot cells
       for (let e = 0; e < emptySlots; e++) cols += '<td style="background:rgba(248,249,252,.4)"></td>';
