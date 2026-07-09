@@ -2603,6 +2603,40 @@ function _initMobileCatNav() {
     return;
   }
 
+  // ── Чисті URL-адреси категорій (/elektromobili, /elektromobili/dzhypy) ─────
+  // applyUrlFilters() розбирає такі шляхи і виставляє _activeCatIdFilter /
+  // _activeParentIdFilter / _activeVehicleType, але сам не знає про мобільний
+  // navLevel. Якщо цього не врахувати, _mobNavLevel лишається не 'products',
+  // і applyFiltersAndRender() завжди робить ранній return, а динамічні
+  // фільтри характеристик (product_attributes) ніколи не завантажуються.
+  try {
+    const _pathnameNav = location.pathname.replace(/\/+$/g, '');
+    const _skipPathsNav = new Set(['', '/', '/catalog.html', '/catalog', '/index.html',
+      '/cart.html', '/checkout.html', '/compare.html', '/product.html',
+      '/calculator.html', '/auth.html', '/admin.html']);
+    if (!_skipPathsNav.has(_pathnameNav) && !_pathnameNav.startsWith('/product') &&
+        !_pathnameNav.startsWith('/api') && (_mainCategories || []).length) {
+      const _partsNav  = _pathnameNav.split('/').filter(Boolean);
+      const _mainSlugNav = _partsNav[0];
+      const _mainCatNav  = (_mainCategories || []).find(c => (c.slug || slugify(c.name)) === _mainSlugNav);
+      if (_mainCatNav) {
+        _mobNavInitDone = true;
+        _mobNavLevel    = 'products';
+        _mobNavParentId = _mainCatNav.id;
+        const nav = document.getElementById('mob-cat-nav');
+        if (nav) nav.style.display = 'none';
+        _mobCatNavToggleProductsArea(true);
+        const bb = document.getElementById('mob-back-bar');
+        const bl = document.getElementById('mob-back-label');
+        if (bb) bb.style.display = 'flex';
+        if (bl) bl.textContent = 'Каталог';
+        // Не чіпаємо _activeCatIdFilter/_activeParentIdFilter/_activeVehicleType —
+        // їх вже (або ще) виставить applyUrlFilters() на основі того ж шляху.
+        return;
+      }
+    }
+  } catch (_e) {}
+
   // No category params — show main category grid instead of products
   _mobNavInitDone = true;
   _isDefaultMode  = false;
