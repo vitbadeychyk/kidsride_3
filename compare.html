@@ -528,9 +528,6 @@ function render() {
     return;
   }
 
-  // Find min price (для підсвітки найдешевшого — окремо від "переможця" за характеристиками)
-  const minPrice = Math.min(...comparing.map(p => p.price));
-
   // Секції характеристик: базові поля товару завжди зверху,
   // далі — усі динамічні характеристики (product_attributes), знайдені хоч у одного з порівнюваних товарів.
   // Порядок і видимість керуються з адмінки (CMP_SETTINGS); показуємо МАКСИМУМ усіх параметрів —
@@ -547,8 +544,11 @@ function render() {
   const emptySlots = 3 - count;
 
   // ── Крок 1: будуємо рядки характеристик і водночас рахуємо "переваги" кожного товару ──
-  // За кожним рядком товар(и) з об'єктивно кращим значенням отримують +1 бал.
-  // Це дає реальний рейтинг моделі (1/2/3 місце), а не довільну ознаку типу ціни.
+  // Рейтинг рахується ПОПАРНО: кожен параметр порівнюємо між кожною парою товарів окремо
+  // (а не лише "хто найкращий з усіх трьох"). Тому якщо товар А кращий за товар Б за потужністю
+  // (навіть якщо є ще сильніший товар В) — А отримує бал за цю перевагу над Б.
+  // Товари, у яких значення не вказано, просто не беруть участі в порівнянні цього рядка —
+  // відсутність даних не трактується як "гірше".
   const scores = comparing.map(() => 0);
   let rows = '';
   for (const [section, fields] of Object.entries(specSections)) {
@@ -561,25 +561,50 @@ function render() {
         return (v === undefined || v === null || v === '') ? NOT_SPECIFIED : v;
       });
 
-      // Чи є хоч одне реальне (не "Не вказано") значення серед порівнюваних
-      const known = rawValues.filter(v => v !== NOT_SPECIFIED);
-      // Числові значення (для визначення "кращого" по величині) — лише для реальних характеристик,
+      // Числові значення (для порівняння по величині) — лише для реальних характеристик,
       // а не ідентифікаторів товару (артикул/тип не мають "кращого" числового значення).
       const isRankable = !CMP_BASE_FIELDS.some(f => f.key === key);
-      const numsWithIdx = isRankable
-        ? rawValues.map((v, i) => ({ i, n: parseFloat(String(v)) })).filter(x => !isNaN(x.n))
-        : [];
+      const isBoolSpec = _CMP_BOOL_CODES.includes(key);
       const lowerIsBetter = _CMP_LOWER_IS_BETTER.has(key);
+
+      // "Порівнюване" значення для кожного товару в цьому рядку: число, true/false (для булевих),
+      // або null якщо товар не бере участі в порівнянні цього рядка (значення невідоме або тип не рейтингується).
+      const comparable = rawValues.map(v => {
+        if (v === NOT_SPECIFIED || !isRankable) return null;
+        if (isBoolSpec) return v === 'Так';
+        const n = parseFloat(String(v));
+        return isNaN(n) ? null : n;
+      });
+
+      // Попарне порівняння: кожна пара товарів з відомими значеннями цього параметра —
+      // переможець пари отримує +1 бал за цей рядок.
+      for (let a = 0; a < comparable.length; a++) {
+        for (let b = a + 1; b < comparable.length; b++) {
+          const va = comparable[a], vb = comparable[b];
+          if (va === null || vb === null || va === vb) continue; // невідомо або нічия — без балів
+          if (typeof va === 'boolean') {
+            scores[va ? a : b] += 1;
+          } else {
+            const aWins = lowerIsBetter ? va < vb : va > vb;
+            scores[aWins ? a : b] += 1;
+          }
+        }
+      }
+
+      // Підсвітка в таблиці лишається "хто найкращий у цьому конкретному рядку" (наочно для ока),
+      // окремо від сумарного рейтингу товару.
+      const known = rawValues.filter(v => v !== NOT_SPECIFIED);
       let bestIdx = new Set();
+      const numsWithIdx = comparable
+        .map((v, i) => ({ i, n: typeof v === 'number' ? v : NaN }))
+        .filter(x => !isNaN(x.n));
       if (numsWithIdx.length > 1) {
         const target = lowerIsBetter ? Math.min(...numsWithIdx.map(x => x.n)) : Math.max(...numsWithIdx.map(x => x.n));
         const allEqual = numsWithIdx.every(x => x.n === numsWithIdx[0].n);
         if (!allEqual) numsWithIdx.forEach(x => { if (x.n === target) bestIdx.add(x.i); });
-      } else if (_CMP_BOOL_CODES.includes(key) && known.length && known.length < rawValues.length) {
-        // Булева характеристика: є в одних, немає в інших — підсвічуємо тих, у кого є
+      } else if (isBoolSpec && known.length && known.length < rawValues.length) {
         rawValues.forEach((v, i) => { if (v === 'Так') bestIdx.add(i); });
       }
-      bestIdx.forEach(i => { scores[i] += 1; });
 
       let cols = `<td>${label}</td>`;
       rawValues.forEach((val, i) => {
@@ -626,7 +651,7 @@ function render() {
           ${medal ? `<div class="prod-rank" title="${placeLabel}: ${scores[i]} переваг(и) серед порівнюваних">${medal} ${placeLabel}</div>` : ''}
           <div class="prod-brand">${p.brand}</div>
           <div class="prod-name">${p.name}</div>
-          <div class="prod-price ${p.price === minPrice ? 'val-price-best' : ''}">${p.price.toLocaleString('uk-UA')} ₴</div>
+          <div class="prod-price">${p.price.toLocaleString('uk-UA')} ₴</div>
           <button class="prod-cart" onclick="addToCartFromCompare('${p.id}', ${p.price}, '${p.name}', '${p.brand}', this)">
             <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
             В кошик
