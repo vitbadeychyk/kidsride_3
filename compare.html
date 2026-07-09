@@ -64,6 +64,8 @@ nav a:hover{color:var(--navy);background:var(--bg-soft)}
 
 /* COMPARE TABLE */
 .compare-wrap{overflow-x:auto;border-radius:var(--r-lg);border:1.5px solid var(--border);background:white;box-shadow:var(--shadow-sm)}
+.cmp-legend{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;padding:12px 18px;font-size:12px;color:var(--text-muted);border-bottom:1.5px solid var(--border);background:var(--bg-soft)}
+.cmp-legend>span{display:inline-flex;align-items:center;gap:6px}
 .compare-wrap::-webkit-scrollbar{height:6px}
 .compare-wrap::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 
@@ -543,12 +545,16 @@ function render() {
   // Empty slots to add
   const emptySlots = 3 - count;
 
-  // ── Крок 1: будуємо рядки характеристик і водночас рахуємо "переваги" кожного товару ──
-  // Рейтинг рахується ПОПАРНО: кожен параметр порівнюємо між кожною парою товарів окремо
-  // (а не лише "хто найкращий з усіх трьох"). Тому якщо товар А кращий за товар Б за потужністю
-  // (навіть якщо є ще сильніший товар В) — А отримує бал за цю перевагу над Б.
-  // Товари, у яких значення не вказано, просто не беруть участі в порівнянні цього рядка —
-  // відсутність даних не трактується як "гірше".
+  // ── Принцип підсвітки (щоб було однозначно зрозуміло користувачу) ──────────
+  // Зелена підсвітка + бал у рейтингу даються ЛИШЕ там, де перевагу можна об'єктивно
+  // ВИМІРЯТИ числом (потужність, швидкість, вантажопідйомність тощо) — і тільки якщо
+  // значення відомі хоча б у двох товарів і вони різні (нічия/невідомо → без підсвітки).
+  // Наявність опції (Bluetooth, MP3, амортизатори...) показуємо нейтральною галочкою
+  // "✓ Так", БЕЗ підсвітки і БЕЗ балів у рейтингу — бо "Не вказано" в базі означає лише
+  // "дані не заповнені", а не "цієї опції немає", і підсвічувати це як перевагу було б
+  // нечесно введенням в оману. Рейтинг товару рахується ПОПАРНО по кожному числовому
+  // рядку: якщо товар А кращий за товар Б за потужністю — А отримує бал за цю перевагу,
+  // навіть якщо є ще потужніший товар В (а не тільки "хто найкращий з усіх трьох").
   const scores = comparing.map(() => 0);
   let rows = '';
   for (const [section, fields] of Object.entries(specSections)) {
@@ -561,57 +567,45 @@ function render() {
         return (v === undefined || v === null || v === '') ? NOT_SPECIFIED : v;
       });
 
-      // Числові значення (для порівняння по величині) — лише для реальних характеристик,
-      // а не ідентифікаторів товару (артикул/тип не мають "кращого" числового значення).
-      const isRankable = !CMP_BASE_FIELDS.some(f => f.key === key);
-      const isBoolSpec = _CMP_BOOL_CODES.includes(key);
+      // Рейтингуємо (і підсвічуємо) лише реальні вимірювані характеристики — не sku/тип,
+      // і не булеві "наявність опції" (для них немає надійних даних про "немає").
+      const isRankable = !CMP_BASE_FIELDS.some(f => f.key === key) && !_CMP_BOOL_CODES.includes(key);
       const lowerIsBetter = _CMP_LOWER_IS_BETTER.has(key);
 
-      // "Порівнюване" значення для кожного товару в цьому рядку: число, true/false (для булевих),
-      // або null якщо товар не бере участі в порівнянні цього рядка (значення невідоме або тип не рейтингується).
+      // Числове значення для кожного товару в рядку, або null якщо невідоме/нерейтингується.
       const comparable = rawValues.map(v => {
         if (v === NOT_SPECIFIED || !isRankable) return null;
-        if (isBoolSpec) return v === 'Так';
         const n = parseFloat(String(v));
         return isNaN(n) ? null : n;
       });
 
-      // Попарне порівняння: кожна пара товарів з відомими значеннями цього параметра —
-      // переможець пари отримує +1 бал за цей рядок.
+      // Попарне порівняння: кожна пара товарів з відомими значеннями —
+      // переможець пари отримує +1 бал за цей рядок (нічия/невідомо — без балів).
       for (let a = 0; a < comparable.length; a++) {
         for (let b = a + 1; b < comparable.length; b++) {
           const va = comparable[a], vb = comparable[b];
-          if (va === null || vb === null || va === vb) continue; // невідомо або нічия — без балів
-          if (typeof va === 'boolean') {
-            scores[va ? a : b] += 1;
-          } else {
-            const aWins = lowerIsBetter ? va < vb : va > vb;
-            scores[aWins ? a : b] += 1;
-          }
+          if (va === null || vb === null || va === vb) continue;
+          const aWins = lowerIsBetter ? va < vb : va > vb;
+          scores[aWins ? a : b] += 1;
         }
       }
 
-      // Підсвітка в таблиці лишається "хто найкращий у цьому конкретному рядку" (наочно для ока),
-      // окремо від сумарного рейтингу товару.
-      const known = rawValues.filter(v => v !== NOT_SPECIFIED);
+      // Підсвітка в таблиці: хто в цьому рядку об'єктивно кращий (той самий критерій, що й бали).
+      const numsWithIdx = comparable.map((n, i) => ({ i, n })).filter(x => x.n !== null);
       let bestIdx = new Set();
-      const numsWithIdx = comparable
-        .map((v, i) => ({ i, n: typeof v === 'number' ? v : NaN }))
-        .filter(x => !isNaN(x.n));
       if (numsWithIdx.length > 1) {
         const target = lowerIsBetter ? Math.min(...numsWithIdx.map(x => x.n)) : Math.max(...numsWithIdx.map(x => x.n));
         const allEqual = numsWithIdx.every(x => x.n === numsWithIdx[0].n);
         if (!allEqual) numsWithIdx.forEach(x => { if (x.n === target) bestIdx.add(x.i); });
-      } else if (isBoolSpec && known.length && known.length < rawValues.length) {
-        rawValues.forEach((v, i) => { if (v === 'Так') bestIdx.add(i); });
       }
 
       let cols = `<td>${label}</td>`;
       rawValues.forEach((val, i) => {
         if (val === NOT_SPECIFIED) {
           cols += `<td><span class="val-unspecified">${NOT_SPECIFIED}</span></td>`;
-        } else if (val === 'Так' && bestIdx.has(i)) {
-          cols += `<td class="val-highlight"><span class="val-yes"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>${val}</span></td>`;
+        } else if (val === 'Так') {
+          // Наявність опції — завжди нейтральна галочка, без підсвітки й без "перемоги" над іншими.
+          cols += `<td><span class="val-yes"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>${val}</span></td>`;
         } else {
           cols += `<td ${bestIdx.has(i) ? 'class="val-highlight"' : ''}>${val}</td>`;
         }
@@ -674,6 +668,12 @@ function render() {
 
   content.innerHTML = `
     <div class="compare-wrap">
+      <div class="cmp-legend">
+        <span><span class="val-highlight" style="padding:2px 8px;border-radius:6px">124</span> — об'єктивно краще значення (більше потужності/швидкості/вантажопідйомності тощо)</span>
+        <span><span class="val-yes" style="display:inline-flex"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Так</span> — опція є (без порівняння з іншими товарами)</span>
+        <span><span class="val-unspecified">Не вказано</span> — дані по цьому товару ще не заповнені в базі</span>
+        <span>🥇🥈🥉 — місце в рейтингу за сумою об'єктивних переваг серед порівнюваних товарів</span>
+      </div>
       <table class="cmp">
         <thead><tr>${headerCols}</tr></thead>
         <tbody>${rows}</tbody>
