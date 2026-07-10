@@ -437,7 +437,10 @@ async function _cmpFetchAttributes(ids){
 async function _cmpFetchLive(items){
   if (!items.length) return items;
   const ids = items.map(p => '"' + String(p.id).replace(/"/g,'\\"') + '"').join(',');
-  // Спробуємо з повним select; якщо БД старіша і колонки немає — впадемо назад на менший select
+  // Спробуємо з повним select; якщо БД старіша і колонки немає (400) — пробуємо менший select.
+  // ВАЖЛИВО: мережеву помилку (fetch впав, 401/500 тощо) на одному варіанті select більше НЕ
+  // трактуємо як привід одразу здатися — пробуємо решту варіантів, і в будь-якому разі окремо
+  // тягнемо характеристики (product_attributes), бо вони не залежать від того, чи вдався products-select.
   const selects = [
     'id,sku,name,brand,price,old_price,images,age_range,age,warranty,color,category,active,stock',
     'id,sku,name,brand,price,old_price,images,color,category,active,stock',
@@ -450,31 +453,46 @@ async function _cmpFetchLive(items){
         headers: { 'apikey': _cmpSupaKey(), 'Authorization': 'Bearer ' + _cmpSupaKey() }
       });
       if (r.ok) { rows = await r.json(); break; }
-      if (r.status !== 400) break;
-    } catch(e) { console.warn('compare: live fetch failed', e); break; }
+      // 400 зазвичай означає "колонки немає в цій схемі" — пробуємо простіший select.
+      // Будь-яку іншу відповідь (401/403/500 тощо) теж не вважаємо фатальною — пробуємо далі.
+    } catch(e) { console.warn('compare: products select failed, trying next variant', e); }
   }
-  if (!Array.isArray(rows) || !rows.length) return items;
   const byId = {};
-  for (const r of rows) byId[String(r.id)] = r;
+  if (Array.isArray(rows)) { for (const r of rows) byId[String(r.id)] = r; }
+  else {
+    console.warn('compare: не вдалося оновити дані товарів з Supabase — показуємо кешовані дані');
+  }
 
-  // Реальні характеристики (product_attributes) для всіх товарів одним запитом
-  const attrIds = rows.map(r => r.id);
-  const { byProductId, defs } = await _cmpFetchAttributes(attrIds);
-  CMP_ATTR_DEFS = defs;
+  // Реальні характеристики (product_attributes) тягнемо ЗАВЖДИ для всіх id з порівняння —
+  // незалежно від того, чи вдався products-select вище. Це найважливіші дані для порівняння,
+  // і вони не повинні зникати через збій в іншому запиті.
+  const attrIds = items.map(p => p.id);
+  let byProductId = {}, defs = [];
+  try {
+    const attrResult = await _cmpFetchAttributes(attrIds);
+    byProductId = attrResult.byProductId;
+    defs = attrResult.defs;
+  } catch (e) { console.warn('compare: attribute fetch failed entirely', e); }
+  // Оновлюємо перелік характеристик лише якщо щось реально прийшло — інакше лишаємо попередній
+  // (наприклад, з попереднього успішного рендеру), щоб не "гасити" вже показані колонки.
+  if (defs.length) CMP_ATTR_DEFS = defs;
 
   return items.map(p => {
     const fresh = byId[String(p.id)];
-    if (!fresh) return p; // нема в БД — лишаємо кешоване (наприклад товар видалений)
-    const photo = (Array.isArray(fresh.images) && fresh.images[0]) || p.photo || p.img || '';
+    const photo = (fresh && Array.isArray(fresh.images) && fresh.images[0]) || p.photo || p.img || '';
+    // Базові поля: беремо свіжі, якщо вдалось завантажити товар; інакше — лишаємо те, що вже було
+    // в самому товарі (з localStorage) або в його попередньо збережених specs, щоб не показувати
+    // "Не вказано" там, де дані насправді вже відомі.
+    const baseSource = fresh || { sku: p.sku || (p.specs && p.specs.sku), category: p.category || (p.specs && p.specs.cat) };
     return {
-      id: String(fresh.id),
-      name: fresh.name || p.name,
-      brand: fresh.brand || p.brand,
-      price: Number(fresh.price != null ? fresh.price : p.price) || p.price || 0,
+      id: String(p.id),
+      name: (fresh && fresh.name) || p.name,
+      brand: (fresh && fresh.brand) || p.brand,
+      price: Number((fresh && fresh.price != null ? fresh.price : p.price)) || p.price || 0,
       img: p.img,
       photo,
-      specs: { ..._cmpBaseSpecs(fresh), ...(byProductId[fresh.id] || {}) },
-      _stale: !fresh.active, // якщо товар деактивовано — позначимо
+      specs: { ..._cmpBaseSpecs(baseSource), ...(p.specs || {}), ...(byProductId[p.id] || {}) },
+      _stale: fresh ? !fresh.active : p._stale,
     };
   });
 }
