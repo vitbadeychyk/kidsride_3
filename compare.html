@@ -377,13 +377,16 @@ async function _cmpFetchAttributes(ids){
   const result = { byProductId: {}, defs: [] }; // defs: впорядкований унікальний перелік {key,label}
   if (!ids.length) return result;
   const headers = { 'apikey': _cmpSupaKey(), 'Authorization': 'Bearer ' + _cmpSupaKey() };
-  const idsList = ids.map(id => '"' + String(id).replace(/"/g,'\\"') + '"').join(',');
+  // ВАЖЛИВО: PostgREST очікує UUID-значення в in() БЕЗ лапок — так само як catalog.html і product.html.
+  // Форма "in.("uuid","uuid")" викликає помилки типів і повертає 400 або порожній результат.
+  const idsList = ids.map(id => String(id)).join(',');
   let rows = [];
   try {
     const r = await fetch(
       _cmpSupaUrl() + '/rest/v1/product_attribute_values?select=product_id,value,product_attributes(id,code,name,unit,data_type)&product_id=in.(' + idsList + ')',
       { headers }
     );
+    if (!r.ok) console.warn('compare: attribute_values fetch HTTP', r.status, await r.text().catch(()=>''));
     rows = r.ok ? await r.json() : [];
   } catch (e) { console.warn('compare: attribute fetch failed', e); rows = []; }
   if (!Array.isArray(rows)) rows = [];
@@ -436,11 +439,8 @@ async function _cmpFetchAttributes(ids){
 
 async function _cmpFetchLive(items){
   if (!items.length) return items;
-  const ids = items.map(p => '"' + String(p.id).replace(/"/g,'\\"') + '"').join(',');
-  // Спробуємо з повним select; якщо БД старіша і колонки немає (400) — пробуємо менший select.
-  // ВАЖЛИВО: мережеву помилку (fetch впав, 401/500 тощо) на одному варіанті select більше НЕ
-  // трактуємо як привід одразу здатися — пробуємо решту варіантів, і в будь-якому разі окремо
-  // тягнемо характеристики (product_attributes), бо вони не залежать від того, чи вдався products-select.
+  // UUID/integer IDs передаємо БЕЗ лапок — саме так роблять catalog.html і product.html.
+  const ids = items.map(p => String(p.id)).join(',');
   const selects = [
     'id,sku,name,brand,price,old_price,images,age_range,age,warranty,color,category,active,stock',
     'id,sku,name,brand,price,old_price,images,color,category,active,stock',
@@ -453,46 +453,55 @@ async function _cmpFetchLive(items){
         headers: { 'apikey': _cmpSupaKey(), 'Authorization': 'Bearer ' + _cmpSupaKey() }
       });
       if (r.ok) { rows = await r.json(); break; }
-      // 400 зазвичай означає "колонки немає в цій схемі" — пробуємо простіший select.
-      // Будь-яку іншу відповідь (401/403/500 тощо) теж не вважаємо фатальною — пробуємо далі.
-    } catch(e) { console.warn('compare: products select failed, trying next variant', e); }
+      if (r.status !== 400) {
+        console.warn('compare: products fetch HTTP', r.status);
+        break; // не 400 — інша помилка (401/500), далі немає сенсу
+      }
+      // 400 = невідома колонка в цій версії схеми — пробуємо простіший select
+    } catch(e) { console.warn('compare: products fetch network error', e); break; }
   }
   const byId = {};
-  if (Array.isArray(rows)) { for (const r of rows) byId[String(r.id)] = r; }
-  else {
-    console.warn('compare: не вдалося оновити дані товарів з Supabase — показуємо кешовані дані');
+  if (Array.isArray(rows)) {
+    for (const r of rows) byId[String(r.id)] = r;
+  } else {
+    console.warn('compare: products fetch failed — використовуємо кеш');
   }
 
-  // Реальні характеристики (product_attributes) тягнемо ЗАВЖДИ для всіх id з порівняння —
-  // незалежно від того, чи вдався products-select вище. Це найважливіші дані для порівняння,
-  // і вони не повинні зникати через збій в іншому запиті.
+  // Атрибути тягнемо незалежно — навіть якщо products-select вище не вдався.
   const attrIds = items.map(p => p.id);
   let byProductId = {}, defs = [];
   try {
-    const attrResult = await _cmpFetchAttributes(attrIds);
-    byProductId = attrResult.byProductId;
-    defs = attrResult.defs;
-  } catch (e) { console.warn('compare: attribute fetch failed entirely', e); }
-  // Оновлюємо перелік характеристик лише якщо щось реально прийшло — інакше лишаємо попередній
-  // (наприклад, з попереднього успішного рендеру), щоб не "гасити" вже показані колонки.
+    const res = await _cmpFetchAttributes(attrIds);
+    byProductId = res.byProductId;
+    defs = res.defs;
+  } catch (e) { console.warn('compare: _cmpFetchAttributes threw', e); }
+  // Оновлюємо список характеристик тільки якщо щось прийшло —
+  // щоб не стирати попередньо завантажені колонки при тимчасовому збої.
   if (defs.length) CMP_ATTR_DEFS = defs;
 
   return items.map(p => {
-    const fresh = byId[String(p.id)];
+    const sid = String(p.id);
+    const fresh = byId[sid];
     const photo = (fresh && Array.isArray(fresh.images) && fresh.images[0]) || p.photo || p.img || '';
-    // Базові поля: беремо свіжі, якщо вдалось завантажити товар; інакше — лишаємо те, що вже було
-    // в самому товарі (з localStorage) або в його попередньо збережених specs, щоб не показувати
-    // "Не вказано" там, де дані насправді вже відомі.
-    const baseSource = fresh || { sku: p.sku || (p.specs && p.specs.sku), category: p.category || (p.specs && p.specs.cat) };
+    // Базові поля: свіжі з БД, або fallback з того, що вже було в кешованому об'єкті.
+    const baseSource = fresh || p; // p може містити .sku / .category якщо кеш зберігає їх
+    // Атрибути: кешований p._attrs (збережено з попереднього успішного завантаження)
+    // перезаписуємо свіжими byProductId[sid] якщо вони є.
+    const attrSpecs = Object.keys(byProductId[sid] || {}).length
+      ? byProductId[sid]
+      : (p._attrs || {});
     return {
-      id: String(p.id),
+      id: sid,
       name: (fresh && fresh.name) || p.name,
       brand: (fresh && fresh.brand) || p.brand,
-      price: Number((fresh && fresh.price != null ? fresh.price : p.price)) || p.price || 0,
+      price: Number(fresh ? fresh.price : p.price) || p.price || 0,
+      sku: (fresh && fresh.sku) || p.sku || '',
+      category: (fresh && fresh.category) || p.category || '',
       img: p.img,
       photo,
-      specs: { ..._cmpBaseSpecs(baseSource), ...(p.specs || {}), ...(byProductId[p.id] || {}) },
-      _stale: fresh ? !fresh.active : p._stale,
+      _attrs: attrSpecs, // зберігаємо для fallback наступного разу
+      specs: { ..._cmpBaseSpecs(baseSource), ...attrSpecs },
+      _stale: fresh ? !fresh.active : !!p._stale,
     };
   });
 }
@@ -729,20 +738,46 @@ window.addEventListener('DOMContentLoaded', async () => {
     const saved = JSON.parse(localStorage.getItem('kr_compare') || '[]');
     if (Array.isArray(saved)) cached = saved;
   } catch { cached = []; }
-  comparing = cached;
+  // Якщо кешовані товари вже мають збережені атрибути з попереднього завантаження (_attrs),
+  // одразу будуємо specs щоб перший рендер показував характеристики, а не порожні "Не вказано".
+  comparing = cached.map(p => {
+    if (p.specs && Object.keys(p.specs).some(k => !['Бренд','Ціна'].includes(k))) {
+      return p; // specs вже повноцінні (наприклад motor_power, max_speed тощо)
+    }
+    const attrSpecs = p._attrs || {};
+    if (!Object.keys(attrSpecs).length && !p.sku && !p.category) return p; // нічого кешованого
+    return { ...p, specs: { ..._cmpBaseSpecs(p), ...attrSpecs } };
+  });
+  // Якщо є кешовані атрибути — відновлюємо CMP_ATTR_DEFS щоб відразу показати "Характеристики"
+  const cachedDefs = new Map();
+  comparing.forEach(p => {
+    if (p._attrs) Object.keys(p._attrs).forEach(k => { if (!cachedDefs.has(k)) cachedDefs.set(k, k); });
+  });
+  if (cachedDefs.size && !CMP_ATTR_DEFS.length) {
+    // Мінімальний перелік: key=label (без локалізованих назв поки не підвантажились з БД)
+    // — їх замінять реальні назви після живого запиту, але зараз хоч щось покажемо.
+    CMP_ATTR_DEFS = [...cachedDefs.keys()].map(k => ({ key: k, label: k }));
+  }
+
   // Налаштування порядку/видимості параметрів з адмінки (кеш — миттєво, потім оновлюємо у фоні)
   _cmpLoadSettings().then(() => render()).catch(() => {});
-  // Перший рендер — щоб користувач одразу побачив товари (з кешем без характеристик)
-  render();
+  render(); // перший рендер — відразу, з тим що є в кеші
   if (!cached.length) return;
-  // Друга стадія — тягнемо актуальні характеристики/ціну/фото з БД і перерендерюємо
+
+  // Друга стадія — тягнемо актуальні дані з Supabase і перерендерюємо
   try {
     const fresh = await _cmpFetchLive(cached);
     comparing = fresh;
-    // Оновимо також локальний кеш — але без важких полів (фото зберігаємо як URL)
+    // Зберігаємо в localStorage ПОВНІ дані (sku, category, _attrs) — щоб наступний
+    // візит одразу мав характеристики навіть без успішного запиту до Supabase.
     try {
-      const lite = fresh.map(p => ({ id: p.id, name: p.name, brand: p.brand, price: p.price, img: p.img, photo: p.photo }));
-      localStorage.setItem('kr_compare', JSON.stringify(lite));
+      const forCache = fresh.map(p => ({
+        id: p.id, name: p.name, brand: p.brand, price: p.price,
+        img: p.img, photo: p.photo,
+        sku: p.sku || '', category: p.category || '',
+        _attrs: p._attrs || {},
+      }));
+      localStorage.setItem('kr_compare', JSON.stringify(forCache));
     } catch {}
     render();
   } catch (e) {
