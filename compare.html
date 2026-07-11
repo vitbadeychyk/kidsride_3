@@ -686,7 +686,7 @@ function render() {
             ${(p.photo || (p.img && /^(https?:|\/)/.test(p.img))) ? `<img src="${String(p.photo || p.img).replace(/"/g,'&quot;')}" alt="${(p.name||'').replace(/"/g,'&quot;')}" style="position:relative;z-index:2;width:100%;height:100%;object-fit:contain;background:#fff" loading="lazy" onerror="this.remove()">` : ''}
           </div>
           ${medal ? `<div class="prod-rank" title="${placeLabel}: ${scores[i]} переваг(и) серед порівнюваних">${medal} ${placeLabel}</div>` : ''}
-          <div class="prod-brand">${p.brand}</div>
+          ${(p.brand && !/^без\s*бренд/i.test(p.brand)) ? `<div class="prod-brand">${p.brand}</div>` : ''}
           <div class="prod-name">${p.name}</div>
           <div class="prod-price">${p.price.toLocaleString('uk-UA')} ₴</div>
           <button class="prod-cart" onclick="addToCartFromCompare('${p.id}', ${p.price}, '${p.name}', '${p.brand}', this)">

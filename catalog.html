@@ -3225,6 +3225,12 @@ async function renderCatalog() {
     const countEl = document.getElementById('catalogCount');
     if (countEl) countEl.textContent = allProducts.length + ' товарів';
     updateDynamicFilters();
+    // Важливо: якщо категорії ще не в пам'яті — підвантажуємо з localStorage-кешу
+    // ДО виклику applyUrlFilters(), бо вона перевіряє _mainCategories.length для
+    // розбору URL-шляху (/elektromobili тощо). Без цього при навігації з інших сторінок
+    // (наприклад compare.html → каталог) категорія в URL ігнорується і показується
+    // неправильний вигляд до наступного оновлення сторінки.
+    if (!_mainCategories.length) _loadCatsFromStorage();
     applyUrlFilters();
     // Якщо категорій ще немає в пам'яті — показуємо shimmer одразу
     if (!_mainCategories.length) {
@@ -4265,7 +4271,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const _srSlug=p.slug||(p.name?p.name.toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi,'-').replace(/^-+|-+$/g,'').substring(0,60):null);a.href=_srSlug?'product/'+_srSlug:'catalog.html?search='+encodeURIComponent(p.name||'');
       if(_srSlug&&p.id)a.addEventListener('click',function(){try{sessionStorage.setItem('kr_slug_id_'+_srSlug,p.id);}catch(e){}});
       a.className='search-sug';
-      const sub=[p.brand,p.sku].filter(Boolean).join(' · Арт: ');
+      const sub=[/^без\s*бренд/i.test(p.brand||'')?'':p.brand,p.sku].filter(Boolean).join(' · Арт: ');
       const thumb=p.photo?'<img class="search-sug-img" src="'+p.photo+'" alt="" loading="lazy">':'<span style="width:44px;height:44px;border-radius:8px;background:#f5f7fa;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px">'+(p.emoji||'🚗')+'</span>';
       a.innerHTML=thumb+'<span class="search-sug-name" style="display:flex;flex-direction:column;gap:2px;flex:1;min-width:0"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+p.name+'</span>'+(sub?'<span style="font-size:11px;color:var(--text-muted);font-weight:500">'+sub+'</span>':'')+'</span>'+(p.price?'<span style="font-size:13px;font-weight:800;color:var(--orange);margin-right:8px;white-space:nowrap">'+krFmtPrice(p.price)+'</span>':'')+'<svg class="search-sug-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>';
       list.appendChild(a);
