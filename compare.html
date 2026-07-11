@@ -66,6 +66,7 @@ nav a:hover{color:var(--navy);background:var(--bg-soft)}
 .compare-wrap{overflow-x:auto;border-radius:var(--r-lg);border:1.5px solid var(--border);background:white;box-shadow:var(--shadow-sm)}
 .cmp-legend{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;padding:12px 18px;font-size:12px;color:var(--text-muted);border-bottom:1.5px solid var(--border);background:var(--bg-soft)}
 .cmp-legend>span{display:inline-flex;align-items:center;gap:6px}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 .compare-wrap::-webkit-scrollbar{height:6px}
 .compare-wrap::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 
@@ -338,6 +339,22 @@ const NOT_SPECIFIED = 'Не вказано';
 function _cmpSupaUrl(){ return (window.KR && KR._SUPA_URL) || 'https://gwslintdrtnvbfjvivbb.supabase.co'; }
 function _cmpSupaKey(){ return (window.KR && KR._SUPA_KEY) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3c2xpbnRkcnRudmJmanZpdmJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTU4MTUsImV4cCI6MjA5NzczMTgxNX0.2hhyX_PMrXpBa_Q5DW7KiUjf4Jy9nnBStto47_SVF7k'; }
 
+// fetch() з таймаутом — щоб "зависле" з'єднання не блокувало сторінку вічно.
+// Без таймауту браузер може чекати нескінченно, і render() зі справжніми даними ніколи не запуститься.
+async function _cmpFetch(url, options, timeoutMs = 8000) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const r = await fetch(url, { ...options, signal: ctrl.signal });
+    clearTimeout(timer);
+    return r;
+  } catch (e) {
+    clearTimeout(timer);
+    if (e.name === 'AbortError') throw new Error('timeout');
+    throw e;
+  }
+}
+
 // Категорії — людські назви (як на сторінці товару)
 const CMP_CAT_LABELS = { jeep:'Джип', quad:'Квадроцикл', moto:'Мотоцикл', car:'Машина', tractor:'Трактор', walker:'Каталка-толокар', truck:'Вантажівка', buggy:'Баггі' };
 
@@ -382,13 +399,13 @@ async function _cmpFetchAttributes(ids){
   const idsList = ids.map(id => String(id)).join(',');
   let rows = [];
   try {
-    const r = await fetch(
+    const r = await _cmpFetch(
       _cmpSupaUrl() + '/rest/v1/product_attribute_values?select=product_id,value,product_attributes(id,code,name,unit,data_type)&product_id=in.(' + idsList + ')',
       { headers }
     );
-    if (!r.ok) console.warn('compare: attribute_values fetch HTTP', r.status, await r.text().catch(()=>''));
+    if (!r.ok) console.warn('compare: attribute_values fetch HTTP', r.status);
     rows = r.ok ? await r.json() : [];
-  } catch (e) { console.warn('compare: attribute fetch failed', e); rows = []; }
+  } catch (e) { console.warn('compare: attribute fetch failed', e.message); rows = []; }
   if (!Array.isArray(rows)) rows = [];
 
   // Для enum-атрибутів підтягуємо людські мітки з product_attribute_options (як на сторінці товару)
@@ -398,14 +415,14 @@ async function _cmpFetchAttributes(ids){
   let optionsByCode = {};
   if (enumCodes.length) {
     try {
-      const attrRes = await fetch(
+      const attrRes = await _cmpFetch(
         _cmpSupaUrl() + '/rest/v1/product_attributes?select=id,code&code=in.(' + enumCodes.join(',') + ')',
         { headers }
       );
       const attrRows = attrRes.ok ? await attrRes.json() : [];
       const ids2 = attrRows.map(a => a.id);
       if (ids2.length) {
-        const optRes = await fetch(
+        const optRes = await _cmpFetch(
           _cmpSupaUrl() + '/rest/v1/product_attribute_options?select=attribute_id,value,label&attribute_id=in.(' + ids2.join(',') + ')',
           { headers }
         );
@@ -449,16 +466,15 @@ async function _cmpFetchLive(items){
   let rows = null;
   for (const sel of selects) {
     try {
-      const r = await fetch(_cmpSupaUrl() + '/rest/v1/products?id=in.(' + ids + ')&select=' + encodeURIComponent(sel), {
+      const r = await _cmpFetch(_cmpSupaUrl() + '/rest/v1/products?id=in.(' + ids + ')&select=' + encodeURIComponent(sel), {
         headers: { 'apikey': _cmpSupaKey(), 'Authorization': 'Bearer ' + _cmpSupaKey() }
       });
       if (r.ok) { rows = await r.json(); break; }
       if (r.status !== 400) {
         console.warn('compare: products fetch HTTP', r.status);
-        break; // не 400 — інша помилка (401/500), далі немає сенсу
+        break;
       }
-      // 400 = невідома колонка в цій версії схеми — пробуємо простіший select
-    } catch(e) { console.warn('compare: products fetch network error', e); break; }
+    } catch(e) { console.warn('compare: products fetch error', e.message); break; }
   }
   const byId = {};
   if (Array.isArray(rows)) {
@@ -530,7 +546,7 @@ async function _cmpLoadSettings() {
     if (cached) CMP_SETTINGS = JSON.parse(cached);
   } catch (e) { CMP_SETTINGS = null; }
   try {
-    const r = await fetch(_cmpSupaUrl() + '/rest/v1/settings?select=value&key=eq.compare_settings', {
+    const r = await _cmpFetch(_cmpSupaUrl() + '/rest/v1/settings?select=value&key=eq.compare_settings', {
       headers: { 'apikey': _cmpSupaKey(), 'Authorization': 'Bearer ' + _cmpSupaKey() }
     });
     const rows = r.ok ? await r.json() : [];
@@ -764,26 +780,53 @@ window.addEventListener('DOMContentLoaded', async () => {
   render(); // перший рендер — відразу, з тим що є в кеші
   if (!cached.length) return;
 
-  // Друга стадія — тягнемо актуальні дані з Supabase і перерендерюємо
-  try {
-    const fresh = await _cmpFetchLive(cached);
-    comparing = fresh;
-    // Зберігаємо в localStorage ПОВНІ дані (sku, category, _attrs) — щоб наступний
-    // візит одразу мав характеристики навіть без успішного запиту до Supabase.
+  // Друга стадія — тягнемо актуальні дані з Supabase.
+  // Якщо fetch зависне (connection hang без відповіді) — _cmpFetch() перерве його за таймаутом.
+  // При невдачі повторюємо до 3 разів з паузою, після чого показуємо кнопку "Спробувати знову".
+  async function _doLiveFetch(attempt) {
+    _cmpShowLoadBanner(true);
     try {
-      const forCache = fresh.map(p => ({
-        id: p.id, name: p.name, brand: p.brand, price: p.price,
-        img: p.img, photo: p.photo,
-        sku: p.sku || '', category: p.category || '',
-        _attrs: p._attrs || {},
-      }));
-      localStorage.setItem('kr_compare', JSON.stringify(forCache));
-    } catch {}
-    render();
-  } catch (e) {
-    console.warn('[compare] live fetch failed', e);
+      const fresh = await _cmpFetchLive(cached);
+      comparing = fresh;
+      try {
+        const forCache = fresh.map(p => ({
+          id: p.id, name: p.name, brand: p.brand, price: p.price,
+          img: p.img, photo: p.photo,
+          sku: p.sku || '', category: p.category || '',
+          _attrs: p._attrs || {},
+        }));
+        localStorage.setItem('kr_compare', JSON.stringify(forCache));
+      } catch {}
+      _cmpShowLoadBanner(false);
+      render();
+    } catch (e) {
+      console.warn('[compare] live fetch attempt', attempt, 'failed:', e.message || e);
+      if (attempt < 3) {
+        await new Promise(r => setTimeout(r, attempt * 1500)); // 1.5s, 3s між спробами
+        return _doLiveFetch(attempt + 1);
+      }
+      _cmpShowLoadBanner(false, true); // показуємо кнопку "Спробувати знову"
+    }
   }
+  _doLiveFetch(1);
 });
+
+function _cmpShowLoadBanner(loading, failed) {
+  let el = document.getElementById('_cmpLoadBanner');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = '_cmpLoadBanner';
+    el.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:10px 20px;border-radius:100px;font-size:13px;font-family:"Nunito",sans-serif;font-weight:700;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.2);display:flex;align-items:center;gap:10px;white-space:nowrap;transition:opacity .3s';
+    document.body.appendChild(el);
+  }
+  if (!loading && !failed) { el.style.opacity = '0'; setTimeout(() => el.remove(), 400); return; }
+  el.style.opacity = '1';
+  if (loading) {
+    el.innerHTML = '<span style="animation:spin 1s linear infinite;display:inline-block">⟳</span> Завантаження характеристик…';
+  } else {
+    el.innerHTML = '⚠️ Не вдалося завантажити характеристики &nbsp;<button onclick="location.reload()" style="background:var(--orange);color:#fff;border:none;padding:5px 14px;border-radius:100px;font-weight:700;font-size:12px;cursor:pointer">Оновити</button>';
+  }
+}
 
 window.addEventListener('scroll', () => {
   document.getElementById('hdr').classList.toggle('scrolled', scrollY > 40);
