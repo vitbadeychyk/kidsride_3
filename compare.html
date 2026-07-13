@@ -56,28 +56,28 @@ nav a:hover{color:var(--navy);background:var(--bg-soft)}
 .breadcrumb a{color:var(--text-muted);transition:color .2s}.breadcrumb a:hover{color:var(--orange)}
 .breadcrumb svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;opacity:.5}
 
-/* PAGE */
-.page{max-width:1200px;margin:0 auto;padding:24px 40px 64px}
+/* PAGE — повна ширина */
+.page{max-width:100%;padding:24px 32px 64px}
 .page-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
 .page-title{font-size:24px;color:var(--navy)}
 .page-title span{color:var(--orange)}
 
 /* COMPARE TABLE */
-.compare-wrap{overflow-x:auto;border-radius:var(--r-lg);border:1.5px solid var(--border);background:white;box-shadow:var(--shadow-sm)}
+.compare-wrap{overflow-x:auto;border-radius:var(--r-lg);border:1.5px solid var(--border);background:white;box-shadow:var(--shadow-sm);width:100%}
 .cmp-legend{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;padding:12px 18px;font-size:12px;color:var(--text-muted);border-bottom:1.5px solid var(--border);background:var(--bg-soft)}
 .cmp-legend>span{display:inline-flex;align-items:center;gap:6px}
 @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 .compare-wrap::-webkit-scrollbar{height:6px}
 .compare-wrap::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 
-table.cmp{width:100%;border-collapse:collapse;min-width:640px}
+table.cmp{width:100%;border-collapse:collapse;min-width:720px}
 
 /* Fixed first column */
 .cmp td:first-child,.cmp th:first-child{
-  width:200px;min-width:160px;
+  width:180px;min-width:140px;
   background:var(--bg-soft);
   font-size:13px;font-weight:600;color:var(--text-muted);
-  padding:14px 18px;
+  padding:14px 16px;
   position:sticky;left:0;z-index:2;
   border-right:1px solid var(--border);
 }
@@ -137,7 +137,11 @@ table.cmp{width:100%;border-collapse:collapse;min-width:640px}
 .prod-brand{font-size:10px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
 .prod-name{font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;color:var(--navy);line-height:1.3;margin-bottom:10px}
 .prod-price{font-family:'Nunito',sans-serif;font-weight:900;font-size:20px;color:var(--navy);margin-bottom:12px}
-.prod-rank{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;color:#92610a;background:#FFF6DE;border:1px solid #F5D98B;border-radius:20px;padding:3px 10px;margin-bottom:8px}
+.prod-rank{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;border-radius:20px;padding:3px 10px;margin-bottom:8px}
+.prod-rank-gold{color:#92610a;background:#FFF6DE;border:1px solid #F5D98B}
+.prod-rank-silver{color:#5a6272;background:#F3F4F6;border:1px solid #D1D5DB}
+.prod-rank-bronze{color:#7c4a2a;background:#FEF3E8;border:1px solid #FDBA74}
+.prod-rank-other{color:#4B5563;background:#F3F4F6;border:1px solid #D1D5DB}
 .prod-cart{width:100%;padding:10px;border-radius:9px;background:var(--orange);color:white;border:none;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s;box-shadow:0 4px 12px rgba(255,107,53,.3)}
 .prod-cart:hover{background:var(--orange-dark);transform:translateY(-1px)}
 .prod-cart svg{width:14px;height:14px;stroke:white;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
@@ -170,19 +174,28 @@ table.cmp{width:100%;border-collapse:collapse;min-width:640px}
   nav{display:none}
   .h-right .btn{display:none}
   .breadcrumb{margin-top:58px;padding:10px 16px;font-size:11px}
-  .page{padding:16px 12px 64px;max-width:100%}
-  .compare-wrap{-webkit-overflow-scrolling:touch}
-  .prod-img{width:90px;height:68px;margin-bottom:8px}
-  .prod-header{padding:14px 8px}
-  .prod-name{font-size:13px}
-  .prod-price{font-size:15px}
-  .prod-cart{padding:8px 10px;font-size:12px}
-  table{font-size:12px}
-  .compare-wrap th,.compare-wrap td{padding:10px 8px}
+  .page{padding:12px 6px 64px;max-width:100%}
+  .compare-wrap{-webkit-overflow-scrolling:touch;border-radius:10px}
+  .prod-img{width:76px;height:58px;margin-bottom:6px}
+  .prod-header{padding:10px 6px}
+  .prod-name{font-size:12px;line-height:1.25}
+  .prod-price{font-size:14px;margin-bottom:8px}
+  .prod-cart{padding:7px 8px;font-size:11px}
+  .prod-brand{font-size:9px}
+  .prod-rank{font-size:10px;padding:2px 7px}
+  table.cmp{font-size:12px;min-width:0}
+  .cmp td:first-child,.cmp th:first-child{width:100px;min-width:90px;padding:10px 8px;font-size:11px}
+  .cmp td,.cmp th{padding:9px 8px}
+  .cmp-legend{font-size:11px;gap:7px 14px;padding:10px 12px}
 }
 @media(max-width:480px){
-  .page{padding:12px 8px 56px}
-  .prod-img{width:78px;height:60px}
+  .page{padding:8px 4px 56px}
+  .prod-img{width:64px;height:50px}
+  .prod-header{padding:8px 4px}
+  .prod-name{font-size:11px}
+  .prod-price{font-size:13px}
+  .cmp td:first-child,.cmp th:first-child{width:84px;min-width:80px;padding:8px 6px;font-size:10px}
+  .cmp td,.cmp th{padding:8px 6px;font-size:11px}
 }
 /* ── PHONE IN HEADER ── */
 .h-phone-link{display:inline-flex;align-items:center;gap:7px;text-decoration:none;color:var(--navy);font-family:'Nunito',sans-serif;font-weight:700;font-size:13.5px;padding:8px 12px;border-radius:10px;transition:all .2s;white-space:nowrap}
@@ -194,6 +207,52 @@ table.cmp{width:100%;border-collapse:collapse;min-width:640px}
 @media(max-width:640px){.h-phone-link{width:40px;height:40px;padding:0;justify-content:center}}
 
 .header,.header#hdr{border-top:12px solid #1B2A4A}
+
+/* ── WINNER BANNER ── */
+#winnerBanner{
+  position:fixed;inset:0;z-index:8000;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(10,20,50,.55);backdrop-filter:blur(6px);
+  padding:20px;
+  animation:wbFadeIn .4s ease both;
+}
+@keyframes wbFadeIn{from{opacity:0}to{opacity:1}}
+.wb-card{
+  background:#fff;border-radius:22px;
+  box-shadow:0 30px 80px rgba(0,0,0,.35);
+  max-width:440px;width:100%;
+  overflow:hidden;
+  animation:wbSlideUp .45s cubic-bezier(.34,1.56,.64,1) both;
+  position:relative;
+}
+@keyframes wbSlideUp{from{transform:translateY(24px) scale(.95);opacity:0}to{transform:none;opacity:1}}
+.wb-top{
+  background:linear-gradient(135deg,var(--navy) 0%,#2d4270 100%);
+  padding:22px 22px 0;
+  text-align:center;
+  position:relative;
+}
+.wb-crown{font-size:36px;line-height:1;margin-bottom:4px}
+.wb-label{font-family:'Nunito',sans-serif;font-weight:800;font-size:12px;
+  color:rgba(255,255,255,.7);letter-spacing:.18em;text-transform:uppercase;margin-bottom:6px}
+.wb-title{font-family:'Nunito',sans-serif;font-weight:900;font-size:16px;color:rgba(255,255,255,.55);margin-bottom:10px}
+.wb-img-wrap{width:140px;height:110px;margin:0 auto;position:relative;border-radius:12px 12px 0 0;overflow:hidden;background:rgba(255,255,255,.08)}
+.wb-img-wrap img{width:100%;height:100%;object-fit:contain;position:relative;z-index:2}
+.wb-body{padding:18px 22px 20px;text-align:center}
+.wb-name{font-family:'Nunito',sans-serif;font-weight:900;font-size:18px;color:var(--navy);line-height:1.25;margin-bottom:4px}
+.wb-sku{font-size:12px;color:var(--text-muted);font-weight:600;margin-bottom:4px}
+.wb-score{display:inline-flex;align-items:center;gap:5px;background:#FFF6DE;border:1px solid #F5D98B;border-radius:20px;padding:3px 12px;font-size:12px;font-weight:800;color:#92610a;margin-bottom:14px}
+.wb-actions{display:flex;flex-direction:column;gap:8px}
+.wb-btn-primary{width:100%;padding:11px;border-radius:11px;background:var(--orange);color:#fff;border:none;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;box-shadow:0 4px 14px rgba(255,107,53,.3);transition:all .2s}
+.wb-btn-primary:hover{background:var(--orange-dark);transform:translateY(-1px)}
+.wb-btn-sec{width:100%;padding:10px;border-radius:11px;background:var(--bg-soft);color:var(--text-muted);border:1.5px solid var(--border);cursor:pointer;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;transition:all .2s}
+.wb-btn-sec:hover{border-color:var(--navy);color:var(--navy)}
+.wb-close{position:absolute;top:12px;right:12px;width:30px;height:30px;border:none;background:rgba(255,255,255,.12);border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.8);transition:all .2s;z-index:3}
+.wb-close:hover{background:rgba(255,255,255,.25)}
+.wb-close svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.wb-timer{height:3px;background:#F5D98B;border-radius:0 0 0 0;transform-origin:left;animation:wbTimer 3s linear both}
+@keyframes wbTimer{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+@media(max-width:480px){.wb-card{max-width:100%;border-radius:18px}.wb-name{font-size:15px}.wb-img-wrap{width:110px;height:86px}}
 
   /* ── SEARCH OVERLAY ── */
   .search-overlay{position:fixed;inset:0;background:rgba(15,25,55,.55);backdrop-filter:blur(6px);z-index:2000;display:none;align-items:flex-start;justify-content:center;padding:80px 20px 20px;opacity:0;transition:opacity .2s ease}
@@ -760,25 +819,21 @@ function render() {
   for (const [section, fields] of Object.entries(specSections)) {
     rows += `<tr class="section-row"><td colspan="${count + emptySlots + 1}">${section}</td></tr>`;
     fields.forEach(({ key, label }) => {
-      // Завжди показуємо рядок для параметра — навіть якщо він відомий лише в одного з товарів.
-      // Відсутнє значення позначаємо явно, а не пропускаємо рядок.
-      const rawValues = comparing.map(p => {
+      // Використовуємо sortedComparing (відсортований за рейтингом, 1-й зліва)
+      const rawValues = sortedComparing.map(p => {
         const v = p && p.specs ? p.specs[key] : undefined;
         return (v === undefined || v === null || v === '') ? NOT_SPECIFIED : v;
       });
 
-      // Підсвічуємо лише реальні вимірювані характеристики — не sku/тип і не булеві опції.
       const isRankable = !CMP_BASE_FIELDS.some(f => f.key === key) && !_CMP_BOOL_CODES.includes(key);
       const lowerIsBetter = _CMP_LOWER_IS_BETTER.has(key);
 
-      // Числове значення для кожного товару в рядку, або null якщо невідоме/нерейтингується.
       const comparable = rawValues.map(v => {
         if (v === NOT_SPECIFIED || !isRankable) return null;
         const n = parseFloat(String(v));
         return isNaN(n) ? null : n;
       });
 
-      // Підсвітка в таблиці: хто в цьому рядку об'єктивно кращий (той самий критерій, що й бали).
       const numsWithIdx = comparable.map((n, i) => ({ i, n })).filter(x => x.n !== null);
       let bestIdx = new Set();
       if (numsWithIdx.length > 1) {
@@ -792,62 +847,67 @@ function render() {
         if (val === NOT_SPECIFIED) {
           cols += `<td><span class="val-unspecified">${NOT_SPECIFIED}</span></td>`;
         } else if (val === 'Так') {
-          // Наявність опції — завжди нейтральна галочка, без підсвітки й без "перемоги" над іншими.
           cols += `<td><span class="val-yes"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>${val}</span></td>`;
         } else {
           cols += `<td ${bestIdx.has(i) ? 'class="val-highlight"' : ''}>${val}</td>`;
         }
       });
-      // Empty slot cells
       for (let e = 0; e < emptySlots; e++) cols += '<td style="background:rgba(248,249,252,.4)"></td>';
       rows += `<tr>${cols}</tr>`;
     });
   }
 
   // ── Крок 2: рейтинг за зваженим алгоритмом (RANKING_CRITERIA × ваги) ──────
-  // _cmpComputeRankingScores() обчислює фінальний бал для кожного товару:
-  //   Бал = Σ (бал_за_критерій × вага_критерію)
-  // де бал_за_критерій визначається competition ranking-ом серед поточного набору.
-  const scores = _cmpComputeRankingScores(comparing);
-  const hasAnyScore = scores.some(s => s > 0);
+  const rawScores = _cmpComputeRankingScores(comparing);
+  const hasAnyScore = rawScores.some(s => s > 0);
+
+  // ── Сортуємо товари за рейтингом — найкращий ЗАВЖДИ зліва ──────────────────
+  // Переставляємо лише для відображення; оригінальний масив comparing не змінюємо.
+  let displayOrder = comparing.map((_, i) => i);
+  if (hasAnyScore) {
+    displayOrder.sort((a, b) => rawScores[b] - rawScores[a]);
+  }
+  const sortedComparing = displayOrder.map(i => comparing[i]);
+  const sortedScores   = displayOrder.map(i => rawScores[i]);
 
   // Competition ranking для відображення місць:
   // однакові фінальні бали → однакове місце (нічия); наступний товар отримує місце з пропуском.
   // Приклад: [80,80,60,40] → 🥇1 місце, 🥇1 місце, 🥉3 місце, 4 місце.
-  const placeByIdx = {};
+  const placeByIdx = {};  // індекс у sortedComparing → 0-based місце
   const medals = ['🥇', '🥈', '🥉'];
+  const rankColors = ['prod-rank-gold','prod-rank-silver','prod-rank-bronze'];
   if (hasAnyScore) {
-    // Сортуємо всі бали від найбільшого до найменшого, зберігаємо competition rank.
-    const sortedScores = scores.slice().sort((a, b) => b - a);
-    const scoreToPlace = new Map(); // бал → 0-based місце (competitionRank - 1)
-    let competitionRank = 1;
-    const processedScores = new Set();
-    sortedScores.forEach(score => {
-      if (!processedScores.has(score)) {
-        scoreToPlace.set(score, competitionRank - 1); // 0-based для medals[]
-        processedScores.add(score);
-      }
-      competitionRank++;
+    const sorted = sortedScores.slice().sort((a, b) => b - a);
+    const scoreToPlace = new Map();
+    let cr = 1;
+    const seen = new Set();
+    sorted.forEach(s => {
+      if (!seen.has(s)) { scoreToPlace.set(s, cr - 1); seen.add(s); }
+      cr++;
     });
-    scores.forEach((score, i) => { placeByIdx[i] = scoreToPlace.get(score) ?? 999; });
+    sortedScores.forEach((s, i) => { placeByIdx[i] = scoreToPlace.get(s) ?? 999; });
   }
 
-  let headerCols = `<th><div style="padding:16px 18px;font-size:12px;color:var(--text-muted);font-weight:600">Характеристики</div></th>`;
-  comparing.forEach((p, i) => {
-    const place = placeByIdx[i];
-    const medal = (hasAnyScore && place < 3) ? medals[place] : '';
-    const placeLabel = hasAnyScore ? `${place + 1} місце` : '';
+  let headerCols = `<th style="width:180px"><div style="padding:16px 16px;font-size:12px;color:var(--text-muted);font-weight:600">Характеристики</div></th>`;
+  sortedComparing.forEach((p, i) => {
+    // Знаходимо реальний індекс у оригінальному масиві для removeProduct()
+    const origIdx = displayOrder[i];
+    const place = hasAnyScore ? placeByIdx[i] : null;
+    const medal = (place !== null && place < 3) ? medals[place] : '';
+    const rankCls = (place !== null && place < 3) ? rankColors[place] : 'prod-rank-other';
+    const placeLabel = place !== null ? `${place + 1} місце` : '';
+    const rankTip = place !== null ? `${placeLabel}: ${sortedScores[i]} балів (потужність×5 + АКБ×4 + двигуни×3 + акум×2 + швидкість×2 + місця×1)` : '';
     headerCols += `
       <th>
         <div class="prod-header">
-          <button class="prod-remove" onclick="removeProduct(${i})" title="Видалити з порівняння">
+          <button class="prod-remove" onclick="removeProduct(${origIdx})" title="Видалити з порівняння">
             <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
           <div class="prod-img">
             <div class="prod-img-fallback" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">${SVG_MAP[p.img] || SVG_MAP.jeep}</div>
             ${(p.photo || (p.img && /^(https?:|\/)/.test(p.img))) ? `<img src="${String(p.photo || p.img).replace(/"/g,'&quot;')}" alt="${(p.name||'').replace(/"/g,'&quot;')}" style="position:relative;z-index:2;width:100%;height:100%;object-fit:contain;background:#fff" loading="lazy" onerror="this.remove()">` : ''}
           </div>
-          ${medal ? `<div class="prod-rank" title="${placeLabel}: ${scores[i]} балів (потужність×5 + АКБ×4 + двигуни×3 + акум×2 + швидкість×2 + місця×1)">${medal} ${placeLabel}</div>` : ''}
+          ${placeLabel ? `<div class="prod-rank ${rankCls}" title="${rankTip}">${medal}${medal?' ':''}${placeLabel}</div>` : ''}
           ${(p.brand && !/^без\s*бренд/i.test(p.brand)) ? `<div class="prod-brand">${p.brand}</div>` : ''}
           <div class="prod-name">${p.name}</div>
           <div class="prod-price">${p.price.toLocaleString('uk-UA')} ₴</div>
@@ -874,16 +934,79 @@ function render() {
   content.innerHTML = `
     <div class="compare-wrap">
       <div class="cmp-legend">
-        <span><span class="val-highlight" style="padding:2px 8px;border-radius:6px">124</span> — об'єктивно краще значення (більше потужності/швидкості/вантажопідйомності тощо)</span>
-        <span><span class="val-yes" style="display:inline-flex"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Так</span> — опція є (без порівняння з іншими товарами)</span>
-        <span><span class="val-unspecified">Не вказано</span> — дані по цьому товару ще не заповнені в базі</span>
-        <span>🥇🥈🥉 — місце в рейтингу за зваженим балом: потужність двигунів (×5) + АКБ (×4) + кількість двигунів (×3) + кількість АКБ (×2) + швидкість (×2) + кількість місць (×1)</span>
+        <span><span class="val-highlight" style="padding:2px 8px;border-radius:6px">124</span> — об'єктивно краще значення (більше потужності/швидкості тощо)</span>
+        <span><span class="val-yes" style="display:inline-flex"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Так</span> — опція є</span>
+        <span><span class="val-unspecified">Не вказано</span> — дані не заповнені</span>
+        <span>🥇🥈🥉 — місця в рейтингу за зваженим балом: потужність (×5) + АКБ (×4) + двигуни (×3) + акум (×2) + швидкість (×2) + місця (×1)</span>
       </div>
       <table class="cmp">
         <thead><tr>${headerCols}</tr></thead>
         <tbody>${rows}</tbody>
       </table>
     </div>`;
+
+  // Показуємо winner-банер після першого повноцінного рендеру з балами
+  if (hasAnyScore && count >= 2) {
+    _maybeShowWinnerBanner(sortedComparing[0], sortedScores[0]);
+  }
+}
+
+// ── Winner banner ──────────────────────────────────────────────────────────
+let _winnerBannerShown = false;
+let _winnerBannerTimer = null;
+
+function _maybeShowWinnerBanner(winner, score) {
+  if (_winnerBannerShown) return;
+  _winnerBannerShown = true;
+
+  const existing = document.getElementById('winnerBanner');
+  if (existing) existing.remove();
+
+  const photo = winner.photo || '';
+  const svgFallback = SVG_MAP[winner.img] || SVG_MAP.jeep;
+  const imgHtml = photo
+    ? `<img src="${photo.replace(/"/g,'&quot;')}" alt="" onerror="this.style.display='none'">`
+    : '';
+
+  const banner = document.createElement('div');
+  banner.id = 'winnerBanner';
+  banner.innerHTML = `
+    <div class="wb-card">
+      <div class="wb-top">
+        <button class="wb-close" onclick="closeWinnerBanner()" title="Закрити">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+        <div class="wb-crown">🏆</div>
+        <div class="wb-label">Найкраща модель серед обраних</div>
+        <div class="wb-img-wrap">${svgFallback}${imgHtml}</div>
+      </div>
+      <div class="wb-body">
+        <div class="wb-name">${winner.name}</div>
+        ${winner.sku ? `<div class="wb-sku">Арт. ${winner.sku}</div>` : ''}
+        <div style="margin-bottom:14px">
+          <span class="wb-score">⚡ ${score} балів рейтингу</span>
+        </div>
+        <div class="wb-actions">
+          <button class="wb-btn-primary" onclick="closeWinnerBanner();document.querySelector('.compare-wrap')?.scrollIntoView({behavior:'smooth',block:'start'})">Переглянути детальне порівняння</button>
+          <button class="wb-btn-sec" onclick="closeWinnerBanner()">Закрити</button>
+        </div>
+      </div>
+      <div class="wb-timer" id="wbTimerBar"></div>
+    </div>`;
+
+  document.body.appendChild(banner);
+  banner.addEventListener('click', e => { if (e.target === banner) closeWinnerBanner(); });
+
+  _winnerBannerTimer = setTimeout(closeWinnerBanner, 3000);
+}
+
+function closeWinnerBanner() {
+  clearTimeout(_winnerBannerTimer);
+  const b = document.getElementById('winnerBanner');
+  if (!b) return;
+  b.style.transition = 'opacity .3s';
+  b.style.opacity = '0';
+  setTimeout(() => b.remove(), 320);
 }
 
 function removeProduct(idx) {
@@ -960,6 +1083,8 @@ window.addEventListener('DOMContentLoaded', async () => {
         localStorage.setItem('kr_compare', JSON.stringify(forCache));
       } catch {}
       _cmpShowLoadBanner(false);
+      // Скидаємо прапор щоб winner-банер показався з реальними балами (після живого завантаження)
+      _winnerBannerShown = false;
       render();
     } catch (e) {
       console.warn('[compare] live fetch attempt', attempt, 'failed:', e.message || e);
