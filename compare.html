@@ -237,7 +237,6 @@ table.cmp{width:100%;border-collapse:collapse;min-width:720px}
   color:rgba(255,255,255,.7);letter-spacing:.18em;text-transform:uppercase;margin-bottom:6px}
 .wb-title{font-family:'Nunito',sans-serif;font-weight:900;font-size:16px;color:rgba(255,255,255,.55);margin-bottom:10px}
 .wb-img-wrap{width:140px;height:110px;margin:0 auto;position:relative;border-radius:12px 12px 0 0;overflow:hidden;background:rgba(255,255,255,.08)}
-.wb-img-wrap img{width:100%;height:100%;object-fit:contain;position:relative;z-index:2}
 .wb-body{padding:18px 22px 20px;text-align:center}
 .wb-name{font-family:'Nunito',sans-serif;font-weight:900;font-size:18px;color:var(--navy);line-height:1.25;margin-bottom:4px}
 .wb-sku{font-size:12px;color:var(--text-muted);font-weight:600;margin-bottom:4px}
@@ -250,7 +249,7 @@ table.cmp{width:100%;border-collapse:collapse;min-width:720px}
 .wb-close{position:absolute;top:12px;right:12px;width:30px;height:30px;border:none;background:rgba(255,255,255,.12);border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.8);transition:all .2s;z-index:3}
 .wb-close:hover{background:rgba(255,255,255,.25)}
 .wb-close svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
-.wb-timer{height:3px;background:#F5D98B;border-radius:0 0 0 0;transform-origin:left;animation:wbTimer 3s linear both}
+.wb-timer{height:3px;background:#F5D98B;border-radius:0 0 0 0;transform-origin:left;animation:wbTimer var(--wb-duration,4s) linear both}
 @keyframes wbTimer{from{transform:scaleX(1)}to{transform:scaleX(0)}}
 @media(max-width:480px){.wb-card{max-width:100%;border-radius:18px}.wb-name{font-size:15px}.wb-img-wrap{width:110px;height:86px}}
 
@@ -728,6 +727,11 @@ let CMP_MAX_PRODUCTS = (function() {
   try { return parseInt(localStorage.getItem('kr_cmp_max') || '5', 10) || 5; } catch(e) { return 5; }
 })();
 
+// Тривалість автозакриття winner-банера в секундах (керується з адмінки, ключ compare_banner_seconds).
+let CMP_BANNER_SEC = (function() {
+  try { return parseInt(localStorage.getItem('kr_cmp_banner_sec') || '4', 10) || 4; } catch(e) { return 4; }
+})();
+
 function _cmpApplySettings(fields) {
   if (!CMP_SETTINGS || !CMP_SETTINGS.length) return fields;
   const order = {};
@@ -771,6 +775,20 @@ async function _cmpLoadSettings() {
       }
     }
   } catch (e) { /* лишаємо дефолт 5 */ }
+  // Підтягуємо тривалість автозакриття winner-банера
+  try {
+    const rb = await _cmpFetch(_cmpSupaUrl() + '/rest/v1/settings?select=value&key=eq.compare_banner_seconds', {
+      headers: { 'apikey': _cmpSupaKey(), 'Authorization': 'Bearer ' + _cmpSupaKey() }
+    });
+    const rowsB = rb.ok ? await rb.json() : [];
+    if (rowsB && rowsB[0] && rowsB[0].value) {
+      const parsedB = parseInt(rowsB[0].value, 10);
+      if (!isNaN(parsedB) && parsedB >= 1 && parsedB <= 30) {
+        CMP_BANNER_SEC = parsedB;
+        try { localStorage.setItem('kr_cmp_banner_sec', String(parsedB)); } catch(e) {}
+      }
+    }
+  } catch (e) { /* лишаємо дефолт 4 */ }
 }
 
 function render() {
@@ -953,12 +971,11 @@ function _maybeShowWinnerBanner(winner, score) {
 
   const photo = winner.photo || '';
   const svgFallback = SVG_MAP[winner.img] || SVG_MAP.jeep;
-  const imgHtml = photo
-    ? `<img src="${photo.replace(/"/g,'&quot;')}" alt="" onerror="this.style.display='none'">`
-    : '';
 
   const banner = document.createElement('div');
   banner.id = 'winnerBanner';
+  // Встановлюємо тривалість анімації через CSS-змінну (синхронно з setTimeout)
+  banner.style.setProperty('--wb-duration', CMP_BANNER_SEC + 's');
   banner.innerHTML = `
     <div class="wb-card">
       <div class="wb-top">
@@ -967,15 +984,15 @@ function _maybeShowWinnerBanner(winner, score) {
         </button>
         <div class="wb-crown">🏆</div>
         <div class="wb-label">Найкраща модель серед обраних</div>
-        <div class="wb-img-wrap">${svgFallback}${imgHtml}</div>
+        <div class="wb-img-wrap">
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:1">${svgFallback}</div>
+          ${photo ? `<img src="${photo.replace(/"/g,'&quot;')}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:2" onerror="this.remove()">` : ''}
+        </div>
       </div>
       <div class="wb-body">
         <div class="wb-name">${winner.name}</div>
         ${winner.sku ? `<div class="wb-sku">Арт. ${winner.sku}</div>` : ''}
-        <div style="margin-bottom:14px">
-          <span class="wb-score">⚡ ${score} балів рейтингу</span>
-        </div>
-        <div class="wb-actions">
+        <div class="wb-actions" style="margin-top:14px">
           <button class="wb-btn-primary" onclick="closeWinnerBanner();document.querySelector('.compare-wrap')?.scrollIntoView({behavior:'smooth',block:'start'})">Переглянути детальне порівняння</button>
           <button class="wb-btn-sec" onclick="closeWinnerBanner()">Закрити</button>
         </div>
@@ -986,7 +1003,7 @@ function _maybeShowWinnerBanner(winner, score) {
   document.body.appendChild(banner);
   banner.addEventListener('click', e => { if (e.target === banner) closeWinnerBanner(); });
 
-  _winnerBannerTimer = setTimeout(closeWinnerBanner, 3000);
+  _winnerBannerTimer = setTimeout(closeWinnerBanner, CMP_BANNER_SEC * 1000);
 }
 
 function closeWinnerBanner() {
