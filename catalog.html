@@ -1298,9 +1298,9 @@ function toggleCompare(btn) {
   if (btn.classList.contains('active')) {
     if (compareList.some(p => p.name === name)) {
       // already there, do nothing extra
-    } else if (compareList.length >= 3) {
+    } else if (compareList.length >= _catCmpMax) {
       btn.classList.remove('active');
-      showToastLocal('Можна порівнювати до 3 товарів одночасно');
+      showToastLocal('Можна порівнювати до ' + _catCmpMax + ' товарів одночасно');
       return;
     } else {
       compareList.push(product);
@@ -1614,6 +1614,30 @@ const BADGE_MAP = {
 // ── SUPABASE CONFIG ─────────────────────────────────────────
 const SUPABASE_URL = 'https://gwslintdrtnvbfjvivbb.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3c2xpbnRkcnRudmJmanZpdmJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTU4MTUsImV4cCI6MjA5NzczMTgxNX0.2hhyX_PMrXpBa_Q5DW7KiUjf4Jy9nnBStto47_SVF7k';
+
+// ── COMPARE MAX PRODUCTS ─────────────────────────────────────────────────────
+// Максимальна кількість товарів для порівняння. Читається з localStorage (миттєво)
+// та оновлюється з Supabase (settings.compare_max_products) при завантаженні сторінки.
+let _catCmpMax = (function() {
+  try { return parseInt(localStorage.getItem('kr_cmp_max') || '5', 10) || 5; } catch(e) { return 5; }
+})();
+// Підтягуємо актуальне значення з Supabase у фоні
+(async function _loadCmpMax() {
+  try {
+    const res = await fetch(
+      SUPABASE_URL + '/rest/v1/settings?select=value&key=eq.compare_max_products',
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
+    );
+    if (!res.ok) return;
+    const rows = await res.json();
+    if (!rows || !rows[0] || !rows[0].value) return;
+    const parsed = parseInt(rows[0].value, 10);
+    if (!isNaN(parsed) && parsed >= 2 && parsed <= 10) {
+      _catCmpMax = parsed;
+      try { localStorage.setItem('kr_cmp_max', String(parsed)); } catch(e) {}
+    }
+  } catch(e) {}
+})();
 
 // ── CATEGORY TREE ────────────────────────────────────────────
 // Кеш категорій для дерева
@@ -4055,9 +4079,9 @@ function catToggleCompare(btn, id, name, price, brand, img) {
   if (wasActive) {
     if (list.some(i=>i.id===id)) {
       // вже у списку — нічого додатково
-    } else if (list.length>=3) {
+    } else if (list.length>=_catCmpMax) {
       btn.classList.remove('active');
-      showToastLocal('Можна порівнювати до 3 товарів одночасно');
+      showToastLocal('Можна порівнювати до ' + _catCmpMax + ' товарів одночасно');
       return;
     } else {
       list.push({id,name,price,brand,img,photo,specs:{'Бренд':brand,'Ціна':price+' грн'}});

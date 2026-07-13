@@ -365,6 +365,143 @@ const _CMP_UNITS = { motor_power: 'Вт', battery_voltage: 'В', max_speed: 'к�
 // Характеристики, де МЕНШЕ значення вважається кращим (решта чисел — «більше краще»)
 const _CMP_LOWER_IS_BETTER = new Set(['weight']);
 
+// ── Конфігурація критеріїв рейтингу ─────────────────────────────────────────
+// Алгоритм зважений: кожен критерій має вагу, список не "зашитий" у логіку —
+// достатньо додати новий об'єкт або змінити weight/enabled.
+// compute(specs) — повертає числове значення або null якщо дані відсутні.
+// specs — об'єкт {код_атрибута: відформатований_рядок} для одного товару.
+const RANKING_CRITERIA = [
+  {
+    field: 'motor_power_total',
+    label: 'Загальна потужність двигунів',
+    weight: 5,
+    enabled: true,
+    compute: function(specs) {
+      var count   = parseFloat(specs.motor_count);
+      var power   = parseFloat(specs.motor_power);
+      if (isNaN(count) || isNaN(power)) return null;
+      return count * power;
+    }
+  },
+  {
+    field: 'battery_power_total',
+    label: 'Загальна потужність АКБ (В сумарно)',
+    weight: 4,
+    enabled: true,
+    compute: function(specs) {
+      var count   = parseFloat(specs.battery_count);
+      var voltage = parseFloat(specs.battery_voltage);
+      if (isNaN(count) || isNaN(voltage)) return null;
+      return count * voltage;
+    }
+  },
+  // battery_capacity_ah — вимкнено: поле ще не заповнене у більшості товарів.
+  // Щоб увімкнути — додайте атрибут 'battery_capacity_ah' у БД і змініть enabled: true.
+  {
+    field: 'battery_capacity_ah',
+    label: 'Ємність АКБ (Аг)',
+    weight: 4,
+    enabled: false,
+    compute: function(specs) {
+      var v = parseFloat(specs.battery_capacity_ah);
+      return isNaN(v) ? null : v;
+    }
+  },
+  {
+    field: 'motor_count',
+    label: 'Кількість двигунів',
+    weight: 3,
+    enabled: true,
+    compute: function(specs) {
+      var v = parseFloat(specs.motor_count);
+      return isNaN(v) ? null : v;
+    }
+  },
+  {
+    field: 'battery_count',
+    label: 'Кількість акумуляторів',
+    weight: 2,
+    enabled: true,
+    compute: function(specs) {
+      var v = parseFloat(specs.battery_count);
+      return isNaN(v) ? null : v;
+    }
+  },
+  {
+    field: 'max_speed',
+    label: 'Максимальна швидкість',
+    weight: 2,
+    enabled: true,
+    compute: function(specs) {
+      var v = parseFloat(specs.max_speed);
+      return isNaN(v) ? null : v;
+    }
+  },
+  {
+    field: 'seats_count',
+    label: 'Кількість місць',
+    weight: 1,
+    enabled: true,
+    compute: function(specs) {
+      var v = parseFloat(specs.seats_count);
+      return isNaN(v) ? null : v;
+    }
+  },
+];
+
+// ── Зважений алгоритм рейтингу з competition ranking ─────────────────────────
+// Крок 1: для кожного увімкненого критерію обчислити значення (у т.ч. похідні).
+// Крок 2: відсортувати товари за значенням, призначити бали методом competition ranking
+//         (однакові значення → однаковий бал; наступний товар отримує бал із пропуском).
+//         Найкращий отримує N балів (N = кількість товарів), найгірший — 1.
+// Крок 3: бал × вага додається до фінального рахунку.
+// Товар із відсутнім значенням за критерієм отримує 0 балів за цей критерій.
+function _cmpComputeRankingScores(products) {
+  var n = products.length;
+  var scores = products.map(function() { return 0; });
+
+  RANKING_CRITERIA.forEach(function(criterion) {
+    if (!criterion.enabled) return;
+
+    // Значення критерію для кожного товару (null = невідомо)
+    var values = products.map(function(p) {
+      return criterion.compute(p.specs || {});
+    });
+
+    // Потрібно щонайменше два відомих значення, щоб рейтинг мав сенс
+    var known = values.filter(function(v) { return v !== null; });
+    if (known.length < 2) return;
+
+    // Унікальні значення, відсортовані від найкращого до найгіршого (більше = краще)
+    var uniqueSorted = [];
+    var seen = {};
+    known.slice().sort(function(a, b) { return b - a; }).forEach(function(v) {
+      if (!seen[v]) { seen[v] = true; uniqueSorted.push(v); }
+    });
+
+    // Competition ranking: першому місцю N балів, при нічиїй — обидва отримують однаково,
+    // наступне місце отримує бал із пропуском (спортивний рейтинг).
+    // competitionRank — поточний ранг (1-based, скільки товарів "попереду" +1).
+    var competitionRank = 1;
+    var scoreMap = {}; // value → бали
+    uniqueSorted.forEach(function(val) {
+      var pts = n - (competitionRank - 1);
+      scoreMap[val] = pts < 1 ? 1 : pts;
+      // Наступний ранг: пропускаємо стільки позицій, скільки товарів мають це значення
+      var countWithVal = known.filter(function(v) { return v === val; }).length;
+      competitionRank += countWithVal;
+    });
+
+    // Додаємо зважений бал до рахунку кожного товару
+    values.forEach(function(val, i) {
+      if (val === null) return; // немає даних — 0 за цей критерій
+      scores[i] += (scoreMap[val] || 0) * criterion.weight;
+    });
+  });
+
+  return scores;
+}
+
 // Базові поля товару (з таблиці products), які показуємо завжди поруч із динамічними характеристиками.
 // Колір/Вік/Гарантія прибрано з порівняння (майже завжди "Не вказано" і не впливають на вибір товару).
 const CMP_BASE_FIELDS = [
@@ -526,6 +663,12 @@ async function _cmpFetchLive(items){
 const CMP_SETTINGS_KEY = 'kr_compare_settings';
 let CMP_SETTINGS = null; // [{key, enabled}] у бажаному порядку; null = ще не завантажено → показуємо все
 
+// Максимальна кількість товарів для порівняння (керується з адмінки, ключ compare_max_products).
+// При завантаженні читаємо з localStorage (миттєво), потім оновлюємо з Supabase у _cmpLoadSettings().
+let CMP_MAX_PRODUCTS = (function() {
+  try { return parseInt(localStorage.getItem('kr_cmp_max') || '5', 10) || 5; } catch(e) { return 5; }
+})();
+
 function _cmpApplySettings(fields) {
   if (!CMP_SETTINGS || !CMP_SETTINGS.length) return fields;
   const order = {};
@@ -555,6 +698,20 @@ async function _cmpLoadSettings() {
       localStorage.setItem(CMP_SETTINGS_KEY, JSON.stringify(CMP_SETTINGS));
     }
   } catch (e) { /* лишаємо кеш/усе увімкненим, якщо запит не вдався */ }
+  // Також підтягуємо максимальну кількість товарів для порівняння
+  try {
+    const rm = await _cmpFetch(_cmpSupaUrl() + '/rest/v1/settings?select=value&key=eq.compare_max_products', {
+      headers: { 'apikey': _cmpSupaKey(), 'Authorization': 'Bearer ' + _cmpSupaKey() }
+    });
+    const rowsM = rm.ok ? await rm.json() : [];
+    if (rowsM && rowsM[0] && rowsM[0].value) {
+      const parsed = parseInt(rowsM[0].value, 10);
+      if (!isNaN(parsed) && parsed >= 2 && parsed <= 10) {
+        CMP_MAX_PRODUCTS = parsed;
+        try { localStorage.setItem('kr_cmp_max', String(parsed)); } catch(e) {}
+      }
+    }
+  } catch (e) { /* лишаємо дефолт 5 */ }
 }
 
 function render() {
@@ -567,7 +724,7 @@ function render() {
       <div class="empty-compare">
         <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
         <h3>Немає товарів для порівняння</h3>
-        <p>Додайте від 2 до 3 товарів з каталогу натиснувши кнопку "Порівняти" на картці</p>
+        <p>Додайте від 2 до ${CMP_MAX_PRODUCTS} товарів з каталогу натиснувши кнопку "Порівняти" на картці</p>
         <a href="catalog.html" class="btn btn-primary">Перейти до каталогу →</a>
       </div>`;
     return;
@@ -585,8 +742,8 @@ function render() {
     if (!specSections[sec].length) delete specSections[sec];
   }
 
-  // Empty slots to add
-  const emptySlots = 3 - count;
+  // Empty slots to add (залежить від налаштування адмінки)
+  const emptySlots = CMP_MAX_PRODUCTS - count;
 
   // ── Принцип підсвітки (щоб було однозначно зрозуміло користувачу) ──────────
   // Зелена підсвітка + бал у рейтингу даються ЛИШЕ там, де перевагу можна об'єктивно
@@ -595,10 +752,10 @@ function render() {
   // Наявність опції (Bluetooth, MP3, амортизатори...) показуємо нейтральною галочкою
   // "✓ Так", БЕЗ підсвітки і БЕЗ балів у рейтингу — бо "Не вказано" в базі означає лише
   // "дані не заповнені", а не "цієї опції немає", і підсвічувати це як перевагу було б
-  // нечесно введенням в оману. Рейтинг товару рахується ПОПАРНО по кожному числовому
-  // рядку: якщо товар А кращий за товар Б за потужністю — А отримує бал за цю перевагу,
-  // навіть якщо є ще потужніший товар В (а не тільки "хто найкращий з усіх трьох").
-  const scores = comparing.map(() => 0);
+  // нечесно введенням в оману. Зелена підсвітка в рядку таблиці — лише для числових
+  // вимірюваних характеристик, де є хоча б два відомих різних значення.
+  // Фінальний рейтинг рахується окремою функцією _cmpComputeRankingScores() —
+  // за зваженим алгоритмом із заздалегідь визначеними критеріями та вагами.
   let rows = '';
   for (const [section, fields] of Object.entries(specSections)) {
     rows += `<tr class="section-row"><td colspan="${count + emptySlots + 1}">${section}</td></tr>`;
@@ -610,8 +767,7 @@ function render() {
         return (v === undefined || v === null || v === '') ? NOT_SPECIFIED : v;
       });
 
-      // Рейтингуємо (і підсвічуємо) лише реальні вимірювані характеристики — не sku/тип,
-      // і не булеві "наявність опції" (для них немає надійних даних про "немає").
+      // Підсвічуємо лише реальні вимірювані характеристики — не sku/тип і не булеві опції.
       const isRankable = !CMP_BASE_FIELDS.some(f => f.key === key) && !_CMP_BOOL_CODES.includes(key);
       const lowerIsBetter = _CMP_LOWER_IS_BETTER.has(key);
 
@@ -621,17 +777,6 @@ function render() {
         const n = parseFloat(String(v));
         return isNaN(n) ? null : n;
       });
-
-      // Попарне порівняння: кожна пара товарів з відомими значеннями —
-      // переможець пари отримує +1 бал за цей рядок (нічия/невідомо — без балів).
-      for (let a = 0; a < comparable.length; a++) {
-        for (let b = a + 1; b < comparable.length; b++) {
-          const va = comparable[a], vb = comparable[b];
-          if (va === null || vb === null || va === vb) continue;
-          const aWins = lowerIsBetter ? va < vb : va > vb;
-          scores[aWins ? a : b] += 1;
-        }
-      }
 
       // Підсвітка в таблиці: хто в цьому рядку об'єктивно кращий (той самий критерій, що й бали).
       const numsWithIdx = comparable.map((n, i) => ({ i, n })).filter(x => x.n !== null);
@@ -659,16 +804,33 @@ function render() {
     });
   }
 
-  // ── Крок 2: визначаємо реальне 1/2/3 місце за сумою переваг (не за ціною) ──
-  // При рівності балів вирішує нижча ціна (переможець — вигідніший при однаковій "силі" характеристик).
-  const ranking = comparing
-    .map((p, i) => ({ i, score: scores[i], price: p.price }))
-    .sort((a, b) => (b.score - a.score) || (a.price - b.price));
+  // ── Крок 2: рейтинг за зваженим алгоритмом (RANKING_CRITERIA × ваги) ──────
+  // _cmpComputeRankingScores() обчислює фінальний бал для кожного товару:
+  //   Бал = Σ (бал_за_критерій × вага_критерію)
+  // де бал_за_критерій визначається competition ranking-ом серед поточного набору.
+  const scores = _cmpComputeRankingScores(comparing);
+  const hasAnyScore = scores.some(s => s > 0);
+
+  // Competition ranking для відображення місць:
+  // однакові фінальні бали → однакове місце (нічия); наступний товар отримує місце з пропуском.
+  // Приклад: [80,80,60,40] → 🥇1 місце, 🥇1 місце, 🥉3 місце, 4 місце.
   const placeByIdx = {};
   const medals = ['🥇', '🥈', '🥉'];
-  ranking.forEach((r, place) => { placeByIdx[r.i] = place; });
-  // Місце присвоюємо лише якщо є за що порівнювати (хоч один бал у когось) — інакше нічия, без медалей
-  const hasAnyScore = scores.some(s => s > 0);
+  if (hasAnyScore) {
+    // Сортуємо всі бали від найбільшого до найменшого, зберігаємо competition rank.
+    const sortedScores = scores.slice().sort((a, b) => b - a);
+    const scoreToPlace = new Map(); // бал → 0-based місце (competitionRank - 1)
+    let competitionRank = 1;
+    const processedScores = new Set();
+    sortedScores.forEach(score => {
+      if (!processedScores.has(score)) {
+        scoreToPlace.set(score, competitionRank - 1); // 0-based для medals[]
+        processedScores.add(score);
+      }
+      competitionRank++;
+    });
+    scores.forEach((score, i) => { placeByIdx[i] = scoreToPlace.get(score) ?? 999; });
+  }
 
   let headerCols = `<th><div style="padding:16px 18px;font-size:12px;color:var(--text-muted);font-weight:600">Характеристики</div></th>`;
   comparing.forEach((p, i) => {
@@ -685,7 +847,7 @@ function render() {
             <div class="prod-img-fallback" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">${SVG_MAP[p.img] || SVG_MAP.jeep}</div>
             ${(p.photo || (p.img && /^(https?:|\/)/.test(p.img))) ? `<img src="${String(p.photo || p.img).replace(/"/g,'&quot;')}" alt="${(p.name||'').replace(/"/g,'&quot;')}" style="position:relative;z-index:2;width:100%;height:100%;object-fit:contain;background:#fff" loading="lazy" onerror="this.remove()">` : ''}
           </div>
-          ${medal ? `<div class="prod-rank" title="${placeLabel}: ${scores[i]} переваг(и) серед порівнюваних">${medal} ${placeLabel}</div>` : ''}
+          ${medal ? `<div class="prod-rank" title="${placeLabel}: ${scores[i]} балів (потужність×5 + АКБ×4 + двигуни×3 + акум×2 + швидкість×2 + місця×1)">${medal} ${placeLabel}</div>` : ''}
           ${(p.brand && !/^без\s*бренд/i.test(p.brand)) ? `<div class="prod-brand">${p.brand}</div>` : ''}
           <div class="prod-name">${p.name}</div>
           <div class="prod-price">${p.price.toLocaleString('uk-UA')} ₴</div>
@@ -715,7 +877,7 @@ function render() {
         <span><span class="val-highlight" style="padding:2px 8px;border-radius:6px">124</span> — об'єктивно краще значення (більше потужності/швидкості/вантажопідйомності тощо)</span>
         <span><span class="val-yes" style="display:inline-flex"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Так</span> — опція є (без порівняння з іншими товарами)</span>
         <span><span class="val-unspecified">Не вказано</span> — дані по цьому товару ще не заповнені в базі</span>
-        <span>🥇🥈🥉 — місце в рейтингу за сумою об'єктивних переваг серед порівнюваних товарів</span>
+        <span>🥇🥈🥉 — місце в рейтингу за зваженим балом: потужність двигунів (×5) + АКБ (×4) + кількість двигунів (×3) + кількість АКБ (×2) + швидкість (×2) + кількість місць (×1)</span>
       </div>
       <table class="cmp">
         <thead><tr>${headerCols}</tr></thead>
