@@ -233,7 +233,6 @@ table.cmp{width:100%;border-collapse:collapse;min-width:720px}
   text-align:center;
   position:relative;
   border-radius:24px 24px 0 0;
-  overflow:hidden;
 }
 /* Зірки-декор у фоні */
 .wb-top::before{
@@ -1029,12 +1028,6 @@ function render() {
 
   content.innerHTML = `
     <div class="compare-wrap">
-      <div class="cmp-legend">
-        <span><span class="val-highlight" style="padding:2px 8px;border-radius:6px">124</span> — об'єктивно краще значення (більше потужності/швидкості тощо)</span>
-        <span><span class="val-yes" style="display:inline-flex"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Так</span> — опція є</span>
-        <span><span class="val-unspecified">Не вказано</span> — дані не заповнені</span>
-        <span>🥇🥈🥉 — місця в рейтингу за зваженим балом: потужність (×5) + АКБ (×4) + двигуни (×3) + акум (×2) + швидкість (×2) + місця (×1)</span>
-      </div>
       <table class="cmp">
         <thead><tr>${headerCols}</tr></thead>
         <tbody>${rows}</tbody>
