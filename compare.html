@@ -212,46 +212,135 @@ table.cmp{width:100%;border-collapse:collapse;min-width:720px}
 #winnerBanner{
   position:fixed;inset:0;z-index:8000;
   display:flex;align-items:center;justify-content:center;
-  background:rgba(10,20,50,.55);backdrop-filter:blur(6px);
+  background:rgba(10,20,50,.6);backdrop-filter:blur(8px);
   padding:20px;
-  animation:wbFadeIn .4s ease both;
+  animation:wbFadeIn .35s ease both;
 }
 @keyframes wbFadeIn{from{opacity:0}to{opacity:1}}
+#wbConfetti{position:fixed;inset:0;z-index:7999;pointer-events:none}
 .wb-card{
-  background:#fff;border-radius:22px;
-  box-shadow:0 30px 80px rgba(0,0,0,.35);
-  max-width:440px;width:100%;
-  overflow:hidden;
-  animation:wbSlideUp .45s cubic-bezier(.34,1.56,.64,1) both;
+  background:#fff;border-radius:24px;
+  box-shadow:0 40px 100px rgba(0,0,0,.45),0 0 0 1px rgba(255,255,255,.08);
+  max-width:420px;width:100%;
+  overflow:visible;
+  animation:wbSlideUp .5s cubic-bezier(.34,1.56,.64,1) both;
   position:relative;
 }
-@keyframes wbSlideUp{from{transform:translateY(24px) scale(.95);opacity:0}to{transform:none;opacity:1}}
+@keyframes wbSlideUp{from{transform:translateY(30px) scale(.93);opacity:0}to{transform:none;opacity:1}}
 .wb-top{
-  background:linear-gradient(135deg,var(--navy) 0%,#2d4270 100%);
-  padding:22px 22px 0;
+  background:linear-gradient(150deg,#1a2f5a 0%,#243870 60%,#1e3460 100%);
+  padding:20px 22px 70px;
   text-align:center;
   position:relative;
+  border-radius:24px 24px 0 0;
+  overflow:hidden;
 }
-.wb-crown{font-size:36px;line-height:1;margin-bottom:4px}
-.wb-label{font-family:'Nunito',sans-serif;font-weight:800;font-size:12px;
-  color:rgba(255,255,255,.7);letter-spacing:.18em;text-transform:uppercase;margin-bottom:6px}
-.wb-title{font-family:'Nunito',sans-serif;font-weight:900;font-size:16px;color:rgba(255,255,255,.55);margin-bottom:10px}
-.wb-img-wrap{width:140px;height:110px;margin:0 auto;position:relative;border-radius:12px 12px 0 0;overflow:hidden;background:rgba(255,255,255,.08)}
-.wb-body{padding:18px 22px 20px;text-align:center}
-.wb-name{font-family:'Nunito',sans-serif;font-weight:900;font-size:18px;color:var(--navy);line-height:1.25;margin-bottom:4px}
-.wb-sku{font-size:12px;color:var(--text-muted);font-weight:600;margin-bottom:4px}
-.wb-score{display:inline-flex;align-items:center;gap:5px;background:#FFF6DE;border:1px solid #F5D98B;border-radius:20px;padding:3px 12px;font-size:12px;font-weight:800;color:#92610a;margin-bottom:14px}
+/* Зірки-декор у фоні */
+.wb-top::before{
+  content:'✦  ✦  ✦';
+  position:absolute;top:14px;left:0;right:0;
+  font-size:10px;color:rgba(255,215,0,.25);
+  letter-spacing:22px;text-align:center;
+  pointer-events:none;
+}
+.wb-crown{
+  font-size:38px;line-height:1;margin-bottom:6px;
+  display:inline-block;
+  animation:wbBounce .6s cubic-bezier(.34,1.56,.64,1) .3s both;
+}
+@keyframes wbBounce{from{transform:scale(0) rotate(-20deg);opacity:0}to{transform:none;opacity:1}}
+.wb-label{
+  font-family:'Nunito',sans-serif;font-weight:800;font-size:11px;
+  color:rgba(255,215,0,.85);letter-spacing:.2em;text-transform:uppercase;
+}
+/* ── Кругле фото — "медаль" ── */
+.wb-avatar-ring{
+  width:136px;height:136px;
+  border-radius:50%;
+  background:linear-gradient(135deg,#FFD700,#FFA500,#FFD700);
+  padding:4px;
+  position:absolute;
+  bottom:-68px;left:50%;transform:translateX(-50%);
+  box-shadow:
+    0 0 0 3px #fff,
+    0 8px 30px rgba(255,180,0,.55),
+    0 0 60px rgba(255,180,0,.25);
+  z-index:5;
+  animation:wbAvatarIn .55s cubic-bezier(.34,1.56,.64,1) .15s both;
+}
+@keyframes wbAvatarIn{from{transform:translateX(-50%) scale(0.5) translateY(20px);opacity:0}to{transform:translateX(-50%) scale(1) translateY(0);opacity:1}}
+.wb-avatar-inner{
+  width:100%;height:100%;border-radius:50%;
+  background:#eef2f9;
+  overflow:hidden;
+  position:relative;
+  display:flex;align-items:center;justify-content:center;
+}
+/* SVG-заглушка всередині кола */
+.wb-avatar-inner .wb-svg-fb{
+  width:80%;height:80%;display:flex;align-items:center;justify-content:center;
+  opacity:.55;
+}
+.wb-avatar-inner img{
+  position:absolute;inset:0;width:100%;height:100%;
+  object-fit:contain;object-position:center;
+  border-radius:50%;
+  background:#fff;
+  z-index:2;
+}
+/* ── Тіло картки ── */
+.wb-body{
+  padding:86px 24px 22px;
+  text-align:center;
+}
+.wb-name{
+  font-family:'Nunito',sans-serif;font-weight:900;font-size:19px;
+  color:var(--navy);line-height:1.25;margin-bottom:3px;
+}
+.wb-sku{font-size:12px;color:var(--text-muted);font-weight:600;margin-bottom:16px}
+.wb-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:linear-gradient(135deg,#FFF8E1,#FFF3CD);
+  border:1.5px solid #F5C842;
+  border-radius:20px;padding:5px 14px;
+  font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;color:#7a4f00;
+  margin-bottom:16px;
+  box-shadow:0 2px 8px rgba(245,200,66,.25);
+}
 .wb-actions{display:flex;flex-direction:column;gap:8px}
-.wb-btn-primary{width:100%;padding:11px;border-radius:11px;background:var(--orange);color:#fff;border:none;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;box-shadow:0 4px 14px rgba(255,107,53,.3);transition:all .2s}
-.wb-btn-primary:hover{background:var(--orange-dark);transform:translateY(-1px)}
-.wb-btn-sec{width:100%;padding:10px;border-radius:11px;background:var(--bg-soft);color:var(--text-muted);border:1.5px solid var(--border);cursor:pointer;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;transition:all .2s}
+.wb-btn-primary{
+  width:100%;padding:13px;border-radius:12px;
+  background:linear-gradient(135deg,var(--orange),#ff8c42);
+  color:#fff;border:none;cursor:pointer;
+  font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;
+  box-shadow:0 6px 20px rgba(255,107,53,.4);
+  transition:all .2s;letter-spacing:.02em;
+}
+.wb-btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(255,107,53,.5)}
+.wb-btn-sec{
+  width:100%;padding:10px;border-radius:12px;
+  background:transparent;color:var(--text-muted);
+  border:1.5px solid var(--border);cursor:pointer;
+  font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;transition:all .2s;
+}
 .wb-btn-sec:hover{border-color:var(--navy);color:var(--navy)}
-.wb-close{position:absolute;top:12px;right:12px;width:30px;height:30px;border:none;background:rgba(255,255,255,.12);border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.8);transition:all .2s;z-index:3}
-.wb-close:hover{background:rgba(255,255,255,.25)}
+.wb-close{
+  position:absolute;top:12px;right:12px;
+  width:30px;height:30px;border:none;
+  background:rgba(255,255,255,.14);border-radius:50%;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  color:rgba(255,255,255,.8);transition:all .2s;z-index:10;
+}
+.wb-close:hover{background:rgba(255,255,255,.28)}
 .wb-close svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
-.wb-timer{height:3px;background:#F5D98B;border-radius:0 0 0 0;transform-origin:left;animation:wbTimer var(--wb-duration,4s) linear both}
+.wb-timer{
+  height:3px;background:linear-gradient(90deg,#FFD700,#FFA500);
+  transform-origin:left;
+  animation:wbTimer var(--wb-duration,4s) linear both;
+  border-radius:0 0 24px 24px;
+}
 @keyframes wbTimer{from{transform:scaleX(1)}to{transform:scaleX(0)}}
-@media(max-width:480px){.wb-card{max-width:100%;border-radius:18px}.wb-name{font-size:15px}.wb-img-wrap{width:110px;height:86px}}
+@media(max-width:480px){.wb-card{max-width:100%}.wb-name{font-size:16px}.wb-avatar-ring{width:110px;height:110px;bottom:-55px}.wb-body{padding-top:72px}}
 
   /* ── SEARCH OVERLAY ── */
   .search-overlay{position:fixed;inset:0;background:rgba(15,25,55,.55);backdrop-filter:blur(6px);z-index:2000;display:none;align-items:flex-start;justify-content:center;padding:80px 20px 20px;opacity:0;transition:opacity .2s ease}
@@ -968,13 +1057,23 @@ function _maybeShowWinnerBanner(winner, score) {
 
   const existing = document.getElementById('winnerBanner');
   if (existing) existing.remove();
+  const existingC = document.getElementById('wbConfetti');
+  if (existingC) existingC.remove();
 
   const photo = winner.photo || '';
   const svgFallback = SVG_MAP[winner.img] || SVG_MAP.jeep;
 
+  // ── Конфеті canvas ────────────────────────────────────────────────────────
+  const canvas = document.createElement('canvas');
+  canvas.id = 'wbConfetti';
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  document.body.appendChild(canvas);
+  _wbLaunchConfetti(canvas);
+
+  // ── Banner ────────────────────────────────────────────────────────────────
   const banner = document.createElement('div');
   banner.id = 'winnerBanner';
-  // Встановлюємо тривалість анімації через CSS-змінну (синхронно з setTimeout)
   banner.style.setProperty('--wb-duration', CMP_BANNER_SEC + 's');
   banner.innerHTML = `
     <div class="wb-card">
@@ -984,20 +1083,24 @@ function _maybeShowWinnerBanner(winner, score) {
         </button>
         <div class="wb-crown">🏆</div>
         <div class="wb-label">Найкраща модель серед обраних</div>
-        <div class="wb-img-wrap">
-          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:1">${svgFallback}</div>
-          ${photo ? `<img src="${photo.replace(/"/g,'&quot;')}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:2" onerror="this.remove()">` : ''}
+        <!-- Кругле фото-медаль — перекриває межу top/body -->
+        <div class="wb-avatar-ring">
+          <div class="wb-avatar-inner">
+            <div class="wb-svg-fb">${svgFallback}</div>
+            ${photo ? `<img src="${photo.replace(/"/g,'&quot;')}" alt="${(winner.name||'').replace(/"/g,'&quot;')}" onerror="this.remove()">` : ''}
+          </div>
         </div>
       </div>
       <div class="wb-body">
         <div class="wb-name">${winner.name}</div>
         ${winner.sku ? `<div class="wb-sku">Арт. ${winner.sku}</div>` : ''}
-        <div class="wb-actions" style="margin-top:14px">
+        <div class="wb-badge">🥇&nbsp;Переможець порівняння</div>
+        <div class="wb-actions">
           <button class="wb-btn-primary" onclick="closeWinnerBanner();document.querySelector('.compare-wrap')?.scrollIntoView({behavior:'smooth',block:'start'})">Переглянути детальне порівняння</button>
           <button class="wb-btn-sec" onclick="closeWinnerBanner()">Закрити</button>
         </div>
       </div>
-      <div class="wb-timer" id="wbTimerBar"></div>
+      <div class="wb-timer"></div>
     </div>`;
 
   document.body.appendChild(banner);
@@ -1006,12 +1109,80 @@ function _maybeShowWinnerBanner(winner, score) {
   _winnerBannerTimer = setTimeout(closeWinnerBanner, CMP_BANNER_SEC * 1000);
 }
 
+// ── Canvas confetti / феєрверк ────────────────────────────────────────────
+let _wbConfettiRaf = null;
+function _wbLaunchConfetti(canvas) {
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const COLORS = ['#FFD700','#FF6B35','#27AE60','#3B82F6','#EC4899','#F59E0B','#8B5CF6','#fff'];
+  const SHAPES = ['rect','circle','ribbon'];
+
+  // Генеруємо частинки — два залпи з різних точок
+  const particles = [];
+  const origins = [[W * 0.25, H * 0.55], [W * 0.75, H * 0.55], [W * 0.5, H * 0.65]];
+  origins.forEach(([ox, oy]) => {
+    for (let i = 0; i < 55; i++) {
+      const angle = (Math.random() * Math.PI * 1.6) - Math.PI * 1.3; // вгору + в сторони
+      const speed = 6 + Math.random() * 14;
+      particles.push({
+        x: ox, y: oy,
+        vx: Math.cos(angle) * speed * (0.5 + Math.random()),
+        vy: Math.sin(angle) * speed,
+        color: COLORS[Math.floor(Math.random() * COLORS.length)],
+        shape: SHAPES[Math.floor(Math.random() * SHAPES.length)],
+        w: 6 + Math.random() * 8,
+        h: 4 + Math.random() * 6,
+        rot: Math.random() * Math.PI * 2,
+        rotV: (Math.random() - 0.5) * 0.25,
+        alpha: 1,
+        gravity: 0.35 + Math.random() * 0.2,
+        drag: 0.97,
+      });
+    }
+  });
+
+  let frame = 0;
+  function tick() {
+    ctx.clearRect(0, 0, W, H);
+    let alive = false;
+    particles.forEach(p => {
+      p.vx *= p.drag; p.vy = p.vy * p.drag + p.gravity;
+      p.x += p.vx; p.y += p.vy;
+      p.rot += p.rotV;
+      if (frame > 50) p.alpha -= 0.012;
+      if (p.alpha <= 0 || p.y > H + 20) return;
+      alive = true;
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, p.alpha);
+      ctx.fillStyle = p.color;
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      if (p.shape === 'circle') {
+        ctx.beginPath(); ctx.arc(0, 0, p.w / 2, 0, Math.PI * 2); ctx.fill();
+      } else if (p.shape === 'ribbon') {
+        ctx.fillRect(-p.w / 2, -p.h / 6, p.w, p.h / 3);
+      } else {
+        ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      }
+      ctx.restore();
+    });
+    frame++;
+    if (alive) _wbConfettiRaf = requestAnimationFrame(tick);
+    else { ctx.clearRect(0, 0, W, H); }
+  }
+  _wbConfettiRaf = requestAnimationFrame(tick);
+}
+
 function closeWinnerBanner() {
   clearTimeout(_winnerBannerTimer);
+  if (_wbConfettiRaf) { cancelAnimationFrame(_wbConfettiRaf); _wbConfettiRaf = null; }
+  const c = document.getElementById('wbConfetti');
+  if (c) c.remove();
   const b = document.getElementById('winnerBanner');
   if (!b) return;
-  b.style.transition = 'opacity .3s';
+  b.style.transition = 'opacity .3s, transform .3s';
   b.style.opacity = '0';
+  b.style.transform = 'scale(.95)';
   setTimeout(() => b.remove(), 320);
 }
 
