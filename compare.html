@@ -802,24 +802,43 @@ function render() {
   }
 
   // Empty slots to add (залежить від налаштування адмінки)
-  const emptySlots = CMP_MAX_PRODUCTS - count;
+  const emptySlots = Math.max(0, CMP_MAX_PRODUCTS - count);
 
-  // ── Принцип підсвітки (щоб було однозначно зрозуміло користувачу) ──────────
-  // Зелена підсвітка + бал у рейтингу даються ЛИШЕ там, де перевагу можна об'єктивно
-  // ВИМІРЯТИ числом (потужність, швидкість, вантажопідйомність тощо) — і тільки якщо
-  // значення відомі хоча б у двох товарів і вони різні (нічия/невідомо → без підсвітки).
-  // Наявність опції (Bluetooth, MP3, амортизатори...) показуємо нейтральною галочкою
-  // "✓ Так", БЕЗ підсвітки і БЕЗ балів у рейтингу — бо "Не вказано" в базі означає лише
-  // "дані не заповнені", а не "цієї опції немає", і підсвічувати це як перевагу було б
-  // нечесно введенням в оману. Зелена підсвітка в рядку таблиці — лише для числових
-  // вимірюваних характеристик, де є хоча б два відомих різних значення.
-  // Фінальний рейтинг рахується окремою функцією _cmpComputeRankingScores() —
-  // за зваженим алгоритмом із заздалегідь визначеними критеріями та вагами.
+  // ── Рейтинг + сортування (ПОВИННО бути ДО побудови рядків таблиці!) ─────────
+  const rawScores = _cmpComputeRankingScores(comparing);
+  const hasAnyScore = rawScores.some(s => s > 0);
+
+  // Сортуємо товари за рейтингом — найкращий ЗАВЖДИ зліва.
+  // displayOrder[i] = індекс в оригінальному comparing; для removeProduct().
+  let displayOrder = comparing.map((_, i) => i);
+  if (hasAnyScore) {
+    displayOrder.sort((a, b) => rawScores[b] - rawScores[a]);
+  }
+  const sortedComparing = displayOrder.map(i => comparing[i]);
+  const sortedScores   = displayOrder.map(i => rawScores[i]);
+
+  // Competition ranking: однакові бали → однакове місце.
+  const placeByIdx = {};
+  const medals = ['🥇', '🥈', '🥉'];
+  const rankColors = ['prod-rank-gold', 'prod-rank-silver', 'prod-rank-bronze'];
+  if (hasAnyScore) {
+    const sortedForRank = sortedScores.slice().sort((a, b) => b - a);
+    const scoreToPlace = new Map();
+    let cr = 1;
+    const seen = new Set();
+    sortedForRank.forEach(s => {
+      if (!seen.has(s)) { scoreToPlace.set(s, cr - 1); seen.add(s); }
+      cr++;
+    });
+    sortedScores.forEach((s, i) => { placeByIdx[i] = scoreToPlace.get(s) ?? 999; });
+  }
+
+  // ── Рядки таблиці ────────────────────────────────────────────────────────────
   let rows = '';
   for (const [section, fields] of Object.entries(specSections)) {
     rows += `<tr class="section-row"><td colspan="${count + emptySlots + 1}">${section}</td></tr>`;
     fields.forEach(({ key, label }) => {
-      // Використовуємо sortedComparing (відсортований за рейтингом, 1-й зліва)
+      // sortedComparing відсортований за рейтингом — 1-й зліва
       const rawValues = sortedComparing.map(p => {
         const v = p && p.specs ? p.specs[key] : undefined;
         return (v === undefined || v === null || v === '') ? NOT_SPECIFIED : v;
@@ -858,36 +877,6 @@ function render() {
   }
 
   // ── Крок 2: рейтинг за зваженим алгоритмом (RANKING_CRITERIA × ваги) ──────
-  const rawScores = _cmpComputeRankingScores(comparing);
-  const hasAnyScore = rawScores.some(s => s > 0);
-
-  // ── Сортуємо товари за рейтингом — найкращий ЗАВЖДИ зліва ──────────────────
-  // Переставляємо лише для відображення; оригінальний масив comparing не змінюємо.
-  let displayOrder = comparing.map((_, i) => i);
-  if (hasAnyScore) {
-    displayOrder.sort((a, b) => rawScores[b] - rawScores[a]);
-  }
-  const sortedComparing = displayOrder.map(i => comparing[i]);
-  const sortedScores   = displayOrder.map(i => rawScores[i]);
-
-  // Competition ranking для відображення місць:
-  // однакові фінальні бали → однакове місце (нічия); наступний товар отримує місце з пропуском.
-  // Приклад: [80,80,60,40] → 🥇1 місце, 🥇1 місце, 🥉3 місце, 4 місце.
-  const placeByIdx = {};  // індекс у sortedComparing → 0-based місце
-  const medals = ['🥇', '🥈', '🥉'];
-  const rankColors = ['prod-rank-gold','prod-rank-silver','prod-rank-bronze'];
-  if (hasAnyScore) {
-    const sorted = sortedScores.slice().sort((a, b) => b - a);
-    const scoreToPlace = new Map();
-    let cr = 1;
-    const seen = new Set();
-    sorted.forEach(s => {
-      if (!seen.has(s)) { scoreToPlace.set(s, cr - 1); seen.add(s); }
-      cr++;
-    });
-    sortedScores.forEach((s, i) => { placeByIdx[i] = scoreToPlace.get(s) ?? 999; });
-  }
-
   let headerCols = `<th style="width:180px"><div style="padding:16px 16px;font-size:12px;color:var(--text-muted);font-weight:600">Характеристики</div></th>`;
   sortedComparing.forEach((p, i) => {
     // Знаходимо реальний індекс у оригінальному масиві для removeProduct()
