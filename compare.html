@@ -980,20 +980,12 @@ function render() {
   const sortedComparing = displayOrder.map(i => comparing[i]);
   const sortedScores   = displayOrder.map(i => rawScores[i]);
 
-  // Competition ranking: однакові бали → однакове місце.
+  // Місце = позиція в масиві після сортування з tie-break — завжди унікальне.
   const placeByIdx = {};
   const medals = ['🥇', '🥈', '🥉'];
   const rankColors = ['prod-rank-gold', 'prod-rank-silver', 'prod-rank-bronze'];
   if (hasAnyScore) {
-    const sortedForRank = sortedScores.slice().sort((a, b) => b - a);
-    const scoreToPlace = new Map();
-    let cr = 1;
-    const seen = new Set();
-    sortedForRank.forEach(s => {
-      if (!seen.has(s)) { scoreToPlace.set(s, cr - 1); seen.add(s); }
-      cr++;
-    });
-    sortedScores.forEach((s, i) => { placeByIdx[i] = scoreToPlace.get(s) ?? 999; });
+    sortedScores.forEach((_, i) => { placeByIdx[i] = i; });
   }
 
   // ── Рядки таблиці ────────────────────────────────────────────────────────────
