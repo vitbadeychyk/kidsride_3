@@ -117,7 +117,7 @@ table.cmp{width:100%;border-collapse:collapse;min-width:720px}
 /* Header row */
 .cmp thead tr th{
   padding:0;
-  border-bottom:2px solid var(--border);
+  border-bottom:none;
   vertical-align:top;
 }
 .cmp thead tr th:first-child{
@@ -131,8 +131,16 @@ table.cmp{width:100%;border-collapse:collapse;min-width:720px}
   font-weight:600;
   vertical-align:middle;
 }
+/* Button row — separates button from info for perfect alignment */
+.cmp thead tr.prod-btn-row th{
+  padding:0;
+  border-bottom:2px solid var(--border);
+  vertical-align:middle;
+}
+.prod-btn-cell{padding:0 12px 14px;text-align:center}
+.prod-btn-cell .prod-cart{width:100%}
 
-.prod-header{padding:20px 16px;text-align:center;position:relative;display:flex;flex-direction:column;align-items:center;height:100%}
+.prod-header{padding:20px 16px 12px;text-align:center;position:relative}
 .prod-img{position:relative;width:120px;height:90px;display:flex;align-items:center;justify-content:center;border-radius:var(--r-sm);overflow:hidden;margin:0 auto 12px;background:var(--bg-soft)}
 .prod-img img{width:100%;height:100%;object-fit:contain}
 .prod-img svg{width:70%;height:70%}
@@ -147,7 +155,7 @@ table.cmp{width:100%;border-collapse:collapse;min-width:720px}
 .prod-rank-silver{color:#5a6272;background:#F3F4F6;border:1px solid #D1D5DB}
 .prod-rank-bronze{color:#7c4a2a;background:#FEF3E8;border:1px solid #FDBA74}
 .prod-rank-other{color:#4B5563;background:#F3F4F6;border:1px solid #D1D5DB}
-.prod-cart{width:100%;padding:10px;border-radius:9px;background:var(--orange);color:white;border:none;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s;box-shadow:0 4px 12px rgba(255,107,53,.3);margin-top:auto}
+.prod-cart{width:100%;padding:10px;border-radius:9px;background:var(--orange);color:white;border:none;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s;box-shadow:0 4px 12px rgba(255,107,53,.3)}
 .prod-cart:hover{background:var(--orange-dark);transform:translateY(-1px)}
 .prod-cart svg{width:14px;height:14px;stroke:white;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
@@ -182,10 +190,11 @@ table.cmp{width:100%;border-collapse:collapse;min-width:720px}
   .page{padding:10px 4px 60px;max-width:100%}
   .compare-wrap{border-radius:10px}
   .prod-img{width:68px;height:52px;margin-bottom:5px}
-  .prod-header{padding:8px 6px}
+  .prod-header{padding:8px 6px 6px}
   .prod-name{font-size:11px;line-height:1.2;margin-bottom:6px}
-  .prod-price{font-size:13px;margin-bottom:6px}
-  .prod-cart{padding:6px 7px;font-size:10px;gap:4px;border-radius:7px}
+  .prod-price{font-size:13px;margin-bottom:0}
+  .prod-btn-cell{padding:0 5px 10px}
+  .prod-cart{padding:7px 6px;font-size:10px;gap:4px;border-radius:7px}
   .prod-cart svg{width:11px;height:11px}
   .prod-brand{font-size:8px;margin-bottom:2px}
   .prod-rank{font-size:9px;padding:2px 6px;margin-bottom:5px}
@@ -196,10 +205,11 @@ table.cmp{width:100%;border-collapse:collapse;min-width:720px}
 @media(max-width:480px){
   .page{padding:6px 2px 56px}
   .prod-img{width:56px;height:44px;margin-bottom:4px}
-  .prod-header{padding:6px 3px}
+  .prod-header{padding:6px 3px 4px}
   .prod-name{font-size:10px;margin-bottom:4px}
-  .prod-price{font-size:11px;margin-bottom:5px}
-  .prod-cart{padding:5px 4px;font-size:9px;gap:2px;border-radius:6px}
+  .prod-price{font-size:11px;margin-bottom:0}
+  .prod-btn-cell{padding:0 3px 8px}
+  .prod-cart{padding:6px 4px;font-size:9px;gap:2px;border-radius:6px}
   .prod-cart svg{width:10px;height:10px}
   .prod-brand{font-size:7px}
   .prod-rank{font-size:8px;padding:1px 5px;margin-bottom:4px}
@@ -932,7 +942,40 @@ function render() {
   // displayOrder[i] = індекс в оригінальному comparing; для removeProduct().
   let displayOrder = comparing.map((_, i) => i);
   if (hasAnyScore) {
-    displayOrder.sort((a, b) => rawScores[b] - rawScores[a]);
+    // Порядок tie-break критеріїв (послідовне порівняння при рівному балі).
+    // Порядок: потужність двигунів → швидкість → АКБ → двигуни → акум → місця.
+    const TIE_BREAK_FIELDS = [
+      'motor_power_total',  // count × power — найважливіший
+      'max_speed',
+      'battery_power_total', // count × voltage
+      'motor_count',
+      'battery_count',
+      'seats_count',
+    ];
+    // Карта: field → compute-функція з RANKING_CRITERIA (будь-яка, у т.ч. вимкнена)
+    const _tbCompute = {};
+    RANKING_CRITERIA.forEach(c => { _tbCompute[c.field] = c.compute; });
+    // Попередньо рахуємо tie-break значення для кожного товару (щоб не рахувати в sort)
+    const _tbValues = comparing.map(p => {
+      const specs = p.specs || {};
+      const out = {};
+      TIE_BREAK_FIELDS.forEach(f => {
+        if (_tbCompute[f]) out[f] = _tbCompute[f](specs) ?? -Infinity;
+        else out[f] = -Infinity;
+      });
+      return out;
+    });
+
+    displayOrder.sort((a, b) => {
+      const diff = rawScores[b] - rawScores[a];
+      if (diff !== 0) return diff;
+      // Однаковий бал — tie-break за послідовними критеріями
+      for (const f of TIE_BREAK_FIELDS) {
+        const d = (_tbValues[b][f] ?? -Infinity) - (_tbValues[a][f] ?? -Infinity);
+        if (d !== 0) return d;
+      }
+      return 0;
+    });
   }
   const sortedComparing = displayOrder.map(i => comparing[i]);
   const sortedScores   = displayOrder.map(i => rawScores[i]);
@@ -997,7 +1040,10 @@ function render() {
   }
 
   // ── Крок 2: рейтинг за зваженим алгоритмом (RANKING_CRITERIA × ваги) ──────
-  let headerCols = `<th style="width:180px"><div style="padding:16px 16px;font-size:12px;color:var(--text-muted);font-weight:600">Характеристики</div></th>`;
+  // First-column "Характеристики" spans both header rows
+  let headerCols = `<th rowspan="2" style="width:180px"><div style="padding:16px 16px;font-size:12px;color:var(--text-muted);font-weight:600">Характеристики</div></th>`;
+  let btnCols = ''; // first column covered by rowspan="2" above
+
   sortedComparing.forEach((p, i) => {
     // Знаходимо реальний індекс у оригінальному масиві для removeProduct()
     const origIdx = displayOrder[i];
@@ -1006,6 +1052,8 @@ function render() {
     const rankCls = (place !== null && place < 3) ? rankColors[place] : 'prod-rank-other';
     const placeLabel = place !== null ? `${place + 1} місце` : '';
     const rankTip = place !== null ? `${placeLabel}: ${sortedScores[i]} балів (потужність×5 + АКБ×4 + двигуни×3 + акум×2 + швидкість×2 + місця×1)` : '';
+
+    // Info row: photo, rank, name, price — no button
     headerCols += `
       <th>
         <div class="prod-header">
@@ -1020,18 +1068,23 @@ function render() {
           ${(p.brand && !/^без\s*бренд/i.test(p.brand)) ? `<div class="prod-brand">${p.brand}</div>` : ''}
           <div class="prod-name">${p.name}</div>
           <div class="prod-price">${p.price.toLocaleString('uk-UA')} ₴</div>
-          <button class="prod-cart" onclick="addToCartFromCompare('${p.id}', ${p.price}, '${p.name}', '${p.brand}', this)">
-            <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-            В кошик
-          </button>
         </div>
+      </th>`;
+
+    // Button row: one dedicated cell per product — all buttons align perfectly
+    btnCols += `
+      <th class="prod-btn-cell">
+        <button class="prod-cart" onclick="addToCartFromCompare('${p.id}', ${p.price}, '${p.name}', '${p.brand}', this)">
+          <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+          В кошик
+        </button>
       </th>`;
   });
 
-  // Empty slots
+  // Empty slots span both header rows via rowspan="2"
   for (let i = 0; i < emptySlots; i++) {
     headerCols += `
-      <th>
+      <th rowspan="2">
         <div class="empty-slot" onclick="location.href='catalog.html'">
           <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           <p>Додати товар</p>
@@ -1043,7 +1096,10 @@ function render() {
   content.innerHTML = `
     <div class="compare-wrap">
       <table class="cmp">
-        <thead><tr>${headerCols}</tr></thead>
+        <thead>
+          <tr>${headerCols}</tr>
+          <tr class="prod-btn-row">${btnCols}</tr>
+        </thead>
         <tbody>${rows}</tbody>
       </table>
     </div>`;
