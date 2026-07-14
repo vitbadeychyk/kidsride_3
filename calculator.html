@@ -309,9 +309,8 @@ nav a.active{color:var(--orange)}
   <div class="step-card" id="step1">
     <h2 class="step-q">Скільки років вашій дитині?</h2>
     <p class="step-hint">Від віку залежить потужність, розмір та максимальна швидкість</p>
-    <div class="options-grid cols-3">
-      <div class="opt-card" onclick="selectOpt(this,'age','0-3')"><span class="opt-icon">👶</span><div class="opt-title">До 3 років</div><div class="opt-desc">Перші моделі, м'який старт, безпечна швидкість</div><div class="opt-tag">6V</div></div>
-      <div class="opt-card" onclick="selectOpt(this,'age','3-8')"><span class="opt-icon">🧒</span><div class="opt-title">Від 3 до 8 років</div><div class="opt-desc">Джипи, квадроцикли, мотоцикли, машини</div><div class="opt-tag">12V</div></div>
+    <div class="options-grid cols-2">
+<div class="opt-card" onclick="selectOpt(this,'age','1-8')"><span class="opt-icon">🧒</span><div class="opt-title">Від 1 до 8 років</div><div class="opt-desc">Джипи, квадроцикли, мотоцикли, машини</div><div class="opt-tag">12V</div></div>
       <div class="opt-card" onclick="selectOpt(this,'age','8-13')"><span class="opt-icon">🧑</span><div class="opt-title">Від 8 до 13 років</div><div class="opt-desc">Потужні моделі для впевнених водіїв</div><div class="opt-tag">24V</div></div>
     </div>
     <div class="step-nav"><div></div><button class="btn btn-primary" id="nextBtn1" onclick="goToStep(2)" disabled>Далі <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button></div>
@@ -374,8 +373,7 @@ const EV_CATEGORIES = ['jeep','car','quad','moto','tractor','truck','buggy'];
 
 // Карта віку → діапазон років та "ідеальна" напруга
 const AGE_RANGES = {
-  '0-3':  { min: 0, max: 3,  voltage: '6V'  },
-  '3-8':  { min: 3, max: 8,  voltage: '12V' },
+  '1-8':  { min: 1, max: 8,  voltage: '12V' },
   '8-13': { min: 8, max: 13, voltage: '24V' }
 };
 
@@ -590,7 +588,7 @@ function showResults() {
   }).sort((a, b) => b.score - a.score);
 
   // Підпис вибору
-  const ageL = { '0-3': 'До 3 років', '3-8': 'Від 3 до 8 років', '8-13': 'Від 8 до 13 років' };
+  const ageL = { '1-8': 'Від 1 до 8 років', '8-13': 'Від 8 до 13 років' };
   const surfL = { pavement: 'На вулиці (асфальт)', offroad: 'Різні поверхні' };
   document.getElementById('resultsSummary').innerHTML = [
     `<div class="rs-tag"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${ageL[answers.age] || ''}</div>`,
@@ -635,7 +633,7 @@ function showResults() {
         <div class="res-bottom">
           <div class="res-price">${Number(p.price).toLocaleString('uk-UA')} ₴</div>
           <div class="res-actions">
-            <a href="${(p.slug||(p.name?p.name.toLowerCase().replace(/[^a-z0-9а-яіїєґ]+\/gi,'-').replace(/^-+|-+$/g,'').substring(0,60):null))?'product/'+(p.slug||(p.name.toLowerCase().replace(/[^a-z0-9а-яіїєґ]+\/gi,'-').replace(/^-+|-+$/g,'').substring(0,60))):'catalog.html?search='+encodeURIComponent(p.name||'')" class="btn btn-ghost btn-sm" style="font-size:12px;padding:8px 14px">Детальніше</a>
+            <a href="${(p.slug||(p.name?p.name.toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi,'-').replace(/^-+|-+$/g,'').substring(0,60):null))?'product/'+(p.slug||(p.name.toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi,'-').replace(/^-+|-+$/g,'').substring(0,60))):'catalog.html?search='+encodeURIComponent(p.name||'')" class="btn btn-ghost btn-sm" style="font-size:12px;padding:8px 14px">Детальніше</a>
             <button class="btn-cart-sm" onclick="addToCart('${escAttr(p.id)}', this)" title="Додати в кошик">
               <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
             </button>
