@@ -78,8 +78,13 @@ table.cmp{width:100%;border-collapse:collapse;min-width:720px}
   background:var(--bg-soft);
   font-size:13px;font-weight:600;color:var(--text-muted);
   padding:14px 16px;
-  position:sticky;left:0;z-index:2;
+  position:sticky;left:0;z-index:20;  /* вище product-th stacking contexts */
   border-right:1px solid var(--border);
+}
+/* Кліпуємо фото строго всередині th-колонки */
+.cmp thead tr th:not(:first-child){
+  overflow:hidden;
+  position:relative;
 }
 .cmp td,.cmp th{
   padding:14px 20px;
@@ -127,7 +132,7 @@ table.cmp{width:100%;border-collapse:collapse;min-width:720px}
   vertical-align:middle;
 }
 
-.prod-header{padding:20px 16px;text-align:center;position:relative}
+.prod-header{padding:20px 16px;text-align:center;position:relative;display:flex;flex-direction:column;align-items:center;height:100%}
 .prod-img{position:relative;width:120px;height:90px;display:flex;align-items:center;justify-content:center;border-radius:var(--r-sm);overflow:hidden;margin:0 auto 12px;background:var(--bg-soft)}
 .prod-img img{width:100%;height:100%;object-fit:contain}
 .prod-img svg{width:70%;height:70%}
@@ -142,7 +147,7 @@ table.cmp{width:100%;border-collapse:collapse;min-width:720px}
 .prod-rank-silver{color:#5a6272;background:#F3F4F6;border:1px solid #D1D5DB}
 .prod-rank-bronze{color:#7c4a2a;background:#FEF3E8;border:1px solid #FDBA74}
 .prod-rank-other{color:#4B5563;background:#F3F4F6;border:1px solid #D1D5DB}
-.prod-cart{width:100%;padding:10px;border-radius:9px;background:var(--orange);color:white;border:none;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s;box-shadow:0 4px 12px rgba(255,107,53,.3)}
+.prod-cart{width:100%;padding:10px;border-radius:9px;background:var(--orange);color:white;border:none;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s;box-shadow:0 4px 12px rgba(255,107,53,.3);margin-top:auto}
 .prod-cart:hover{background:var(--orange-dark);transform:translateY(-1px)}
 .prod-cart svg{width:14px;height:14px;stroke:white;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
@@ -174,28 +179,37 @@ table.cmp{width:100%;border-collapse:collapse;min-width:720px}
   nav{display:none}
   .h-right .btn{display:none}
   .breadcrumb{margin-top:58px;padding:10px 16px;font-size:11px}
-  .page{padding:12px 6px 64px;max-width:100%}
-  .compare-wrap{-webkit-overflow-scrolling:touch;border-radius:10px}
-  .prod-img{width:76px;height:58px;margin-bottom:6px}
-  .prod-header{padding:10px 6px}
-  .prod-name{font-size:12px;line-height:1.25}
-  .prod-price{font-size:14px;margin-bottom:8px}
-  .prod-cart{padding:7px 8px;font-size:11px}
-  .prod-brand{font-size:9px}
-  .prod-rank{font-size:10px;padding:2px 7px}
-  table.cmp{font-size:12px;min-width:0}
-  .cmp td:first-child,.cmp th:first-child{width:100px;min-width:90px;padding:10px 8px;font-size:11px}
-  .cmp td,.cmp th{padding:9px 8px}
-  .cmp-legend{font-size:11px;gap:7px 14px;padding:10px 12px}
+  .page{padding:10px 4px 60px;max-width:100%}
+  .compare-wrap{border-radius:10px}
+  .prod-img{width:68px;height:52px;margin-bottom:5px}
+  .prod-header{padding:8px 6px}
+  .prod-name{font-size:11px;line-height:1.2;margin-bottom:6px}
+  .prod-price{font-size:13px;margin-bottom:6px}
+  .prod-cart{padding:6px 7px;font-size:10px;gap:4px;border-radius:7px}
+  .prod-cart svg{width:11px;height:11px}
+  .prod-brand{font-size:8px;margin-bottom:2px}
+  .prod-rank{font-size:9px;padding:2px 6px;margin-bottom:5px}
+  table.cmp{font-size:11px;min-width:0}
+  .cmp td:first-child,.cmp th:first-child{width:88px;min-width:80px;padding:8px 7px;font-size:10px}
+  .cmp td,.cmp th{padding:8px 7px}
 }
 @media(max-width:480px){
-  .page{padding:8px 4px 56px}
-  .prod-img{width:64px;height:50px}
-  .prod-header{padding:8px 4px}
-  .prod-name{font-size:11px}
-  .prod-price{font-size:13px}
-  .cmp td:first-child,.cmp th:first-child{width:84px;min-width:80px;padding:8px 6px;font-size:10px}
-  .cmp td,.cmp th{padding:8px 6px;font-size:11px}
+  .page{padding:6px 2px 56px}
+  .prod-img{width:56px;height:44px;margin-bottom:4px}
+  .prod-header{padding:6px 3px}
+  .prod-name{font-size:10px;margin-bottom:4px}
+  .prod-price{font-size:11px;margin-bottom:5px}
+  .prod-cart{padding:5px 4px;font-size:9px;gap:2px;border-radius:6px}
+  .prod-cart svg{width:10px;height:10px}
+  .prod-brand{font-size:7px}
+  .prod-rank{font-size:8px;padding:1px 5px;margin-bottom:4px}
+  .prod-remove{width:20px;height:20px;top:4px;right:4px}
+  .prod-remove svg{width:9px;height:9px}
+  table.cmp{font-size:10px;min-width:0}
+  .cmp td:first-child,.cmp th:first-child{width:74px;min-width:68px;padding:6px 5px;font-size:9px}
+  .cmp td,.cmp th{padding:6px 5px;font-size:10px}
+  .val-yes svg{width:12px;height:12px}
+  .val-unspecified{font-size:9px}
 }
 /* ── PHONE IN HEADER ── */
 .h-phone-link{display:inline-flex;align-items:center;gap:7px;text-decoration:none;color:var(--navy);font-family:'Nunito',sans-serif;font-weight:700;font-size:13.5px;padding:8px 12px;border-radius:10px;transition:all .2s;white-space:nowrap}
@@ -1000,7 +1014,7 @@ function render() {
           </button>
           <div class="prod-img">
             <div class="prod-img-fallback" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">${SVG_MAP[p.img] || SVG_MAP.jeep}</div>
-            ${(p.photo || (p.img && /^(https?:|\/)/.test(p.img))) ? `<img src="${String(p.photo || p.img).replace(/"/g,'&quot;')}" alt="${(p.name||'').replace(/"/g,'&quot;')}" style="position:relative;z-index:2;width:100%;height:100%;object-fit:contain;background:#fff" loading="lazy" onerror="this.remove()">` : ''}
+            ${(p.photo || (p.img && /^(https?:|\/)/.test(p.img))) ? `<img src="${String(p.photo || p.img).replace(/"/g,'&quot;')}" alt="${(p.name||'').replace(/"/g,'&quot;')}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#fff;z-index:1" loading="lazy" onerror="this.remove()">` : ''}
           </div>
           ${placeLabel ? `<div class="prod-rank ${rankCls}" title="${rankTip}">${medal}${medal?' ':''}${placeLabel}</div>` : ''}
           ${(p.brand && !/^без\s*бренд/i.test(p.brand)) ? `<div class="prod-brand">${p.brand}</div>` : ''}
