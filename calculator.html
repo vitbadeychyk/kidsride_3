@@ -117,7 +117,7 @@ nav a.active{color:var(--orange)}
 .options-grid.cols-2{grid-template-columns:1fr 1fr}
 .options-grid.cols-3{grid-template-columns:repeat(3,1fr)}
 .options-grid.cols-4{grid-template-columns:repeat(4,1fr)}
-.opt-card{border:2px solid var(--border);border-radius:var(--r);padding:20px 16px;cursor:pointer;transition:all .25s cubic-bezier(.34,1.56,.64,1);text-align:center;position:relative;background:white}
+.opt-card{border:2px solid var(--border);border-radius:var(--r);padding:20px 16px;cursor:pointer;transition:all .25s cubic-bezier(.34,1.56,.64,1);text-align:center;position:relative;background:white;pointer-events:auto;z-index:1;user-select:none;-webkit-user-select:none}
 .opt-card:hover{border-color:rgba(255,107,53,.4);transform:translateY(-3px);box-shadow:var(--shadow-md)}
 .opt-card.selected{border-color:var(--orange);background:rgba(255,107,53,.04);transform:translateY(-3px);box-shadow:0 8px 24px rgba(255,107,53,.15)}
 .opt-card.selected::after{content:'✓';position:absolute;top:10px;right:10px;width:22px;height:22px;background:var(--orange);border-radius:50%;font-size:11px;font-weight:800;color:white;display:flex;align-items:center;justify-content:center;font-family:'Nunito',sans-serif}
@@ -712,6 +712,27 @@ window.addEventListener('scroll', () => {
 
 // ── СТАРТ ───────────────────────────────────────────────────
 loadProducts();
+
+// Додаткова прив'язка кліків через addEventListener (fallback для live-серверів)
+(function() {
+  function bindOptCards() {
+    document.querySelectorAll('.opt-card[onclick]').forEach(function(card) {
+      // Витягти аргументи з onclick
+      var match = (card.getAttribute('onclick') || '').match(/selectOpt\(this,'(\w+)','([^']+)'\)/);
+      if (!match) return;
+      var field = match[1], value = match[2];
+      card.addEventListener('click', function(e) {
+        e.stopPropagation();
+        selectOpt(card, field, value);
+      }, true); // capture phase - спрацьовує раніше будь-яких overlay
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bindOptCards);
+  } else {
+    bindOptCards();
+  }
+})();
 </script>
 </body>
 </html>
