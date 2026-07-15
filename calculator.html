@@ -382,7 +382,8 @@ const SUPABASE_URL = 'https://gwslintdrtnvbfjvivbb.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3c2xpbnRkcnRudmJmanZpdmJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTU4MTUsImV4cCI6MjA5NzczMTgxNX0.2hhyX_PMrXpBa_Q5DW7KiUjf4Jy9nnBStto47_SVF7k';
 
 // ── STATE ────────────────────────────────────────────────────
-const answers = { age: null, category: null, budget: 25000 };
+// categoryId: numeric ID from categories table (null = all transport)
+const answers = { age: null, categoryId: null, budget: 25000 };
 let currentStep = 1;
 let allProducts = [];
 let allCategories = []; // з Supabase (id,name,slug,image_url)
@@ -448,11 +449,17 @@ async function loadProducts() {
       if ([47, 49, 51].includes(v.attribute_id)) ageMap[v.product_id].age_max = parseFloat(v.value);
     }
 
-    // Слаги категорій транспорту (виключаємо запчастини та нетранспортні)
-    const evSlugs = new Set(allCategories.map(c => c.slug));
+    // Набір ID категорій транспорту (виключаємо запчастини)
+    const evCatIds = new Set(allCategories.map(c => c.id));
 
     allProducts = (Array.isArray(rawProds) ? rawProds : [])
-      .filter(p => p.category && evSlugs.has(p.category) && !EXCLUDE_SLUGS.includes((p.category||'').toLowerCase()))
+      .filter(p => {
+        // Включаємо якщо category_id входить в EV-категорії, АБО category-slug збігається
+        const byId  = p.category_id != null && evCatIds.has(p.category_id);
+        const bySlug = p.category && allCategories.some(c => c.slug === p.category);
+        const notParts = !EXCLUDE_SLUGS.includes((p.category||'').toLowerCase());
+        return (byId || bySlug) && notParts;
+      })
       .map(p => ({
         id: p.id,
         sku: p.sku,
@@ -506,12 +513,18 @@ function renderCategoryStep() {
   const grid = document.getElementById('catGrid');
   if (!grid) return;
 
-  // Знаходимо які категорії реально мають товари
-  const slugsInProducts = new Set(allProducts.map(p => p.category));
+  // Для кожної категорії рахуємо товари за category_id (точніший матч)
+  // Fallback: якщо category_id немає — перевіряємо slug
+  function countForCat(cat) {
+    return allProducts.filter(p =>
+      (p.category_id != null && p.category_id === cat.id) ||
+      (p.category_id == null && p.category === cat.slug)
+    ).length;
+  }
 
-  // Фільтруємо категорії Supabase: лише ті де є товари, без запчастин
+  // Фільтруємо: лише категорії з хоча б одним товаром, без запчастин
   let evCats = allCategories.filter(c =>
-    slugsInProducts.has(c.slug) && !EXCLUDE_SLUGS.includes((c.slug||'').toLowerCase())
+    !EXCLUDE_SLUGS.includes((c.slug||'').toLowerCase()) && countForCat(c) > 0
   );
 
   if (evCats.length === 0 && allProducts.length === 0) {
@@ -521,7 +534,7 @@ function renderCategoryStep() {
 
   // "Весь електротранспорт" завжди першим
   let html = `
-    <div class="cat-card cat-all-card${answers.category === null ? ' selected' : ''}" onclick="selectCategory(null, this)">
+    <div class="cat-card cat-all-card${answers.categoryId === null ? ' selected' : ''}" onclick="selectCategory(null, this)">
       <div class="cat-all-inner">
         <span class="cat-all-icon">🚗</span>
         <div class="cat-name" style="color:#fff;font-size:13px;font-weight:800;text-align:center">Весь<br>електротранспорт</div>
@@ -530,11 +543,11 @@ function renderCategoryStep() {
     </div>`;
 
   evCats.forEach(cat => {
-    const count = allProducts.filter(p => p.category === cat.slug).length;
-    const isSelected = answers.category === cat.slug;
+    const count = countForCat(cat);
+    const isSelected = answers.categoryId === cat.id;
     if (cat.image_url) {
       html += `
-        <div class="cat-card${isSelected ? ' selected' : ''}" onclick="selectCategory('${escAttr(cat.slug)}', this)">
+        <div class="cat-card${isSelected ? ' selected' : ''}" onclick="selectCategory(${cat.id}, this)">
           <img class="cat-img" src="${escAttr(cat.image_url)}" alt="${escAttr(cat.name)}" loading="lazy" onerror="this.style.display='none'">
           <div class="cat-overlay">
             <div class="cat-name">${escHtml(cat.name)}</div>
@@ -542,9 +555,8 @@ function renderCategoryStep() {
           </div>
         </div>`;
     } else {
-      // Fallback без фото
       html += `
-        <div class="cat-card${isSelected ? ' selected' : ''}" onclick="selectCategory('${escAttr(cat.slug)}', this)"
+        <div class="cat-card${isSelected ? ' selected' : ''}" onclick="selectCategory(${cat.id}, this)"
              style="background:linear-gradient(135deg,${BG_BY_TYPE[cat.slug] || BG_BY_TYPE.default});display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px">
           <div style="font-size:36px">🚙</div>
           <div class="cat-name" style="color:var(--navy)">${escHtml(cat.name)}</div>
@@ -556,8 +568,8 @@ function renderCategoryStep() {
   grid.innerHTML = html;
 }
 
-function selectCategory(slug, el) {
-  answers.category = slug; // null = all
+function selectCategory(id, el) {
+  answers.categoryId = id; // null = all
   document.querySelectorAll('.cat-card').forEach(c => c.classList.remove('selected'));
   if (el) el.classList.add('selected');
 }
@@ -656,8 +668,15 @@ function showResults() {
 
   const range = AGE_RANGES[answers.age];
   const filtered = allProducts.filter(p => {
-    // Фільтр за категорією (якщо обрано конкретну)
-    if (answers.category && p.category !== answers.category) return false;
+    // Фільтр за категорією (якщо обрано конкретну) — через category_id
+    if (answers.categoryId != null) {
+      const matchById  = p.category_id != null && p.category_id === answers.categoryId;
+      const matchBySlug = p.category_id == null && (() => {
+        const cat = allCategories.find(c => c.id === answers.categoryId);
+        return cat && p.category === cat.slug;
+      })();
+      if (!matchById && !matchBySlug) return false;
+    }
     // Фільтр за бюджетом
     if (p.price > answers.budget) return false;
     // Фільтр за віком
@@ -674,9 +693,9 @@ function showResults() {
   // Підпис вибору
   const ageL = { '1-8': 'Від 1 до 8 років', '8-13': 'Від 8 до 13 років' };
   let catLabel = 'Весь електротранспорт';
-  if (answers.category) {
-    const catObj = allCategories.find(c => c.slug === answers.category);
-    catLabel = catObj ? catObj.name : answers.category;
+  if (answers.categoryId != null) {
+    const catObj = allCategories.find(c => c.id === answers.categoryId);
+    catLabel = catObj ? catObj.name : '';
   }
   document.getElementById('resultsSummary').innerHTML = [
     `<div class="rs-tag"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${ageL[answers.age] || ''}</div>`,
@@ -707,8 +726,8 @@ function showResults() {
     if (p.voltage) specs.push(p.voltage);
     if (p.age_min != null && p.age_max != null) specs.push(p.age_min + '–' + p.age_max + ' р.');
     return `
-    <div class="res-card${i === 0 ? ' best' : ''}">
-      ${i === 0 ? '<div class="res-best-badge">🏆 Найкраще співпадіння</div>' : ''}
+    <div class="res-card">
+      
       <div class="res-img" style="background:${bg}">${visual}</div>
       <div class="res-body">
         <div class="res-brand">${escHtml(p.brand)}</div>
@@ -736,7 +755,7 @@ function showResults() {
 
 function restartCalc() {
   answers.age = null;
-  answers.category = null;
+  answers.categoryId = null;
   answers.budget = 25000;
   currentStep = 1;
   document.getElementById('resultsWrap').style.display = 'none';
