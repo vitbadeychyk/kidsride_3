@@ -579,11 +579,60 @@ const KR = {
     } catch(e) {}
   },
 
+
+  // Завантажує та застосовує видимість пунктів навігації з Supabase
+  async initNavVisibility() {
+    // Текст пунктів → ключ
+    const NAV_LABEL_MAP = {
+      'Головна':    'home',
+      'Каталог':    'catalog',
+      'Підбір':     'calculator',
+      'Порівняння': 'compare',
+      'Доставка':   'delivery',
+      'Гарантія':   'warranty',
+      'Контакти':   'contacts',
+    };
+    const defaults = { home:true, catalog:true, calculator:true, compare:true, delivery:true, warranty:true, contacts:true };
+
+    function applyVis(settings) {
+      document.querySelectorAll('nav a, .h-nav a, .nav-links a, header nav a').forEach(a => {
+        const text = (a.textContent || '').trim();
+        const key = NAV_LABEL_MAP[text];
+        if (!key) return;
+        const visible = settings[key] !== false;
+        a.style.display = visible ? '' : 'none';
+      });
+    }
+
+    // Миттєво з кешу
+    try {
+      const cached = JSON.parse(localStorage.getItem('kr_nav_visibility') || 'null');
+      if (cached) applyVis({ ...defaults, ...cached });
+    } catch(e) {}
+
+    // Актуальні з Supabase
+    try {
+      const res = await fetch(
+        this._SUPA_URL + '/rest/v1/settings?select=value&key=eq.nav_visibility',
+        { headers: { 'apikey': this._SUPA_KEY, 'Authorization': 'Bearer ' + this._SUPA_KEY } }
+      );
+      if (res.ok) {
+        const rows = await res.json();
+        if (rows && rows[0]) {
+          const settings = { ...defaults, ...JSON.parse(rows[0].value || '{}') };
+          try { localStorage.setItem('kr_nav_visibility', JSON.stringify(settings)); } catch(e) {}
+          applyVis(settings);
+        }
+      }
+    } catch(e) {}
+  },
+
   // ── INIT ──────────────────────────────────────────────────────────────────
   init() {
     this.initStripe();
     this.initLogo();
     this.initStoreSettings();
+    this.initNavVisibility();
     this.injectWishStyles();
     this.updateCartBadge();
     this.updateWishBadge();

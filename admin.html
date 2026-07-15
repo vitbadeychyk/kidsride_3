@@ -1645,6 +1645,7 @@ tr:hover td{background:rgba(240,242,248,.5)}
         <button class="settings-tab" onclick="switchSettingsTab('security',this)">🔐 Безпека</button>
         <button class="settings-tab" onclick="switchSettingsTab('promo',this);renderPromoHistory()">🎁 Промо</button>
         <button class="settings-tab" onclick="switchSettingsTab('catalog',this);loadCatalogUISettings()">🗂️ Каталог</button>
+        <button class="settings-tab" onclick="switchSettingsTab('nav',this);loadNavVisSettings()">🧭 Навігація</button>
       </div>
 
       <!-- TAB: STORE -->
@@ -2772,7 +2773,71 @@ CREATE POLICY "admin_write_promo" ON promo_codes FOR ALL USING (auth.role()='aut
           </div>
           <div id="cuiSaveStatus" style="margin-top:14px;font-size:12px;color:var(--green);display:none">✅ Збережено! Налаштування застосовані в каталозі.</div>
         </div>
+
       </div><!-- /stab-catalog -->
+
+      <!-- TAB: NAVIGATION VISIBILITY -->
+      <div class="settings-section" id="stab-nav">
+        <div class="import-card" style="margin-bottom:16px">
+          <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:6px;color:var(--navy)">🧭 Вкладки навігації</h3>
+          <p style="font-size:13px;color:var(--text-muted);margin-bottom:20px">Приховайте або покажіть пункти головного меню сайту. Зміни застосовуються одразу для всіх відвідувачів.</p>
+          <div style="display:flex;flex-direction:column;gap:0">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border)">
+              <div>
+                <div style="font-size:14px;font-weight:700;color:var(--navy)">🏠 Головна</div>
+                <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Перша вкладка — головна сторінка магазину</div>
+              </div>
+              <button class="slide-toggle" id="nav_vis_home" onclick="toggleNavVis('home')" title="Увімкнути/вимкнути"></button>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border)">
+              <div>
+                <div style="font-size:14px;font-weight:700;color:var(--navy)">📦 Каталог</div>
+                <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Перехід до каталогу товарів</div>
+              </div>
+              <button class="slide-toggle" id="nav_vis_catalog" onclick="toggleNavVis('catalog')" title="Увімкнути/вимкнути"></button>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border)">
+              <div>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div style="font-size:14px;font-weight:700;color:var(--navy)">🔍 Підбір</div>
+                  <span style="font-size:11px;font-weight:600;color:#fff;background:#e07b2a;border-radius:4px;padding:2px 8px">calculator.html</span>
+                </div>
+                <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Сторінка підбору електромобіля за параметрами</div>
+              </div>
+              <button class="slide-toggle" id="nav_vis_calculator" onclick="toggleNavVis('calculator')" title="Увімкнути/вимкнути"></button>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border)">
+              <div>
+                <div style="font-size:14px;font-weight:700;color:var(--navy)">⚖️ Порівняння</div>
+                <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Сторінка порівняння товарів</div>
+              </div>
+              <button class="slide-toggle" id="nav_vis_compare" onclick="toggleNavVis('compare')" title="Увімкнути/вимкнути"></button>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border)">
+              <div>
+                <div style="font-size:14px;font-weight:700;color:var(--navy)">🚚 Доставка</div>
+                <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Сторінка інформації про доставку</div>
+              </div>
+              <button class="slide-toggle" id="nav_vis_delivery" onclick="toggleNavVis('delivery')" title="Увімкнути/вимкнути"></button>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border)">
+              <div>
+                <div style="font-size:14px;font-weight:700;color:var(--navy)">🛡️ Гарантія</div>
+                <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Сторінка гарантійних умов</div>
+              </div>
+              <button class="slide-toggle" id="nav_vis_warranty" onclick="toggleNavVis('warranty')" title="Увімкнути/вимкнути"></button>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0">
+              <div>
+                <div style="font-size:14px;font-weight:700;color:var(--navy)">📞 Контакти</div>
+                <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Сторінка контактної інформації</div>
+              </div>
+              <button class="slide-toggle" id="nav_vis_contacts" onclick="toggleNavVis('contacts')" title="Увімкнути/вимкнути"></button>
+            </div>
+          </div>
+          <div id="navVisSaveStatus" style="margin-top:14px;font-size:12px;color:var(--green);font-weight:600;display:none">✅ Збережено! Зміни видимості застосовані на сайті.</div>
+        </div>
+      </div><!-- /stab-nav -->
 
     </div>
 
@@ -9856,6 +9921,70 @@ async function saveCompareSettings(){
 
   var msg=document.getElementById('compareSaveMsg');
   if(msg){msg.style.display='block';setTimeout(function(){msg.style.display='none';},3000);}
+}
+
+// ── NAV VISIBILITY ──────────────────────────────────────────────────────────
+const NAV_VIS_ITEMS = [
+  { key: 'home',       label: 'Головна' },
+  { key: 'catalog',    label: 'Каталог' },
+  { key: 'calculator', label: 'Підбір' },
+  { key: 'compare',    label: 'Порівняння' },
+  { key: 'delivery',   label: 'Доставка' },
+  { key: 'warranty',   label: 'Гарантія' },
+  { key: 'contacts',   label: 'Контакти' },
+];
+const NAV_VIS_DEFAULTS = { home:true, catalog:true, calculator:true, compare:true, delivery:true, warranty:true, contacts:true };
+
+function _getNavVis() {
+  try { return { ...NAV_VIS_DEFAULTS, ...JSON.parse(localStorage.getItem('kr_nav_visibility') || '{}') }; }
+  catch(e) { return { ...NAV_VIS_DEFAULTS }; }
+}
+
+async function _saveNavVis(s) {
+  localStorage.setItem('kr_nav_visibility', JSON.stringify(s));
+  try {
+    await sbFetch('settings?on_conflict=key', {
+      method: 'POST',
+      headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify({ key: 'nav_visibility', value: JSON.stringify(s) })
+    });
+  } catch(e) { console.warn('Nav vis save:', e); }
+}
+
+function loadNavVisSettings() {
+  // Спочатку кешовані, потім актуальні з Supabase
+  _applyNavVisToggles(_getNavVis());
+  sbFetch('settings?select=value&key=eq.nav_visibility').then(rows => {
+    if (Array.isArray(rows) && rows[0]) {
+      try {
+        const fresh = { ...NAV_VIS_DEFAULTS, ...JSON.parse(rows[0].value) };
+        localStorage.setItem('kr_nav_visibility', JSON.stringify(fresh));
+        _applyNavVisToggles(fresh);
+      } catch(e) {}
+    }
+  }).catch(() => {});
+}
+
+function _applyNavVisToggles(s) {
+  NAV_VIS_ITEMS.forEach(item => {
+    const btn = document.getElementById('nav_vis_' + item.key);
+    if (!btn) return;
+    if (s[item.key] !== false) btn.classList.add('on'); else btn.classList.remove('on');
+  });
+}
+
+async function toggleNavVis(key) {
+  const s = _getNavVis();
+  s[key] = !s[key];
+  await _saveNavVis(s);
+  const btn = document.getElementById('nav_vis_' + key);
+  if (btn) { if (s[key]) btn.classList.add('on'); else btn.classList.remove('on'); }
+  const status = document.getElementById('navVisSaveStatus');
+  if (status) {
+    status.style.display = 'block';
+    clearTimeout(status._t);
+    status._t = setTimeout(() => { status.style.display = 'none'; }, 2500);
+  }
 }
 
 </script>
