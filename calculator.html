@@ -158,6 +158,9 @@ nav a.active{color:var(--orange)}
 .rs-tag{display:inline-flex;align-items:center;gap:6px;background:white;border:1px solid var(--border);border-radius:100px;padding:6px 14px;font-size:12px;font-weight:600;color:var(--navy)}
 .rs-tag svg{width:13px;height:13px;stroke:var(--orange);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .results-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+.sort-btn{background:white;border:1.5px solid var(--border);border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;color:var(--navy);cursor:pointer;transition:all .2s}
+.sort-btn:hover{border-color:var(--orange);color:var(--orange)}
+.sort-active{background:var(--orange);border-color:var(--orange);color:white}
 .res-card{background:white;border-radius:var(--r);border:1.5px solid var(--border);overflow:hidden;transition:all .3s cubic-bezier(.34,1.56,.64,1);animation:fadeUp .4s ease both;position:relative}
 .res-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg);border-color:transparent}
 .res-card.best{border-color:var(--orange)}
@@ -371,6 +374,12 @@ nav a.active{color:var(--orange)}
       <p class="results-desc" id="resultsDesc">Підбираємо варіанти...</p>
       <div class="results-summary" id="resultsSummary"></div>
     </div>
+    <div id="resultsSort" style="display:none;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:16px">
+      <span style="font-size:13px;color:var(--text-muted);font-weight:600">Сортування:</span>
+      <button id="sortScore" class="sort-btn sort-active" onclick="setSortOrder('score')">За відповідністю</button>
+      <button id="sortAsc"   class="sort-btn" onclick="setSortOrder('price_asc')">Дешевше ↑</button>
+      <button id="sortDesc"  class="sort-btn" onclick="setSortOrder('price_desc')">Дорожче ↓</button>
+    </div>
     <div class="results-grid" id="resultsGrid"></div>
     <button class="btn btn-ghost restart-btn" onclick="restartCalc()"><svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.57"/></svg>Підібрати ще раз</button>
   </div>
@@ -385,6 +394,7 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 // categoryId: numeric ID from categories table (null = all transport)
 const answers = { age: null, categoryId: null, budget: 25000 };
 let currentStep = 1;
+let currentSort = 'score'; // 'score' | 'price_asc' | 'price_desc'
 let allProducts = [];
 let allCategories = []; // з Supabase (id,name,slug,image_url)
 
@@ -709,6 +719,8 @@ function productHref(p) {
 }
 
 // ── ПОКАЗ РЕЗУЛЬТАТІВ ───────────────────────────────────────
+let lastScored = []; // кешуємо для перемальовування при зміні сортування
+
 function showResults() {
   document.getElementById('step3').style.display = 'none';
   document.getElementById('wizardProgress').style.display = 'none';
@@ -726,16 +738,16 @@ function showResults() {
     }
     // Фільтр за бюджетом
     if (p.price > answers.budget) return false;
-    // Фільтр за віком
-    if (range && p.age_min != null && p.age_max != null) {
-      if (p.age_max < range.min || p.age_min > range.max) return false;
+    // Суворий фільтр за віком: відсікаємо якщо відомий вік не перетинається з вибраним
+    // Перевіряємо кожен атрибут незалежно — навіть якщо тільки один з них виставлений
+    if (range) {
+      if (p.age_min != null && p.age_min > range.max) return false; // напр. від 12р → не для 1-8
+      if (p.age_max != null && p.age_max < range.min) return false; // напр. до 2р → не для 8-13
     }
     return true;
   });
 
-  // Сортування за балом відповідності
-  const scored = filtered.map(p => ({ ...p, score: ageScore(p) }))
-    .sort((a, b) => b.score - a.score);
+  lastScored = filtered.map(p => ({ ...p, score: ageScore(p) }));
 
   // Підпис вибору
   const ageL = { '1-8': 'Від 1 до 8 років', '8-13': 'Від 8 до 13 років' };
@@ -750,7 +762,10 @@ function showResults() {
     `<div class="rs-tag"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>до ${answers.budget.toLocaleString('uk-UA')} ₴</div>`
   ].join('');
 
-  if (!scored.length) {
+  // Показуємо панель сортування лише коли є результати
+  const sortBar = document.getElementById('resultsSort');
+  if (!lastScored.length) {
+    if (sortBar) sortBar.style.display = 'none';
     document.getElementById('resultsDesc').textContent = '';
     document.getElementById('resultsGrid').innerHTML =
       '<div style="grid-column:1/-1;text-align:center;padding:40px;background:white;border-radius:var(--r);border:1.5px solid var(--border)">' +
@@ -759,11 +774,27 @@ function showResults() {
       '<button class="btn btn-primary" onclick="restartCalc()">Спробувати знову</button></div>';
     return;
   }
+  if (sortBar) sortBar.style.display = 'flex';
 
   document.getElementById('resultsDesc').textContent =
-    'Знайдено ' + scored.length + ' ' + plural(scored.length, ['модель','моделі','моделей']) + ', що підходять вашим критеріям';
+    'Знайдено ' + lastScored.length + ' ' + plural(lastScored.length, ['модель','моделі','моделей']) + ', що підходять вашим критеріям';
 
-  document.getElementById('resultsGrid').innerHTML = scored.map((p, i) => {
+  renderResultsGrid();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function renderResultsGrid() {
+  // Сортуємо залежно від поточного вибору
+  let list;
+  if (currentSort === 'price_asc') {
+    list = [...lastScored].sort((a, b) => a.price - b.price);
+  } else if (currentSort === 'price_desc') {
+    list = [...lastScored].sort((a, b) => b.price - a.price);
+  } else {
+    list = [...lastScored].sort((a, b) => b.score - a.score);
+  }
+
+  document.getElementById('resultsGrid').innerHTML = list.map(p => {
     const photo = (p.images && p.images[0]) ? p.images[0] : '';
     const visual = photo
       ? `<img src="${escAttr(photo)}" alt="${escAttr(p.name)}" loading="lazy">`
@@ -774,7 +805,6 @@ function showResults() {
     if (p.age_min != null && p.age_max != null) specs.push(p.age_min + '–' + p.age_max + ' р.');
     return `
     <div class="res-card">
-      
       <div class="res-img" style="background:${bg}">${visual}</div>
       <div class="res-body">
         <div class="res-brand">${escHtml(p.brand)}</div>
@@ -796,8 +826,16 @@ function showResults() {
       </div>
     </div>`;
   }).join('');
+}
 
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+function setSortOrder(sort) {
+  currentSort = sort;
+  // Оновлюємо активну кнопку
+  ['score','price_asc','price_desc'].forEach(s => {
+    const btn = document.getElementById(s === 'score' ? 'sortScore' : s === 'price_asc' ? 'sortAsc' : 'sortDesc');
+    if (btn) btn.classList.toggle('sort-active', s === sort);
+  });
+  renderResultsGrid();
 }
 
 function restartCalc() {
@@ -805,6 +843,14 @@ function restartCalc() {
   answers.categoryId = null;
   answers.budget = 25000;
   currentStep = 1;
+  currentSort = 'score';
+  lastScored = [];
+  const sortBar = document.getElementById('resultsSort');
+  if (sortBar) sortBar.style.display = 'none';
+  ['sortScore','sortAsc','sortDesc'].forEach((id, i) => {
+    const b = document.getElementById(id);
+    if (b) b.classList.toggle('sort-active', i === 0);
+  });
   document.getElementById('resultsWrap').style.display = 'none';
   document.getElementById('wizardProgress').style.display = 'block';
   ['step1','step2','step3'].forEach((id, i) =>
