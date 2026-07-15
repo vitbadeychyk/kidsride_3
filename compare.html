@@ -1129,7 +1129,7 @@ function render() {
   // Раніше rowspan="2" призводив до того, що "Характеристики" вертикально
   // центрувалось посередині між рядком фото та рядком кнопок — на мобільному
   // це візуально перекривало картки товарів.
-  let headerCols = `<th style="vertical-align:bottom;padding-bottom:12px"><div class="cmp-char-label">Характеристики</div></th>`;
+  let headerCols = `<th style="vertical-align:bottom;padding-bottom:12px"></th>`;
   let btnCols = `<th class="prod-btn-cell" style="background:var(--bg-soft);position:sticky;left:0;z-index:20;border-right:1px solid var(--border)"></th>`; // перша клітинка рядку кнопок
 
   sortedComparing.forEach((p, i) => {
