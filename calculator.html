@@ -423,23 +423,36 @@ async function loadProducts() {
       'Authorization': 'Bearer ' + SUPABASE_KEY,
       'Content-Type': 'application/json'
     };
-    // Завантажуємо продукти, атрибути віку та категорії паралельно
-    const [prodsRes, ageRes, catsRes] = await Promise.all([
+    // Завантажуємо продукти, атрибути віку, головні категорії та підкатегорії паралельно
+    const [prodsRes, ageRes, mainCatsRes, catsRes] = await Promise.all([
       fetch(SUPABASE_URL + '/rest/v1/products?select=*&active=eq.true&limit=3000&order=sort_order.asc,created_at.desc', { headers: h }),
       fetch(SUPABASE_URL + '/rest/v1/product_attribute_values?select=product_id,attribute_id,value&attribute_id=in.(46,47,48,49,50,51)&limit=5000', { headers: h }),
+      fetch(SUPABASE_URL + '/rest/v1/main_categories?select=id,name,slug&active=eq.true', { headers: h }),
       fetch(SUPABASE_URL + '/rest/v1/categories?select=id,name,slug,image_url,sort_order,main_category_id&active=eq.true&order=sort_order.asc.nullslast,name.asc', { headers: h })
     ]);
 
-    const [rawProds, ageVals, cats] = await Promise.all([
-      prodsRes.ok ? prodsRes.json() : [],
-      ageRes.ok  ? ageRes.json()  : [],
-      catsRes.ok ? catsRes.json() : []
+    const [rawProds, ageVals, mainCats, cats] = await Promise.all([
+      prodsRes.ok    ? prodsRes.json()    : [],
+      ageRes.ok      ? ageRes.json()      : [],
+      mainCatsRes.ok ? mainCatsRes.json() : [],
+      catsRes.ok     ? catsRes.json()     : []
     ]);
 
-    // Зберігаємо категорії для відображення у кроці 2
-    allCategories = (Array.isArray(cats) ? cats : []).filter(c =>
-      c.slug && !EXCLUDE_SLUGS.includes(c.slug.toLowerCase())
+    // Знаходимо головну категорію "Електромобілі" за slug або назвою
+    const evMain = (Array.isArray(mainCats) ? mainCats : []).find(m =>
+      /elektro|electric/i.test(m.slug || '') || /електромобіл/i.test(m.name || '')
     );
+
+    // Залишаємо лише підкатегорії розділу "Електромобілі", без запчастин
+    allCategories = (Array.isArray(cats) ? cats : []).filter(c => {
+      if (!c.slug) return false;
+      if (EXCLUDE_SLUGS.includes(c.slug.toLowerCase())) return false;
+      if (/запчастин|spare|parts/i.test(c.name || '')) return false;
+      // Якщо знайшли головну категорію — фільтруємо лише її дітей
+      if (evMain) return c.main_category_id === evMain.id;
+      // Fallback: включаємо все (якщо структура main_categories інша)
+      return true;
+    });
 
     // Будуємо карту age_min/age_max з атрибутів
     const ageMap = {};
