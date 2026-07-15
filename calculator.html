@@ -443,7 +443,7 @@ async function loadProducts() {
     );
 
     // Фільтруємо підкатегорії: тільки ті що під "Електромобілі", без запчастин
-    // Це точно відповідає тому що показує каталог на /elektromobili
+    // і без самої категорії "Електромобілі" (яка є батьківською, не конкретним типом)
     const allCatsRaw = Array.isArray(cats) ? cats : [];
     allCategories = allCatsRaw.filter(c => {
       if (!c.main_category_id || !evMain) return false;
@@ -451,15 +451,21 @@ async function loadProducts() {
       if (!c.slug) return false;
       if (EXCLUDE_SLUGS.includes(c.slug.toLowerCase())) return false;
       if (/запчастин|spare|parts/i.test(c.name || '')) return false;
+      // Виключаємо узагальнену категорію "Електромобілі" — вона батьківська
+      if (/^електромобіл/i.test((c.name || '').trim())) return false;
       return true;
     });
 
-    // Крок 2: завантажуємо продукти по ID відфільтрованих категорій
-    const evCatIds = allCategories.map(c => c.id);
+    // Крок 2: завантажуємо продукти по ID категорій АБО по slug-полю
+    // (деякі товари мають category_id=null і зберігаються лише через slug-поле `category`)
+    const evCatIds   = allCategories.map(c => c.id);
+    const evCatSlugs = allCategories.map(c => c.slug).filter(Boolean);
     let rawProds = [];
     if (evCatIds.length > 0) {
+      // PostgREST OR: category_id=in.(ids) OR category=in.(slugs)
+      const orFilter = 'or=(category_id.in.(' + evCatIds.join(',') + '),category.in.(' + evCatSlugs.join(',') + '))';
       const prodsRes = await fetch(
-        SUPABASE_URL + '/rest/v1/products?select=*&active=eq.true&category_id=in.(' + evCatIds.join(',') + ')&limit=3000&order=sort_order.asc,created_at.desc',
+        SUPABASE_URL + '/rest/v1/products?select=*&active=eq.true&' + orFilter + '&limit=3000&order=sort_order.asc,created_at.desc',
         { headers: h }
       );
       rawProds = prodsRes.ok ? await prodsRes.json() : [];
