@@ -216,6 +216,22 @@ nav a.active{color:var(--orange)}
 @media(max-width:1024px){.h-phone-link .h-phone-text{display:none}}
 @media(max-width:640px){.h-phone-link{width:40px;height:40px;padding:0;justify-content:center}}
 
+/* ── CATEGORY STEP ── */
+.cat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:8px}
+.cat-card{position:relative;border-radius:12px;overflow:hidden;cursor:pointer;border:2.5px solid transparent;transition:all .25s cubic-bezier(.34,1.56,.64,1);aspect-ratio:4/3;background:#e8ecf4}
+.cat-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
+.cat-card.selected{border-color:var(--orange);box-shadow:0 8px 24px rgba(255,107,53,.2)}
+.cat-card.selected::after{content:'✓';position:absolute;top:8px;right:8px;width:22px;height:22px;background:var(--orange);border-radius:50%;font-size:11px;font-weight:800;color:white;display:flex;align-items:center;justify-content:center;font-family:'Nunito',sans-serif;z-index:3}
+.cat-img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .35s}
+.cat-card:hover .cat-img{transform:scale(1.06)}
+.cat-overlay{position:absolute;bottom:0;left:0;right:0;padding:22px 10px 10px;background:linear-gradient(transparent,rgba(27,42,74,.82));pointer-events:none}
+.cat-name{font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;color:#fff;text-align:center;line-height:1.2}
+.cat-all-card{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-light) 100%)}
+.cat-all-icon{font-size:36px;line-height:1;margin-bottom:8px;display:block}
+.cat-all-inner{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:12px}
+@media(max-width:700px){.cat-grid{grid-template-columns:repeat(3,1fr);gap:10px}}
+@media(max-width:520px){.cat-grid{grid-template-columns:repeat(2,1fr);gap:8px}}
+
 .header,.header#hdr{border-top:12px solid #1B2A4A}
 </style>
 <script>
@@ -298,11 +314,11 @@ nav a.active{color:var(--orange)}
     <div class="wp-steps">
       <div class="wp-step active" id="ws1"><div class="wp-step-num">1</div><div class="wp-step-info"><div class="wp-step-label">Крок 1</div><div class="wp-step-name">Вік дитини</div></div></div>
       <div class="wp-connector pending" id="wc1"></div>
-      <div class="wp-step pending" id="ws2" style="display:none"><div class="wp-step-num">2</div><div class="wp-step-info"><div class="wp-step-label">Крок 2</div><div class="wp-step-name">Де кататись</div></div></div>
-      <div class="wp-connector pending" id="wc2" style="display:none"></div>
-      <div class="wp-step pending" id="ws3"><div class="wp-step-num">2</div><div class="wp-step-info"><div class="wp-step-label">Крок 2</div><div class="wp-step-name">Бюджет</div></div></div>
+      <div class="wp-step pending" id="ws2"><div class="wp-step-num">2</div><div class="wp-step-info"><div class="wp-step-label">Крок 2</div><div class="wp-step-name">Категорія</div></div></div>
+      <div class="wp-connector pending" id="wc2"></div>
+      <div class="wp-step pending" id="ws3"><div class="wp-step-num">3</div><div class="wp-step-info"><div class="wp-step-label">Крок 3</div><div class="wp-step-name">Бюджет</div></div></div>
     </div>
-    <div class="wp-bar-wrap"><div class="wp-bar-fill" id="wpBar" style="width:33%"></div></div>
+    <div class="wp-bar-wrap"><div class="wp-bar-fill" id="wpBar" style="width:25%"></div></div>
   </div>
 
   <!-- STEP 1 -->
@@ -313,18 +329,20 @@ nav a.active{color:var(--orange)}
       <div class="opt-card" onclick="selectOpt(this,'age','1-8')"><span class="opt-icon">🧒</span><div class="opt-title">Від 1 до 8 років</div><div class="opt-desc">Джипи, квадроцикли, мотоцикли, машини</div><div class="opt-tag">12V</div></div>
       <div class="opt-card" onclick="selectOpt(this,'age','8-13')"><span class="opt-icon">🧑</span><div class="opt-title">Від 8 до 13 років</div><div class="opt-desc">Потужні моделі для впевнених водіїв</div><div class="opt-tag">24V</div></div>
     </div>
-    <div class="step-nav"><div></div><button class="btn btn-primary" id="nextBtn1" onclick="goToStep(3)" disabled>Далі <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button></div>
+    <div class="step-nav"><div></div><button class="btn btn-primary" id="nextBtn1" onclick="goToStep(2)" disabled>Далі <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button></div>
   </div>
 
-  <!-- STEP 2 -->
+  <!-- STEP 2: CATEGORY -->
   <div class="step-card" id="step2" style="display:none">
-    <h2 class="step-q">Де переважно кататиметься?</h2>
-    <p class="step-hint">Це впливає на тип коліс, потужність та кліренс</p>
-    <div class="options-grid cols-2">
-      <div class="opt-card" onclick="selectOpt(this,'surface','pavement')"><div class="opt-icon-svg"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div><div class="opt-title">На вулиці (асфальт)</div><div class="opt-desc">Двір, тротуар, паркова доріжка</div><div class="opt-tag">EVA колеса</div></div>
-      <div class="opt-card" onclick="selectOpt(this,'surface','offroad')"><div class="opt-icon-svg"><svg viewBox="0 0 24 24"><path d="M3 17l3-8 3 5 3-3 3 4 3-8"/><path d="M3 21h18"/></svg></div><div class="opt-title">Різні поверхні</div><div class="opt-desc">Трава, бруківка, бездоріжжя</div><div class="opt-tag">4×4 привід</div></div>
+    <h2 class="step-q">Який тип транспорту вас цікавить?</h2>
+    <p class="step-hint">Оберіть категорію або залиште «Весь транспорт» — покажемо всі підходящі моделі</p>
+    <div class="cat-grid" id="catGrid">
+      <div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--text-muted);font-size:14px">⏳ Завантаження категорій…</div>
     </div>
-    <div class="step-nav"><button class="btn btn-ghost" onclick="goToStep(1)"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>Назад</button><button class="btn btn-primary" id="nextBtn2" onclick="goToStep(3)" disabled>Далі <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button></div>
+    <div class="step-nav">
+      <button class="btn btn-ghost" onclick="goToStep(1)"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>Назад</button>
+      <button class="btn btn-primary" onclick="goToStep(3)">Далі <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+    </div>
   </div>
 
   <!-- STEP 3 -->
@@ -343,7 +361,7 @@ nav a.active{color:var(--orange)}
         <button class="budget-preset" onclick="setBudget(100000)">Без обмежень</button>
       </div>
     </div>
-    <div class="step-nav"><button class="btn btn-ghost" onclick="goToStep(1)"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>Назад</button><button class="btn btn-primary" onclick="showResults()"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>Знайти електромобіль</button></div>
+    <div class="step-nav"><button class="btn btn-ghost" onclick="goToStep(2)"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>Назад</button><button class="btn btn-primary" onclick="showResults()"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>Знайти електромобіль</button></div>
   </div>
 
   <!-- RESULTS -->
@@ -364,25 +382,20 @@ const SUPABASE_URL = 'https://gwslintdrtnvbfjvivbb.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3c2xpbnRkcnRudmJmanZpdmJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTU4MTUsImV4cCI6MjA5NzczMTgxNX0.2hhyX_PMrXpBa_Q5DW7KiUjf4Jy9nnBStto47_SVF7k';
 
 // ── STATE ────────────────────────────────────────────────────
-const answers = { age: null, surface: null, budget: 25000 };
+const answers = { age: null, category: null, budget: 25000 };
 let currentStep = 1;
 let allProducts = [];
+let allCategories = []; // з Supabase (id,name,slug,image_url)
 
-// Категорії, які вважаємо "електромобілями" (для лічильника та підбору)
-const EV_CATEGORIES = ['jeep','car','quad','moto','tractor','truck','buggy'];
+// Категорії, які вважаємо "електромобілями" (базовий список; розширюється динамічно)
+const EV_CATEGORIES_BASE = ['jeep','car','quad','quad-metal','moto','tractor','truck','buggy','gas-quad'];
+// Слаги, які НІКОЛИ не показуємо в підборі
+const EXCLUDE_SLUGS = ['spare-parts','spare_parts','zapchastyny','zapchastini','parts'];
 
 // Карта віку → діапазон років та "ідеальна" напруга
 const AGE_RANGES = {
   '1-8':  { min: 1, max: 8,  voltage: '12V' },
   '8-13': { min: 8, max: 13, voltage: '24V' }
-};
-
-// Підказки для категорій під різні поверхні
-// pavement (асфальт) — підходить все, легкі моделі трохи краще
-// offroad (різні поверхні) — джипи, квадроцикли, баггі, трактори
-const SURFACE_PREFS = {
-  pavement: { jeep: 90, car: 100, quad: 95, moto: 90, tractor: 70, truck: 75, buggy: 85 },
-  offroad:  { jeep: 100, car: 55, quad: 100, moto: 70, tractor: 90, truck: 85, buggy: 100 }
 };
 
 // SVG fallback для карток (якщо у товара немає фото)
@@ -394,15 +407,14 @@ const SVG_BY_TYPE = {
   tractor: '<svg viewBox="0 0 200 140"><rect x="72" y="52" width="108" height="50" rx="8" fill="#66BB6A"/><circle cx="96" cy="110" r="26" fill="#2E7D32"/><circle cx="164" cy="112" r="18" fill="#2E7D32"/></svg>',
   truck:   '<svg viewBox="0 0 200 140"><rect x="14" y="58" width="100" height="50" rx="8" fill="#90A4AE"/><rect x="120" y="42" width="68" height="66" rx="8" fill="#B0BEC5"/><circle cx="42" cy="116" r="14" fill="#263238"/><circle cx="98" cy="116" r="14" fill="#263238"/><circle cx="158" cy="116" r="14" fill="#263238"/></svg>',
   buggy:   '<svg viewBox="0 0 200 140"><rect x="18" y="60" width="164" height="48" rx="14" fill="#FFC107"/><rect x="32" y="32" width="110" height="42" rx="11" fill="#FFD54F"/><circle cx="48" cy="112" r="22" fill="#4E342E"/><circle cx="152" cy="112" r="22" fill="#4E342E"/></svg>',
-  walker:  '<svg viewBox="0 0 200 140"><rect x="20" y="60" width="160" height="50" rx="12" fill="#FFB085"/><circle cx="50" cy="115" r="16" fill="#5D4037"/><circle cx="150" cy="115" r="16" fill="#5D4037"/></svg>'
 };
 const BG_BY_TYPE = {
   jeep:'#E8ECF7,#c8d0ea', car:'#FCE4EC,#f8bbd0', quad:'#EEF0FF,#d6dcff', moto:'#FFF8E1,#ffecb3',
-  tractor:'#EDFFF5,#d5f5e5', truck:'#ECEFF1,#cfd8dc', buggy:'#FFF8E1,#ffecb3', walker:'#FFE4D6,#ffd0b5',
+  tractor:'#EDFFF5,#d5f5e5', truck:'#ECEFF1,#cfd8dc', buggy:'#FFF8E1,#ffecb3',
   default:'#F0F2F8,#e1e6f2'
 };
 
-// ── ЗАВАНТАЖЕННЯ ТОВАРІВ ────────────────────────────────────
+// ── ЗАВАНТАЖЕННЯ ────────────────────────────────────────────
 async function loadProducts() {
   try {
     const h = {
@@ -410,14 +422,23 @@ async function loadProducts() {
       'Authorization': 'Bearer ' + SUPABASE_KEY,
       'Content-Type': 'application/json'
     };
-    const catFilter = 'category=in.(' + EV_CATEGORIES.join(',') + ')';
-    // Завантажуємо продукти і атрибути віку паралельно
-    const [prodsRes, ageRes] = await Promise.all([
-      fetch(SUPABASE_URL + '/rest/v1/products?select=*&active=eq.true&' + catFilter + '&limit=2000&order=sort_order.asc,created_at.desc', { headers: h }),
-      fetch(SUPABASE_URL + '/rest/v1/product_attribute_values?select=product_id,attribute_id,value&attribute_id=in.(46,47,48,49,50,51)&limit=5000', { headers: h })
+    // Завантажуємо продукти, атрибути віку та категорії паралельно
+    const [prodsRes, ageRes, catsRes] = await Promise.all([
+      fetch(SUPABASE_URL + '/rest/v1/products?select=*&active=eq.true&limit=3000&order=sort_order.asc,created_at.desc', { headers: h }),
+      fetch(SUPABASE_URL + '/rest/v1/product_attribute_values?select=product_id,attribute_id,value&attribute_id=in.(46,47,48,49,50,51)&limit=5000', { headers: h }),
+      fetch(SUPABASE_URL + '/rest/v1/categories?select=id,name,slug,image_url,sort_order,main_category_id&active=eq.true&order=sort_order.asc.nullslast,name.asc', { headers: h })
     ]);
-    if (!prodsRes.ok) throw new Error('Supabase ' + prodsRes.status);
-    const [data, ageVals] = await Promise.all([prodsRes.json(), ageRes.json()]);
+
+    const [rawProds, ageVals, cats] = await Promise.all([
+      prodsRes.ok ? prodsRes.json() : [],
+      ageRes.ok  ? ageRes.json()  : [],
+      catsRes.ok ? catsRes.json() : []
+    ]);
+
+    // Зберігаємо категорії для відображення у кроці 2
+    allCategories = (Array.isArray(cats) ? cats : []).filter(c =>
+      c.slug && !EXCLUDE_SLUGS.includes(c.slug.toLowerCase())
+    );
 
     // Будуємо карту age_min/age_max з атрибутів
     const ageMap = {};
@@ -427,22 +448,30 @@ async function loadProducts() {
       if ([47, 49, 51].includes(v.attribute_id)) ageMap[v.product_id].age_max = parseFloat(v.value);
     }
 
-    allProducts = (data || []).map(p => ({
-      id: p.id,
-      sku: p.sku,
-      name: p.name,
-      brand: p.brand || 'Bambi Racer',
-      price: parseFloat(p.price) || 0,
-      oldPrice: p.old_price ? parseFloat(p.old_price) : null,
-      category: p.category || '',
-      voltage: p.voltage ? p.voltage.toUpperCase().replace(/\s+/g,'') : '',
-      age_min: ageMap[p.id] ? ageMap[p.id].age_min : null,
-      age_max: ageMap[p.id] ? ageMap[p.id].age_max : null,
-      stock: p.stock || 0,
-      preorderDays: p.preorder_days || 0,
-      img: p.img_type || p.category || 'jeep',
-      images: Array.isArray(p.images) ? p.images : []
-    }));
+    // Слаги категорій транспорту (виключаємо запчастини та нетранспортні)
+    const evSlugs = new Set(allCategories.map(c => c.slug));
+
+    allProducts = (Array.isArray(rawProds) ? rawProds : [])
+      .filter(p => p.category && evSlugs.has(p.category) && !EXCLUDE_SLUGS.includes((p.category||'').toLowerCase()))
+      .map(p => ({
+        id: p.id,
+        sku: p.sku,
+        name: p.name,
+        brand: p.brand || 'Bambi Racer',
+        price: parseFloat(p.price) || 0,
+        oldPrice: p.old_price ? parseFloat(p.old_price) : null,
+        category: p.category || '',
+        category_id: p.category_id || null,
+        voltage: p.voltage ? p.voltage.toUpperCase().replace(/\s+/g,'') : '',
+        age_min: ageMap[p.id] ? ageMap[p.id].age_min : null,
+        age_max: ageMap[p.id] ? ageMap[p.id].age_max : null,
+        stock: p.stock || 0,
+        preorderDays: p.preorder_days || 0,
+        img: p.img_type || p.category || 'jeep',
+        images: Array.isArray(p.images) ? p.images : [],
+        slug: p.slug || null
+      }));
+
   } catch (e) {
     console.warn('Не вдалося завантажити товари з Supabase:', e.message);
     try {
@@ -450,15 +479,17 @@ async function loadProducts() {
       if (saved.length > 0) allProducts = saved;
     } catch(_){}
   }
+
   updateModelsCount();
   updateCartBadge();
+  // Якщо крок 2 вже відкритий — перемалюємо його
+  if (currentStep === 2) renderCategoryStep();
 }
 
 function updateModelsCount() {
   const el = document.getElementById('modelsCount');
   if (!el) return;
-  const evCount = allProducts.filter(p => EV_CATEGORIES.includes(p.category)).length;
-  el.textContent = evCount > 0 ? evCount.toLocaleString('uk-UA') : '—';
+  el.textContent = allProducts.length > 0 ? allProducts.length.toLocaleString('uk-UA') : '—';
 }
 
 function updateCartBadge() {
@@ -470,33 +501,91 @@ function updateCartBadge() {
   } catch(_){}
 }
 
+// ── КАТЕГОРІЇ: КРОК 2 ───────────────────────────────────────
+function renderCategoryStep() {
+  const grid = document.getElementById('catGrid');
+  if (!grid) return;
+
+  // Знаходимо які категорії реально мають товари
+  const slugsInProducts = new Set(allProducts.map(p => p.category));
+
+  // Фільтруємо категорії Supabase: лише ті де є товари, без запчастин
+  let evCats = allCategories.filter(c =>
+    slugsInProducts.has(c.slug) && !EXCLUDE_SLUGS.includes((c.slug||'').toLowerCase())
+  );
+
+  if (evCats.length === 0 && allProducts.length === 0) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--text-muted)">Завантаження…</div>';
+    return;
+  }
+
+  // "Весь електротранспорт" завжди першим
+  let html = `
+    <div class="cat-card cat-all-card${answers.category === null ? ' selected' : ''}" onclick="selectCategory(null, this)">
+      <div class="cat-all-inner">
+        <span class="cat-all-icon">🚗</span>
+        <div class="cat-name" style="color:#fff;font-size:13px;font-weight:800;text-align:center">Весь<br>електротранспорт</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.6);margin-top:4px;text-align:center">${allProducts.length} моделей</div>
+      </div>
+    </div>`;
+
+  evCats.forEach(cat => {
+    const count = allProducts.filter(p => p.category === cat.slug).length;
+    const isSelected = answers.category === cat.slug;
+    if (cat.image_url) {
+      html += `
+        <div class="cat-card${isSelected ? ' selected' : ''}" onclick="selectCategory('${escAttr(cat.slug)}', this)">
+          <img class="cat-img" src="${escAttr(cat.image_url)}" alt="${escAttr(cat.name)}" loading="lazy" onerror="this.style.display='none'">
+          <div class="cat-overlay">
+            <div class="cat-name">${escHtml(cat.name)}</div>
+            <div style="font-size:10px;color:rgba(255,255,255,.65);margin-top:2px;text-align:center">${count} моделей</div>
+          </div>
+        </div>`;
+    } else {
+      // Fallback без фото
+      html += `
+        <div class="cat-card${isSelected ? ' selected' : ''}" onclick="selectCategory('${escAttr(cat.slug)}', this)"
+             style="background:linear-gradient(135deg,${BG_BY_TYPE[cat.slug] || BG_BY_TYPE.default});display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px">
+          <div style="font-size:36px">🚙</div>
+          <div class="cat-name" style="color:var(--navy)">${escHtml(cat.name)}</div>
+          <div style="font-size:10px;color:var(--text-muted);text-align:center">${count} моделей</div>
+        </div>`;
+    }
+  });
+
+  grid.innerHTML = html;
+}
+
+function selectCategory(slug, el) {
+  answers.category = slug; // null = all
+  document.querySelectorAll('.cat-card').forEach(c => c.classList.remove('selected'));
+  if (el) el.classList.add('selected');
+}
+
 // ── ВЗАЄМОДІЯ З КРОКАМИ ─────────────────────────────────────
 function selectOpt(el, field, value) {
   el.closest('.options-grid').querySelectorAll('.opt-card').forEach(c => c.classList.remove('selected'));
   el.classList.add('selected');
   answers[field] = value;
   if (field === 'age') document.getElementById('nextBtn1').disabled = false;
-  if (field === 'surface') document.getElementById('nextBtn2').disabled = false;
 }
 
 function goToStep(step) {
   document.getElementById('step' + currentStep).style.display = 'none';
-  // Крок 2 прихований — встановлюємо дефолт для surface
-  if (step === 3 && !answers.surface) answers.surface = 'pavement';
   currentStep = step;
   document.getElementById('step' + step).style.display = 'block';
+  if (step === 2) renderCategoryStep();
   updateProgress(step);
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function updateProgress(step) {
-  const pct = { 1: 50, 2: 50, 3: 100 };
-  document.getElementById('wpBar').style.width = pct[step] + '%';
-  // Оновлюємо з'єднувач між кроком 1 і 2 (крок 2 прихований)
-  const wc1 = document.getElementById('wc1');
-  if (wc1) wc1.className = 'wp-connector ' + (step > 1 ? 'done' : 'pending');
-  [1,3].forEach(i => {
+  const pct = { 1: 25, 2: 60, 3: 100 };
+  document.getElementById('wpBar').style.width = (pct[step] || 25) + '%';
+
+  [1, 2, 3].forEach(i => {
     const el = document.getElementById('ws' + i);
+    if (!el) return;
     if (i < step) {
       el.className = 'wp-step done';
       el.querySelector('.wp-step-num').innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
@@ -508,8 +597,10 @@ function updateProgress(step) {
       el.querySelector('.wp-step-num').textContent = i;
     }
   });
-  [1,2].forEach(i => {
-    document.getElementById('wc' + i).className = 'wp-connector ' + (i < step ? 'done' : 'pending');
+
+  [1, 2].forEach(i => {
+    const c = document.getElementById('wc' + i);
+    if (c) c.className = 'wp-connector ' + (i < step ? 'done' : 'pending');
   });
 }
 
@@ -537,8 +628,6 @@ function setBudget(val) {
 function ageScore(product) {
   const range = AGE_RANGES[answers.age];
   if (!range) return 50;
-
-  // Пріоритет 1: атрибути age_min/age_max
   if (product.age_min != null && product.age_max != null) {
     const overlapMin = Math.max(product.age_min, range.min);
     const overlapMax = Math.min(product.age_max, range.max);
@@ -548,27 +637,7 @@ function ageScore(product) {
     const rSpan = Math.max(1, range.max - range.min);
     return Math.round((overlap / Math.min(pSpan, rSpan)) * 100);
   }
-
-  // Fallback: якщо атрибутів немає — бал 50 (нейтральний)
-  return 50;
-}
-
-
-function surfaceScore(product) {
-  const prefs = SURFACE_PREFS[answers.surface];
-  if (!prefs) return 70;
-  return prefs[product.category] != null ? prefs[product.category] : 60;
-}
-
-function fitsAge(product) {
-  // Жорсткий фільтр: товар має хоча б трохи перетинатися з обраною віковою групою
-  const range = AGE_RANGES[answers.age];
-  if (!range) return true;
-  const m = String(product.age || '').match(/(\d+)\s*[-–—]?\s*(\d*)/);
-  if (!m) return true;
-  const pMin = +m[1] || 0;
-  const pMax = +(m[2] || m[1]);
-  return pMax >= range.min && pMin <= range.max;
+  return 50; // немає атрибутів — нейтральний бал
 }
 
 // ── ХЕЛПЕР: URL продукту ────────────────────────────────────
@@ -585,34 +654,33 @@ function showResults() {
   document.getElementById('wizardProgress').style.display = 'none';
   document.getElementById('resultsWrap').style.display = 'block';
 
-  // Фільтри: категорія + бюджет + вік (через атрибути age_min/age_max)
   const range = AGE_RANGES[answers.age];
-  const filtered = (allProducts || []).filter(p => {
-    if (!EV_CATEGORIES.includes(p.category)) return false;
+  const filtered = allProducts.filter(p => {
+    // Фільтр за категорією (якщо обрано конкретну)
+    if (answers.category && p.category !== answers.category) return false;
+    // Фільтр за бюджетом
     if (p.price > answers.budget) return false;
-    // Фільтр по віку: перевіряємо перетин з обраним діапазоном
-    if (range) {
-      const hasAgeAttrs = p.age_min != null && p.age_max != null;
-      if (hasAgeAttrs) {
-        // Товар має атрибути віку — перевіряємо перетин
-        if (p.age_max < range.min || p.age_min > range.max) return false;
-      }
-      // Якщо немає атрибутів — залишаємо (краще показати, ніж приховати)
+    // Фільтр за віком
+    if (range && p.age_min != null && p.age_max != null) {
+      if (p.age_max < range.min || p.age_min > range.max) return false;
     }
     return true;
   });
 
-  // Підрахунок балу: лише за віком (крок поверхні прихований)
-  const scored = filtered.map(p => {
-    const score = ageScore(p);
-    return { ...p, score };
-  }).sort((a, b) => b.score - a.score);
+  // Сортування за балом відповідності
+  const scored = filtered.map(p => ({ ...p, score: ageScore(p) }))
+    .sort((a, b) => b.score - a.score);
 
   // Підпис вибору
   const ageL = { '1-8': 'Від 1 до 8 років', '8-13': 'Від 8 до 13 років' };
-  const surfL = { pavement: 'На вулиці (асфальт)', offroad: 'Різні поверхні' };
+  let catLabel = 'Весь електротранспорт';
+  if (answers.category) {
+    const catObj = allCategories.find(c => c.slug === answers.category);
+    catLabel = catObj ? catObj.name : answers.category;
+  }
   document.getElementById('resultsSummary').innerHTML = [
     `<div class="rs-tag"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${ageL[answers.age] || ''}</div>`,
+    `<div class="rs-tag"><svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-1l-3 3v-3H9V8z"/></svg>${escHtml(catLabel)}</div>`,
     `<div class="rs-tag"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>до ${answers.budget.toLocaleString('uk-UA')} ₴</div>`
   ].join('');
 
@@ -621,7 +689,7 @@ function showResults() {
     document.getElementById('resultsGrid').innerHTML =
       '<div style="grid-column:1/-1;text-align:center;padding:40px;background:white;border-radius:var(--r);border:1.5px solid var(--border)">' +
       '<h3 style="color:var(--navy);margin-bottom:8px">Не знайдено результатів</h3>' +
-      '<p style="color:var(--text-muted);margin-bottom:20px">Спробуйте збільшити бюджет або змінити параметри</p>' +
+      '<p style="color:var(--text-muted);margin-bottom:20px">Спробуйте збільшити бюджет, обрати іншу категорію або змінити вік</p>' +
       '<button class="btn btn-primary" onclick="restartCalc()">Спробувати знову</button></div>';
     return;
   }
@@ -636,8 +704,8 @@ function showResults() {
       : (SVG_BY_TYPE[p.img] || SVG_BY_TYPE.jeep);
     const bg = photo ? '#fff' : `linear-gradient(145deg,${BG_BY_TYPE[p.img] || BG_BY_TYPE.default})`;
     const specs = [];
-    if (p.age) specs.push(p.age + ' р.');
     if (p.voltage) specs.push(p.voltage);
+    if (p.age_min != null && p.age_max != null) specs.push(p.age_min + '–' + p.age_max + ' р.');
     return `
     <div class="res-card${i === 0 ? ' best' : ''}">
       ${i === 0 ? '<div class="res-best-badge">🏆 Найкраще співпадіння</div>' : ''}
@@ -668,7 +736,7 @@ function showResults() {
 
 function restartCalc() {
   answers.age = null;
-  answers.surface = null;
+  answers.category = null;
   answers.budget = 25000;
   currentStep = 1;
   document.getElementById('resultsWrap').style.display = 'none';
@@ -678,7 +746,6 @@ function restartCalc() {
   );
   document.querySelectorAll('.opt-card').forEach(c => c.classList.remove('selected'));
   document.getElementById('nextBtn1').disabled = true;
-  document.getElementById('nextBtn2').disabled = true;
   setBudget(25000);
   updateProgress(1);
   window.scrollTo({ top: 0, behavior: 'smooth' });
