@@ -607,7 +607,7 @@ const RANKING_CRITERIA = [
   {
     field: 'max_speed',
     label: 'Максимальна швидкість',
-    weight: 2,
+    weight: 1,   // знижено з 2→1: різниця 3 км/год некритична для дитячого авто
     enabled: true,
     compute: function(specs) {
       var v = parseFloat(specs.max_speed);
@@ -617,11 +617,23 @@ const RANKING_CRITERIA = [
   {
     field: 'seats_count',
     label: 'Кількість місць',
-    weight: 1,
+    weight: 3,   // підвищено з 1→3: 2 місця — суттєва перевага для сімейного вибору
     enabled: true,
     compute: function(specs) {
       var v = parseFloat(specs.seats_count);
       return isNaN(v) ? null : v;
+    }
+  },
+  {
+    field: 'paint_type',
+    label: 'Тип фарбування кузова',
+    weight: 1,
+    enabled: true,
+    // Автофарбування = 1 (краще), Без автофарбування/відсутнє = 0 (гірше).
+    // Повертаємо 0 (а не null) щоб всі товари брали участь у рейтингу —
+    // при null товар виключається з порівняння за цим критерієм.
+    compute: function(specs) {
+      return specs.paint_type === 'Автофарбування' ? 1 : 0;
     }
   },
 ];
@@ -953,11 +965,11 @@ function render() {
     // Порядок: потужність двигунів → швидкість → АКБ → двигуни → акум → місця.
     const TIE_BREAK_FIELDS = [
       'motor_power_total',  // count × power — найважливіший
-      'max_speed',
+      'seats_count',        // 2-місні авто пріоритетніші за більш швидкі
       'battery_power_total', // count × voltage
       'motor_count',
       'battery_count',
-      'seats_count',
+      'max_speed',
     ];
     // Карта: field → compute-функція з RANKING_CRITERIA (будь-яка, у т.ч. вимкнена)
     const _tbCompute = {};
@@ -1025,9 +1037,14 @@ function render() {
 
       let cols = `<td>${label}</td>`;
       rawValues.forEach((val, i) => {
-        if (val === NOT_SPECIFIED) {
+        // Для типу фарбування: якщо значення відсутнє — показуємо «Без автофарбування»
+        // як окрему мітку (гірше, ніж «Автофарбування»), а не нейтральне «Не вказано»
+        const displayVal = (key === 'paint_type' && val === NOT_SPECIFIED) ? 'Без автофарбування' : val;
+        if (displayVal === NOT_SPECIFIED) {
           cols += `<td><span class="val-unspecified">${NOT_SPECIFIED}</span></td>`;
-        } else if (val === 'Так') {
+        } else if (displayVal === 'Без автофарбування') {
+          cols += `<td><span class="val-unspecified" title="Не вказано автофарбування — вважається гірше">${displayVal}</span></td>`;
+        } else if (displayVal === 'Так') {
           cols += `<td><span class="val-yes"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>${val}</span></td>`;
         } else {
           cols += `<td ${bestIdx.has(i) ? 'class="val-highlight"' : ''}>${val}</td>`;
@@ -1050,7 +1067,7 @@ function render() {
     const medal = (place !== null && place < 3) ? medals[place] : '';
     const rankCls = (place !== null && place < 3) ? rankColors[place] : 'prod-rank-other';
     const placeLabel = place !== null ? `${place + 1} місце` : '';
-    const rankTip = place !== null ? `${placeLabel}: ${sortedScores[i]} балів (потужність×5 + АКБ×4 + двигуни×3 + акум×2 + швидкість×2 + місця×1)` : '';
+    const rankTip = place !== null ? `${placeLabel}: ${sortedScores[i]} балів (потужність×5 + АКБ×4 + двигуни×3 + акум×2 + місця×3 + швидкість×1 + фарбування×1)` : '';
 
     // Info row: photo, rank, name, price — no button
     headerCols += `
