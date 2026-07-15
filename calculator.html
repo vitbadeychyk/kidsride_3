@@ -423,24 +423,47 @@ async function loadProducts() {
       'Authorization': 'Bearer ' + SUPABASE_KEY,
       'Content-Type': 'application/json'
     };
-    // EV-слаги у полі product.category — це власне тип транспорту
-    const EV_SLUGS = 'jeep,car,quad,moto,tractor,truck,buggy,walker';
 
-    // Завантажуємо тільки EV-продукти (за slug), атрибути віку та всі категорії паралельно
-    const [prodsRes, ageRes, catsRes] = await Promise.all([
-      fetch(SUPABASE_URL + '/rest/v1/products?select=*&active=eq.true&category=in.(' + EV_SLUGS + ')&limit=3000&order=sort_order.asc,created_at.desc', { headers: h }),
-      fetch(SUPABASE_URL + '/rest/v1/product_attribute_values?select=product_id,attribute_id,value&attribute_id=in.(46,47,48,49,50,51)&limit=5000', { headers: h }),
-      fetch(SUPABASE_URL + '/rest/v1/categories?select=id,name,slug,image_url,sort_order&active=eq.true&order=sort_order.asc.nullslast,name.asc', { headers: h })
+    // Крок 1: паралельно завантажуємо main_categories, categories та атрибути віку
+    const [mainCatsRes, catsRes, ageRes] = await Promise.all([
+      fetch(SUPABASE_URL + '/rest/v1/main_categories?select=id,name,slug&active=eq.true', { headers: h }),
+      fetch(SUPABASE_URL + '/rest/v1/categories?select=id,name,slug,image_url,sort_order,main_category_id&active=eq.true&order=sort_order.asc.nullslast,name.asc', { headers: h }),
+      fetch(SUPABASE_URL + '/rest/v1/product_attribute_values?select=product_id,attribute_id,value&attribute_id=in.(46,47,48,49,50,51)&limit=5000', { headers: h })
     ]);
 
-    const [rawProds, ageVals, cats] = await Promise.all([
-      prodsRes.ok ? prodsRes.json() : [],
-      ageRes.ok   ? ageRes.json()  : [],
-      catsRes.ok  ? catsRes.json() : []
+    const [mainCats, cats, ageVals] = await Promise.all([
+      mainCatsRes.ok ? mainCatsRes.json() : [],
+      catsRes.ok    ? catsRes.json()    : [],
+      ageRes.ok     ? ageRes.json()     : []
     ]);
 
-    // Зберігаємо ВСІ категорії — фільтрація відбувається в renderCategoryStep()
-    allCategories = Array.isArray(cats) ? cats : [];
+    // Знаходимо батьківську категорію "Електромобілі" в main_categories
+    const evMain = (Array.isArray(mainCats) ? mainCats : []).find(c =>
+      /електромобіл/i.test(c.name || '') || (c.slug || '').toLowerCase().includes('elektromobil')
+    );
+
+    // Фільтруємо підкатегорії: тільки ті що під "Електромобілі", без запчастин
+    // Це точно відповідає тому що показує каталог на /elektromobili
+    const allCatsRaw = Array.isArray(cats) ? cats : [];
+    allCategories = allCatsRaw.filter(c => {
+      if (!c.main_category_id || !evMain) return false;
+      if (c.main_category_id !== evMain.id) return false;
+      if (!c.slug) return false;
+      if (EXCLUDE_SLUGS.includes(c.slug.toLowerCase())) return false;
+      if (/запчастин|spare|parts/i.test(c.name || '')) return false;
+      return true;
+    });
+
+    // Крок 2: завантажуємо продукти по ID відфільтрованих категорій
+    const evCatIds = allCategories.map(c => c.id);
+    let rawProds = [];
+    if (evCatIds.length > 0) {
+      const prodsRes = await fetch(
+        SUPABASE_URL + '/rest/v1/products?select=*&active=eq.true&category_id=in.(' + evCatIds.join(',') + ')&limit=3000&order=sort_order.asc,created_at.desc',
+        { headers: h }
+      );
+      rawProds = prodsRes.ok ? await prodsRes.json() : [];
+    }
 
     // Будуємо карту age_min/age_max з атрибутів
     const ageMap = {};
@@ -451,7 +474,6 @@ async function loadProducts() {
     }
 
     allProducts = (Array.isArray(rawProds) ? rawProds : [])
-      .filter(p => !EXCLUDE_SLUGS.includes((p.category||'').toLowerCase()))
       .map(p => ({
         id: p.id,
         sku: p.sku,
@@ -514,11 +536,9 @@ function renderCategoryStep() {
     ).length;
   }
 
-  // Показуємо ТІЛЬКИ ті 9 категорій електромобілів, які є в розділі "Електромобілі" каталогу
-  let evCats = allCategories.filter(c => {
-    if (!c.slug) return false;
-    return EV_CATEGORIES_BASE.includes(c.slug.toLowerCase());
-  });
+  // allCategories вже відфільтровані в loadProducts() —
+  // це точно ті підкатегорії "Електромобілі" що показує каталог, без запчастин
+  const evCats = allCategories;
 
   if (evCats.length === 0 && allProducts.length === 0) {
     grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--text-muted)">Завантаження…</div>';
