@@ -514,15 +514,10 @@ function renderCategoryStep() {
     ).length;
   }
 
-  // Фільтруємо: лише категорії з хоча б одним товаром, без запчастин і без
-  // узагальненої категорії "Електромобілі" (яка є батьківською, не підтипом)
+  // Показуємо ТІЛЬКИ ті 9 категорій електромобілів, які є в розділі "Електромобілі" каталогу
   let evCats = allCategories.filter(c => {
     if (!c.slug) return false;
-    if (EXCLUDE_SLUGS.includes(c.slug.toLowerCase())) return false;
-    if (/запчастин|spare|parts/i.test(c.name || '')) return false;
-    // Виключаємо назву "Електромобілі" — це батьківський розділ, не конкретна категорія
-    if (/^електромобіл/i.test((c.name || '').trim())) return false;
-    return countForCat(c) > 0;
+    return EV_CATEGORIES_BASE.includes(c.slug.toLowerCase());
   });
 
   if (evCats.length === 0 && allProducts.length === 0) {
