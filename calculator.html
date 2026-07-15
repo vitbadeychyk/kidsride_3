@@ -386,8 +386,29 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const answers = { age: null, categoryId: null, budget: 25000 };
 let currentStep = 1;
 let allProducts = [];
-let allCategories  = []; // з Supabase (id,name,slug,image_url)
-let catIdToTypeSlug = {}; // { catId → productTypeSlug }, напр. {15:'moto', 8:'jeep'}
+let allCategories = []; // з Supabase (id,name,slug,image_url)
+
+// Маппінг: патерн назви категорії → product-type slug (значення products.category).
+// Порядок важливий: специфічні патерни — першими (quad-metal та gas-quad перед quad)
+const CAT_NAME_TO_TYPE = [
+  [/джип/i,                                 'jeep'],
+  [/^машин/i,                               'car'],
+  [/баг/i,                                  'buggy'],
+  [/вантаж/i,                               'truck'],
+  [/мотоцикл/i,                             'moto'],
+  [/трактор/i,                              'tractor'],
+  [/квадроцикл.{0,6}метал|метал.{0,6}квадро/i, 'quad-metal'],
+  [/бензин/i,                               'gas-quad'],
+  [/квадроцикл/i,                           'quad'], // загальний — останній
+];
+
+function typeSlugForCat(cat) {
+  const name = cat.name || '';
+  for (const [pattern, slug] of CAT_NAME_TO_TYPE) {
+    if (pattern.test(name)) return slug;
+  }
+  return null;
+}
 
 // Категорії, які вважаємо "електромобілями" (базовий список; розширюється динамічно)
 const EV_CATEGORIES_BASE = ['jeep','car','quad','quad-metal','moto','tractor','truck','buggy','gas-quad'];
@@ -502,16 +523,6 @@ async function loadProducts() {
         slug: p.slug || null
       }));
 
-    // Будуємо карту catId → product-type slug (наприклад {15:'moto', 8:'jeep'})
-    // Отримуємо її з самих продуктів: якщо у продукту є category_id і category (type slug),
-    // то вони й дають нам відповідність. Це дозволяє countForCat коректно рахувати
-    // навіть старі продукти, де category_id вказує на іншу (стару) категорію.
-    catIdToTypeSlug = {};
-    for (const p of allProducts) {
-      if (p.category_id != null && p.category && !catIdToTypeSlug[p.category_id]) {
-        catIdToTypeSlug[p.category_id] = p.category;
-      }
-    }
 
   } catch (e) {
     console.warn('Не вдалося завантажити товари з Supabase:', e.message);
@@ -547,17 +558,15 @@ function renderCategoryStep() {
   const grid = document.getElementById('catGrid');
   if (!grid) return;
 
-  // Рахуємо товари для категорії трьома способами:
-  // 1) category_id точно відповідає cat.id (нові товари)
-  // 2) product.category (product-type slug, напр. 'moto') збігається з тим що
-  //    знайшли з catIdToTypeSlug для cat.id
-  // 3) product.category_id == null і category == cat.slug (fallback)
+  // Рахуємо товари для категорії двома способами:
+  // 1) category_id точно відповідає cat.id (нові товари з правильним FK)
+  // 2) product.category (product-type slug) збігається з type slug категорії
+  //    визначеним по назві категорії (для старих товарів де category_id=null або старий)
   function countForCat(cat) {
-    const typeSlug = catIdToTypeSlug[cat.id]; // напр. 'moto'
+    const typeSlug = typeSlugForCat(cat);
     return allProducts.filter(p => {
-      if (p.category_id != null && p.category_id === cat.id) return true;
+      if (p.category_id === cat.id) return true;
       if (typeSlug && p.category === typeSlug) return true;
-      if (p.category_id == null && p.category === cat.slug) return true;
       return false;
     }).length;
   }
@@ -709,13 +718,11 @@ function showResults() {
   const filtered = allProducts.filter(p => {
     // Фільтр за категорією — дзеркальна логіка countForCat
     if (answers.categoryId != null) {
-      const catId    = answers.categoryId;
-      const typeSlug = catIdToTypeSlug[catId];
-      const cat      = allCategories.find(c => c.id === catId);
-      const matchById      = p.category_id != null && p.category_id === catId;
-      const matchByType    = typeSlug && p.category === typeSlug;
-      const matchBySlug    = p.category_id == null && cat && p.category === cat.slug;
-      if (!matchById && !matchByType && !matchBySlug) return false;
+      const cat      = allCategories.find(c => c.id === answers.categoryId);
+      const typeSlug = cat ? typeSlugForCat(cat) : null;
+      const matchById   = p.category_id === answers.categoryId;
+      const matchByType = typeSlug && p.category === typeSlug;
+      if (!matchById && !matchByType) return false;
     }
     // Фільтр за бюджетом
     if (p.price > answers.budget) return false;
