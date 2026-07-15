@@ -1411,8 +1411,10 @@ window.addEventListener('DOMContentLoaded', async () => {
         localStorage.setItem('kr_compare', JSON.stringify(forCache));
       } catch {}
       _cmpShowLoadBanner(false);
-      // Скидаємо прапор щоб winner-банер показався з реальними балами (після живого завантаження)
-      _winnerBannerShown = false;
+      // ВАЖЛИВО: прапор _winnerBannerShown НЕ скидаємо тут навмисно — інакше банер
+      // "Переможець" показується вдруге (з ефектом моргання/подвійного спливання)
+      // одразу після того, як підтягнулись реальні дані з Supabase. Банер має
+      // з'являтися рівно один раз за завантаження сторінки.
       render();
     } catch (e) {
       console.warn('[compare] live fetch attempt', attempt, 'failed:', e.message || e);
