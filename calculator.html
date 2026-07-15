@@ -386,7 +386,8 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const answers = { age: null, categoryId: null, budget: 25000 };
 let currentStep = 1;
 let allProducts = [];
-let allCategories = []; // з Supabase (id,name,slug,image_url)
+let allCategories  = []; // з Supabase (id,name,slug,image_url)
+let catIdToTypeSlug = {}; // { catId → productTypeSlug }, напр. {15:'moto', 8:'jeep'}
 
 // Категорії, які вважаємо "електромобілями" (базовий список; розширюється динамічно)
 const EV_CATEGORIES_BASE = ['jeep','car','quad','quad-metal','moto','tractor','truck','buggy','gas-quad'];
@@ -456,14 +457,16 @@ async function loadProducts() {
       return true;
     });
 
-    // Крок 2: завантажуємо продукти по ID категорій АБО по slug-полю
-    // (деякі товари мають category_id=null і зберігаються лише через slug-поле `category`)
-    const evCatIds   = allCategories.map(c => c.id);
-    const evCatSlugs = allCategories.map(c => c.slug).filter(Boolean);
+    // Крок 2: завантажуємо продукти двома умовами:
+    //   a) category_id=in.(EV-підкатегорії) — нові товари з правильним category_id
+    //   b) category=in.(product-type slugs)  — старі товари де category_id=null
+    // EV_CATEGORIES_BASE — це product-type slug-и, що зберігаються в products.category
+    const evCatIds = allCategories.map(c => c.id);
     let rawProds = [];
-    if (evCatIds.length > 0) {
-      // PostgREST OR: category_id=in.(ids) OR category=in.(slugs)
-      const orFilter = 'or=(category_id.in.(' + evCatIds.join(',') + '),category.in.(' + evCatSlugs.join(',') + '))';
+    {
+      const idsPart   = evCatIds.length > 0 ? 'category_id.in.(' + evCatIds.join(',') + ')' : '';
+      const slugsPart = 'category.in.(' + EV_CATEGORIES_BASE.join(',') + ')';
+      const orFilter  = 'or=(' + [idsPart, slugsPart].filter(Boolean).join(',') + ')';
       const prodsRes = await fetch(
         SUPABASE_URL + '/rest/v1/products?select=*&active=eq.true&' + orFilter + '&limit=3000&order=sort_order.asc,created_at.desc',
         { headers: h }
@@ -488,7 +491,7 @@ async function loadProducts() {
         price: parseFloat(p.price) || 0,
         oldPrice: p.old_price ? parseFloat(p.old_price) : null,
         category: p.category || '',
-        category_id: p.category_id || null,
+        category_id: p.category_id != null ? +p.category_id : null,
         voltage: p.voltage ? p.voltage.toUpperCase().replace(/\s+/g,'') : '',
         age_min: ageMap[p.id] ? ageMap[p.id].age_min : null,
         age_max: ageMap[p.id] ? ageMap[p.id].age_max : null,
@@ -498,6 +501,17 @@ async function loadProducts() {
         images: Array.isArray(p.images) ? p.images : [],
         slug: p.slug || null
       }));
+
+    // Будуємо карту catId → product-type slug (наприклад {15:'moto', 8:'jeep'})
+    // Отримуємо її з самих продуктів: якщо у продукту є category_id і category (type slug),
+    // то вони й дають нам відповідність. Це дозволяє countForCat коректно рахувати
+    // навіть старі продукти, де category_id вказує на іншу (стару) категорію.
+    catIdToTypeSlug = {};
+    for (const p of allProducts) {
+      if (p.category_id != null && p.category && !catIdToTypeSlug[p.category_id]) {
+        catIdToTypeSlug[p.category_id] = p.category;
+      }
+    }
 
   } catch (e) {
     console.warn('Не вдалося завантажити товари з Supabase:', e.message);
@@ -533,13 +547,19 @@ function renderCategoryStep() {
   const grid = document.getElementById('catGrid');
   if (!grid) return;
 
-  // Для кожної категорії рахуємо товари за category_id (точніший матч)
-  // Fallback: якщо category_id немає — перевіряємо slug
+  // Рахуємо товари для категорії трьома способами:
+  // 1) category_id точно відповідає cat.id (нові товари)
+  // 2) product.category (product-type slug, напр. 'moto') збігається з тим що
+  //    знайшли з catIdToTypeSlug для cat.id
+  // 3) product.category_id == null і category == cat.slug (fallback)
   function countForCat(cat) {
-    return allProducts.filter(p =>
-      (p.category_id != null && p.category_id === cat.id) ||
-      (p.category_id == null && p.category === cat.slug)
-    ).length;
+    const typeSlug = catIdToTypeSlug[cat.id]; // напр. 'moto'
+    return allProducts.filter(p => {
+      if (p.category_id != null && p.category_id === cat.id) return true;
+      if (typeSlug && p.category === typeSlug) return true;
+      if (p.category_id == null && p.category === cat.slug) return true;
+      return false;
+    }).length;
   }
 
   // allCategories вже відфільтровані в loadProducts() —
@@ -687,14 +707,15 @@ function showResults() {
 
   const range = AGE_RANGES[answers.age];
   const filtered = allProducts.filter(p => {
-    // Фільтр за категорією (якщо обрано конкретну) — через category_id
+    // Фільтр за категорією — дзеркальна логіка countForCat
     if (answers.categoryId != null) {
-      const matchById  = p.category_id != null && p.category_id === answers.categoryId;
-      const matchBySlug = p.category_id == null && (() => {
-        const cat = allCategories.find(c => c.id === answers.categoryId);
-        return cat && p.category === cat.slug;
-      })();
-      if (!matchById && !matchBySlug) return false;
+      const catId    = answers.categoryId;
+      const typeSlug = catIdToTypeSlug[catId];
+      const cat      = allCategories.find(c => c.id === catId);
+      const matchById      = p.category_id != null && p.category_id === catId;
+      const matchByType    = typeSlug && p.category === typeSlug;
+      const matchBySlug    = p.category_id == null && cat && p.category === cat.slug;
+      if (!matchById && !matchByType && !matchBySlug) return false;
     }
     // Фільтр за бюджетом
     if (p.price > answers.budget) return false;
