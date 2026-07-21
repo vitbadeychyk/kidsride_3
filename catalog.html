@@ -2327,6 +2327,22 @@ function _mobNavShowSub(parentId, _skipHistory) {
     return;
   }
 
+  // Якщо товари ще не завантажились — показуємо shimmer і чекаємо на re-render після завантаження.
+  // Це запобігає відображенню неправильних тайлів (без розбиття на типи транспорту)
+  // при навігації на сторінку до того, як allProducts заповнений.
+  if (!allProducts || !allProducts.length) {
+    if (!document.getElementById('_shimmerStyle')) {
+      const _ss = document.createElement('style');
+      _ss.id = '_shimmerStyle';
+      _ss.textContent = '@keyframes _shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}';
+      document.head.appendChild(_ss);
+    }
+    const _cs = () => `<div class="mob-cat-tile" style="pointer-events:none"><div style="position:absolute;inset:0;border-radius:inherit;background:linear-gradient(90deg,#dce4f0 25%,#c8d4e8 50%,#dce4f0 75%);background-size:200% 100%;animation:_shimmer 1.4s infinite"></div></div>`;
+    grid.innerHTML = _cs()+_cs()+_cs()+_cs()+_cs()+_cs()+_cs()+_cs()+_cs()+_cs();
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    return;
+  }
+
   const available = (allProducts || []).filter(p => !(p.stock != null && p.stock <= 0 && !(Number(p.preorderDays) > 0)));
   const prodCounts = {};
   available.forEach(p => { if (p.category_id != null) prodCounts[p.category_id] = (prodCounts[p.category_id] || 0) + 1; });
