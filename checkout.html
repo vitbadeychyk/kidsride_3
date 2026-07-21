@@ -282,6 +282,7 @@ a{text-decoration:none;color:inherit}
 })();
 </script>
 <script>try{if(localStorage.getItem('kr_logo_url')){document.write('<style>.logo-mark svg{display:none!important}.logo-mark{background:transparent!important;box-shadow:none!important;padding:0!important}</style>')}}catch(e){}</script>
+<script src="/analytics.js"></script>
 </head>
 <body>
 
@@ -583,7 +584,7 @@ a{text-decoration:none;color:inherit}
             <svg id="termsCheckIcon" style="display:none;width:11px;height:11px;stroke:white;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
           </div>
           <div style="font-size:12px;color:var(--text-muted);line-height:1.6">
-            Я погоджуюсь з <a href="#" style="color:var(--orange)">умовами публічної оферти</a> та <a href="#" style="color:var(--orange)">політикою конфіденційності</a>
+            Я погоджуюсь з <a href="#" style="color:var(--orange)" target="_blank">умовами публічної оферти</a> та <a href="/privacy-policy.html" style="color:var(--orange)" target="_blank">політикою конфіденційності</a>
           </div>
         </div>
 
@@ -1473,21 +1474,35 @@ async function submitOrder() {
     // 2.5) Telegram-сповіщення (fire-and-forget, не блокуємо успіх)
     _sendOrderTelegram(created, order, items).catch(() => {});
 
-    // 3) Очистити кошик, промокод і показати успіх
+    // 3) Очистити кошик, зберегти дані замовлення і зробити редірект
     try {
       localStorage.setItem('kr_cart', '[]');
       localStorage.removeItem('kr_cart_promo');
       window.KR && KR.updateCartBadge && KR.updateCartBadge();
     } catch(e) {}
 
-    document.getElementById('checkoutPage').style.display = 'none';
-    document.getElementById('successPage').style.display = 'block';
-    document.getElementById('successPayment').textContent = getPayName();
-    const numEl = document.getElementById('successOrderNumber');
-    if (numEl) numEl.textContent = '#' + (created.order_number || order.order_number);
-    const totEl = document.getElementById('successTotal');
-    if (totEl) totEl.textContent = _fmtPriceCk(order.total);
-    window.scrollTo({top:0,behavior:'smooth'});
+    // Зберігаємо дані замовлення в sessionStorage для сторінки подяки
+    // Захист від F5: після першого зчитування на /order-success дані видаляються
+    const successData = {
+      orderId     : created.id,
+      orderNumber : '#' + (created.order_number || order.order_number),
+      total       : order.total,
+      paymentMethod: getPayName(),
+      deliveryType : order.delivery_type,
+      email       : order.customer_email || '',
+      phone       : order.customer_phone || '',
+      items       : items.map(it => ({
+        item_id   : it.sku || it.product_id,
+        item_name : it.product_name,
+        item_brand: it.product_brand,
+        price     : it.price,
+        quantity  : it.quantity
+      }))
+    };
+    try { sessionStorage.setItem('kr_order_success', JSON.stringify(successData)); } catch(e) {}
+
+    // Редірект на окрему сторінку подяки
+    window.location.href = '/order-success.html';
   } catch (e) {
     console.error('submitOrder Supabase error:', e);
     showToast('Не вдалось зберегти замовлення: ' + (e.message || 'помилка'));

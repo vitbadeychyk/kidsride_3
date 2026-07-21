@@ -2423,7 +2423,8 @@ tr:hover td{background:rgba(240,242,248,.5)}
           <div class="f-group"><label class="f-label">Title сайту (тег &lt;title&gt;)</label><input id="cfg_seo_title" type="text" placeholder="KidsRide — дитячий транспорт"></div>
           <div class="f-group" style="margin-top:12px"><label class="f-label">Meta Description</label><textarea id="cfg_seo_description" rows="3" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:'Manrope',sans-serif;font-size:13px;color:var(--navy);outline:none;resize:vertical" placeholder="Найкращий дитячий транспорт в Україні..."></textarea></div>
           <div class="f-group" style="margin-top:12px"><label class="f-label">OG Image URL (для соцмереж)</label><input id="cfg_og_image" type="text" placeholder="https://kidsride.com.ua/opengraph.jpg"></div>
-          <div class="f-group" style="margin-top:12px"><label class="f-label">Google Analytics ID</label><input id="cfg_ga_id" type="text" placeholder="G-XXXXXXXXXX"></div>
+          <div class="f-group" style="margin-top:12px"><label class="f-label">Google Tag Manager ID</label><input id="cfg_gtm_id" type="text" placeholder="GTM-XXXXXXX"><small style="color:var(--text-muted);font-size:11px;margin-top:4px;display:block">Головний тег — керує GA4 і Pixel через GTM. Якщо заповнено, пряма ін’єкція GA/Pixel ігнорується.</small></div>
+          <div class="f-group" style="margin-top:12px"><label class="f-label">Google Analytics ID (резервно, без GTM)</label><input id="cfg_ga_id" type="text" placeholder="G-XXXXXXXXXX"></div>
           <div class="f-group" style="margin-top:12px"><label class="f-label">Facebook Pixel ID</label><input id="cfg_fb_pixel" type="text" placeholder="123456789012345"></div>
         </div>
         <div class="import-card">
@@ -6919,6 +6920,7 @@ async function renderSettings() {
   _setField('cfg_seo_title',       seo.seo_title);
   _setField('cfg_seo_description', seo.seo_description);
   _setField('cfg_og_image',        seo.og_image);
+  _setField('cfg_gtm_id',          seo.gtm_id);
   _setField('cfg_ga_id',           seo.ga_id);
   _setField('cfg_fb_pixel',        seo.fb_pixel);
   _setField('cfg_site_url',        seo.site_url);
@@ -7011,6 +7013,7 @@ async function saveAllSettings() {
         seo_title:       document.getElementById('cfg_seo_title')?.value       || '',
         seo_description: document.getElementById('cfg_seo_description')?.value || '',
         og_image:        document.getElementById('cfg_og_image')?.value        || '',
+        gtm_id:          document.getElementById('cfg_gtm_id')?.value          || '',
         ga_id:           document.getElementById('cfg_ga_id')?.value           || '',
         fb_pixel:        document.getElementById('cfg_fb_pixel')?.value        || '',
         site_url:        document.getElementById('cfg_site_url')?.value        || '',
