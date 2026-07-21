@@ -1423,7 +1423,7 @@ async function _sendOrderTelegram(created, order, items) {
     lines.push('');
     lines.push(`🕒 ${new Date().toLocaleString('uk-UA', {timeZone:'Europe/Kyiv',hour12:false})} (Київ)`);
 
-    await fetch(`https://api.telegram.org/bot${cfg.tg_token}/sendMessage`, {
+    const tgRes = await fetch(`https://api.telegram.org/bot${cfg.tg_token}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1433,7 +1433,13 @@ async function _sendOrderTelegram(created, order, items) {
         disable_web_page_preview: true
       })
     });
-  } catch(e) {}
+    if (!tgRes.ok) {
+      const errBody = await tgRes.text().catch(() => '(no body)');
+      console.error('[TG] sendMessage failed:', tgRes.status, errBody);
+    }
+  } catch(e) {
+    console.error('[TG] sendMessage exception:', e);
+  }
 }
 
 // ── SUBMIT ─────────────────────────────────────────────────────────────────
