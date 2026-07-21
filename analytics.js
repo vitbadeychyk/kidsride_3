@@ -63,7 +63,8 @@
       "j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;" +
       "f.parentNode.insertBefore(j,f);" +
       "})(window,document,'script','dataLayer','" + id + "');";
-    document.head.appendChild(headScript);
+    // Вставляємо першим елементом <head> — рекомендація Google для GTM
+    document.head.insertBefore(headScript, document.head.firstChild);
 
     // <noscript> частина — вставляємо одразу після <body>
     function appendNoscript() {

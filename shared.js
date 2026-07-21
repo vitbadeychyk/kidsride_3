@@ -31,6 +31,25 @@ const KR = {
       cart.push({ ...product, qty: 1, addedAt: Date.now() });
     }
     this.saveCart(cart);
+    // GA4 add_to_cart event
+    try {
+      window.dataLayer = window.dataLayer || [];
+      dataLayer.push({ ecommerce: null });
+      dataLayer.push({
+        event: 'add_to_cart',
+        ecommerce: {
+          currency: 'UAH',
+          value: Number(product.price || 0),
+          items: [{
+            item_id   : product.sku || product.id || '',
+            item_name : product.name || '',
+            item_brand: product.brand || '',
+            price     : Number(product.price || 0),
+            quantity  : 1
+          }]
+        }
+      });
+    } catch(e) {}
     this.showToast(`✓ "${product.name}" додано в кошик`, 'success');
     this.animateCartBadge();
     return cart;

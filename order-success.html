@@ -250,7 +250,7 @@ footer{background:var(--navy);color:white;padding:40px 40px 0}
 
     var userData = {};
     if (data.email && data.email.trim()) {
-      userData.email_address = data.email.trim().toLowerCase();
+      userData.email = data.email.trim().toLowerCase();
     }
     if (data.phone && data.phone.trim()) {
       var ph = data.phone.replace(/\D/g, '');

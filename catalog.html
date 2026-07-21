@@ -887,6 +887,10 @@ nav a.active{color:var(--orange)}
     <div id="quickProductInfo" style="display:none;background:var(--bg-soft);border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:13px"></div>
     <input type="tel" id="quickPhone" value="+380 " placeholder="+380 __ ___ __ __" style="width:100%;padding:13px 16px;border:1.5px solid var(--border);border-radius:10px;font-family:'Manrope',sans-serif;font-size:15px;margin-bottom:10px;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='var(--orange)';if(!this.value||this.value.trim()==='')this.value='+380 ';requestAnimationFrame(()=>{try{this.setSelectionRange(this.value.length,this.value.length)}catch(e){}})" onblur="this.style.borderColor='var(--border)';if(this.value.trim()==='+380'||this.value.trim()==='')this.value=''">
     <input type="text" id="quickName" placeholder="Ваше ім'я (опціонально)" style="width:100%;padding:13px 16px;border:1.5px solid var(--border);border-radius:10px;font-family:'Manrope',sans-serif;font-size:14px;margin-bottom:12px;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='var(--orange)'" onblur="this.style.borderColor='var(--border)'">
+    <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;margin-bottom:12px;font-size:12px;color:var(--text-muted);line-height:1.5">
+      <input type="checkbox" id="quickTerms" style="margin-top:2px;flex-shrink:0;accent-color:var(--orange)">
+      <span>Я погоджуюсь з <a href="/privacy-policy.html" target="_blank" style="color:var(--orange);text-decoration:underline">Політикою конфіденційності</a></span>
+    </label>
     <button id="quickSubmitBtn" onclick="submitQuick()" class="btn btn-primary" style="width:100%;justify-content:center;font-size:15px;padding:14px">Передзвоніть мені</button>
     <div id="quickStatus" style="font-size:12px;text-align:center;margin-top:10px;min-height:16px;color:var(--text-muted)">Передзвонимо протягом 15 хвилин</div>
   </div>
@@ -1386,6 +1390,8 @@ function quickOrder(productId, productName, productPrice, productBrand) {
 
   document.getElementById('quickModal').style.display = 'flex';
   document.body.style.overflow = 'hidden';
+  const _qt = document.getElementById('quickTerms');
+  if (_qt) _qt.checked = false;
   setTimeout(() => document.getElementById('quickPhone')?.focus(), 200);
 }
 
@@ -1405,6 +1411,10 @@ async function submitQuick() {
   if (digits.length < 7) {
     if (status) { status.textContent = '⚠ Вкажіть коректний номер телефону'; status.style.color = '#e53935'; }
     document.getElementById('quickPhone')?.focus();
+    return;
+  }
+  if (!document.getElementById('quickTerms')?.checked) {
+    if (status) { status.textContent = '⚠ Погодьтесь з Політикою конфіденційності'; status.style.color = '#e53935'; }
     return;
   }
 
@@ -4338,5 +4348,14 @@ document.addEventListener('DOMContentLoaded', () => {
   else document.addEventListener('DOMContentLoaded',krLoadAllProducts);
   document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSearchOverlay();if((e.key==='k'||e.key==='K')&&(e.metaKey||e.ctrlKey)){e.preventDefault();openSearchOverlay();}});
   </script>
+
+<!-- MINIMAL FOOTER — юридичні посилання -->
+<footer style="background:#1B2A4A;padding:14px 20px;text-align:center;margin-top:40px">
+  <div style="font-size:12px;color:rgba(255,255,255,.4)">© 2024 KidsRide &nbsp;·&nbsp;
+    <a href="/privacy-policy.html" style="color:rgba(255,255,255,.55);text-decoration:none" onmouseover="this.style.color='rgba(255,255,255,.85)'" onmouseout="this.style.color='rgba(255,255,255,.55)'">Політика конфіденційності</a>
+    &nbsp;·&nbsp;
+    <a href="/payment-terms.html" style="color:rgba(255,255,255,.55);text-decoration:none" onmouseover="this.style.color='rgba(255,255,255,.85)'" onmouseout="this.style.color='rgba(255,255,255,.55)'">Умови оплати</a>
+  </div>
+</footer>
 </body>
 </html>

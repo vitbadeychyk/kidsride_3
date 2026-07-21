@@ -941,6 +941,10 @@ nav a.active{color:var(--orange)}
       style="width:100%;padding:13px 16px;border:1.5px solid var(--border);border-radius:10px;font-family:'Manrope',sans-serif;font-size:14px;margin-bottom:14px;outline:none;transition:border-color .2s"
       onfocus="this.style.borderColor='var(--orange)'"
       onblur="this.style.borderColor='var(--border)'">
+    <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;margin-bottom:14px;font-size:12px;color:var(--text-muted);line-height:1.5">
+      <input type="checkbox" id="quickTerms" style="margin-top:2px;flex-shrink:0;accent-color:var(--orange)">
+      <span>Я погоджуюсь з <a href="/privacy-policy.html" target="_blank" style="color:var(--orange);text-decoration:underline">Політикою конфіденційності</a></span>
+    </label>
     <button onclick="submitQuick()" class="btn btn-primary btn-full btn-lg">Передзвоніть мені</button>
     <p style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:10px">Передзвонимо протягом 15 хвилин у робочий час</p>
   </div>
@@ -1377,6 +1381,8 @@ function closeZoom() {
 function quickOrder() {
   document.getElementById('quickModal').style.display = 'flex';
   document.body.style.overflow = 'hidden';
+  const _qt = document.getElementById('quickTerms');
+  if (_qt) _qt.checked = false;
   setTimeout(() => document.getElementById('quickPhone')?.focus(), 300);
 }
 function closeQuick() {
@@ -1394,6 +1400,10 @@ async function submitQuick() {
   if (digits.length < 7) {
     if (hint) { hint.textContent = '⚠ Вкажіть коректний номер телефону'; hint.style.color = '#e53935'; }
     document.getElementById('quickPhone')?.focus();
+    return;
+  }
+  if (!document.getElementById('quickTerms')?.checked) {
+    if (hint) { hint.textContent = '⚠ Погодьтесь з Політикою конфіденційності'; hint.style.color = '#e53935'; }
     return;
   }
 
@@ -1797,6 +1807,26 @@ console.log('[KidsRide] product.html v3.9 — працюють: копіюван
     console.log('[KidsRide] product loaded:', { sku: p.sku, model_code: p.model_code, name: p.name, images: Array.isArray(p.images) ? p.images.length : 0 });
 
     window.__krCurrentProduct = p;
+    // GA4 view_item event
+    try {
+      window.dataLayer = window.dataLayer || [];
+      dataLayer.push({ ecommerce: null });
+      dataLayer.push({
+        event: 'view_item',
+        ecommerce: {
+          currency: 'UAH',
+          value: Number(p.price || 0),
+          items: [{
+            item_id      : p.sku || p.id || '',
+            item_name    : p.name || '',
+            item_brand   : p.brand || '',
+            item_category: p.category || '',
+            price        : Number(p.price || 0),
+            quantity     : 1
+          }]
+        }
+      });
+    } catch(e) {}
     applyProductData(p);
     renderProductDescription(p);
     renderProductSpecs(p);
@@ -3339,5 +3369,14 @@ function krGoBack() {
   }
 }
 </script>
+
+<!-- MINIMAL FOOTER — юридичні посилання -->
+<footer style="background:#1B2A4A;padding:14px 20px;text-align:center;margin-top:40px">
+  <div style="font-size:12px;color:rgba(255,255,255,.4)">© 2024 KidsRide &nbsp;·&nbsp;
+    <a href="/privacy-policy.html" style="color:rgba(255,255,255,.55);text-decoration:none" onmouseover="this.style.color='rgba(255,255,255,.85)'" onmouseout="this.style.color='rgba(255,255,255,.55)'">Політика конфіденційності</a>
+    &nbsp;·&nbsp;
+    <a href="/payment-terms.html" style="color:rgba(255,255,255,.55);text-decoration:none" onmouseover="this.style.color='rgba(255,255,255,.85)'" onmouseout="this.style.color='rgba(255,255,255,.55)'">Умови оплати</a>
+  </div>
+</footer>
 </body>
 </html>
