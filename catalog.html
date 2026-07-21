@@ -2290,7 +2290,7 @@ function _mobNavShowMain() {
   try { history.replaceState({ level: 'main', catId: 0, parentId: 0, vType: '' }, '', location.href); } catch(_){}
 }
 
-function _mobNavShowSub(parentId) {
+function _mobNavShowSub(parentId, _skipHistory) {
   if (!_isMobileView()) return;
   _mobNavLevel = 'sub';
   _mobNavParentId = parentId;
@@ -2309,12 +2309,15 @@ function _mobNavShowSub(parentId) {
   if (backBtn) backBtn.style.display = 'flex';
 
   // Оновити URL при переході до підкатегорій основної категорії
-  try {
-    if (parent) {
-      const _mainSlugNav = slugify(parent.name);
-      history.pushState({ catId: 0, parentId: parentId || 0, vType: '', level: 'sub' }, '', '/' + _mainSlugNav);
-    }
-  } catch(_e) {}
+  // (_skipHistory=true при повторному рендері після завантаження товарів — не дублюємо запис в history)
+  if (!_skipHistory) {
+    try {
+      if (parent) {
+        const _mainSlugNav = slugify(parent.name);
+        history.pushState({ catId: 0, parentId: parentId || 0, vType: '', level: 'sub' }, '', '/' + _mainSlugNav);
+      }
+    } catch(_e) {}
+  }
 
   const grid = document.getElementById('mobCatGrid');
   if (!grid) return;
@@ -3287,6 +3290,12 @@ async function renderCatalog() {
         // Оновити дерево зі свіжими даними (кількості можуть змінитись)
         loadCategoryTree();
         applyFiltersAndRender();
+        // Виправлення: якщо сітка підкатегорій була показана до завантаження товарів
+        // (наприклад при навігації з іншої сторінки) — перерендерити її тепер,
+        // щоб типи транспорту (Джипи, Машини тощо) відображались одразу без оновлення сторінки.
+        if (_mobNavLevel === 'sub' && _mobNavParentId) {
+          _mobNavShowSub(_mobNavParentId, true);
+        }
       }
     }).catch(() => {});
     return;
@@ -3359,6 +3368,12 @@ async function renderCatalog() {
   // Дерево з актуальними лічильниками (тепер allProducts заповнений)
   loadCategoryTree();
   applyFiltersAndRender();
+  // Виправлення: якщо сітка підкатегорій була показана до завантаження товарів
+  // (наприклад при навігації з іншої сторінки) — перерендерити її тепер,
+  // щоб типи транспорту (Джипи, Машини тощо) відображались одразу без оновлення сторінки.
+  if (_mobNavLevel === 'sub' && _mobNavParentId) {
+    _mobNavShowSub(_mobNavParentId, true);
+  }
 }
 
 // Повертає масив category_id для поточного вибору в дереві категорій
