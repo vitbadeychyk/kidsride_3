@@ -112,7 +112,7 @@ function formatTelegram(l) {
     `<i>${esc(sourceLabel)}</i>`,
     ''
   ];
-  lines.push(`📞 <b>Телефон:</b> <code>${esc(l.phone)}</code>`);
+  lines.push(`📞 <b>Телефон:</b> <a href="tel:${esc(l.phone)}">${esc(l.phone)}</a>`);
   if (l.name) lines.push(`👤 <b>Ім'я:</b> ${esc(l.name)}`);
 
   if (l.product_name) {
