@@ -7,7 +7,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Замовлення прийнято — KidsRide</title>
-<meta name="description" content="Дякуємо за замовлення у KidsRide! Наш менеджер зв'яжеться з вами протягом 15 хвилин.">
+<meta name="description" content="Дякуємо за замовлення у KidsRide! Наш менеджер зв'яжеться з Вами найближчим часом.">
 <meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,85 +16,129 @@
 <style>
 :root{
   --orange:#FF6B35;--orange-dark:#e85520;
-  --navy:#1B2A4A;--navy-light:#2d4270;
-  --bg:#FFFFFF;--bg-soft:#F8F9FC;--bg-warm:#FFF8F5;
-  --green:#27AE60;--text:#1a1a2e;--text-muted:#6b7280;
+  --navy:#1B2A4A;
+  --bg:#FFFFFF;--bg-soft:#F8F9FC;
+  --green:#27AE60;
+  --text:#1a1a2e;--text-muted:#6b7280;
   --border:#e8ecf4;
-  --shadow-sm:0 2px 12px rgba(27,42,74,.07);
   --shadow-md:0 8px 32px rgba(27,42,74,.12);
   --r:16px;--r-sm:10px;--r-lg:24px;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth;overflow-x:hidden}
-body{font-family:'Manrope',sans-serif;color:var(--text);background:var(--bg);line-height:1.6}
+body{font-family:'Manrope',sans-serif;color:var(--text);background:var(--bg-soft);line-height:1.6}
 h1,h2,h3{font-family:'Nunito',sans-serif}
-.container{max-width:1100px;margin:0 auto;padding:0 24px}
 
-/* ── HEADER ── */
+/* HEADER */
 .header{position:sticky;top:0;z-index:100;background:var(--navy);display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:72px;box-shadow:0 2px 20px rgba(27,42,74,.3)}
 .logo{display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:white;font-family:'Nunito',sans-serif;font-weight:900;font-size:20px;letter-spacing:-.3px}
 .logo-mark{width:36px;height:36px;background:var(--orange);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .logo span{color:var(--orange)}
-.h-right{display:flex;align-items:center;gap:12px}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 22px;border-radius:10px;font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;text-decoration:none;cursor:pointer;border:none;transition:all .25s;white-space:nowrap}
 .btn-primary{background:var(--orange);color:white;box-shadow:0 4px 16px rgba(255,107,53,.3)}
-.btn-primary:hover{background:var(--orange-dark);transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,107,53,.4)}
-.btn-outline{background:transparent;color:var(--navy);border:2px solid var(--border)}
+.btn-primary:hover{background:var(--orange-dark);transform:translateY(-2px)}
+.btn-outline{background:white;color:var(--navy);border:2px solid var(--border)}
 .btn-outline:hover{border-color:var(--orange);color:var(--orange)}
 @media(max-width:768px){.header{padding:0 20px;height:60px}.h-right .btn-primary{display:none}}
 
-/* ── MAIN ── */
-.success-section{padding:80px 0 100px;min-height:calc(100vh - 72px - 120px);display:flex;align-items:center}
-.success-wrap{max-width:560px;margin:0 auto;text-align:center;padding:0 24px}
+/* MAIN */
+.page{min-height:calc(100vh - 72px);display:flex;align-items:center;justify-content:center;padding:48px 24px}
 
-/* Іконка ✓ */
 @keyframes popIn{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
 @keyframes drawCheck{from{stroke-dashoffset:60}to{stroke-dashoffset:0}}
-.success-icon{width:96px;height:96px;background:rgba(39,174,96,.1);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 28px;animation:popIn .5s cubic-bezier(.34,1.56,.64,1) both}
-.success-icon svg{width:44px;height:44px;stroke:var(--green);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:60;stroke-dashoffset:60;animation:drawCheck .4s .4s ease forwards}
+@keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 
-.success-title{font-size:32px;font-weight:900;color:var(--navy);margin-bottom:10px;line-height:1.2}
-.success-desc{font-size:15px;color:var(--text-muted);line-height:1.65;margin-bottom:32px}
-
-/* Картка з деталями */
-.order-card{background:var(--bg-soft);border-radius:var(--r-lg);border:1.5px solid var(--border);padding:24px;margin-bottom:28px;text-align:left}
-.order-row{display:flex;justify-content:space-between;align-items:baseline;padding:10px 0;border-bottom:1px solid var(--border);gap:12px}
-.order-row:last-child{border-bottom:none}
-.order-label{font-size:13px;color:var(--text-muted);white-space:nowrap}
-.order-val{font-weight:700;color:var(--navy);font-family:'Nunito',sans-serif;text-align:right}
-.order-total .order-val{font-size:20px;font-weight:900;color:var(--orange)}
-
-/* Кнопки */
-.success-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:8px}
-.success-btns .btn{font-size:15px;padding:14px 28px}
-
-/* Підказка */
-.success-note{margin-top:28px;font-size:13px;color:var(--text-muted);background:rgba(255,107,53,.06);border-radius:var(--r-sm);padding:14px 18px;line-height:1.6}
-
-@media(max-width:600px){
-  .success-section{padding:48px 0 72px;align-items:flex-start}
-  .success-title{font-size:26px}
-  .success-btns{flex-direction:column}
-  .success-btns .btn{width:100%;justify-content:center}
+.card{
+  background:white;
+  border-radius:var(--r-lg);
+  border:1.5px solid var(--border);
+  box-shadow:var(--shadow-md);
+  width:100%;max-width:480px;
+  text-align:center;
+  overflow:hidden;
+  animation:slideUp .4s ease both;
 }
 
-/* ── FOOTER ── */
-footer{background:var(--navy);color:white;padding:48px 40px 0}
-.f-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:48px;padding-bottom:40px}
+/* Зелена шапка */
+.card-top{
+  background:linear-gradient(135deg,#27AE60 0%,#2ecc71 100%);
+  padding:40px 32px 32px;
+  color:white;
+}
+.check-icon{
+  width:80px;height:80px;
+  background:rgba(255,255,255,.2);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 20px;
+  animation:popIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+.check-icon svg{
+  width:38px;height:38px;
+  stroke:white;fill:none;
+  stroke-width:3;stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:60;stroke-dashoffset:60;
+  animation:drawCheck .4s .45s ease forwards;
+}
+.card-title{font-size:26px;font-weight:900;margin-bottom:6px}
+.card-sub{font-size:14px;opacity:.9}
+
+/* Номер замовлення */
+.order-num-wrap{
+  padding:24px 32px;
+  border-bottom:1.5px solid var(--border);
+}
+.order-num-label{
+  font-size:11px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.1em;
+  color:var(--text-muted);
+  margin-bottom:6px;
+}
+.order-num-val{
+  font-family:'Nunito',sans-serif;
+  font-size:36px;font-weight:900;
+  color:var(--orange);
+  letter-spacing:-.5px;
+}
+
+/* Нижній блок */
+.card-bottom{
+  padding:24px 32px 32px;
+}
+.wait-msg{
+  font-size:14px;color:var(--text-muted);
+  line-height:1.6;
+  margin-bottom:24px;
+}
+.wait-msg strong{color:var(--navy)}
+
+.btns{display:flex;gap:10px}
+.btns .btn{flex:1;padding:13px 12px;font-size:14px}
+
+@media(max-width:480px){
+  .card-top{padding:32px 20px 26px}
+  .card-title{font-size:22px}
+  .order-num-wrap{padding:20px}
+  .order-num-val{font-size:28px}
+  .card-bottom{padding:20px 20px 28px}
+  .btns{flex-direction:column}
+}
+
+/* FOOTER */
+footer{background:var(--navy);color:white;padding:40px 40px 0}
+.f-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:48px;padding-bottom:36px}
 .f-brand-desc{color:rgba(255,255,255,.55);font-size:13px;line-height:1.6;margin-top:12px;max-width:280px}
 .f-col-t{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.4);margin-bottom:14px}
 .f-links{display:flex;flex-direction:column;gap:10px}
 .f-links a{color:rgba(255,255,255,.7);text-decoration:none;font-size:13px;transition:color .2s}
 .f-links a:hover{color:white}
-.f-bot{border-top:1px solid rgba(255,255,255,.08);padding:20px 0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.f-bot{border-top:1px solid rgba(255,255,255,.08);padding:18px 0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
 .f-copy{color:rgba(255,255,255,.35);font-size:12px}
-@media(max-width:900px){footer{padding:40px 20px 0}.f-grid{grid-template-columns:1fr;gap:28px}}
+@media(max-width:900px){footer{padding:36px 20px 0}.f-grid{grid-template-columns:1fr;gap:24px}}
 </style>
 <script src="/analytics.js"></script>
 </head>
 <body>
 
-<!-- HEADER -->
 <header class="header">
   <a href="/" class="logo">
     <div class="logo-mark">
@@ -109,54 +153,38 @@ footer{background:var(--navy);color:white;padding:48px 40px 0}
   </div>
 </header>
 
-<!-- MAIN -->
-<section class="success-section">
-  <div class="success-wrap">
+<main class="page">
+  <div class="card">
 
-    <div class="success-icon">
-      <svg viewBox="0 0 24 24">
-        <polyline points="20 6 9 17 4 12"/>
-      </svg>
+    <div class="card-top">
+      <div class="check-icon">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="card-title">Дякуємо за замовлення!</div>
+      <div class="card-sub">KidsRide — дитячий транспорт</div>
     </div>
 
-    <h1 class="success-title">Замовлення прийнято!</h1>
-    <p class="success-desc">Дякуємо за покупку! Наш менеджер зв'яжеться з вами протягом 15 хвилин для підтвердження замовлення.</p>
-
-    <div class="order-card">
-      <div class="order-row">
-        <span class="order-label">Номер замовлення</span>
-        <span class="order-val" id="osNumber">—</span>
-      </div>
-      <div class="order-row">
-        <span class="order-label">Спосіб оплати</span>
-        <span class="order-val" id="osPayment">—</span>
-      </div>
-      <div class="order-row">
-        <span class="order-label">Доставка</span>
-        <span class="order-val" id="osDelivery">Нова Пошта</span>
-      </div>
-      <div class="order-row order-total">
-        <span class="order-label">Сума до сплати</span>
-        <span class="order-val" id="osTotal">—</span>
-      </div>
+    <div class="order-num-wrap">
+      <div class="order-num-label">Номер замовлення</div>
+      <div class="order-num-val" id="osNumber">—</div>
     </div>
 
-    <div class="success-btns">
-      <a href="/" class="btn btn-outline">На головну</a>
-      <a href="/catalog.html" class="btn btn-primary">Продовжити покупки</a>
-    </div>
-
-    <div class="success-note">
-      📦 Середній час доставки Новою Поштою — 1–3 робочі дні.<br>
-      За питаннями телефонуйте або пишіть у Telegram.
+    <div class="card-bottom">
+      <p class="wait-msg">
+        Наш менеджер зв'яжеться з вами найближчим часом для підтвердження замовлення.<br>
+        <strong>Очікуйте на дзвінок.</strong>
+      </p>
+      <div class="btns">
+        <a href="/" class="btn btn-outline">На головну</a>
+        <a href="/catalog.html" class="btn btn-primary">До каталогу</a>
+      </div>
     </div>
 
   </div>
-</section>
+</main>
 
-<!-- FOOTER -->
 <footer>
-  <div class="container">
+  <div style="max-width:1100px;margin:0 auto">
     <div class="f-grid">
       <div>
         <a href="/" class="logo" style="color:#fff">
@@ -188,40 +216,27 @@ footer{background:var(--navy);color:white;padding:48px 40px 0}
 (function () {
   'use strict';
 
-  // ── Форматування ціни ──
-  function fmtPrice(n) {
-    return Number(n).toLocaleString('uk-UA', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + ' ₴';
-  }
-
-  // ── Читаємо дані замовлення з sessionStorage ──
   var raw = null;
   try { raw = sessionStorage.getItem('kr_order_success'); } catch (e) {}
-
-  if (!raw) {
-    // Якщо даних немає (F5, пряме відкриття) — редіректимо на головну
-    window.location.replace('/');
-    return;
-  }
+  if (!raw) { window.location.replace('/'); return; }
 
   var data = null;
   try { data = JSON.parse(raw); } catch (e) {}
   if (!data) { window.location.replace('/'); return; }
 
-  // ── Відображаємо дані ──
-  var deliveryLabel = data.deliveryType === 'address' ? 'Кур'єр (адресна доставка)' : 'Нова Пошта';
-  document.getElementById('osNumber').textContent  = data.orderNumber  || '—';
-  document.getElementById('osPayment').textContent = data.paymentMethod || '—';
-  document.getElementById('osDelivery').textContent = deliveryLabel;
-  document.getElementById('osTotal').textContent   = data.total ? fmtPrice(data.total) : '—';
-
-  // ── Видаляємо дані з sessionStorage (захист від повторного push при F5) ──
   try { sessionStorage.removeItem('kr_order_success'); } catch (e) {}
 
-  // ── Пушимо подію purchase в dataLayer для GTM → GA4 / Google Ads ──
-  // Виконується рівно один раз за замовлення
+  // Номер замовлення
+  var orderNum = data.orderNumber || '';
+  if (!orderNum || orderNum === '#undefined' || orderNum === '#') {
+    orderNum = data.orderId ? ('#' + String(data.orderId).slice(0, 8).toUpperCase()) : '—';
+  }
+  document.getElementById('osNumber').textContent = orderNum;
+
+  // GTM dataLayer push (purchase event для GA4 / Google Ads)
   try {
     window.dataLayer = window.dataLayer || [];
-    window.dataLayer.push({ ecommerce: null }); // очищуємо попередні ecommerce-дані
+    window.dataLayer.push({ ecommerce: null });
 
     var dlItems = (data.items || []).map(function (it) {
       return {
@@ -233,27 +248,24 @@ footer{background:var(--navy);color:white;padding:48px 40px 0}
       };
     });
 
-    // user_data — для Enhanced Conversions Google Ads
-    // GTM автоматично хешує email і телефон (SHA-256) перед відправкою
     var userData = {};
     if (data.email && data.email.trim()) {
       userData.email_address = data.email.trim().toLowerCase();
     }
     if (data.phone && data.phone.trim()) {
-      // Приводимо до формату E.164: +380XXXXXXXXX
       var ph = data.phone.replace(/\D/g, '');
-      if (ph.length === 10) ph = '38' + ph;   // 0XXXXXXXXX → 380XXXXXXXXX
-      if (ph.length === 11) ph = '3' + ph;    // 80XXXXXXXXX → 380XXXXXXXXX
+      if (ph.length === 10) ph = '38' + ph;
+      if (ph.length === 11) ph = '3' + ph;
       userData.phone_number = '+' + ph;
     }
 
     window.dataLayer.push({
       event          : 'purchase',
-      transaction_id : String(data.orderId    || ''),
-      value          : Number(data.total      || 0),
+      transaction_id : String(data.orderId || ''),
+      value          : Number(data.total   || 0),
       currency       : 'UAH',
       items          : dlItems,
-      user_data      : userData        // Enhanced Conversions
+      user_data      : userData
     });
   } catch (e) {}
 
