@@ -20,13 +20,13 @@ function escXml(s) {
 
 async function fetchAllProducts() {
   const PAGE = 1000;
-  let all = [];
-  let offset = 0;
+  var all = [];
+  var offset = 0;
 
   while (true) {
-    const r = await fetch(
+    var r = await fetch(
       SUPABASE_URL + '/rest/v1/products' +
-      '?select=id,name,description,price,old_price,stock,preorder_days,image_url,photos,brand,sku,article,slug,google_category' +
+      '?select=id,name,description,price,old_price,stock,preorder_days,images,brand,slug,sku' +
       '&active=eq.true' +
       '&order=id.asc',
       {
@@ -40,11 +40,11 @@ async function fetchAllProducts() {
     );
 
     if (!r.ok) {
-      const text = await r.text().catch(function () { return ''; });
-      throw new Error('Supabase ' + r.status + ': ' + text.slice(0, 200));
+      var text = await r.text().catch(function () { return ''; });
+      throw new Error('Supabase ' + r.status + ': ' + text.slice(0, 300));
     }
 
-    const page = await r.json();
+    var page = await r.json();
     if (!Array.isArray(page) || page.length === 0) break;
     all = all.concat(page);
     if (page.length < PAGE) break;
@@ -55,113 +55,108 @@ async function fetchAllProducts() {
 }
 
 function buildItem(p) {
-  const inStock = (Number(p.stock) > 0) || (Number(p.preorder_days) > 0);
-  const availability = inStock ? 'in stock' : 'out of stock';
+  var inStock = (Number(p.stock) > 0) || (Number(p.preorder_days) > 0);
+  var availability = inStock ? 'in stock' : 'out of stock';
 
-  const price = Number(p.price) || 0;
-  const oldPrice = Number(p.old_price) || 0;
-  const hasDiscount = oldPrice > price && oldPrice > 0;
+  var price = Number(p.price) || 0;
+  var oldPrice = Number(p.old_price) || 0;
+  var hasDiscount = oldPrice > price && oldPrice > 0;
 
-  const productUrl = p.slug
+  var productUrl = p.slug
     ? SITE + '/product/' + escXml(p.slug)
     : SITE + '/product.html?id=' + escXml(String(p.id));
 
-  const imageUrl = p.image_url
-    || (Array.isArray(p.photos) && p.photos[0])
-    || '';
+  // Колонка images — масив URL фотографій
+  var imgList = Array.isArray(p.images) ? p.images.filter(Boolean) : [];
+  var mainImage = imgList[0] || '';
+  var extraImages = imgList.slice(1, 10); // до 9 додаткових
 
-  const extraPhotos = Array.isArray(p.photos)
-    ? p.photos.filter(function (u) { return u && u !== imageUrl; }).slice(0, 9)
-    : [];
+  var title = escXml((p.name || '').trim().slice(0, 150));
 
-  const title = escXml((p.name || '').trim().slice(0, 150));
-
-  const rawDesc = String(p.description || p.name || '')
+  var rawDesc = String(p.description || p.name || '')
     .replace(/<[^>]*>/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
-  const description = escXml(rawDesc.slice(0, 5000));
+  var description = escXml(rawDesc.slice(0, 5000));
 
-  const brand = escXml(p.brand || 'KidsRide');
-  const mpn = escXml(p.sku || p.article || String(p.id));
-  const gcat = escXml(p.google_category || DEFAULT_CATEGORY);
+  var brand = escXml(p.brand || 'KidsRide');
+  var mpn = escXml(p.sku || String(p.id));
 
-  const displayPrice = hasDiscount
+  var displayPrice = hasDiscount
     ? oldPrice.toFixed(2) + ' UAH'
     : price.toFixed(2) + ' UAH';
 
-  const salePrice = hasDiscount
-    ? '    <g:sale_price>' + price.toFixed(2) + ' UAH</g:sale_price>\n'
-    : '';
+  var lines = [];
+  lines.push('  <item>');
+  lines.push('    <g:id>' + escXml(String(p.id)) + '</g:id>');
+  lines.push('    <g:title>' + title + '</g:title>');
+  lines.push('    <g:description>' + description + '</g:description>');
+  lines.push('    <g:link>' + productUrl + '</g:link>');
 
-  const imageLine = imageUrl
-    ? '    <g:image_link>' + escXml(imageUrl) + '</g:image_link>\n'
-    : '';
+  if (mainImage) {
+    lines.push('    <g:image_link>' + escXml(mainImage) + '</g:image_link>');
+  }
 
-  const extraLines = extraPhotos
-    .map(function (u) {
-      return '    <g:additional_image_link>' + escXml(u) + '</g:additional_image_link>';
-    })
-    .join('\n');
+  for (var i = 0; i < extraImages.length; i++) {
+    lines.push('    <g:additional_image_link>' + escXml(extraImages[i]) + '</g:additional_image_link>');
+  }
 
-  return (
-    '  <item>\n' +
-    '    <g:id>' + escXml(String(p.id)) + '</g:id>\n' +
-    '    <g:title>' + title + '</g:title>\n' +
-    '    <g:description>' + description + '</g:description>\n' +
-    '    <g:link>' + productUrl + '</g:link>\n' +
-    imageLine +
-    (extraLines ? extraLines + '\n' : '') +
-    '    <g:availability>' + availability + '</g:availability>\n' +
-    '    <g:price>' + displayPrice + '</g:price>\n' +
-    salePrice +
-    '    <g:brand>' + brand + '</g:brand>\n' +
-    '    <g:mpn>' + mpn + '</g:mpn>\n' +
-    '    <g:condition>new</g:condition>\n' +
-    '    <g:google_product_category>' + gcat + '</g:google_product_category>\n' +
-    '    <g:shipping>\n' +
-    '      <g:country>UA</g:country>\n' +
-    '      <g:service>Нова Пошта</g:service>\n' +
-    '      <g:price>0 UAH</g:price>\n' +
-    '    </g:shipping>\n' +
-    '  </item>'
-  );
+  lines.push('    <g:availability>' + availability + '</g:availability>');
+  lines.push('    <g:price>' + displayPrice + '</g:price>');
+
+  if (hasDiscount) {
+    lines.push('    <g:sale_price>' + price.toFixed(2) + ' UAH</g:sale_price>');
+  }
+
+  lines.push('    <g:brand>' + brand + '</g:brand>');
+  lines.push('    <g:mpn>' + mpn + '</g:mpn>');
+  lines.push('    <g:condition>new</g:condition>');
+  lines.push('    <g:google_product_category>' + escXml(DEFAULT_CATEGORY) + '</g:google_product_category>');
+  lines.push('    <g:shipping>');
+  lines.push('      <g:country>UA</g:country>');
+  lines.push('      <g:service>Нова Пошта</g:service>');
+  lines.push('      <g:price>0 UAH</g:price>');
+  lines.push('    </g:shipping>');
+  lines.push('  </item>');
+
+  return lines.join('\n');
 }
 
 export default async function handler(req, res) {
   try {
-    const products = await fetchAllProducts();
-    const items = products.map(buildItem).join('\n');
-    const now = new Date().toUTCString();
+    var products = await fetchAllProducts();
+    var items = products.map(buildItem).join('\n');
+    var now = new Date().toUTCString();
 
-    const xml =
-      '<?xml version="1.0" encoding="UTF-8"?>\n' +
-      '<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">\n' +
-      '<channel>\n' +
-      '  <title>KidsRide — дитячий транспорт</title>\n' +
-      '  <link>' + SITE + '</link>\n' +
-      '  <description>Електромобілі, самокати, велосипеди для дітей</description>\n' +
-      '  <lastBuildDate>' + now + '</lastBuildDate>\n' +
-      items + '\n' +
-      '</channel>\n' +
-      '</rss>';
+    var xml = [
+      '<?xml version="1.0" encoding="UTF-8"?>',
+      '<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">',
+      '<channel>',
+      '  <title>KidsRide — дитячий транспорт</title>',
+      '  <link>' + SITE + '</link>',
+      '  <description>Електромобілі, самокати, велосипеди для дітей</description>',
+      '  <lastBuildDate>' + now + '</lastBuildDate>',
+      items,
+      '</channel>',
+      '</rss>',
+    ].join('\n');
 
     res.setHeader('Content-Type', 'application/xml; charset=utf-8');
     res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=3600');
     res.status(200).send(xml);
 
   } catch (err) {
-    // Повертаємо порожній валідний XML (а не HTML-помилку Vercel)
-    // щоб Google не відкидав як "непідтримуваний формат"
-    const emptyXml =
-      '<?xml version="1.0" encoding="UTF-8"?>\n' +
-      '<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">\n' +
-      '<channel>\n' +
-      '  <title>KidsRide</title>\n' +
-      '  <link>' + SITE + '</link>\n' +
-      '  <description>Тимчасова помилка: ' + escXml(err.message) + '</description>\n' +
-      '</channel>\n' +
-      '</rss>';
+    // Повертаємо порожній валідний XML замість HTML-помилки Vercel
+    var emptyXml = [
+      '<?xml version="1.0" encoding="UTF-8"?>',
+      '<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">',
+      '<channel>',
+      '  <title>KidsRide</title>',
+      '  <link>' + SITE + '</link>',
+      '  <description>Тимчасова помилка: ' + escXml(err.message) + '</description>',
+      '</channel>',
+      '</rss>',
+    ].join('\n');
 
     console.error('[merchant-feed] ERROR:', err.message);
     res.setHeader('Content-Type', 'application/xml; charset=utf-8');
