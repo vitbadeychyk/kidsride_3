@@ -39,10 +39,12 @@
       // (GTM вже вставлено, повторна вставка зламає відстеження)
       // Резервно — пряма ін'єкція GA4/Pixel тільки якщо GTM повністю відсутній
       var dbGtm = (s.gtm_id || '').trim();
-      if (!dbGtm && !DEFAULT_GTM_ID) {
-        if (s.ga_id)     injectGA4(s.ga_id);
-        if (s.fb_pixel)  injectMetaPixel(s.fb_pixel);
-      }
+      // Якщо в адмінці є свій GTM — вставляємо його (GTM-NSDFCZLD вже вставлено вище,
+      // тому додатковий GTM з БД ігноруємо щоб не дублювати).
+      // GA4 та Pixel вставляємо ЗАВЖДИ, якщо вони прописані в БД —
+      // незалежно від того, чи є GTM (щоб пряма ін'єкція працювала поруч із GTM).
+      if (s.ga_id)     injectGA4(s.ga_id);
+      if (s.fb_pixel)  injectMetaPixel(s.fb_pixel);
     })
     .catch(function () {
       // Не ламаємо сторінку — GTM вже вставлено вище
