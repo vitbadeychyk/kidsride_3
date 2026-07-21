@@ -1411,9 +1411,14 @@ async function _sendOrderTelegram(created, order, items) {
       });
     }
 
-    // Сума
+    // Сума (з промокодом якщо є)
     lines.push('');
-    lines.push(`💰 <b>Сума:</b> ${fmt(order.total)}`);
+    if (order.promo_code && order.discount_amount > 0) {
+      lines.push(`💰 <b>Сума:</b> <s>${fmt(order.subtotal)}</s> → ${fmt(order.total)}`);
+      lines.push(`🎁 <b>Промокод:</b> <code>${esc(order.promo_code)}</code> — знижка <b>${fmt(order.discount_amount)}</b>`);
+    } else {
+      lines.push(`💰 <b>Сума:</b> ${fmt(order.total)}`);
+    }
 
     if (order.comment) {
       lines.push('');
