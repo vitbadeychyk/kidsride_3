@@ -60,15 +60,15 @@
       "destination": "/index.html"
     },
     {
-      "source": "/:main_slug/:cat_slug/:product_slug",
+      "source": "/:main_slug([^.]+)/:cat_slug([^.]+)/:product_slug([^.]+)",
       "destination": "/api/resolve-product?slug=:product_slug&main_slug=:main_slug&cat_slug=:cat_slug"
     },
     {
-      "source": "/:main_slug/:cat_slug",
+      "source": "/:main_slug([^.]+)/:cat_slug([^.]+)",
       "destination": "/api/resolve-category?main_slug=:main_slug&cat_slug=:cat_slug"
     },
     {
-      "source": "/:main_slug",
+      "source": "/:main_slug([^.]+)",
       "destination": "/api/resolve-category?main_slug=:main_slug"
     }
   ],

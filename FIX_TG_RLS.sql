@@ -17,10 +17,9 @@ CREATE POLICY "settings_notifications_select_anon"
   TO anon, authenticated
   USING (id = 1);
 
--- Також виправляємо унікальність номерів замовлень:
--- Тепер клієнт сам генерує унікальний номер (KR-YYMMDD-XXXXX),
--- але для надійності додаємо UNIQUE constraint (якщо ще немає).
-ALTER TABLE public.orders
-  DROP CONSTRAINT IF EXISTS orders_order_number_unique;
-ALTER TABLE public.orders
-  ADD CONSTRAINT orders_order_number_unique UNIQUE (order_number);
+-- ВАЖЛИВО: якщо ви вже виконували попередню версію цього файлу і отримали
+-- помилку "duplicate key value violates unique constraint orders_order_number_unique"
+-- при оформленні замовлення — виконайте цей рядок щоб прибрати constraint:
+ALTER TABLE public.orders DROP CONSTRAINT IF EXISTS orders_order_number_unique;
+-- Номери замовлень тепер унікальні самі по собі (KR-YYMMDD-XXXXX суфікс мс-timestamp),
+-- тому додатковий DB constraint не потрібен.

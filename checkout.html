@@ -1292,12 +1292,14 @@ function buildOrderPayload(){
     ? Math.round(subtotal * _appliedPromo.discount_percent / 100) : 0;
   const total = subtotal - discountAmt;
 
-  // Попередній локальний номер — буде замінено унікальним після INSERT
+  // Унікальний номер замовлення: KR-YYMMDD-XXXXX
+  // Суфікс — останні 5 цифр Unix-часу в мс: два замовлення мали б збігтись
+  // в одну й ту саму мілісекунду, щоб виник дублікат — практично неможливо.
   const d = new Date();
   const ymd = d.getFullYear().toString().slice(-2)
             + String(d.getMonth()+1).padStart(2,'0')
             + String(d.getDate()).padStart(2,'0');
-  const order_number = 'KR-' + ymd;
+  const order_number = 'KR-' + ymd + '-' + String(Date.now()).slice(-5);
 
   const order = {
     order_number,
@@ -1485,24 +1487,7 @@ async function submitOrder() {
       throw new Error('orders: не отримано id з відповіді Supabase');
     }
 
-    // 2) Формуємо унікальний номер замовлення з DB id і одразу оновлюємо запис.
-    // Це гарантує, що два замовлення в один день НІКОЛИ не матимуть однаковий номер.
-    const uniqueSuffix = String(created.id).replace(/-/g, '').slice(0, 5).toUpperCase();
-    const uniqueOrderNumber = 'KR-' + ymd + '-' + uniqueSuffix;
-    try {
-      await fetch(SUPA_URL + '/rest/v1/orders?id=eq.' + created.id, {
-        method: 'PATCH',
-        headers: {
-          'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY,
-          'Content-Type': 'application/json', 'Prefer': 'return=minimal'
-        },
-        body: JSON.stringify({ order_number: uniqueOrderNumber })
-      });
-    } catch(e) { console.warn('[order] PATCH order_number failed:', e); }
-    created.order_number = uniqueOrderNumber;
-    order.order_number   = uniqueOrderNumber;
-
-    // 3) INSERT у order_items одним запитом масивом
+    // 2) INSERT у order_items одним запитом масивом
     if (items.length) {
       const withOrderId = items.map(it => ({ ...it, order_id: created.id }));
       await _supaInsert('order_items', withOrderId, false);
