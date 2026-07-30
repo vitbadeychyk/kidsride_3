@@ -245,16 +245,16 @@ tr:hover td{background:rgba(240,242,248,.5)}
 .s-delivered{background:var(--green-soft);color:var(--green)}.s-delivered::before{background:var(--green)}
 .s-cancelled{background:var(--red-soft);color:var(--red)}.s-cancelled::before{background:var(--red)}
 /* ORDER ROW COLORS */
-#ordersBody tr[data-status="Новий"]{background:rgba(245,158,11,.06)}
-#ordersBody tr[data-status="Підтверджено"]{background:rgba(139,92,246,.06)}
-#ordersBody tr[data-status="Відправлено"]{background:rgba(33,150,243,.06)}
-#ordersBody tr[data-status="Доставлено"]{background:rgba(39,174,96,.06)}
-#ordersBody tr[data-status="Скасовано"]{background:rgba(229,57,53,.06)}
-#ordersBody tr[data-status="Новий"]:hover{background:rgba(245,158,11,.11)}
-#ordersBody tr[data-status="Підтверджено"]:hover{background:rgba(139,92,246,.11)}
-#ordersBody tr[data-status="Відправлено"]:hover{background:rgba(33,150,243,.11)}
-#ordersBody tr[data-status="Доставлено"]:hover{background:rgba(39,174,96,.11)}
-#ordersBody tr[data-status="Скасовано"]:hover{background:rgba(229,57,53,.11)}
+#ordersBody tr[data-status="Новий"]{background:rgba(245,158,11,.14)}
+#ordersBody tr[data-status="Підтверджено"]{background:rgba(139,92,246,.14)}
+#ordersBody tr[data-status="Відправлено"]{background:rgba(33,150,243,.14)}
+#ordersBody tr[data-status="Доставлено"]{background:rgba(39,174,96,.14)}
+#ordersBody tr[data-status="Скасовано"]{background:rgba(229,57,53,.14)}
+#ordersBody tr[data-status="Новий"]:hover{background:rgba(245,158,11,.22)}
+#ordersBody tr[data-status="Підтверджено"]:hover{background:rgba(139,92,246,.22)}
+#ordersBody tr[data-status="Відправлено"]:hover{background:rgba(33,150,243,.22)}
+#ordersBody tr[data-status="Доставлено"]:hover{background:rgba(39,174,96,.22)}
+#ordersBody tr[data-status="Скасовано"]:hover{background:rgba(229,57,53,.22)}
 /* STATUS SELECT COLORS */
 .status-select[data-status="Новий"]{border-left:3px solid #F59E0B}
 .status-select[data-status="Підтверджено"]{border-left:3px solid #8B5CF6}
@@ -3602,6 +3602,7 @@ const pageTitles={dashboard:'Dashboard',analytics:'Аналітика відві
 function showPanel(id, navEl) {
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('panel-'+id).classList.add('active');
+  try { localStorage.setItem('kr_active_panel', id); } catch(e) {}
   if(id==='products')  renderProductsTable();
   if(id==='reviews')   renderReviewsTable();
   if(id==='carousel')  renderSlidesGrid();
@@ -6042,8 +6043,12 @@ function initAdmin() {
   const tbDate = document.getElementById('tbDate');
   if (tbDate) tbDate.textContent=`${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]}`;
 
-  // Показати dashboard за замовчуванням
-  showPanel('dashboard', document.querySelector('.nav-item'));
+  // Відновити останню активну панель (або dashboard за замовчуванням)
+  const _savedPanel = (() => { try { return localStorage.getItem('kr_active_panel'); } catch(e) { return null; } })();
+  const _validPanels = ['dashboard','analytics','product-analytics','orders','products','carousel','import','reviews','ostatok','categories','prices','design','blocks','compare','reports','settings'];
+  const _panelToRestore = (_savedPanel && _validPanels.includes(_savedPanel)) ? _savedPanel : 'dashboard';
+  const _navElToRestore = document.querySelector(`.nav-item[onclick*="'${_panelToRestore}'"]`) || document.querySelector('.nav-item');
+  showPanel(_panelToRestore, _navElToRestore);
 
   // Завантажити лічильник непрочитаних сповіщень у фоні
   setTimeout(function() {
