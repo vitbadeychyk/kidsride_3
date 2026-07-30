@@ -239,11 +239,28 @@ tr:hover td{background:rgba(240,242,248,.5)}
 /* STATUS BADGES */
 .status{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:700;white-space:nowrap}
 .status::before{content:'';width:6px;height:6px;border-radius:50%;flex-shrink:0}
-.s-new{background:var(--blue-soft);color:var(--blue)}.s-new::before{background:var(--blue)}
-.s-confirmed{background:var(--yellow-soft);color:var(--yellow)}.s-confirmed::before{background:var(--yellow)}
-.s-sent{background:rgba(107,114,128,.1);color:#6b7280}.s-sent::before{background:#6b7280}
+.s-new{background:rgba(245,158,11,.13);color:#b45309}.s-new::before{background:#F59E0B}
+.s-confirmed{background:rgba(139,92,246,.13);color:#6d28d9}.s-confirmed::before{background:#8B5CF6}
+.s-sent{background:var(--blue-soft);color:var(--blue)}.s-sent::before{background:var(--blue)}
 .s-delivered{background:var(--green-soft);color:var(--green)}.s-delivered::before{background:var(--green)}
 .s-cancelled{background:var(--red-soft);color:var(--red)}.s-cancelled::before{background:var(--red)}
+/* ORDER ROW COLORS */
+#ordersBody tr[data-status="Новий"]{background:rgba(245,158,11,.06)}
+#ordersBody tr[data-status="Підтверджено"]{background:rgba(139,92,246,.06)}
+#ordersBody tr[data-status="Відправлено"]{background:rgba(33,150,243,.06)}
+#ordersBody tr[data-status="Доставлено"]{background:rgba(39,174,96,.06)}
+#ordersBody tr[data-status="Скасовано"]{background:rgba(229,57,53,.06)}
+#ordersBody tr[data-status="Новий"]:hover{background:rgba(245,158,11,.11)}
+#ordersBody tr[data-status="Підтверджено"]:hover{background:rgba(139,92,246,.11)}
+#ordersBody tr[data-status="Відправлено"]:hover{background:rgba(33,150,243,.11)}
+#ordersBody tr[data-status="Доставлено"]:hover{background:rgba(39,174,96,.11)}
+#ordersBody tr[data-status="Скасовано"]:hover{background:rgba(229,57,53,.11)}
+/* STATUS SELECT COLORS */
+.status-select[data-status="Новий"]{border-left:3px solid #F59E0B}
+.status-select[data-status="Підтверджено"]{border-left:3px solid #8B5CF6}
+.status-select[data-status="Відправлено"]{border-left:3px solid var(--blue)}
+.status-select[data-status="Доставлено"]{border-left:3px solid var(--green)}
+.status-select[data-status="Скасовано"]{border-left:3px solid var(--red)}
 .s-active{background:var(--green-soft);color:var(--green)}.s-active::before{background:var(--green)}
 .s-hidden{background:var(--bg);color:var(--text-muted);border:1px solid var(--border)}.s-hidden::before{background:var(--text-muted)}
 
@@ -3736,18 +3753,19 @@ async function renderOrdersTable(opts){
     const date    = _fmtDate(o.created_at);
     const cur     = o.status || 'Новий';
     const opts    = statuses.map(s => `<option ${s===cur?'selected':''}>${s}</option>`).join('');
-    return `<tr data-order-id="${_escHtml(o.id)}">
+    return `<tr data-order-id="${_escHtml(o.id)}" data-status="${_escHtml(cur)}">
       <td><strong>${_escHtml(num)}</strong></td>
       <td><div style="font-weight:600">${_escHtml(fio)}</div><div style="font-size:11px;color:var(--text-muted)">${_escHtml(phone)}</div></td>
       <td style="max-width:200px">${items}</td>
       <td class="td-price">${total}</td>
       <td style="font-size:12px">${_escHtml(pay)}</td>
       <td style="font-size:12px">${deliv}</td>
-      <td><select class="filter-select" style="font-size:11px;padding:4px 24px 4px 8px" onchange="updateStatus(this)">${opts}</select></td>
+      <td><select class="filter-select status-select" data-status="${_escHtml(cur)}" style="font-size:11px;padding:4px 24px 4px 8px" onchange="updateStatus(this)">${opts}</select></td>
       <td style="font-size:12px;color:var(--text-muted)">${date}</td>
       <td><div class="td-actions">
         <button class="ta-btn" title="Переглянути" onclick="openOrderModal(this)"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
         <button class="ta-btn" title="ТТН НП" onclick="addTTN(this)"><svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></button>
+        <button class="ta-btn danger" title="Видалити замовлення" onclick="deleteOrder('${_escHtml(o.id)}','${_escHtml(num)}')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
       </div></td>
     </tr>`;
   }).join('');
@@ -4815,11 +4833,31 @@ async function updateStatus(sel){
     badge.className='status '+(statuses[sel.value]||'s-new');
     badge.textContent=sel.value;
   }
+  // Оновлюємо кольір рядка і select за новим статусом
+  row.dataset.status = sel.value;
+  sel.dataset.status = sel.value;
   const id = row?.dataset?.orderId;
   if (!id) { showToast('Статус оновлено','success'); return; }
   const r = await sbUpdateOrderStatus(id, sel.value);
   if (r.success) showToast('Статус оновлено','success');
   else showToast('Помилка: ' + (r.error||''),'error');
+}
+
+async function deleteOrder(id, num){
+  if (!confirm('Видалити замовлення ' + (num||id) + '?\n\nЦю дію неможливо скасувати — замовлення буде видалено з бази даних.')) return;
+  try {
+    await sbFetch('orders?id=eq.' + id, { method: 'DELETE' });
+    // Видаляємо рядок зі сторінки без перезавантаження
+    const row = document.querySelector('#ordersBody tr[data-order-id="' + id + '"]');
+    if (row) row.remove();
+    // Оновлюємо кеш
+    _ordersCache = (_ordersCache || []).filter(o => String(o.id) !== String(id));
+    showToast('Замовлення ' + (num||'') + ' видалено', 'success');
+    // Оновлюємо лічильник бейджа
+    try { await updateOrdersBadge(); } catch(e){}
+  } catch(e) {
+    showToast('Помилка видалення: ' + (e.message||e), 'error');
+  }
 }
 
 // ── MODALS ────────────────────────────────────────────────────────────────
