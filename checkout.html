@@ -1395,7 +1395,7 @@ async function _sendOrderTelegram(created, order, items) {
       `<b>#${esc(created.order_number || order.order_number)}</b>`,
       '',
       `👤 <b>${esc(order.customer_first_name)} ${esc(order.customer_last_name)}</b>`,
-      `📞 <a href="tel:${esc(order.customer_phone)}">${esc(order.customer_phone)}</a>`,
+      `📞 ${esc(order.customer_phone)}`,
     ];
     if (order.customer_email) lines.push(`📧 ${esc(order.customer_email)}`);
     lines.push('');
