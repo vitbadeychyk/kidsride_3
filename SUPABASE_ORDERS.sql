@@ -113,7 +113,10 @@ create policy "order_items_select_auth" on public.order_items
   to authenticated
   using (true);
 
--- Telegram-сповіщення відправляються сервером (/api/order-notification).
--- Не відкривайте settings_notifications анонімному checkout.html:
--- токен бота та Chat ID мають залишатися на сервері.
+-- ── Дозволити анонімним читати налаштування Telegram (лише select, лише рядок id=1) ──
+-- Потрібно щоб checkout.html міг завантажити tg_token/tg_chat для відправки сповіщень
 drop policy if exists "settings_notifications_select_anon" on public.settings_notifications;
+create policy "settings_notifications_select_anon" on public.settings_notifications
+  for select
+  to anon, authenticated
+  using (id = 1);

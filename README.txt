@@ -35,10 +35,9 @@ SQL у Supabase (SQL Editor → New query → Run):
 ═══════════════════════════════════════════════════════════════
 
 Як це працює:
-  Користувач оформлює замовлення → воно зберігається в Supabase →
-  сервер відправляє повідомлення в Telegram. Якщо Telegram тимчасово
-  недоступний, замовлення потрапляє в чергу і Vercel Cron повторює
-  спробу. Токен бота не передається у браузер покупця.
+  Користувач натискає "Купити в 1 клік" → вводить телефон →
+  заявка одночасно (а) зберігається в Supabase (таблиця leads),
+  і (б) приходить вам у Telegram моментально.
   В адмінці є вкладка "Заявки" зі списком, статусами і пошуком.
 
 ШАГ 1. Створіть таблицю leads у Supabase (SQL Editor):
@@ -97,34 +96,16 @@ SQL у Supabase (SQL Editor → New query → Run):
 
 ШАГ 5. Додайте змінні середовища у Vercel:
   Vercel → ваш проект → Settings → Environment Variables.
-  Додайте змінні (для Production, Preview, Development):
+  Додайте 4 змінні (для Production, Preview, Development):
 
     SUPABASE_URL              = https://xczrzdbikkycgpnvolib.supabase.co
-    SUPABASE_SERVICE_ROLE_KEY = <ключ із Шагу 4>     (потрібен, якщо Telegram зберігається в settings_notifications)
+    SUPABASE_SERVICE_ROLE_KEY = <ключ із Шагу 4>     (опціонально)
     SUPABASE_ANON_KEY         = <ваш anon-ключ>       (якщо без service_role)
     TELEGRAM_BOT_TOKEN        = <токен із Шагу 2>
     TELEGRAM_CHAT_ID          = <id із Шагу 3>
-    CRON_SECRET               = <довільний довгий секрет для захисту Cron>
 
   Після додавання — натисніть Deploy → Redeploy, щоб змінні
   підхопились.
-
-ОНОВЛЕННЯ 4 — надійні Telegram-сповіщення про замовлення
-═══════════════════════════════════════════════════════════════
-
-Виконайте один раз `FIX_ORDER_TELEGRAM.sql`. Він додає до `orders`
-статус, кількість спроб і час наступної спроби. Після цього:
-
-  - checkout.html більше не звертається до Telegram напряму;
-  - сервер повторює відправку до 3 разів при короткому збої;
-  - Vercel Cron щохвилини повторює невдалі сповіщення (до 10 спроб);
-  - у `orders.telegram_last_error` видно причину, якщо Telegram
-    відхилив повідомлення (невірний Chat ID, вимкнений бот тощо).
-
-Для нового серверного маршруту залиште
-`SUPABASE_SERVICE_ROLE_KEY` у Vercel, якщо Telegram-дані зберігаються
-в адмінці у `settings_notifications`. Або задайте
-`TELEGRAM_BOT_TOKEN` і `TELEGRAM_CHAT_ID` у Vercel.
 
 ШАГ 6. Перевірка:
   1) Відкрийте сайт, натисніть "Купити в 1 клік" на товарі,
