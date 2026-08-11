@@ -1361,30 +1361,100 @@ async function _supaInsert(table, body, returnRepresentation=false){
 }
 
 // ── TELEGRAM NOTIFICATION ──────────────────────────────────────────────────
-// Відправлення відбувається тільки на сервері. Токен бота ніколи не потрапляє
-// у браузер покупця. Сервер також ставить заявку в довговічну чергу, тому
-// короткий збій Telegram не губить сповіщення.
-async function _sendOrderTelegram(created) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 12000);
+async function _sendOrderTelegram(created, order, items) {
   try {
-    const response = await fetch('/api/order-notification', {
+    // Зчитуємо tg_token і tg_chat з settings_notifications (anon може читати рядок id=1).
+    // ВАЖЛИВО: якщо читання не вдається — перевірте чи є RLS-політика settings_notifications_select_anon
+    // у вашій БД (файл SUPABASE_ORDERS.sql або FIX_TG_RLS.sql).
+    const r = await fetch(SUPA_URL + '/rest/v1/settings_notifications?id=eq.1&select=tg_token,tg_chat,tg_new_order&limit=1', {
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
+    });
+    if (!r.ok) {
+      console.warn('[TG] Не вдалося прочитати settings_notifications, статус:', r.status,
+        '— Перевірте RLS-політику "settings_notifications_select_anon" у Supabase.');
+      return;
+    }
+    const rows = await r.json();
+    const cfg = Array.isArray(rows) ? rows[0] : rows;
+    if (!cfg) { console.warn('[TG] settings_notifications порожній'); return; }
+    if (!cfg.tg_token) { console.warn('[TG] tg_token не заповнений у Налаштування → Сповіщення'); return; }
+    if (!cfg.tg_chat)  { console.warn('[TG] tg_chat не заповнений у Налаштування → Сповіщення'); return; }
+    if (!cfg.tg_new_order) { console.warn('[TG] Сповіщення про нове замовлення вимкнено — увімкніть у Налаштування → Сповіщення'); return; }
+
+    const esc = s => String(s == null ? '' : s).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+    const fmt = n => Math.round(Number(n)||0).toLocaleString('uk-UA') + ' ₴';
+
+    const deliveryLabel = {
+      warehouse: 'Відділення НП',
+      postomat:  'Поштомат НП',
+      address:   'Адресна доставка'
+    }[order.delivery_type] || order.delivery_type;
+
+    const lines = [
+      '🛍 <b>НОВЕ ЗАМОВЛЕННЯ</b>',
+      `<b>#${esc(created.order_number || order.order_number)}</b>`,
+      '',
+      `👤 <b>${esc(order.customer_first_name)} ${esc(order.customer_last_name)}</b>`,
+      `📞 <a href="tel:${esc(order.customer_phone)}">${esc(order.customer_phone)}</a>`,
+    ];
+    if (order.customer_email) lines.push(`📧 ${esc(order.customer_email)}`);
+    lines.push('');
+
+    // Доставка
+    lines.push(`🚚 <b>Доставка:</b> ${esc(deliveryLabel)}`);
+    if (order.delivery_city) lines.push(`📍 ${esc(order.delivery_city)}`);
+    if (order.delivery_warehouse) lines.push(`🏪 ${esc(order.delivery_warehouse)}`);
+    if (order.delivery_address) lines.push(`🏠 ${esc(order.delivery_address)}`);
+
+    // Оплата
+    lines.push('');
+    lines.push(`💳 <b>Оплата:</b> ${esc(order.payment_method_label || order.payment_method)}`);
+
+    // Товари
+    if (items && items.length) {
+      lines.push('');
+      lines.push(`🧾 <b>Товари (${items.length}):</b>`);
+      items.slice(0, 20).forEach((it, i) => {
+        const qty = Number(it.quantity || it.qty || 1);
+        const price = Number(it.price || 0);
+        const skuPart = it.sku ? ` [${esc(it.sku)}]` : '';
+        lines.push(`  ${i+1}. ${esc(it.product_name || it.name || 'товар')}${skuPart} × ${qty} — ${fmt(price * qty)}`);
+      });
+    }
+
+    // Сума (з промокодом якщо є)
+    lines.push('');
+    if (order.promo_code && order.discount_amount > 0) {
+      lines.push(`💰 <b>Сума:</b> <s>${fmt(order.subtotal)}</s> → ${fmt(order.total)}`);
+      lines.push(`🎁 <b>Промокод:</b> <code>${esc(order.promo_code)}</code> — знижка <b>${fmt(order.discount_amount)}</b>`);
+    } else {
+      lines.push(`💰 <b>Сума:</b> ${fmt(order.total)}`);
+    }
+
+    if (order.comment) {
+      lines.push('');
+      lines.push(`💬 ${esc(order.comment)}`);
+    }
+
+    lines.push('');
+    lines.push(`🕒 ${new Date().toLocaleString('uk-UA', {timeZone:'Europe/Kyiv',hour12:false})} (Київ)`);
+
+    const tgRes = await fetch(`https://api.telegram.org/bot${cfg.tg_token}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ orderId: created.id }),
-      signal: controller.signal,
+      body: JSON.stringify({
+        chat_id: cfg.tg_chat,
+        text: lines.join('\n'),
+        parse_mode: 'HTML',
+        disable_web_page_preview: true
+      })
     });
-    const result = await response.json().catch(() => ({}));
-    if (!response.ok || !result.ok) {
-      console.warn('[TG] Сервер поставив сповіщення в чергу для повторної доставки', result);
-      return { ok: false, queued: true };
+    if (!tgRes.ok) {
+      const errBody = await tgRes.text().catch(() => '(no body)');
+      console.error('[TG] sendMessage failed:', tgRes.status, errBody);
     }
-    return result;
-  } catch (error) {
-    console.warn('[TG] Сервер сповіщень недоступний, заявка залишилась у базі', error);
-    return { ok: false, queued: true };
-  } finally {
-    clearTimeout(timeout);
+  } catch(e) {
+    console.error('[TG] sendMessage exception:', e);
   }
 }
 
@@ -1423,11 +1493,10 @@ async function submitOrder() {
       await _supaInsert('order_items', withOrderId, false);
     }
 
-    // 3) Telegram: чекаємо коротку серверну спробу. Якщо Telegram тимчасово
-    // недоступний, серверний retry-worker доставить повідомлення з черги.
-    await _sendOrderTelegram(created);
+    // 3.5) Telegram-сповіщення (fire-and-forget, не блокуємо успіх)
+    _sendOrderTelegram(created, order, items).catch(() => {});
 
-    // 4) Очистити кошик, зберегти дані замовлення і зробити редірект
+    // 3) Очистити кошик, зберегти дані замовлення і зробити редірект
     try {
       localStorage.setItem('kr_cart', '[]');
       localStorage.removeItem('kr_cart_promo');
