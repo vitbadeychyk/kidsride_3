@@ -1493,8 +1493,8 @@ async function submitOrder() {
       await _supaInsert('order_items', withOrderId, false);
     }
 
-    // 3.5) Telegram-сповіщення (fire-and-forget, не блокуємо успіх)
-    _sendOrderTelegram(created, order, items).catch(() => {});
+    // 3.5) Telegram-сповіщення — дочекаймося завершення запиту перед редіректом
+    await _sendOrderTelegram(created, order, items);
 
     // 3) Очистити кошик, зберегти дані замовлення і зробити редірект
     try {
