@@ -61,24 +61,36 @@ export default async function handler(req, res) {
       saveError = 'SUPABASE_URL / SUPABASE_KEY не задані';
     }
 
-    // 2) Telegram
+    // 2) Telegram — серверна відправка з повторними спробами.
+    // Не покладаємося на браузер і не залишаємо помилку "тихою".
     let sent = false, tgError = null;
     if (TG_TOKEN && TG_CHAT) {
       const text = formatTelegram(lead);
-      try {
-        const r = await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            chat_id: TG_CHAT,
-            text,
-            parse_mode: 'HTML',
-            disable_web_page_preview: true
-          })
-        });
-        if (r.ok) sent = true;
-        else tgError = await r.text();
-      } catch (e) { tgError = e.message; }
+      const attempts = 3;
+      for (let attempt = 1; attempt <= attempts && !sent; attempt++) {
+        try {
+          const r = await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: TG_CHAT,
+              text,
+              parse_mode: 'HTML',
+              disable_web_page_preview: true
+            }),
+            signal: AbortSignal.timeout(8000)
+          });
+          const body = await r.json().catch(() => ({}));
+          if (r.ok && body.ok === true) {
+            sent = true;
+          } else {
+            tgError = body.description || `HTTP ${r.status}`;
+          }
+        } catch (e) { tgError = e.message; }
+        if (!sent && attempt < attempts) {
+          await new Promise(resolve => setTimeout(resolve, attempt * 1000));
+        }
+      }
     } else {
       tgError = 'TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID не задані';
     }
