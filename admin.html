@@ -2297,9 +2297,8 @@ tr:hover td{background:rgba(240,242,248,.5)}
         <div class="import-card" style="margin-bottom:16px">
           <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:18px;color:var(--navy)">🤖 Telegram-сповіщення</h3>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-            <div style="grid-column:1/-1;background:var(--blue-soft);border:1px solid rgba(33,150,243,.2);border-radius:var(--r-sm);padding:12px 14px;font-size:12px;color:var(--navy)">
-              Telegram підключено через захищені серверні налаштування. Токен і Chat ID навмисно не показуються в адмінці та не зберігаються в браузері покупця.
-            </div>
+            <div class="f-group"><label class="f-label">Bot Token</label><input id="cfg_tg_token" type="text" placeholder="123456:ABC-DEF..."></div>
+            <div class="f-group"><label class="f-label">Chat ID (ваш або групи)</label><input id="cfg_tg_chat" type="text" placeholder="-100123456789"></div>
           </div>
           <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
             <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;cursor:pointer"><input type="checkbox" id="cfg_tg_new_order" style="width:15px;height:15px;accent-color:var(--orange)"> Нове замовлення</label>
@@ -6809,7 +6808,7 @@ async function _loadAllSettingsTables() {
   const [store, orders, notify, delivery, appearance, seo] = await Promise.all([
     sbFetch('settings_store?id=eq.1&limit=1').catch(()=>[]),
     sbFetch('settings_orders?id=eq.1&limit=1').catch(()=>[]),
-    sbFetch('settings_notifications?id=eq.1&select=id,email_orders,email_reviews,tg_new_order,tg_new_review,tg_low_stock,updated_at&limit=1').catch(()=>[]),
+    sbFetch('settings_notifications?id=eq.1&limit=1').catch(()=>[]),
     sbFetch('settings_delivery?id=eq.1&limit=1').catch(()=>[]),
     sbFetch('settings_appearance?id=eq.1&limit=1').catch(()=>[]),
     sbFetch('settings_seo?id=eq.1&limit=1').catch(()=>[]),
@@ -6923,6 +6922,8 @@ async function renderSettings() {
   const n = d.notify;
   _setField('cfg_notify_email_orders',  n.email_orders);
   _setField('cfg_notify_email_reviews', n.email_reviews);
+  _setField('cfg_tg_token',  n.tg_token);
+  _setField('cfg_tg_chat',   n.tg_chat);
   _setCheck('cfg_tg_new_order',  n.tg_new_order);
   _setCheck('cfg_tg_new_review', n.tg_new_review);
   _setCheck('cfg_tg_low_stock',  n.tg_low_stock);
@@ -7021,6 +7022,8 @@ async function saveAllSettings() {
       _upsertSettingsTable('settings_notifications', {
         email_orders:  document.getElementById('cfg_notify_email_orders')?.value  || '',
         email_reviews: document.getElementById('cfg_notify_email_reviews')?.value || '',
+        tg_token:      document.getElementById('cfg_tg_token')?.value || '',
+        tg_chat:       document.getElementById('cfg_tg_chat')?.value  || '',
         tg_new_order:  document.getElementById('cfg_tg_new_order')?.checked  || false,
         tg_new_review: document.getElementById('cfg_tg_new_review')?.checked || false,
         tg_low_stock:  document.getElementById('cfg_tg_low_stock')?.checked  || false,
@@ -7173,11 +7176,14 @@ async function changeAdminPassword() {
 
 // ── TELEGRAM TEST ─────────────────────────────────────────────
 async function testTelegramNotification() {
+  const token = document.getElementById('cfg_tg_token')?.value;
+  const chat  = document.getElementById('cfg_tg_chat')?.value;
+  if (!token || !chat) { showToast('Введіть Bot Token та Chat ID', 'error'); return; }
   try {
-    const res = await fetch('/api/telegram-test', {
+    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({})
+      body: JSON.stringify({ chat_id: chat, text: '✅ KidsRide Admin — тестове повідомлення. Telegram підключено!' })
     });
     const j = await res.json();
     if (j.ok) showToast('✅ Повідомлення надіслано в Telegram!', 'success');
