@@ -3,19 +3,13 @@
 -- Виконати один раз у Supabase SQL Editor
 -- ══════════════════════════════════════════════════════════════════════════
 
--- Дозволяємо анонімному клієнту (checkout.html в браузері покупця) читати
--- ТІЛЬКИ рядок id=1 з таблиці settings_notifications.
--- Це потрібно щоб checkout.html міг отримати tg_token і tg_chat для
--- відправки Telegram-сповіщення після оформлення замовлення.
+-- Telegram більше НЕ відправляється з checkout.html.
+-- Токен і Chat ID читає тільки серверна функція /api/order-notification.
+-- Не відкривайте settings_notifications анонімному браузеру.
 
--- Якщо ця політика вже існує — DROP+CREATE оновить її без помилок.
+-- Видаляємо стару політику, яка відкривала токен анонімному браузеру.
+alter table public.settings_notifications enable row level security;
 DROP POLICY IF EXISTS "settings_notifications_select_anon" ON public.settings_notifications;
-
-CREATE POLICY "settings_notifications_select_anon"
-  ON public.settings_notifications
-  FOR SELECT
-  TO anon, authenticated
-  USING (id = 1);
 
 -- ВАЖЛИВО: якщо ви вже виконували попередню версію цього файлу і отримали
 -- помилку "duplicate key value violates unique constraint orders_order_number_unique"
