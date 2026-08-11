@@ -113,10 +113,56 @@ create policy "order_items_select_auth" on public.order_items
   to authenticated
   using (true);
 
--- ── Дозволити анонімним читати налаштування Telegram (лише select, лише рядок id=1) ──
--- Потрібно щоб checkout.html міг завантажити tg_token/tg_chat для відправки сповіщень
-drop policy if exists "settings_notifications_select_anon" on public.settings_notifications;
-create policy "settings_notifications_select_anon" on public.settings_notifications
-  for select
-  to anon, authenticated
-  using (id = 1);
+-- ── ЧЕРГА TELEGRAM-СПОВІЩЕНЬ ────────────────────────────────────────────────
+-- Токени Telegram не можна відкривати anon-клієнту. Після створення замовлення
+-- база сама ставить його у довговічну чергу, а Vercel worker доставляє
+-- повідомлення та повторює спробу після тимчасових помилок.
+create table if not exists public.order_notification_queue (
+  id               uuid primary key default gen_random_uuid(),
+  order_id         uuid not null references public.orders(id) on delete cascade unique,
+  status           text not null default 'pending',
+  attempts         integer not null default 0,
+  next_attempt_at  timestamptz not null default now(),
+  last_error       text,
+  sent_at          timestamptz,
+  created_at       timestamptz not null default now(),
+  updated_at       timestamptz not null default now()
+);
+
+create index if not exists order_notification_queue_retry_idx
+  on public.order_notification_queue (status, next_attempt_at);
+
+alter table public.order_notification_queue enable row level security;
+
+-- Видаляємо старі секрети, які попередня версія зберігала в Supabase.
+update public.settings_notifications
+set tg_token = null,
+    tg_chat = null
+where id = 1;
+
+create or replace function public.enqueue_order_notification()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.order_notification_queue (order_id)
+  values (new.id)
+  on conflict (order_id) do nothing;
+  return new;
+end;
+$$;
+
+drop trigger if exists orders_enqueue_notification on public.orders;
+create trigger orders_enqueue_notification
+  after insert on public.orders
+  for each row execute function public.enqueue_order_notification();
+
+-- Додаємо в чергу замовлення, створені до встановлення цього мігрування.
+insert into public.order_notification_queue (order_id)
+select o.id
+from public.orders o
+left join public.order_notification_queue q on q.order_id = o.id
+where q.id is null
+on conflict (order_id) do nothing;
