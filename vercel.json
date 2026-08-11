@@ -1,0 +1,126 @@
+{
+  "cleanUrls": false,
+  "trailingSlash": false,
+  "redirects": [
+    {
+      "source": "/index.html",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/categories.html",
+      "destination": "/catalog.html",
+      "permanent": true
+    },
+    {
+      "source": "/product.html",
+      "destination": "/catalog.html",
+      "permanent": true
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/sitemap.xml",
+      "destination": "/api/sitemap"
+    },
+    {
+      "source": "/merchant-feed.xml",
+      "destination": "/api/merchant-feed"
+    },
+    {
+      "source": "/robots.txt",
+      "destination": "/robots.txt"
+    },
+    {
+      "source": "/opengraph.jpg",
+      "destination": "/opengraph.jpg"
+    },
+    {
+      "source": "/apple-touch-icon.png",
+      "destination": "/apple-touch-icon.png"
+    },
+    {
+      "source": "/favicon.svg",
+      "destination": "/favicon.svg"
+    },
+    {
+      "source": "/favicon-32.png",
+      "destination": "/favicon-32.png"
+    },
+    {
+      "source": "/favicon-48.png",
+      "destination": "/favicon-48.png"
+    },
+    {
+      "source": "/product/:slug",
+      "destination": "/api/resolve-product?slug=:slug"
+    },
+    {
+      "source": "/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/:main_slug([^.]+)/:cat_slug([^.]+)/:product_slug([^.]+)",
+      "destination": "/api/resolve-product?slug=:product_slug&main_slug=:main_slug&cat_slug=:cat_slug"
+    },
+    {
+      "source": "/:main_slug([^.]+)/:cat_slug([^.]+)",
+      "destination": "/api/resolve-category?main_slug=:main_slug&cat_slug=:cat_slug"
+    },
+    {
+      "source": "/:main_slug([^.]+)",
+      "destination": "/api/resolve-category?main_slug=:main_slug"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/product/:path*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=300, s-maxage=3600, stale-while-revalidate=600"
+        }
+      ]
+    },
+    {
+      "source": "/(.*\\.html)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, must-revalidate, max-age=0"
+        },
+        {
+          "key": "Pragma",
+          "value": "no-cache"
+        },
+        {
+          "key": "Expires",
+          "value": "0"
+        }
+      ]
+    },
+    {
+      "source": "/",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, must-revalidate, max-age=0"
+        },
+        {
+          "key": "Pragma",
+          "value": "no-cache"
+        },
+        {
+          "key": "Expires",
+          "value": "0"
+        }
+      ]
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/ig-refresh",
+      "schedule": "0 9 1 * *"
+    }
+  ]
+}

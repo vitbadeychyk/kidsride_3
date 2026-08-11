@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Замовлення прийнято — KidsRide</title>
+<meta name="description" content="Дякуємо за замовлення у KidsRide! Наш менеджер зв'яжеться з Вами найближчим часом.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
+<style>
+:root{
+  --orange:#FF6B35;--orange-dark:#e85520;
+  --navy:#1B2A4A;
+  --bg:#FFFFFF;--bg-soft:#F8F9FC;
+  --green:#27AE60;
+  --text:#1a1a2e;--text-muted:#6b7280;
+  --border:#e8ecf4;
+  --shadow-md:0 8px 32px rgba(27,42,74,.12);
+  --r:16px;--r-sm:10px;--r-lg:24px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Manrope',sans-serif;color:var(--text);background:var(--bg-soft);line-height:1.6}
+h1,h2,h3{font-family:'Nunito',sans-serif}
+
+/* HEADER */
+.header{position:sticky;top:0;z-index:100;background:var(--navy);display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:72px;box-shadow:0 2px 20px rgba(27,42,74,.3)}
+.logo{display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:white;font-family:'Nunito',sans-serif;font-weight:900;font-size:20px;letter-spacing:-.3px}
+.logo-mark{width:36px;height:36px;background:var(--orange);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo span{color:var(--orange)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 22px;border-radius:10px;font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;text-decoration:none;cursor:pointer;border:none;transition:all .25s;white-space:nowrap}
+.btn-primary{background:var(--orange);color:white;box-shadow:0 4px 16px rgba(255,107,53,.3)}
+.btn-primary:hover{background:var(--orange-dark);transform:translateY(-2px)}
+.btn-outline{background:white;color:var(--navy);border:2px solid var(--border)}
+.btn-outline:hover{border-color:var(--orange);color:var(--orange)}
+@media(max-width:768px){.header{padding:0 20px;height:60px}.h-right .btn-primary{display:none}}
+
+/* MAIN */
+.page{min-height:calc(100vh - 72px);display:flex;align-items:center;justify-content:center;padding:48px 24px}
+
+@keyframes popIn{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
+@keyframes drawCheck{from{stroke-dashoffset:60}to{stroke-dashoffset:0}}
+@keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+.card{
+  background:white;
+  border-radius:var(--r-lg);
+  border:1.5px solid var(--border);
+  box-shadow:var(--shadow-md);
+  width:100%;max-width:480px;
+  text-align:center;
+  overflow:hidden;
+  animation:slideUp .4s ease both;
+}
+
+/* Зелена шапка */
+.card-top{
+  background:linear-gradient(135deg,#27AE60 0%,#2ecc71 100%);
+  padding:40px 32px 32px;
+  color:white;
+}
+.check-icon{
+  width:80px;height:80px;
+  background:rgba(255,255,255,.2);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 20px;
+  animation:popIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+.check-icon svg{
+  width:38px;height:38px;
+  stroke:white;fill:none;
+  stroke-width:3;stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:60;stroke-dashoffset:60;
+  animation:drawCheck .4s .45s ease forwards;
+}
+.card-title{font-size:26px;font-weight:900;margin-bottom:6px}
+.card-sub{font-size:14px;opacity:.9}
+
+/* Номер замовлення */
+.order-num-wrap{
+  padding:24px 32px;
+  border-bottom:1.5px solid var(--border);
+}
+.order-num-label{
+  font-size:11px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.1em;
+  color:var(--text-muted);
+  margin-bottom:6px;
+}
+.order-num-val{
+  font-family:'Nunito',sans-serif;
+  font-size:36px;font-weight:900;
+  color:var(--orange);
+  letter-spacing:-.5px;
+}
+
+/* Нижній блок */
+.card-bottom{
+  padding:24px 32px 32px;
+}
+.wait-msg{
+  font-size:14px;color:var(--text-muted);
+  line-height:1.6;
+  margin-bottom:24px;
+}
+.wait-msg strong{color:var(--navy)}
+
+.btns{display:flex;gap:10px}
+.btns .btn{flex:1;padding:13px 12px;font-size:14px}
+
+@media(max-width:480px){
+  .card-top{padding:32px 20px 26px}
+  .card-title{font-size:22px}
+  .order-num-wrap{padding:20px}
+  .order-num-val{font-size:28px}
+  .card-bottom{padding:20px 20px 28px}
+  .btns{flex-direction:column}
+}
+
+/* FOOTER */
+footer{background:var(--navy);color:white;padding:40px 40px 0}
+.f-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:48px;padding-bottom:36px}
+.f-brand-desc{color:rgba(255,255,255,.55);font-size:13px;line-height:1.6;margin-top:12px;max-width:280px}
+.f-col-t{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.4);margin-bottom:14px}
+.f-links{display:flex;flex-direction:column;gap:10px}
+.f-links a{color:rgba(255,255,255,.7);text-decoration:none;font-size:13px;transition:color .2s}
+.f-links a:hover{color:white}
+.f-bot{border-top:1px solid rgba(255,255,255,.08);padding:18px 0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.f-copy{color:rgba(255,255,255,.35);font-size:12px}
+@media(max-width:900px){footer{padding:36px 20px 0}.f-grid{grid-template-columns:1fr;gap:24px}}
+</style>
+<script src="/analytics.js"></script>
+</head>
+<body>
+
+<header class="header">
+  <a href="/" class="logo">
+    <div class="logo-mark">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-5"/>
+      </svg>
+    </div>
+    Kids<span>Ride</span>
+  </a>
+  <div class="h-right">
+    <a href="/catalog.html" class="btn btn-primary">До каталогу</a>
+  </div>
+</header>
+
+<main class="page">
+  <div class="card">
+
+    <div class="card-top">
+      <div class="check-icon">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="card-title">Дякуємо за замовлення!</div>
+      <div class="card-sub">KidsRide — дитячі товари</div>
+    </div>
+
+    <div class="order-num-wrap">
+      <div class="order-num-label">Номер замовлення</div>
+      <div class="order-num-val" id="osNumber">—</div>
+    </div>
+
+    <div class="card-bottom">
+      <p class="wait-msg">
+        Наш менеджер зв'яжеться з вами найближчим часом для підтвердження замовлення.<br>
+        <strong>Очікуйте на дзвінок.</strong>
+      </p>
+      <div class="btns">
+        <a href="/" class="btn btn-outline">На головну</a>
+        <a href="/catalog.html" class="btn btn-primary">До каталогу</a>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  <div style="max-width:1100px;margin:0 auto">
+    <div class="f-grid">
+      <div>
+        <a href="/" class="logo" style="color:#fff">
+          <div class="logo-mark">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-5"/></svg>
+          </div>
+          Kids<span>Ride</span>
+        </a>
+        <p class="f-brand-desc">Дитячі електромобілі, автокрісла та товари для дітей. Доставка по всій Україні.</p>
+      </div>
+      <div>
+        <div class="f-col-t">Інформація</div>
+        <div class="f-links">
+          <a href="/catalog.html">Каталог товарів</a>
+          <a href="/payment-terms.html">Умови оплати</a>
+          <a href="/privacy-policy.html">Політика конфіденційності</a>
+          <a href="/state-payments.html">Державна підтримка</a>
+        </div>
+      </div>
+    </div>
+    <div class="f-bot">
+      <span class="f-copy">© 2024 KidsRide. Всі права захищені.</span>
+      <span class="f-copy">Дитячий транспорт та товари по всій Україні</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  var raw = null;
+  try { raw = sessionStorage.getItem('kr_order_success'); } catch (e) {}
+  if (!raw) { window.location.replace('/'); return; }
+
+  var data = null;
+  try { data = JSON.parse(raw); } catch (e) {}
+  if (!data) { window.location.replace('/'); return; }
+
+  try { sessionStorage.removeItem('kr_order_success'); } catch (e) {}
+
+  // Номер замовлення
+  var orderNum = data.orderNumber || '';
+  if (!orderNum || orderNum === '#undefined' || orderNum === '#') {
+    orderNum = data.orderId ? ('#' + String(data.orderId).slice(0, 8).toUpperCase()) : '—';
+  }
+  document.getElementById('osNumber').textContent = orderNum;
+
+  // GTM dataLayer push (purchase event для GA4 / Google Ads)
+  try {
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({ ecommerce: null });
+
+    var dlItems = (data.items || []).map(function (it) {
+      return {
+        item_id   : it.item_id   || '',
+        item_name : it.item_name || '',
+        item_brand: it.item_brand || '',
+        price     : Number(it.price   || 0),
+        quantity  : Number(it.quantity || 1)
+      };
+    });
+
+    var userData = {};
+    if (data.email && data.email.trim()) {
+      userData.email = data.email.trim().toLowerCase();
+    }
+    if (data.phone && data.phone.trim()) {
+      var ph = data.phone.replace(/\D/g, '');
+      if (ph.length === 10) ph = '38' + ph;
+      if (ph.length === 11) ph = '3' + ph;
+      userData.phone_number = '+' + ph;
+    }
+
+    window.dataLayer.push({
+      event          : 'purchase',
+      transaction_id : String(data.orderId || ''),
+      value          : Number(data.total   || 0),
+      currency       : 'UAH',
+      items          : dlItems,
+      user_data      : userData
+    });
+  } catch (e) {}
+
+})();
+</script>
+</body>
+</html>
