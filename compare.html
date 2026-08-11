@@ -1,0 +1,1529 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="shortcut icon" href="favicon.svg">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Порівняння дитячих електромобілів — KidsRide</title>
+<meta name="description" content="Порівняй дитячі електромобілі поруч: характеристики, ціни, вік, акумулятор. Обери найкращий варіант для своєї дитини.">
+<meta name="robots" content="noindex, follow">
+<link rel="canonical" href="https://www.kidsride.com.ua/compare.html">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
+<style>
+:root{
+  --orange:#FF6B35;--orange-dark:#e85520;
+  --navy:#1B2A4A;--navy-light:#2d4270;
+  --bg:#fff;--bg-soft:#F8F9FC;--bg-warm:#FFF8F5;
+  --green:#27AE60;--red:#e53935;
+  --text:#1a1a2e;--text-muted:#6b7280;
+  --border:#e8ecf4;
+  --shadow-sm:0 2px 12px rgba(27,42,74,.07);
+  --shadow-md:0 8px 32px rgba(27,42,74,.12);
+  --shadow-lg:0 20px 60px rgba(27,42,74,.16);
+  --r:14px;--r-sm:8px;--r-lg:20px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Manrope',sans-serif;color:var(--text);background:var(--bg-soft);overflow-x:hidden}
+img{display:block;max-width:100%}
+h1,h2,h3{font-family:'Nunito',sans-serif;font-weight:800}
+a{text-decoration:none;color:inherit}
+
+/* HEADER */
+.header{position:fixed;top:0;left:0;right:0;z-index:100;height:64px;padding:0 40px;display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.93);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+.logo{display:flex;align-items:center;gap:10px;font-family:'Nunito',sans-serif;font-weight:900;font-size:22px;color:var(--navy)}
+.logo-mark{width:36px;height:36px;background:var(--orange);border-radius:9px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(255,107,53,.3)}
+.logo-mark svg{width:20px;height:20px;stroke:white;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.logo span{color:var(--orange)}
+nav{display:flex;gap:2px}
+nav a{color:var(--text-muted);font-weight:600;font-size:14px;padding:7px 13px;border-radius:7px;transition:all .2s}
+nav a:hover{color:var(--navy);background:var(--bg-soft)}
+.h-right{display:flex;align-items:center;gap:6px}
+.ic-btn{width:38px;height:38px;border:none;background:none;cursor:pointer;border-radius:9px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);transition:all .2s;position:relative}
+.ic-btn:hover{background:var(--bg-soft);color:var(--navy)}
+.ic-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.badge{position:absolute;top:4px;right:4px;width:17px;height:17px;background:var(--orange);border-radius:50%;font-size:9px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Nunito',sans-serif}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:10px 20px;border-radius:9px;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;border:none;cursor:pointer;transition:all .2s}
+.btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.btn-primary{background:var(--orange);color:#fff;box-shadow:0 4px 14px rgba(255,107,53,.3)}
+.btn-primary:hover{background:var(--orange-dark);transform:translateY(-1px)}
+.btn-outline{background:white;color:var(--navy);border:1.5px solid var(--border)}
+.btn-outline:hover{border-color:var(--orange);color:var(--orange)}
+
+/* BREADCRUMB */
+.breadcrumb{margin-top:64px;background:white;border-bottom:1px solid var(--border);padding:13px 40px;display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted)}
+.breadcrumb a{color:var(--text-muted);transition:color .2s}.breadcrumb a:hover{color:var(--orange)}
+.breadcrumb svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;opacity:.5}
+
+/* PAGE — повна ширина */
+.page{max-width:100%;padding:24px 32px 64px}
+.page-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
+.page-title{font-size:24px;color:var(--navy)}
+.page-title span{color:var(--orange)}
+
+/* COMPARE TABLE */
+.compare-wrap{overflow-x:auto;border-radius:var(--r-lg);border:1.5px solid var(--border);background:white;box-shadow:var(--shadow-sm);width:100%}
+.cmp-legend{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;padding:12px 18px;font-size:12px;color:var(--text-muted);border-bottom:1.5px solid var(--border);background:var(--bg-soft)}
+.cmp-legend>span{display:inline-flex;align-items:center;gap:6px}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.compare-wrap::-webkit-scrollbar{height:6px}
+.compare-wrap::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+table.cmp{width:100%;border-collapse:collapse;min-width:720px;table-layout:fixed}
+
+/* Fixed first column — ширина визначається table-layout:fixed рівномірно */
+.cmp td:first-child,.cmp th:first-child{
+  background:var(--bg-soft);
+  font-size:13px;font-weight:600;color:var(--text-muted);
+  padding:14px 16px;
+  position:sticky;left:0;z-index:20;
+  border-right:1px solid var(--border);
+  overflow:hidden;
+  word-break:break-word;
+  overflow-wrap:break-word;
+}
+/* Кліпуємо фото строго всередині th-колонки; продукт-клітинки під sticky-колонкою */
+.cmp thead tr th:not(:first-child){
+  overflow:hidden;
+  position:relative;
+  z-index:0;
+}
+/* Кнопки в окремому рядку — також під sticky-колонкою */
+.prod-btn-cell{
+  position:relative;
+  z-index:0;
+  overflow:hidden;
+}
+.cmp td,.cmp th{
+  padding:14px 20px;
+  border-bottom:1px solid var(--border-light, #f0f2f8);
+  vertical-align:middle;
+  text-align:center;
+  font-size:14px;
+}
+.cmp tr:last-child td{border-bottom:none}
+.cmp tbody tr:hover td{background:rgba(248,249,252,.6)}
+.cmp tbody tr:hover td:first-child{background:var(--bg-soft)}
+
+/* Section rows */
+.cmp tr.section-row td{
+  background:var(--navy);
+  color:white;
+  font-family:'Nunito',sans-serif;
+  font-weight:700;
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:.1em;
+  padding:8px 18px;
+}
+.cmp tr.section-row td:first-child{
+  background:var(--navy);
+  color:rgba(255,255,255,.7);
+  border-right:1px solid rgba(255,255,255,.1);
+}
+
+/* Header row */
+.cmp thead tr th{
+  padding:0;
+  border-bottom:none;
+  vertical-align:top;
+}
+.cmp thead tr th:first-child{
+  background:var(--bg-soft);
+  border-right:1px solid var(--border);
+  border-bottom:2px solid var(--border);
+  padding:16px 18px;
+  text-align:left;
+  font-size:13px;
+  color:var(--text-muted);
+  font-weight:600;
+  vertical-align:middle;
+}
+/* Button row — separates button from info for perfect alignment */
+.cmp thead tr.prod-btn-row th{
+  padding:0;
+  border-bottom:2px solid var(--border);
+  vertical-align:middle;
+}
+.prod-btn-cell{padding:0 12px 14px;text-align:center}
+.prod-btn-cell .prod-cart{width:100%}
+
+.prod-header{padding:20px 16px 12px;text-align:center;position:relative}
+.prod-img{position:relative;width:120px;height:90px;display:flex;align-items:center;justify-content:center;border-radius:var(--r-sm);overflow:hidden;margin:0 auto 12px;background:var(--bg-soft)}
+.prod-img img{width:100%;height:100%;object-fit:contain}
+.prod-img svg{width:70%;height:70%}
+.prod-remove{position:absolute;top:12px;right:12px;width:26px;height:26px;border-radius:50%;background:rgba(229,57,53,.1);border:1.5px solid rgba(229,57,53,.35);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--red);transition:all .2s;box-shadow:0 2px 8px rgba(229,57,53,.15);z-index:5}
+.prod-remove:hover{background:var(--red);color:#fff;border-color:var(--red);transform:scale(1.08)}
+.prod-remove svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2.75;stroke-linecap:round;stroke-linejoin:round}
+.prod-brand{font-size:10px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
+.prod-name{font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;color:var(--navy);line-height:1.3;margin-bottom:10px}
+.prod-price{font-family:'Nunito',sans-serif;font-weight:900;font-size:20px;color:var(--navy);margin-bottom:12px}
+.prod-rank{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;border-radius:20px;padding:3px 10px;margin-bottom:8px}
+.prod-rank-gold{color:#92610a;background:#FFF6DE;border:1px solid #F5D98B}
+.prod-rank-silver{color:#5a6272;background:#F3F4F6;border:1px solid #D1D5DB}
+.prod-rank-bronze{color:#7c4a2a;background:#FEF3E8;border:1px solid #FDBA74}
+.prod-rank-other{color:#4B5563;background:#F3F4F6;border:1px solid #D1D5DB}
+.prod-cart{width:100%;padding:10px;border-radius:9px;background:var(--orange);color:white;border:none;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s;box-shadow:0 4px 12px rgba(255,107,53,.3)}
+.prod-cart:hover{background:var(--orange-dark);transform:translateY(-1px)}
+.prod-cart svg{width:14px;height:14px;stroke:white;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* Empty slot */
+.empty-slot{padding:28px 12px;text-align:center;border:2px dashed var(--border);border-radius:var(--r);margin:16px 10px;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%}
+.empty-slot:hover{border-color:var(--orange);background:rgba(255,107,53,.04)}
+.empty-slot svg{width:32px;height:32px;stroke:var(--text-muted);fill:none;stroke-width:1.5;margin:0 auto 10px;display:block;flex-shrink:0}
+.empty-slot p{font-size:13px;color:var(--text-muted);font-weight:500;white-space:normal;word-break:break-word;overflow-wrap:break-word;line-height:1.3}
+.empty-slot span{font-size:11px;color:var(--text-light,#9ca3af);white-space:normal;word-break:break-word;overflow-wrap:break-word;line-height:1.25;margin-top:2px;display:block}
+
+/* Заголовок "Характеристики" в шапці — не повинен вилазити за межі sticky-колонки */
+.cmp-char-label{padding:4px 8px;font-size:12px;color:var(--text-muted);font-weight:600;text-align:left;overflow:hidden;word-break:break-word;overflow-wrap:break-word;line-height:1.25}
+@media(max-width:768px){.cmp-char-label{font-size:9px;padding:2px 4px;line-height:1.2}}
+@media(max-width:480px){.cmp-char-label{font-size:8px;padding:2px 3px;line-height:1.15}}
+
+/* Values */
+.val-yes{color:var(--green);font-weight:700;display:flex;align-items:center;justify-content:center;gap:4px}
+.val-yes svg{width:15px;height:15px;stroke:var(--green);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.val-no{color:var(--text-muted);font-size:18px;letter-spacing:2px}
+.val-unspecified{color:var(--text-light,#9ca3af);font-size:13px;font-style:italic}
+.val-highlight{background:rgba(39,174,96,.08);font-weight:700;color:var(--green)}
+.val-price-best{color:var(--green);font-family:'Nunito',sans-serif;font-weight:800}
+.val-price-high{color:var(--text-muted)}
+
+/* Empty state */
+.empty-compare{text-align:center;padding:80px 24px;background:white;border-radius:var(--r-lg);border:1.5px solid var(--border)}
+.empty-compare svg{width:72px;height:72px;stroke:var(--border);fill:none;stroke-width:1.2;margin:0 auto 20px;display:block}
+.empty-compare h3{font-size:20px;color:var(--navy);margin-bottom:8px}
+.empty-compare p{font-size:14px;color:var(--text-muted);margin-bottom:24px}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .header{height:58px;padding:0 16px}
+  nav{display:none}
+  .h-right .btn{display:none}
+  .breadcrumb{margin-top:58px;padding:10px 16px;font-size:11px}
+  .page{padding:10px 4px 60px;max-width:100%}
+  .compare-wrap{border-radius:10px}
+
+  /* Таблиця має мінімальну ширину щоб горизонтальний скрол був зручним
+     і вміст не стискувався нижче за читабельний мінімум */
+  table.cmp{font-size:11px;min-width:560px}
+
+  /* Перша sticky-колонка — чіткий непрозорий фон, щоб не просвічувало через неї */
+  .cmp td:first-child,.cmp th:first-child{
+    width:76px;min-width:72px;max-width:80px;
+    padding:8px 7px;font-size:9.5px;line-height:1.3;
+    background:#fff;  /* білий фон замість bg-soft — не просвічує */
+  }
+  /* секційні рядки: sticky теж білий */
+  .cmp tr.section-row td:first-child{background:var(--navy)}
+
+  .cmp td,.cmp th{padding:8px 7px}
+
+  /* Картки товарів */
+  .prod-header{padding:8px 6px 6px;overflow:hidden}
+  .prod-img{width:72px;height:54px;margin-bottom:5px;flex-shrink:0}
+  .prod-brand{font-size:7.5px;margin-bottom:2px}
+  .prod-rank{font-size:8.5px;padding:2px 6px;margin-bottom:4px}
+
+  /* Ім'я — обрізаємо до 2 рядків щоб не вилазило за межі клітинки */
+  .prod-name{
+    font-size:10px;line-height:1.2;margin-bottom:5px;
+    overflow:hidden;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    word-break:break-word;
+  }
+  .prod-price{font-size:12px;margin-bottom:0}
+
+  /* Кнопка */
+  .prod-btn-cell{padding:0 5px 10px}
+  .prod-cart{padding:7px 5px;font-size:10px;gap:3px;border-radius:7px}
+  .prod-cart svg{width:11px;height:11px}
+
+  /* Кнопка видалення — менша і притиснута до кута, завжди чітко видна (червона) */
+  .prod-remove{width:20px;height:20px;top:4px;right:4px;background:rgba(229,57,53,.14);border-width:1.25px}
+  .prod-remove svg{width:9px;height:9px}
+
+  /* Порожній слот "Додати товар" — компактний, текст не вилазить за межі колонки */
+  .empty-slot{padding:14px 6px;margin:8px 4px;border-radius:10px}
+  .empty-slot svg{width:22px;height:22px;margin-bottom:6px}
+  .empty-slot p{font-size:10px;line-height:1.25;white-space:normal;word-break:break-word;overflow-wrap:break-word}
+  .empty-slot span{font-size:8.5px;line-height:1.2;display:block;margin-top:2px;white-space:normal;word-break:break-word}
+}
+@media(max-width:480px){
+  .page{padding:6px 2px 56px}
+
+  /* Зменшуємо мін-ширину для менших екранів (все одно буде скрол) */
+  table.cmp{font-size:10px;min-width:480px}
+
+  .cmp td:first-child,.cmp th:first-child{
+    width:64px;min-width:60px;max-width:68px;
+    padding:6px 5px;font-size:8.5px;line-height:1.25;
+    background:#fff;
+  }
+  .cmp tr.section-row td:first-child{background:var(--navy)}
+
+  .cmp td,.cmp th{padding:6px 5px;font-size:10px}
+
+  .prod-header{padding:6px 4px 5px;overflow:hidden}
+  .prod-img{width:58px;height:44px;margin-bottom:4px}
+  .prod-brand{font-size:7px;margin-bottom:1px}
+  .prod-rank{font-size:7.5px;padding:1px 5px;margin-bottom:3px}
+  .prod-name{
+    font-size:9.5px;line-height:1.2;margin-bottom:4px;
+    overflow:hidden;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    word-break:break-word;
+  }
+  .prod-price{font-size:11px;margin-bottom:0}
+
+  .prod-btn-cell{padding:0 3px 8px}
+  .prod-cart{padding:6px 4px;font-size:9px;gap:2px;border-radius:6px}
+  .prod-cart svg{width:9px;height:9px}
+
+  .prod-remove{width:18px;height:18px;top:3px;right:3px;background:rgba(229,57,53,.14);border-width:1.25px}
+  .prod-remove svg{width:8px;height:8px}
+
+  .val-yes svg{width:11px;height:11px}
+  .val-unspecified{font-size:8px}
+
+  .empty-slot{padding:10px 4px;margin:5px 3px}
+  .empty-slot svg{width:18px;height:18px;margin-bottom:4px}
+  .empty-slot p{font-size:9px}
+  .empty-slot span{font-size:7.5px}
+}
+/* ── PHONE IN HEADER ── */
+.h-phone-link{display:inline-flex;align-items:center;gap:7px;text-decoration:none;color:var(--navy);font-family:'Nunito',sans-serif;font-weight:700;font-size:13.5px;padding:8px 12px;border-radius:10px;transition:all .2s;white-space:nowrap}
+.h-phone-link:hover{background:rgba(255,107,53,.07);color:var(--orange)}
+.h-phone-link svg{stroke:var(--orange);flex-shrink:0;transition:transform .2s}
+.h-phone-link:hover svg{transform:scale(1.12)}
+.h-phone-sep{width:1px;height:22px;background:var(--border);flex-shrink:0;margin:0 2px}
+@media(max-width:1024px){.h-phone-link .h-phone-text{display:none}}
+@media(max-width:640px){.h-phone-link{width:40px;height:40px;padding:0;justify-content:center}}
+
+.header,.header#hdr{border-top:12px solid #1B2A4A}
+
+/* ── WINNER BANNER ── */
+#winnerBanner{
+  position:fixed;inset:0;z-index:8000;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(10,20,50,.6);backdrop-filter:blur(8px);
+  padding:20px;
+  animation:wbFadeIn .35s ease both;
+}
+@keyframes wbFadeIn{from{opacity:0}to{opacity:1}}
+#wbConfetti{position:fixed;inset:0;z-index:7999;pointer-events:none}
+.wb-card{
+  background:#fff;border-radius:24px;
+  box-shadow:0 40px 100px rgba(0,0,0,.45),0 0 0 1px rgba(255,255,255,.08);
+  max-width:420px;width:100%;
+  overflow:visible;
+  animation:wbSlideUp .5s cubic-bezier(.34,1.56,.64,1) both;
+  position:relative;
+}
+@keyframes wbSlideUp{from{transform:translateY(30px) scale(.93);opacity:0}to{transform:none;opacity:1}}
+.wb-top{
+  background:linear-gradient(150deg,#1a2f5a 0%,#243870 60%,#1e3460 100%);
+  padding:20px 22px 70px;
+  text-align:center;
+  position:relative;
+  border-radius:24px 24px 0 0;
+}
+/* Зірки-декор у фоні */
+.wb-top::before{
+  content:'✦  ✦  ✦';
+  position:absolute;top:14px;left:0;right:0;
+  font-size:10px;color:rgba(255,215,0,.25);
+  letter-spacing:22px;text-align:center;
+  pointer-events:none;
+}
+.wb-crown{
+  font-size:38px;line-height:1;margin-bottom:6px;
+  display:inline-block;
+  animation:wbBounce .6s cubic-bezier(.34,1.56,.64,1) .3s both;
+}
+@keyframes wbBounce{from{transform:scale(0) rotate(-20deg);opacity:0}to{transform:none;opacity:1}}
+.wb-label{
+  font-family:'Nunito',sans-serif;font-weight:800;font-size:11px;
+  color:rgba(255,215,0,.85);letter-spacing:.2em;text-transform:uppercase;
+}
+/* ── Кругле фото — "медаль" ── */
+.wb-avatar-ring{
+  width:136px;height:136px;
+  border-radius:50%;
+  background:linear-gradient(135deg,#FFD700,#FFA500,#FFD700);
+  padding:4px;
+  position:absolute;
+  bottom:-68px;left:50%;transform:translateX(-50%);
+  box-shadow:
+    0 0 0 3px #fff,
+    0 8px 30px rgba(255,180,0,.55),
+    0 0 60px rgba(255,180,0,.25);
+  z-index:5;
+  animation:wbAvatarIn .55s cubic-bezier(.34,1.56,.64,1) .15s both;
+}
+@keyframes wbAvatarIn{from{transform:translateX(-50%) scale(0.5) translateY(20px);opacity:0}to{transform:translateX(-50%) scale(1) translateY(0);opacity:1}}
+.wb-avatar-inner{
+  width:100%;height:100%;border-radius:50%;
+  background:#eef2f9;
+  overflow:hidden;
+  position:relative;
+  display:flex;align-items:center;justify-content:center;
+}
+/* SVG-заглушка всередині кола */
+.wb-avatar-inner .wb-svg-fb{
+  width:80%;height:80%;display:flex;align-items:center;justify-content:center;
+  opacity:.55;
+}
+.wb-avatar-inner img{
+  position:absolute;inset:0;width:100%;height:100%;
+  object-fit:contain;object-position:center;
+  border-radius:50%;
+  background:#fff;
+  z-index:2;
+}
+/* ── Тіло картки ── */
+.wb-body{
+  padding:86px 24px 22px;
+  text-align:center;
+}
+.wb-name{
+  font-family:'Nunito',sans-serif;font-weight:900;font-size:19px;
+  color:var(--navy);line-height:1.25;margin-bottom:3px;
+}
+.wb-sku{font-size:12px;color:var(--text-muted);font-weight:600;margin-bottom:16px}
+.wb-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:linear-gradient(135deg,#FFF8E1,#FFF3CD);
+  border:1.5px solid #F5C842;
+  border-radius:20px;padding:5px 14px;
+  font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;color:#7a4f00;
+  margin-bottom:16px;
+  box-shadow:0 2px 8px rgba(245,200,66,.25);
+}
+.wb-actions{display:flex;flex-direction:column;gap:8px}
+.wb-btn-primary{
+  width:100%;padding:13px;border-radius:12px;
+  background:linear-gradient(135deg,var(--orange),#ff8c42);
+  color:#fff;border:none;cursor:pointer;
+  font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;
+  box-shadow:0 6px 20px rgba(255,107,53,.4);
+  transition:all .2s;letter-spacing:.02em;
+}
+.wb-btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(255,107,53,.5)}
+.wb-btn-sec{
+  width:100%;padding:10px;border-radius:12px;
+  background:transparent;color:var(--text-muted);
+  border:1.5px solid var(--border);cursor:pointer;
+  font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;transition:all .2s;
+}
+.wb-btn-sec:hover{border-color:var(--navy);color:var(--navy)}
+.wb-close{
+  position:absolute;top:12px;right:12px;
+  width:30px;height:30px;border:none;
+  background:rgba(255,255,255,.14);border-radius:50%;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  color:rgba(255,255,255,.8);transition:all .2s;z-index:10;
+}
+.wb-close:hover{background:rgba(255,255,255,.28)}
+.wb-close svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.wb-timer{
+  height:3px;background:linear-gradient(90deg,#FFD700,#FFA500);
+  transform-origin:left;
+  animation:wbTimer var(--wb-duration,4s) linear both;
+  border-radius:0 0 24px 24px;
+}
+@keyframes wbTimer{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+@media(max-width:480px){.wb-card{max-width:100%}.wb-name{font-size:16px}.wb-avatar-ring{width:110px;height:110px;bottom:-55px}.wb-body{padding-top:72px}}
+
+  /* ── SEARCH OVERLAY ── */
+  .search-overlay{position:fixed;inset:0;background:rgba(15,25,55,.55);backdrop-filter:blur(6px);z-index:2000;display:none;align-items:flex-start;justify-content:center;padding:80px 20px 20px;opacity:0;transition:opacity .2s ease}
+  .search-overlay.open{display:flex;opacity:1}
+  .search-modal{background:white;border-radius:18px;width:100%;max-width:640px;box-shadow:0 30px 80px rgba(0,0,0,.35);overflow:hidden;animation:searchIn .25s cubic-bezier(.34,1.56,.64,1)}
+  @keyframes searchIn{from{transform:translateY(-12px) scale(.97);opacity:0}to{transform:none;opacity:1}}
+  .search-form{display:flex;align-items:center;gap:12px;padding:18px 22px;border-bottom:1px solid var(--border)}
+  .search-form svg.search-icon{width:20px;height:20px;stroke:var(--text-muted);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+  .search-form input{flex:1;border:none;outline:none;font-family:'Manrope',sans-serif;font-size:17px;color:var(--navy);background:none;padding:4px 0}
+  .search-form input::placeholder{color:#9aa4bf}
+  .search-kbd{font-family:'Manrope',sans-serif;font-size:11px;font-weight:700;color:var(--text-muted);background:var(--bg-soft);border:1px solid var(--border);padding:3px 8px;border-radius:6px}
+  .search-close{width:30px;height:30px;border:none;background:var(--bg-soft);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted);transition:all .2s}
+  .search-close:hover{background:#fee2e2;color:#dc2626}
+  .search-close svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round}
+  .search-body{max-height:60vh;overflow-y:auto;padding:8px 0}
+  .search-body-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);padding:12px 22px 6px}
+  .search-sug{display:flex;align-items:center;gap:14px;padding:11px 22px;text-decoration:none;color:var(--navy);font-size:14px;font-weight:600;transition:background .12s}
+  .search-sug-img{width:44px;height:44px;border-radius:8px;object-fit:contain;background:#f5f7fa;flex-shrink:0;padding:4px;box-sizing:border-box}
+  .search-sug:hover{background:var(--bg-soft)}
+  .search-sug-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .search-sug-arr{width:14px;height:14px;color:var(--text-muted);flex-shrink:0;opacity:0;transition:all .15s}
+  .search-sug:hover .search-sug-arr{opacity:1;color:var(--orange);transform:translateX(2px)}
+  .search-empty{padding:28px 22px;text-align:center;color:var(--text-muted);font-size:14px}
+  .search-empty strong{color:var(--navy)}
+  .search-empty a{color:var(--orange);font-weight:700;text-decoration:none}
+  .search-foot{padding:12px 22px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--text-muted);background:var(--bg-soft)}
+  .search-foot kbd{font-family:'Manrope',sans-serif;background:white;border:1px solid var(--border);padding:2px 7px;border-radius:5px;font-size:10px;font-weight:700;color:var(--navy)}
+  @media(max-width:520px){.search-overlay{padding:60px 12px 12px}.search-form{padding:14px 16px}.search-form input{font-size:15px}.search-foot{display:none}.search-kbd{display:none}}
+</style>
+<script>
+(function(){
+  try{
+    var s=JSON.parse(localStorage.getItem('kr_stripe')||'{"h":12,"c":"#1B2A4A"}');
+    var el=document.createElement('style');
+    el.id='kr-stripe-css';
+    el.textContent='.header,.header#hdr{border-top:'+s.h+'px solid '+s.c+' !important}';
+    document.head.appendChild(el);
+  }catch(e){}
+})();
+</script>
+<script>
+(function(){
+  try{var s=JSON.parse(localStorage.getItem('kr_stripe')||'{"h":12,"c":"#1B2A4A"}');
+  var el=document.createElement('style');el.id='kr-stripe-css';
+  el.textContent='.header,.header#hdr{border-top:'+s.h+'px solid '+s.c+' !important}';
+  document.head.appendChild(el);}catch(e){}
+})();
+</script>
+<script>try{if(localStorage.getItem('kr_logo_url')){document.write('<style>.logo-mark svg{display:none!important}.logo-mark{background:transparent!important;box-shadow:none!important;padding:0!important}</style>')}}catch(e){}</script>
+</head>
+<body>
+
+<header class="header" id="hdr">
+  <a href="index.html" class="logo">
+    <div class="logo-mark"><svg viewBox="0 0 24 24"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect x="9" y="11" width="14" height="10" rx="2"/><circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/></svg></div>
+    <span style="color:inherit">Kids<span>Ride</span></span>
+  </a>
+  <nav>
+    <a href="index.html">Головна</a>
+    <a href="catalog.html">Каталог</a>
+    <a href="calculator.html">Підбір</a>
+    <a href="#" style="color:var(--orange)">Порівняння</a>
+  </nav>
+  <div class="h-right">
+    <a href="tel:+380980707348" class="h-phone-link" title="+380 98 070 73 48">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+      <span class="h-phone-text">+380 98 070 73 48</span>
+    </a>
+    <div class="h-phone-sep"></div>
+    
+    <button class="ic-btn" onclick="openSearchOverlay()" title="Пошук" aria-label="Пошук"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></button>
+    <button class="ic-btn" id="wishBtn" title="Список бажань" onclick="window.location.href='index.html#wishlist'" style="cursor:pointer"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span class="badge wish-badge" id="wishBadge" style="display:none">0</span></button>
+    <button class="ic-btn" onclick="location.href='cart.html'">
+      <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+      <span class="badge" id="cartBadge">0</span>
+    </button>
+  </div>
+</header>
+<!-- SEARCH OVERLAY -->
+  <div class="search-overlay" id="searchOverlay" onclick="if(event.target===this)closeSearchOverlay()" role="dialog" aria-modal="true" aria-label="Пошук по сайту">
+    <div class="search-modal">
+      <form class="search-form" onsubmit="return submitSearch(event)" autocomplete="off">
+        <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="searchOverlayInput" placeholder="Шукати електромобіль, бренд, модель…" oninput="renderSearchSuggestions(this.value)" onkeyup="renderSearchSuggestions(this.value)" />
+        <span class="search-kbd">ESC</span>
+        <button type="button" class="search-close" onclick="closeSearchOverlay()" aria-label="Закрити пошук">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </form>
+      <div class="search-body">
+        <div class="search-body-label">Популярні моделі</div>
+        <div id="searchSuggestions"></div>
+        <div class="search-empty" id="searchEmpty" style="display:none">Нічого не знайдено за запитом «<strong></strong>».<br><a href="#" onclick="submitSearch(event)">Шукати в каталозі →</a></div>
+      </div>
+      <div class="search-foot"><span><kbd>↵</kbd> перейти до каталогу</span><span><kbd>⌘</kbd> + <kbd>K</kbd> швидкий виклик</span></div>
+    </div>
+  </div>
+
+
+<div class="breadcrumb">
+  <a href="index.html">Головна</a>
+  <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+  <a href="catalog.html">Каталог</a>
+  <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+  <span style="color:var(--navy);font-weight:600">Порівняння</span>
+</div>
+
+<div class="page">
+  <div class="page-head">
+    <h1 class="page-title">Порівняння <span id="cmpCount"></span></h1>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-outline" onclick="clearAll()">
+        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+        Очистити
+      </button>
+      <a href="catalog.html" class="btn btn-primary">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Додати товар
+      </a>
+    </div>
+  </div>
+
+  <div id="compareContent"></div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+const SVG_MAP = {
+  jeep: `<svg viewBox="0 0 240 160"><rect x="20" y="75" width="200" height="55" rx="14" fill="#c8d0ea"/><rect x="50" y="40" width="130" height="52" rx="12" fill="#d0d8f0"/><rect x="55" y="45" width="55" height="34" rx="6" fill="#64B5F6" opacity=".4"/><rect x="118" y="45" width="55" height="34" rx="6" fill="#64B5F6" opacity=".35"/><rect x="185" y="72" width="32" height="34" rx="5" fill="#c0c8e0"/><circle cx="65" cy="132" r="22" fill="#2d3748"/><circle cx="65" cy="132" r="12" fill="#FF6B35" opacity=".6"/><circle cx="175" cy="132" r="22" fill="#2d3748"/><circle cx="175" cy="132" r="12" fill="#FF6B35" opacity=".6"/></svg>`,
+  quad: `<svg viewBox="0 0 240 160"><rect x="50" y="70" width="140" height="45" rx="10" fill="#3B4A8A" opacity=".25"/><rect x="70" y="42" width="100" height="42" rx="10" fill="#3B4A8A" opacity=".28"/><rect x="80" y="48" width="40" height="26" rx="5" fill="#90CAF9" opacity=".5"/><rect x="128" y="48" width="30" height="26" rx="5" fill="#90CAF9" opacity=".45"/><circle cx="68" cy="120" r="24" fill="#2d4270" opacity=".25"/><circle cx="68" cy="120" r="13" fill="#FF6B35" opacity=".4"/><circle cx="172" cy="120" r="24" fill="#2d4270" opacity=".25"/><circle cx="172" cy="120" r="13" fill="#FF6B35" opacity=".4"/></svg>`,
+  moto: `<svg viewBox="0 0 240 160"><circle cx="65" cy="110" r="26" fill="#2d3748" opacity=".25"/><circle cx="65" cy="110" r="14" fill="#FF6B35" opacity=".3"/><circle cx="175" cy="110" r="26" fill="#2d3748" opacity=".25"/><circle cx="175" cy="110" r="14" fill="#FF6B35" opacity=".3"/><path d="M65 88 Q88 56 136 58 L168 88 Q148 92 110 90 Z" fill="#2d3748" opacity=".2"/><rect x="100" y="52" width="36" height="20" rx="5" fill="#90CAF9" opacity=".5"/><rect x="60" y="76" width="10" height="30" rx="3" fill="#2d3748" opacity=".18"/></svg>`,
+};
+
+// State: currently comparing
+let comparing = []; // Буде завантажено з localStorage
+// Уніфікований, відсортований перелік усіх характеристик (динамічних + базових),
+// зібраний по товарах, що зараз порівнюються. Наповнюється в _cmpFetchLive().
+let CMP_ATTR_DEFS = [];
+
+const NOT_SPECIFIED = 'Не вказано';
+
+// ── Завантаження актуальної інформації по товарах з Supabase ──
+function _cmpSupaUrl(){ return (window.KR && KR._SUPA_URL) || 'https://gwslintdrtnvbfjvivbb.supabase.co'; }
+function _cmpSupaKey(){ return (window.KR && KR._SUPA_KEY) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3c2xpbnRkcnRudmJmanZpdmJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTU4MTUsImV4cCI6MjA5NzczMTgxNX0.2hhyX_PMrXpBa_Q5DW7KiUjf4Jy9nnBStto47_SVF7k'; }
+
+// fetch() з таймаутом — щоб "зависле" з'єднання не блокувало сторінку вічно.
+// Без таймауту браузер може чекати нескінченно, і render() зі справжніми даними ніколи не запуститься.
+async function _cmpFetch(url, options, timeoutMs = 8000) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const r = await fetch(url, { ...options, signal: ctrl.signal });
+    clearTimeout(timer);
+    return r;
+  } catch (e) {
+    clearTimeout(timer);
+    if (e.name === 'AbortError') throw new Error('timeout');
+    throw e;
+  }
+}
+
+// Категорії — людські назви (як на сторінці товару)
+const CMP_CAT_LABELS = { jeep:'Джип', quad:'Квадроцикл', moto:'Мотоцикл', car:'Машина', tractor:'Трактор', walker:'Каталка-толокар', truck:'Вантажівка', buggy:'Баггі' };
+
+// Ті самі коди, що й на сторінці товару: булеві характеристики та характеристики-довідники (enum)
+const _CMP_BOOL_CODES = ['remote_control','bluetooth','mp3','mp4','lights','shocks','leather_seat'];
+const _CMP_ENUM_CODES = ['wheels_material','paint_type'];
+const _CMP_UNITS = { motor_power: 'Вт', battery_voltage: 'В', max_speed: 'км/год', max_load: 'кг' };
+// Характеристики, де МЕНШЕ значення вважається кращим (решта чисел — «більше краще»)
+const _CMP_LOWER_IS_BETTER = new Set(['weight']);
+
+// ── Конфігурація критеріїв рейтингу ─────────────────────────────────────────
+// Алгоритм зважений: кожен критерій має вагу, список не "зашитий" у логіку —
+// достатньо додати новий об'єкт або змінити weight/enabled.
+// compute(specs) — повертає числове значення або null якщо дані відсутні.
+// specs — об'єкт {код_атрибута: відформатований_рядок} для одного товару.
+const RANKING_CRITERIA = [
+  {
+    field: 'motor_power_total',
+    label: 'Загальна потужність двигунів',
+    weight: 5,
+    enabled: true,
+    compute: function(specs) {
+      var count   = parseFloat(specs.motor_count);
+      var power   = parseFloat(specs.motor_power);
+      if (isNaN(count) || isNaN(power)) return null;
+      return count * power;
+    }
+  },
+  {
+    field: 'battery_power_total',
+    label: 'Загальна потужність АКБ (В сумарно)',
+    weight: 4,
+    enabled: true,
+    compute: function(specs) {
+      var count   = parseFloat(specs.battery_count);
+      var voltage = parseFloat(specs.battery_voltage);
+      if (isNaN(count) || isNaN(voltage)) return null;
+      return count * voltage;
+    }
+  },
+  // battery_capacity_ah — вимкнено: поле ще не заповнене у більшості товарів.
+  // Щоб увімкнути — додайте атрибут 'battery_capacity_ah' у БД і змініть enabled: true.
+  {
+    field: 'battery_capacity_ah',
+    label: 'Ємність АКБ (Аг)',
+    weight: 4,
+    enabled: false,
+    compute: function(specs) {
+      var v = parseFloat(specs.battery_capacity_ah);
+      return isNaN(v) ? null : v;
+    }
+  },
+  {
+    field: 'motor_count',
+    label: 'Кількість двигунів',
+    weight: 3,
+    enabled: true,
+    compute: function(specs) {
+      var v = parseFloat(specs.motor_count);
+      return isNaN(v) ? null : v;
+    }
+  },
+  {
+    field: 'battery_count',
+    label: 'Кількість акумуляторів',
+    weight: 2,
+    enabled: true,
+    compute: function(specs) {
+      var v = parseFloat(specs.battery_count);
+      return isNaN(v) ? null : v;
+    }
+  },
+  {
+    field: 'max_speed',
+    label: 'Максимальна швидкість',
+    weight: 1,   // знижено з 2→1: різниця 3 км/год некритична для дитячого авто
+    enabled: true,
+    compute: function(specs) {
+      var v = parseFloat(specs.max_speed);
+      return isNaN(v) ? null : v;
+    }
+  },
+  {
+    field: 'seats_count',
+    label: 'Кількість місць',
+    weight: 3,   // підвищено з 1→3: 2 місця — суттєва перевага для сімейного вибору
+    enabled: true,
+    compute: function(specs) {
+      var v = parseFloat(specs.seats_count);
+      return isNaN(v) ? null : v;
+    }
+  },
+  {
+    field: 'paint_type',
+    label: 'Тип фарбування кузова',
+    weight: 1,
+    enabled: true,
+    // Автофарбування = 1 (краще), Без автофарбування/відсутнє = 0 (гірше).
+    // Повертаємо 0 (а не null) щоб всі товари брали участь у рейтингу —
+    // при null товар виключається з порівняння за цим критерієм.
+    compute: function(specs) {
+      return specs.paint_type === 'Автофарбування' ? 1 : 0;
+    }
+  },
+];
+
+// ── Зважений алгоритм рейтингу з competition ranking ─────────────────────────
+// Крок 1: для кожного увімкненого критерію обчислити значення (у т.ч. похідні).
+// Крок 2: відсортувати товари за значенням, призначити бали методом competition ranking
+//         (однакові значення → однаковий бал; наступний товар отримує бал із пропуском).
+//         Найкращий отримує N балів (N = кількість товарів), найгірший — 1.
+// Крок 3: бал × вага додається до фінального рахунку.
+// Товар із відсутнім значенням за критерієм отримує 0 балів за цей критерій.
+function _cmpComputeRankingScores(products) {
+  var n = products.length;
+  var scores = products.map(function() { return 0; });
+
+  RANKING_CRITERIA.forEach(function(criterion) {
+    if (!criterion.enabled) return;
+
+    // Значення критерію для кожного товару (null = невідомо)
+    var values = products.map(function(p) {
+      return criterion.compute(p.specs || {});
+    });
+
+    // Потрібно щонайменше два відомих значення, щоб рейтинг мав сенс
+    var known = values.filter(function(v) { return v !== null; });
+    if (known.length < 2) return;
+
+    // Унікальні значення, відсортовані від найкращого до найгіршого (більше = краще)
+    var uniqueSorted = [];
+    var seen = {};
+    known.slice().sort(function(a, b) { return b - a; }).forEach(function(v) {
+      if (!seen[v]) { seen[v] = true; uniqueSorted.push(v); }
+    });
+
+    // Competition ranking: першому місцю N балів, при нічиїй — обидва отримують однаково,
+    // наступне місце отримує бал із пропуском (спортивний рейтинг).
+    // competitionRank — поточний ранг (1-based, скільки товарів "попереду" +1).
+    var competitionRank = 1;
+    var scoreMap = {}; // value → бали
+    uniqueSorted.forEach(function(val) {
+      var pts = n - (competitionRank - 1);
+      scoreMap[val] = pts < 1 ? 1 : pts;
+      // Наступний ранг: пропускаємо стільки позицій, скільки товарів мають це значення
+      var countWithVal = known.filter(function(v) { return v === val; }).length;
+      competitionRank += countWithVal;
+    });
+
+    // Додаємо зважений бал до рахунку кожного товару
+    values.forEach(function(val, i) {
+      if (val === null) return; // немає даних — 0 за цей критерій
+      scores[i] += (scoreMap[val] || 0) * criterion.weight;
+    });
+  });
+
+  return scores;
+}
+
+// Базові поля товару (з таблиці products), які показуємо завжди поруч із динамічними характеристиками.
+// Колір/Вік/Гарантія прибрано з порівняння (майже завжди "Не вказано" і не впливають на вибір товару).
+const CMP_BASE_FIELDS = [
+  { key: 'sku', label: 'Артикул' },
+  { key: 'cat', label: 'Тип' },
+];
+
+function _cmpBaseSpecs(p){
+  return {
+    sku: p.sku || '',
+    cat: p.category ? (CMP_CAT_LABELS[p.category] || p.category) : '',
+  };
+}
+
+function _cmpFormatAttrValue(code, rawValue, optionsByCode){
+  if (_CMP_BOOL_CODES.includes(code)) return 'Так';
+  if (_CMP_ENUM_CODES.includes(code)) {
+    return (optionsByCode[code] && optionsByCode[code][String(rawValue)]) || rawValue;
+  }
+  const unit = _CMP_UNITS[code] || '';
+  return unit ? (rawValue + ' ' + unit) : String(rawValue);
+}
+
+// Тягнемо реальні характеристики (product_attributes / product_attribute_values) для набору товарів —
+// та сама архітектура, що й на сторінці товару, замість парсингу тексту "features".
+async function _cmpFetchAttributes(ids){
+  const result = { byProductId: {}, defs: [] }; // defs: впорядкований унікальний перелік {key,label}
+  if (!ids.length) return result;
+  const headers = { 'apikey': _cmpSupaKey(), 'Authorization': 'Bearer ' + _cmpSupaKey() };
+  // ВАЖЛИВО: PostgREST очікує UUID-значення в in() БЕЗ лапок — так само як catalog.html і product.html.
+  // Форма "in.("uuid","uuid")" викликає помилки типів і повертає 400 або порожній результат.
+  const idsList = ids.map(id => String(id)).join(',');
+  let rows = [];
+  try {
+    const r = await _cmpFetch(
+      _cmpSupaUrl() + '/rest/v1/product_attribute_values?select=product_id,value,product_attributes(id,code,name,unit,data_type)&product_id=in.(' + idsList + ')',
+      { headers }
+    );
+    if (!r.ok) console.warn('compare: attribute_values fetch HTTP', r.status);
+    rows = r.ok ? await r.json() : [];
+  } catch (e) { console.warn('compare: attribute fetch failed', e.message); rows = []; }
+  if (!Array.isArray(rows)) rows = [];
+
+  // Для enum-атрибутів підтягуємо людські мітки з product_attribute_options (як на сторінці товару)
+  const enumCodes = [...new Set(rows
+    .map(r => r.product_attributes && r.product_attributes.code)
+    .filter(c => c && _CMP_ENUM_CODES.includes(c)))];
+  let optionsByCode = {};
+  if (enumCodes.length) {
+    try {
+      const attrRes = await _cmpFetch(
+        _cmpSupaUrl() + '/rest/v1/product_attributes?select=id,code&code=in.(' + enumCodes.join(',') + ')',
+        { headers }
+      );
+      const attrRows = attrRes.ok ? await attrRes.json() : [];
+      const ids2 = attrRows.map(a => a.id);
+      if (ids2.length) {
+        const optRes = await _cmpFetch(
+          _cmpSupaUrl() + '/rest/v1/product_attribute_options?select=attribute_id,value,label&attribute_id=in.(' + ids2.join(',') + ')',
+          { headers }
+        );
+        const optRows = optRes.ok ? await optRes.json() : [];
+        const attrIdToCode = {};
+        attrRows.forEach(a => { attrIdToCode[a.id] = a.code; });
+        optRows.forEach(o => {
+          const code = attrIdToCode[o.attribute_id];
+          if (!code) return;
+          if (!optionsByCode[code]) optionsByCode[code] = {};
+          optionsByCode[code][String(o.value)] = o.label || o.value;
+        });
+      }
+    } catch (e) { /* enum-мітки — не критично, лишаємо сирі значення */ }
+  }
+
+  const seen = new Set();
+  rows.forEach(r => {
+    const meta = r.product_attributes || {};
+    const code = meta.code;
+    if (!code || r.value == null || r.value === '') return;
+    if (!result.byProductId[r.product_id]) result.byProductId[r.product_id] = {};
+    result.byProductId[r.product_id][code] = _cmpFormatAttrValue(code, r.value, optionsByCode);
+    if (!seen.has(code)) {
+      seen.add(code);
+      result.defs.push({ key: code, label: meta.name || code });
+    }
+  });
+  return result;
+}
+
+async function _cmpFetchLive(items){
+  if (!items.length) return items;
+  // UUID/integer IDs передаємо БЕЗ лапок — саме так роблять catalog.html і product.html.
+  const ids = items.map(p => String(p.id)).join(',');
+  const selects = [
+    'id,sku,name,brand,price,old_price,images,age_range,age,warranty,color,category,active,stock',
+    'id,sku,name,brand,price,old_price,images,color,category,active,stock',
+    'id,name,brand,price,images',
+  ];
+  let rows = null;
+  for (const sel of selects) {
+    try {
+      const r = await _cmpFetch(_cmpSupaUrl() + '/rest/v1/products?id=in.(' + ids + ')&select=' + encodeURIComponent(sel), {
+        headers: { 'apikey': _cmpSupaKey(), 'Authorization': 'Bearer ' + _cmpSupaKey() }
+      });
+      if (r.ok) { rows = await r.json(); break; }
+      if (r.status !== 400) {
+        console.warn('compare: products fetch HTTP', r.status);
+        break;
+      }
+    } catch(e) { console.warn('compare: products fetch error', e.message); break; }
+  }
+  const byId = {};
+  if (Array.isArray(rows)) {
+    for (const r of rows) byId[String(r.id)] = r;
+  } else {
+    console.warn('compare: products fetch failed — використовуємо кеш');
+  }
+
+  // Атрибути тягнемо незалежно — навіть якщо products-select вище не вдався.
+  const attrIds = items.map(p => p.id);
+  let byProductId = {}, defs = [];
+  try {
+    const res = await _cmpFetchAttributes(attrIds);
+    byProductId = res.byProductId;
+    defs = res.defs;
+  } catch (e) { console.warn('compare: _cmpFetchAttributes threw', e); }
+  // Оновлюємо список характеристик тільки якщо щось прийшло —
+  // щоб не стирати попередньо завантажені колонки при тимчасовому збої.
+  if (defs.length) CMP_ATTR_DEFS = defs;
+
+  return items.map(p => {
+    const sid = String(p.id);
+    const fresh = byId[sid];
+    const photo = (fresh && Array.isArray(fresh.images) && fresh.images[0]) || p.photo || p.img || '';
+    // Базові поля: свіжі з БД, або fallback з того, що вже було в кешованому об'єкті.
+    const baseSource = fresh || p; // p може містити .sku / .category якщо кеш зберігає їх
+    // Атрибути: кешований p._attrs (збережено з попереднього успішного завантаження)
+    // перезаписуємо свіжими byProductId[sid] якщо вони є.
+    const attrSpecs = Object.keys(byProductId[sid] || {}).length
+      ? byProductId[sid]
+      : (p._attrs || {});
+    return {
+      id: sid,
+      name: (fresh && fresh.name) || p.name,
+      brand: (fresh && fresh.brand) || p.brand,
+      price: Number(fresh ? fresh.price : p.price) || p.price || 0,
+      sku: (fresh && fresh.sku) || p.sku || '',
+      category: (fresh && fresh.category) || p.category || '',
+      img: p.img,
+      photo,
+      _attrs: attrSpecs, // зберігаємо для fallback наступного разу
+      specs: { ..._cmpBaseSpecs(baseSource), ...attrSpecs },
+      _stale: fresh ? !fresh.active : !!p._stale,
+    };
+  });
+}
+
+// ── Налаштування порівняння з адмінки (порядок/увімк.-вимк. параметрів) ──
+const CMP_SETTINGS_KEY = 'kr_compare_settings';
+let CMP_SETTINGS = null; // [{key, enabled}] у бажаному порядку; null = ще не завантажено → показуємо все
+
+// Максимальна кількість товарів для порівняння (керується з адмінки, ключ compare_max_products).
+// При завантаженні читаємо з localStorage (миттєво), потім оновлюємо з Supabase у _cmpLoadSettings().
+let CMP_MAX_PRODUCTS = (function() {
+  try { return parseInt(localStorage.getItem('kr_cmp_max') || '5', 10) || 5; } catch(e) { return 5; }
+})();
+
+// Тривалість автозакриття winner-банера в секундах (керується з адмінки, ключ compare_banner_seconds).
+let CMP_BANNER_SEC = (function() {
+  try { return parseInt(localStorage.getItem('kr_cmp_banner_sec') || '4', 10) || 4; } catch(e) { return 4; }
+})();
+
+function _cmpApplySettings(fields) {
+  if (!CMP_SETTINGS || !CMP_SETTINGS.length) return fields;
+  const order = {};
+  const enabled = {};
+  CMP_SETTINGS.forEach((s, i) => { order[s.key] = i; enabled[s.key] = s.enabled !== false; });
+  return fields
+    .filter(f => enabled[f.key] !== false) // невідомі (нема в налаштуваннях) — лишаємо увімкненими
+    .sort((a, b) => {
+      const oa = order[a.key] !== undefined ? order[a.key] : 999 + fields.indexOf(a);
+      const ob = order[b.key] !== undefined ? order[b.key] : 999 + fields.indexOf(b);
+      return oa - ob;
+    });
+}
+
+async function _cmpLoadSettings() {
+  try {
+    const cached = localStorage.getItem(CMP_SETTINGS_KEY);
+    if (cached) CMP_SETTINGS = JSON.parse(cached);
+  } catch (e) { CMP_SETTINGS = null; }
+  try {
+    const r = await _cmpFetch(_cmpSupaUrl() + '/rest/v1/settings?select=value&key=eq.compare_settings', {
+      headers: { 'apikey': _cmpSupaKey(), 'Authorization': 'Bearer ' + _cmpSupaKey() }
+    });
+    const rows = r.ok ? await r.json() : [];
+    if (rows && rows[0] && rows[0].value) {
+      CMP_SETTINGS = JSON.parse(rows[0].value);
+      localStorage.setItem(CMP_SETTINGS_KEY, JSON.stringify(CMP_SETTINGS));
+    }
+  } catch (e) { /* лишаємо кеш/усе увімкненим, якщо запит не вдався */ }
+  // Також підтягуємо максимальну кількість товарів для порівняння
+  try {
+    const rm = await _cmpFetch(_cmpSupaUrl() + '/rest/v1/settings?select=value&key=eq.compare_max_products', {
+      headers: { 'apikey': _cmpSupaKey(), 'Authorization': 'Bearer ' + _cmpSupaKey() }
+    });
+    const rowsM = rm.ok ? await rm.json() : [];
+    if (rowsM && rowsM[0] && rowsM[0].value) {
+      const parsed = parseInt(rowsM[0].value, 10);
+      if (!isNaN(parsed) && parsed >= 2 && parsed <= 10) {
+        CMP_MAX_PRODUCTS = parsed;
+        try { localStorage.setItem('kr_cmp_max', String(parsed)); } catch(e) {}
+      }
+    }
+  } catch (e) { /* лишаємо дефолт 5 */ }
+  // Підтягуємо тривалість автозакриття winner-банера
+  try {
+    const rb = await _cmpFetch(_cmpSupaUrl() + '/rest/v1/settings?select=value&key=eq.compare_banner_seconds', {
+      headers: { 'apikey': _cmpSupaKey(), 'Authorization': 'Bearer ' + _cmpSupaKey() }
+    });
+    const rowsB = rb.ok ? await rb.json() : [];
+    if (rowsB && rowsB[0] && rowsB[0].value) {
+      const parsedB = parseInt(rowsB[0].value, 10);
+      if (!isNaN(parsedB) && parsedB >= 1 && parsedB <= 30) {
+        CMP_BANNER_SEC = parsedB;
+        try { localStorage.setItem('kr_cmp_banner_sec', String(parsedB)); } catch(e) {}
+      }
+    }
+  } catch (e) { /* лишаємо дефолт 4 */ }
+}
+
+function render() {
+  const content = document.getElementById('compareContent');
+  const count = comparing.length;
+  document.getElementById('cmpCount').textContent = count ? `(${count} ${count === 1 ? 'товар' : count < 5 ? 'товари' : 'товарів'})` : '';
+
+  if (!count) {
+    content.innerHTML = `
+      <div class="empty-compare">
+        <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <h3>Немає товарів для порівняння</h3>
+        <p>Додайте від 2 до ${CMP_MAX_PRODUCTS} товарів з каталогу натиснувши кнопку "Порівняти" на картці</p>
+        <a href="catalog.html" class="btn btn-primary">Перейти до каталогу →</a>
+      </div>`;
+    return;
+  }
+
+  // Секції характеристик: базові поля товару завжди зверху,
+  // далі — усі динамічні характеристики (product_attributes), знайдені хоч у одного з порівнюваних товарів.
+  // Порядок і видимість керуються з адмінки (CMP_SETTINGS); показуємо МАКСИМУМ усіх параметрів —
+  // нічого не приховуємо через відсутність значення, де значення немає, буде "Не вказано".
+  const specSections = {
+    'Основне': _cmpApplySettings(CMP_BASE_FIELDS.slice()),
+    'Характеристики': _cmpApplySettings(CMP_ATTR_DEFS.slice()),
+  };
+  for (const sec of Object.keys(specSections)) {
+    if (!specSections[sec].length) delete specSections[sec];
+  }
+
+  // Показуємо завжди лише ОДИН порожній слот "Додати товар" (якщо ще є місце
+  // до максимуму), а не всі можливі слоти одразу — так таблиця не займає
+  // зайвого місця і колонки з товарами не стискуються, коли товарів мало.
+  const emptySlots = count < CMP_MAX_PRODUCTS ? 1 : 0;
+
+  // ── Рейтинг + сортування (ПОВИННО бути ДО побудови рядків таблиці!) ─────────
+  const rawScores = _cmpComputeRankingScores(comparing);
+  const hasAnyScore = rawScores.some(s => s > 0);
+
+  // Сортуємо товари за рейтингом — найкращий ЗАВЖДИ зліва.
+  // displayOrder[i] = індекс в оригінальному comparing; для removeProduct().
+  let displayOrder = comparing.map((_, i) => i);
+  if (hasAnyScore) {
+    // Порядок tie-break критеріїв (послідовне порівняння при рівному балі).
+    // Порядок: потужність двигунів → швидкість → АКБ → двигуни → акум → місця.
+    const TIE_BREAK_FIELDS = [
+      'motor_power_total',  // count × power — найважливіший
+      'seats_count',        // 2-місні авто пріоритетніші за більш швидкі
+      'battery_power_total', // count × voltage
+      'motor_count',
+      'battery_count',
+      'max_speed',
+    ];
+    // Карта: field → compute-функція з RANKING_CRITERIA (будь-яка, у т.ч. вимкнена)
+    const _tbCompute = {};
+    RANKING_CRITERIA.forEach(c => { _tbCompute[c.field] = c.compute; });
+    // Попередньо рахуємо tie-break значення для кожного товару (щоб не рахувати в sort)
+    const _tbValues = comparing.map(p => {
+      const specs = p.specs || {};
+      const out = {};
+      TIE_BREAK_FIELDS.forEach(f => {
+        if (_tbCompute[f]) out[f] = _tbCompute[f](specs) ?? -Infinity;
+        else out[f] = -Infinity;
+      });
+      return out;
+    });
+
+    displayOrder.sort((a, b) => {
+      const diff = rawScores[b] - rawScores[a];
+      if (diff !== 0) return diff;
+      // Однаковий бал — tie-break за послідовними критеріями
+      for (const f of TIE_BREAK_FIELDS) {
+        const d = (_tbValues[b][f] ?? -Infinity) - (_tbValues[a][f] ?? -Infinity);
+        if (d !== 0) return d;
+      }
+      return 0;
+    });
+  }
+  const sortedComparing = displayOrder.map(i => comparing[i]);
+  const sortedScores   = displayOrder.map(i => rawScores[i]);
+
+  // Місце = позиція в масиві після сортування з tie-break — завжди унікальне.
+  const placeByIdx = {};
+  const medals = ['🥇', '🥈', '🥉'];
+  const rankColors = ['prod-rank-gold', 'prod-rank-silver', 'prod-rank-bronze'];
+  if (hasAnyScore) {
+    sortedScores.forEach((_, i) => { placeByIdx[i] = i; });
+  }
+
+  // ── Рядки таблиці ────────────────────────────────────────────────────────────
+  let rows = '';
+  for (const [section, fields] of Object.entries(specSections)) {
+    rows += `<tr class="section-row"><td colspan="${count + emptySlots + 1}">${section}</td></tr>`;
+    fields.forEach(({ key, label }) => {
+      // sortedComparing відсортований за рейтингом — 1-й зліва
+      const rawValues = sortedComparing.map(p => {
+        const v = p && p.specs ? p.specs[key] : undefined;
+        return (v === undefined || v === null || v === '') ? NOT_SPECIFIED : v;
+      });
+
+      const isRankable = !CMP_BASE_FIELDS.some(f => f.key === key) && !_CMP_BOOL_CODES.includes(key);
+      const lowerIsBetter = _CMP_LOWER_IS_BETTER.has(key);
+
+      const comparable = rawValues.map(v => {
+        if (v === NOT_SPECIFIED || !isRankable) return null;
+        const n = parseFloat(String(v));
+        return isNaN(n) ? null : n;
+      });
+
+      const numsWithIdx = comparable.map((n, i) => ({ i, n })).filter(x => x.n !== null);
+      let bestIdx = new Set();
+      if (numsWithIdx.length > 1) {
+        const target = lowerIsBetter ? Math.min(...numsWithIdx.map(x => x.n)) : Math.max(...numsWithIdx.map(x => x.n));
+        const allEqual = numsWithIdx.every(x => x.n === numsWithIdx[0].n);
+        if (!allEqual) numsWithIdx.forEach(x => { if (x.n === target) bestIdx.add(x.i); });
+      }
+
+      let cols = `<td>${label}</td>`;
+      rawValues.forEach((val, i) => {
+        // Для типу фарбування: якщо значення відсутнє — показуємо «Без автофарбування»
+        // як окрему мітку (гірше, ніж «Автофарбування»), а не нейтральне «Не вказано»
+        const displayVal = (key === 'paint_type' && val === NOT_SPECIFIED) ? 'Без автофарбування' : val;
+        if (displayVal === NOT_SPECIFIED) {
+          cols += `<td><span class="val-unspecified">${NOT_SPECIFIED}</span></td>`;
+        } else if (displayVal === 'Без автофарбування') {
+          cols += `<td><span class="val-unspecified" title="Не вказано автофарбування — вважається гірше">${displayVal}</span></td>`;
+        } else if (displayVal === 'Так') {
+          cols += `<td><span class="val-yes"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>${val}</span></td>`;
+        } else {
+          cols += `<td ${bestIdx.has(i) ? 'class="val-highlight"' : ''}>${val}</td>`;
+        }
+      });
+      for (let e = 0; e < emptySlots; e++) cols += '<td style="background:rgba(248,249,252,.4)"></td>';
+      rows += `<tr>${cols}</tr>`;
+    });
+  }
+
+  // ── Крок 2: рейтинг за зваженим алгоритмом (RANKING_CRITERIA × ваги) ──────
+  // Перша колонка — окрема клітинка в кожному рядку (без rowspan).
+  // Раніше rowspan="2" призводив до того, що "Характеристики" вертикально
+  // центрувалось посередині між рядком фото та рядком кнопок — на мобільному
+  // це візуально перекривало картки товарів.
+  let headerCols = `<th style="vertical-align:bottom;padding-bottom:12px"></th>`;
+  let btnCols = `<th class="prod-btn-cell" style="background:var(--bg-soft);position:sticky;left:0;z-index:20;border-right:1px solid var(--border)"></th>`; // перша клітинка рядку кнопок
+
+  sortedComparing.forEach((p, i) => {
+    // Знаходимо реальний індекс у оригінальному масиві для removeProduct()
+    const origIdx = displayOrder[i];
+    const place = hasAnyScore ? placeByIdx[i] : null;
+    const medal = (place !== null && place < 3) ? medals[place] : '';
+    const rankCls = (place !== null && place < 3) ? rankColors[place] : 'prod-rank-other';
+    const placeLabel = place !== null ? `${place + 1} місце` : '';
+    const rankTip = place !== null ? `${placeLabel}: ${sortedScores[i]} балів (потужність×5 + АКБ×4 + двигуни×3 + акум×2 + місця×3 + швидкість×1 + фарбування×1)` : '';
+
+    // Info row: photo, rank, name, price — no button
+    headerCols += `
+      <th>
+        <div class="prod-header">
+          <button class="prod-remove" onclick="removeProduct(${origIdx})" title="Видалити з порівняння">
+            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+          <div class="prod-img">
+            <div class="prod-img-fallback" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">${SVG_MAP[p.img] || SVG_MAP.jeep}</div>
+            ${(p.photo || (p.img && /^(https?:|\/)/.test(p.img))) ? `<img src="${String(p.photo || p.img).replace(/"/g,'&quot;')}" alt="${(p.name||'').replace(/"/g,'&quot;')}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#fff;z-index:1" loading="lazy" onerror="this.remove()">` : ''}
+          </div>
+          ${placeLabel ? `<div class="prod-rank ${rankCls}" title="${rankTip}">${medal}${medal?' ':''}${placeLabel}</div>` : ''}
+          ${(p.brand && !/^без\s*бренд/i.test(p.brand)) ? `<div class="prod-brand">${p.brand}</div>` : ''}
+          <div class="prod-name">${p.name}</div>
+          <div class="prod-price">${p.price.toLocaleString('uk-UA')} ₴</div>
+        </div>
+      </th>`;
+
+    // Button row: one dedicated cell per product — all buttons align perfectly
+    btnCols += `
+      <th class="prod-btn-cell">
+        <button class="prod-cart" onclick="addToCartFromCompare('${p.id}', ${p.price}, '${p.name}', '${p.brand}', this)">
+          <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+          В кошик
+        </button>
+      </th>`;
+  });
+
+  // Empty slots span both header rows via rowspan="2"
+  for (let i = 0; i < emptySlots; i++) {
+    headerCols += `
+      <th rowspan="2">
+        <div class="empty-slot" onclick="location.href='catalog.html'">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <p>Додати товар</p>
+          <span>Перейти до каталогу</span>
+        </div>
+      </th>`;
+  }
+
+  content.innerHTML = `
+    <div class="compare-wrap">
+      <table class="cmp">
+        <thead>
+          <tr>${headerCols}</tr>
+          <tr class="prod-btn-row">${btnCols}</tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+
+  // Показуємо winner-банер після першого повноцінного рендеру з балами
+  if (hasAnyScore && count >= 2) {
+    _maybeShowWinnerBanner(sortedComparing[0], sortedScores[0]);
+  }
+}
+
+// ── Winner banner ──────────────────────────────────────────────────────────
+let _winnerBannerShown = false;
+let _winnerBannerTimer = null;
+
+function _maybeShowWinnerBanner(winner, score) {
+  if (_winnerBannerShown) return;
+  _winnerBannerShown = true;
+
+  const existing = document.getElementById('winnerBanner');
+  if (existing) existing.remove();
+  const existingC = document.getElementById('wbConfetti');
+  if (existingC) existingC.remove();
+
+  const photo = winner.photo || '';
+  const svgFallback = SVG_MAP[winner.img] || SVG_MAP.jeep;
+
+  // ── Конфеті canvas ────────────────────────────────────────────────────────
+  const canvas = document.createElement('canvas');
+  canvas.id = 'wbConfetti';
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  document.body.appendChild(canvas);
+  _wbLaunchConfetti(canvas);
+
+  // ── Banner ────────────────────────────────────────────────────────────────
+  const banner = document.createElement('div');
+  banner.id = 'winnerBanner';
+  banner.style.setProperty('--wb-duration', CMP_BANNER_SEC + 's');
+  banner.innerHTML = `
+    <div class="wb-card">
+      <div class="wb-top">
+        <button class="wb-close" onclick="closeWinnerBanner()" title="Закрити">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+        <div class="wb-crown">🏆</div>
+        <div class="wb-label">Найкраща модель серед обраних</div>
+        <!-- Кругле фото-медаль — перекриває межу top/body -->
+        <div class="wb-avatar-ring">
+          <div class="wb-avatar-inner">
+            <div class="wb-svg-fb">${svgFallback}</div>
+            ${photo ? `<img src="${photo.replace(/"/g,'&quot;')}" alt="${(winner.name||'').replace(/"/g,'&quot;')}" onerror="this.remove()">` : ''}
+          </div>
+        </div>
+      </div>
+      <div class="wb-body">
+        <div class="wb-name">${winner.name}</div>
+        ${winner.sku ? `<div class="wb-sku">Арт. ${winner.sku}</div>` : ''}
+        <div class="wb-badge">🥇&nbsp;Переможець порівняння</div>
+        <div class="wb-actions">
+          <button class="wb-btn-primary" onclick="closeWinnerBanner();document.querySelector('.compare-wrap')?.scrollIntoView({behavior:'smooth',block:'start'})">Переглянути детальне порівняння</button>
+          <button class="wb-btn-sec" onclick="closeWinnerBanner()">Закрити</button>
+        </div>
+      </div>
+      <div class="wb-timer"></div>
+    </div>`;
+
+  document.body.appendChild(banner);
+  banner.addEventListener('click', e => { if (e.target === banner) closeWinnerBanner(); });
+
+  _winnerBannerTimer = setTimeout(closeWinnerBanner, CMP_BANNER_SEC * 1000);
+}
+
+// ── Canvas confetti / феєрверк ────────────────────────────────────────────
+let _wbConfettiRaf = null;
+function _wbLaunchConfetti(canvas) {
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const COLORS = ['#FFD700','#FF6B35','#27AE60','#3B82F6','#EC4899','#F59E0B','#8B5CF6','#fff'];
+  const SHAPES = ['rect','circle','ribbon'];
+
+  // Генеруємо частинки — два залпи з різних точок
+  const particles = [];
+  const origins = [[W * 0.25, H * 0.55], [W * 0.75, H * 0.55], [W * 0.5, H * 0.65]];
+  origins.forEach(([ox, oy]) => {
+    for (let i = 0; i < 55; i++) {
+      const angle = (Math.random() * Math.PI * 1.6) - Math.PI * 1.3; // вгору + в сторони
+      const speed = 6 + Math.random() * 14;
+      particles.push({
+        x: ox, y: oy,
+        vx: Math.cos(angle) * speed * (0.5 + Math.random()),
+        vy: Math.sin(angle) * speed,
+        color: COLORS[Math.floor(Math.random() * COLORS.length)],
+        shape: SHAPES[Math.floor(Math.random() * SHAPES.length)],
+        w: 6 + Math.random() * 8,
+        h: 4 + Math.random() * 6,
+        rot: Math.random() * Math.PI * 2,
+        rotV: (Math.random() - 0.5) * 0.25,
+        alpha: 1,
+        gravity: 0.35 + Math.random() * 0.2,
+        drag: 0.97,
+      });
+    }
+  });
+
+  let frame = 0;
+  function tick() {
+    ctx.clearRect(0, 0, W, H);
+    let alive = false;
+    particles.forEach(p => {
+      p.vx *= p.drag; p.vy = p.vy * p.drag + p.gravity;
+      p.x += p.vx; p.y += p.vy;
+      p.rot += p.rotV;
+      if (frame > 50) p.alpha -= 0.012;
+      if (p.alpha <= 0 || p.y > H + 20) return;
+      alive = true;
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, p.alpha);
+      ctx.fillStyle = p.color;
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      if (p.shape === 'circle') {
+        ctx.beginPath(); ctx.arc(0, 0, p.w / 2, 0, Math.PI * 2); ctx.fill();
+      } else if (p.shape === 'ribbon') {
+        ctx.fillRect(-p.w / 2, -p.h / 6, p.w, p.h / 3);
+      } else {
+        ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      }
+      ctx.restore();
+    });
+    frame++;
+    if (alive) _wbConfettiRaf = requestAnimationFrame(tick);
+    else { ctx.clearRect(0, 0, W, H); }
+  }
+  _wbConfettiRaf = requestAnimationFrame(tick);
+}
+
+function closeWinnerBanner() {
+  clearTimeout(_winnerBannerTimer);
+  if (_wbConfettiRaf) { cancelAnimationFrame(_wbConfettiRaf); _wbConfettiRaf = null; }
+  const c = document.getElementById('wbConfetti');
+  if (c) c.remove();
+  const b = document.getElementById('winnerBanner');
+  if (!b) return;
+  b.style.transition = 'opacity .3s, transform .3s';
+  b.style.opacity = '0';
+  b.style.transform = 'scale(.95)';
+  setTimeout(() => b.remove(), 320);
+}
+
+function removeProduct(idx) {
+  comparing.splice(idx, 1);
+  localStorage.setItem('kr_compare', JSON.stringify(comparing));
+  render();
+  if (typeof KR !== 'undefined') KR.showToast('Товар видалено з порівняння');
+}
+
+function clearAll() {
+  comparing = [];
+  localStorage.removeItem('kr_compare');
+  render();
+}
+
+function addToCartFromCompare(id, price, name, brand, btn) {
+  if (typeof KR !== 'undefined') {
+    KR.addToCart({ id, name, brand, price, color: 'Стандарт' });
+  }
+  const orig = btn.innerHTML;
+  btn.style.background = 'var(--green)';
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Додано!';
+  setTimeout(() => { btn.style.background = 'var(--orange)'; btn.innerHTML = orig; }, 1500);
+}
+
+// Load compare list from localStorage, then підтягуємо актуальні дані з Supabase
+window.addEventListener('DOMContentLoaded', async () => {
+  let cached = [];
+  try {
+    const saved = JSON.parse(localStorage.getItem('kr_compare') || '[]');
+    if (Array.isArray(saved)) cached = saved;
+  } catch { cached = []; }
+  // Якщо кешовані товари вже мають збережені атрибути з попереднього завантаження (_attrs),
+  // одразу будуємо specs щоб перший рендер показував характеристики, а не порожні "Не вказано".
+  comparing = cached.map(p => {
+    if (p.specs && Object.keys(p.specs).some(k => !['Бренд','Ціна'].includes(k))) {
+      return p; // specs вже повноцінні (наприклад motor_power, max_speed тощо)
+    }
+    const attrSpecs = p._attrs || {};
+    if (!Object.keys(attrSpecs).length && !p.sku && !p.category) return p; // нічого кешованого
+    return { ...p, specs: { ..._cmpBaseSpecs(p), ...attrSpecs } };
+  });
+  // Якщо є кешовані атрибути — відновлюємо CMP_ATTR_DEFS щоб відразу показати "Характеристики"
+  const cachedDefs = new Map();
+  comparing.forEach(p => {
+    if (p._attrs) Object.keys(p._attrs).forEach(k => { if (!cachedDefs.has(k)) cachedDefs.set(k, k); });
+  });
+  if (cachedDefs.size && !CMP_ATTR_DEFS.length) {
+    // Мінімальний перелік: key=label (без локалізованих назв поки не підвантажились з БД)
+    // — їх замінять реальні назви після живого запиту, але зараз хоч щось покажемо.
+    CMP_ATTR_DEFS = [...cachedDefs.keys()].map(k => ({ key: k, label: k }));
+  }
+
+  // Налаштування порядку/видимості параметрів з адмінки (кеш — миттєво, потім оновлюємо у фоні)
+  _cmpLoadSettings().then(() => render()).catch(() => {});
+  render(); // перший рендер — відразу, з тим що є в кеші
+  if (!cached.length) return;
+
+  // Друга стадія — тягнемо актуальні дані з Supabase.
+  // Якщо fetch зависне (connection hang без відповіді) — _cmpFetch() перерве його за таймаутом.
+  // При невдачі повторюємо до 3 разів з паузою, після чого показуємо кнопку "Спробувати знову".
+  async function _doLiveFetch(attempt) {
+    _cmpShowLoadBanner(true);
+    try {
+      const fresh = await _cmpFetchLive(cached);
+      comparing = fresh;
+      try {
+        const forCache = fresh.map(p => ({
+          id: p.id, name: p.name, brand: p.brand, price: p.price,
+          img: p.img, photo: p.photo,
+          sku: p.sku || '', category: p.category || '',
+          _attrs: p._attrs || {},
+        }));
+        localStorage.setItem('kr_compare', JSON.stringify(forCache));
+      } catch {}
+      _cmpShowLoadBanner(false);
+      // ВАЖЛИВО: прапор _winnerBannerShown НЕ скидаємо тут навмисно — інакше банер
+      // "Переможець" показується вдруге (з ефектом моргання/подвійного спливання)
+      // одразу після того, як підтягнулись реальні дані з Supabase. Банер має
+      // з'являтися рівно один раз за завантаження сторінки.
+      render();
+    } catch (e) {
+      console.warn('[compare] live fetch attempt', attempt, 'failed:', e.message || e);
+      if (attempt < 3) {
+        await new Promise(r => setTimeout(r, attempt * 1500)); // 1.5s, 3s між спробами
+        return _doLiveFetch(attempt + 1);
+      }
+      _cmpShowLoadBanner(false, true); // показуємо кнопку "Спробувати знову"
+    }
+  }
+  _doLiveFetch(1);
+});
+
+function _cmpShowLoadBanner(loading, failed) {
+  let el = document.getElementById('_cmpLoadBanner');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = '_cmpLoadBanner';
+    el.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:10px 20px;border-radius:100px;font-size:13px;font-family:"Nunito",sans-serif;font-weight:700;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.2);display:flex;align-items:center;gap:10px;white-space:nowrap;transition:opacity .3s';
+    document.body.appendChild(el);
+  }
+  if (!loading && !failed) { el.style.opacity = '0'; setTimeout(() => el.remove(), 400); return; }
+  el.style.opacity = '1';
+  if (loading) {
+    el.innerHTML = '<span style="animation:spin 1s linear infinite;display:inline-block">⟳</span> Завантаження характеристик…';
+  } else {
+    el.innerHTML = '⚠️ Не вдалося завантажити характеристики &nbsp;<button onclick="location.reload()" style="background:var(--orange);color:#fff;border:none;padding:5px 14px;border-radius:100px;font-weight:700;font-size:12px;cursor:pointer">Оновити</button>';
+  }
+}
+
+window.addEventListener('scroll', () => {
+  document.getElementById('hdr').classList.toggle('scrolled', scrollY > 40);
+});
+</script>
+<script>
+  // ── SEARCH OVERLAY ──────────────────────────────────────────────────────────
+  const KR_SUPABASE_URL_SR=(typeof SUPABASE_URL!=='undefined'?SUPABASE_URL:'https://gwslintdrtnvbfjvivbb.supabase.co');
+  const KR_SUPABASE_KEY_SR=(typeof SUPABASE_KEY!=='undefined'?SUPABASE_KEY:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3c2xpbnRkcnRudmJmanZpdmJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTU4MTUsImV4cCI6MjA5NzczMTgxNX0.2hhyX_PMrXpBa_Q5DW7KiUjf4Jy9nnBStto47_SVF7k');
+  const KR_CAT_EMOJI={jeep:'🚙',car:'🚗',quad:'🏍️',moto:'🏍️',tractor:'🚜',truck:'🚚',buggy:'🛺',walker:'🛴'};
+  let KR_PRODUCTS_CACHE=null,KR_PRODUCTS_PROMISE=null;
+  async function krLoadAllProducts(){
+    if(KR_PRODUCTS_CACHE)return KR_PRODUCTS_CACHE;
+    if(KR_PRODUCTS_PROMISE)return KR_PRODUCTS_PROMISE;
+    KR_PRODUCTS_PROMISE=(async()=>{
+      try{
+        const h={'apikey':KR_SUPABASE_KEY_SR,'Authorization':'Bearer '+KR_SUPABASE_KEY_SR};
+        const base=KR_SUPABASE_URL_SR+'/rest/v1/products?select=id,name,brand,model_code,sku,category,price,images,slug&active=eq.true&order=created_at.desc&limit=1000';
+        const pages=await Promise.all([0,1000,2000].map(off=>fetch(base+'&offset='+off,{headers:h}).then(r=>r.ok?r.json():[]).catch(()=>[])));
+        const data=pages.flat();
+        if(data.length){const seen=new Set();KR_PRODUCTS_CACHE=data.filter(p=>{if(!p||seen.has(p.id))return false;seen.add(p.id);return true;}).map(p=>({id:p.id,name:p.name||'',brand:p.brand||'',model:p.model_code||p.sku||'',sku:p.sku||'',slug:p.slug||null,category:p.category||'',price:parseFloat(p.price)||0,emoji:KR_CAT_EMOJI[p.category]||'🚗',photo:Array.isArray(p.images)&&p.images[0]?p.images[0]:null}));return KR_PRODUCTS_CACHE;}
+      }catch(e){console.warn('KR search:',e);}
+      KR_PRODUCTS_CACHE=[];return KR_PRODUCTS_CACHE;
+    })();return KR_PRODUCTS_PROMISE;
+  }
+  function openSearchOverlay(){
+    document.getElementById('searchOverlay').classList.add('open');
+    document.body.style.overflow='hidden';
+    setTimeout(()=>{const i=document.getElementById('searchOverlayInput');if(i){i.focus();renderSearchSuggestions(i.value);}},50);
+    krLoadAllProducts().then(()=>{const i=document.getElementById('searchOverlayInput');if(i)renderSearchSuggestions(i.value);});
+  }
+  function closeSearchOverlay(){document.getElementById('searchOverlay').classList.remove('open');document.body.style.overflow='';}
+  function krNormalize(s){return(s||'').toString().toLowerCase().replace(/[\s\-_/.,]+/g,'');}
+  function krMatchScore(p,q){
+    if(!q)return 1;const qN=krNormalize(q);
+    const fs=[p.name,p.brand,p.model,p.sku].map(x=>(x||'').toString());
+    const fl=fs.map(f=>f.toLowerCase()),fn=fs.map(krNormalize);
+    if(fn[2]&&fn[2].includes(qN))return 100;if(fn[3]&&fn[3].includes(qN))return 95;
+    if(fn[0].startsWith(qN))return 80;if(fl[0].includes(q))return 70;if(fn[0].includes(qN))return 65;if(fl[1].includes(q))return 50;
+    const ts=q.split(/\s+/).filter(Boolean);
+    if(ts.length>1){if(ts.every(t=>fl[0].includes(t)||fn[0].includes(krNormalize(t))))return 60;
+      if(ts.every(t=>fl.some(f=>f.includes(t))||fn.some(f=>f.includes(krNormalize(t)))))return 40;}
+    return 0;
+  }
+  function krFmtPrice(n){return n?new Intl.NumberFormat('uk-UA').format(Math.round(n))+' ₴':'';}
+  function renderSearchSuggestions(query){
+    const list=document.getElementById('searchSuggestions'),empty=document.getElementById('searchEmpty');
+    if(!list)return;const q=(query||'').trim(),products=KR_PRODUCTS_CACHE;
+    if(!products){list.innerHTML='<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:13px">Завантаження…</div>';if(empty)empty.style.display='none';krLoadAllProducts().then(()=>renderSearchSuggestions(query));return;}
+    const VC=new Set(Object.keys(KR_CAT_EMOJI));
+    if(!q){list.innerHTML='';if(empty)empty.style.display='none';return;}
+    const sc=products.map(p=>({p,s:krMatchScore(p,q)})).filter(x=>x.s>0);
+    const items=[...sc.filter(x=>VC.has(x.p.category)).sort((a,b)=>b.s-a.s).slice(0,6).map(x=>x.p),...sc.filter(x=>!VC.has(x.p.category)).sort((a,b)=>b.s-a.s).slice(0,4).map(x=>x.p)];
+    list.innerHTML='';
+    if(!items.length){if(empty){empty.style.display='block';const s=empty.querySelector('strong');if(s)s.textContent=q;}return;}
+    if(empty)empty.style.display='none';
+    items.forEach(p=>{
+      const a=document.createElement('a');
+      const _cpSl=(p.slug||(p.name?p.name.toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi,'-').replace(/^-+|-+$/g,'').substring(0,60):null));a.href=_cpSl?'product/'+_cpSl:'catalog.html?search='+encodeURIComponent(p.name||'');
+      if(_cpSl&&p.id)a.addEventListener('click',function(){try{sessionStorage.setItem('kr_slug_id_'+_cpSl,p.id);}catch(e){}});
+      a.className='search-sug';
+      const sub=[p.brand,p.sku].filter(Boolean).join(' · Арт: ');
+      const thumb=p.photo?'<img class="search-sug-img" src="'+p.photo+'" alt="" loading="lazy">':'<span style="width:44px;height:44px;border-radius:8px;background:#f5f7fa;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px">'+(p.emoji||'🚗')+'</span>';
+      a.innerHTML=thumb+'<span class="search-sug-name" style="display:flex;flex-direction:column;gap:2px;flex:1;min-width:0"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+p.name+'</span>'+(sub?'<span style="font-size:11px;color:var(--text-muted);font-weight:500">'+sub+'</span>':'')+'</span>'+(p.price?'<span style="font-size:13px;font-weight:800;color:var(--orange);margin-right:8px;white-space:nowrap">'+krFmtPrice(p.price)+'</span>':'')+'<svg class="search-sug-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>';
+      list.appendChild(a);
+    });
+  }
+  function submitSearch(e){if(e)e.preventDefault();const q=(document.getElementById('searchOverlayInput')?.value||'').trim();if(!q)return false;window.location.href='catalog.html?search='+encodeURIComponent(q);return false;}
+  if(document.readyState!=='loading')krLoadAllProducts();
+  else document.addEventListener('DOMContentLoaded',krLoadAllProducts);
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSearchOverlay();if((e.key==='k'||e.key==='K')&&(e.metaKey||e.ctrlKey)){e.preventDefault();openSearchOverlay();}});
+  </script>
+
+<!-- MINIMAL FOOTER — юридичні посилання -->
+<footer style="background:#1B2A4A;padding:14px 20px;text-align:center;margin-top:40px">
+  <div style="font-size:12px;color:rgba(255,255,255,.4)">© 2024 KidsRide &nbsp;·&nbsp;
+    <a href="/privacy-policy.html" style="color:rgba(255,255,255,.55);text-decoration:none" onmouseover="this.style.color='rgba(255,255,255,.85)'" onmouseout="this.style.color='rgba(255,255,255,.55)'">Політика конфіденційності</a>
+    &nbsp;·&nbsp;
+    <a href="/payment-terms.html" style="color:rgba(255,255,255,.55);text-decoration:none" onmouseover="this.style.color='rgba(255,255,255,.85)'" onmouseout="this.style.color='rgba(255,255,255,.55)'">Умови оплати</a>
+  </div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="shortcut icon" href="favicon.svg">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Кошик — KidsRide</title>
+<meta name="description" content="Оформлення замовлення в KidsRide. Перевір товари у кошику та перейди до оформлення.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="canonical" href="https://www.kidsride.com.ua/cart.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
+<style>
+:root{
+  --orange:#FF6B35;--orange-dark:#e85520;
+  --navy:#1B2A4A;--navy-light:#2d4270;
+  --bg:#fff;--bg-soft:#F8F9FC;--bg-warm:#FFF8F5;
+  --green:#27AE60;--red:#e53935;
+  --text:#1a1a2e;--text-muted:#6b7280;
+  --border:#e8ecf4;
+  --shadow-sm:0 2px 12px rgba(27,42,74,.07);
+  --shadow-md:0 8px 32px rgba(27,42,74,.12);
+  --shadow-lg:0 20px 60px rgba(27,42,74,.16);
+  --r:14px;--r-sm:8px;--r-lg:20px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Manrope',sans-serif;color:var(--text);background:var(--bg-soft);overflow-x:hidden}
+h1,h2,h3,h4{font-family:'Nunito',sans-serif;font-weight:800}
+a{text-decoration:none;color:inherit}
+
+/* HEADER */
+.header{position:fixed;top:0;left:0;right:0;z-index:1000;height:64px;padding:0 40px;display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.93);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);transition:box-shadow .3s}
+.header.scrolled{box-shadow:var(--shadow-md)}
+.logo{display:flex;align-items:center;gap:10px;font-family:'Nunito',sans-serif;font-weight:900;font-size:22px;color:var(--navy)}
+.logo-mark{width:36px;height:36px;background:var(--orange);border-radius:9px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(255,107,53,.3)}
+.logo span{color:var(--orange)}
+nav{display:flex;gap:2px}
+nav a{color:var(--text-muted);font-weight:600;font-size:14px;padding:7px 13px;border-radius:7px;transition:all .2s}
+nav a:hover{color:var(--navy);background:var(--bg-soft)}
+.h-right{display:flex;align-items:center;gap:6px}
+.ic-btn{width:38px;height:38px;border:none;background:none;cursor:pointer;border-radius:9px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);transition:all .2s;position:relative}
+.ic-btn:hover{background:var(--bg-soft);color:var(--navy)}
+.ic-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.badge{position:absolute;top:4px;right:4px;width:17px;height:17px;background:var(--orange);border-radius:50%;font-size:9px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Nunito',sans-serif}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:10px;font-family:'Nunito',sans-serif;font-weight:700;font-size:14px;border:none;cursor:pointer;transition:all .25s cubic-bezier(.34,1.56,.64,1)}
+.btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.btn-primary{background:var(--orange);color:#fff;box-shadow:0 4px 16px rgba(255,107,53,.3)}
+.btn-primary:hover{background:var(--orange-dark);transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,107,53,.4)}
+.btn-outline{background:transparent;color:var(--navy);border:1.5px solid var(--border)}
+.btn-outline:hover{border-color:var(--orange);color:var(--orange)}
+.btn-ghost{background:transparent;color:var(--text-muted);border:none}
+.btn-ghost:hover{color:var(--red)}
+
+/* BREADCRUMB */
+.breadcrumb{margin-top:64px;background:white;border-bottom:1px solid var(--border);padding:14px 40px;display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted)}
+.breadcrumb a{color:var(--text-muted);transition:color .2s}
+.breadcrumb a:hover{color:var(--orange)}
+.breadcrumb svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;opacity:.5}
+.breadcrumb-cur{color:var(--navy);font-weight:600}
+
+/* PAGE */
+.page{max-width:1200px;margin:0 auto;padding:32px 40px 64px}
+.page-head{display:flex;align-items:center;gap:14px;margin-bottom:32px}
+.page-title{font-size:28px;color:var(--navy)}
+.cart-count-badge{background:var(--orange);color:#fff;border-radius:8px;padding:4px 12px;font-family:'Nunito',sans-serif;font-size:14px;font-weight:800}
+
+/* EMPTY CART */
+.empty-cart{text-align:center;padding:80px 24px;background:white;border-radius:var(--r-lg);border:1.5px solid var(--border)}
+.empty-cart svg{width:80px;height:80px;stroke:var(--border);fill:none;stroke-width:1.2;margin:0 auto 24px;display:block}
+.empty-title{font-size:22px;color:var(--navy);margin-bottom:10px}
+.empty-desc{font-size:14px;color:var(--text-muted);margin-bottom:28px;line-height:1.6}
+
+/* CART LAYOUT */
+.cart-layout{display:grid;grid-template-columns:1fr 380px;gap:28px;align-items:start}
+
+/* CART ITEMS */
+.cart-items{background:white;border-radius:var(--r-lg);border:1.5px solid var(--border);overflow:hidden}
+.cart-items-head{padding:18px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.cart-items-title{font-size:16px;color:var(--navy)}
+.clear-cart-btn{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--text-muted);background:none;border:none;cursor:pointer;font-family:'Manrope',sans-serif;transition:color .2s;padding:0}
+.clear-cart-btn:hover{color:var(--red)}
+.clear-cart-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+
+/* CART ITEM */
+.cart-item{display:grid;grid-template-columns:96px 1fr auto;gap:16px;padding:20px 24px;border-bottom:1px solid var(--border);align-items:start;transition:background .2s}
+.cart-item:last-child{border-bottom:none}
+.cart-item:hover{background:rgba(248,249,252,.6)}
+.cart-item.removing{opacity:.5;transform:translateX(-20px);transition:all .3s ease}
+
+.ci-img{width:96px;height:80px;border-radius:var(--r-sm);background:var(--bg-soft);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;border:1px solid var(--border)}
+.ci-img svg{width:80%}
+
+.ci-info{min-width:0}
+.ci-brand{font-size:10px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px}
+.ci-sku{display:inline-flex;align-items:center;gap:5px;margin-bottom:5px}
+.ci-sku-label{font-size:10px;font-weight:700;color:white;background:var(--navy);border-radius:4px;padding:1px 6px;letter-spacing:.04em;text-transform:uppercase;flex-shrink:0}
+.ci-sku-val{font-size:12px;font-weight:700;color:var(--navy)}
+.ci-color{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:6px}
+.ci-color-dot{width:12px;height:12px;border-radius:50%;border:1.5px solid rgba(0,0,0,.15);flex-shrink:0}
+.ci-color strong{color:var(--navy);font-weight:700}
+.ci-name{font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;color:var(--navy);line-height:1.3;margin-bottom:4px}
+.ci-name a:hover{color:var(--orange)}
+.ci-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.ci-tag{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--text-muted);background:var(--bg-soft);border-radius:5px;padding:2px 8px;font-weight:500}
+.ci-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+
+/* Quantity control */
+.qty-ctrl{display:flex;align-items:center;border:1.5px solid var(--border);border-radius:9px;overflow:hidden;background:white}
+.qty-btn{width:34px;height:34px;border:none;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted);transition:all .2s;flex-shrink:0}
+.qty-btn:hover{background:var(--bg-soft);color:var(--navy)}
+.qty-btn:active{background:rgba(255,107,53,.08);color:var(--orange)}
+.qty-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.qty-val{min-width:36px;text-align:center;font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;color:var(--navy);padding:0 4px}
+
+.wish-move-btn{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--text-muted);background:none;border:none;cursor:pointer;font-family:'Manrope',sans-serif;transition:color .2s;padding:0}
+.wish-move-btn:hover{color:var(--orange)}
+.wish-move-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+.ci-right{display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0}
+.ci-price{font-family:'Nunito',sans-serif;font-weight:900;font-size:18px;color:var(--navy);white-space:nowrap}
+.ci-price-per{font-size:11px;color:var(--text-muted);text-align:right}
+.ci-del{width:30px;height:30px;border-radius:8px;border:none;background:var(--bg-soft);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted);transition:all .2s}
+.ci-del:hover{background:rgba(229,57,53,.1);color:var(--red)}
+.ci-del svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+
+
+
+/* CART SIDEBAR */
+.cart-sidebar{display:flex;flex-direction:column;gap:16px;position:sticky;top:80px}
+
+/* PROMO */
+.promo-block{background:white;border-radius:var(--r-lg);border:1.5px solid var(--border);padding:20px}
+.promo-title{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.promo-title svg{width:16px;height:16px;stroke:var(--orange);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.promo-row{display:flex;gap:8px}
+.promo-input{flex:1;padding:11px 14px;border:1.5px solid var(--border);border-radius:9px;font-family:'Manrope',sans-serif;font-size:13px;outline:none;transition:border-color .2s;color:var(--navy)}
+.promo-input:focus{border-color:var(--orange)}
+.promo-input::placeholder{color:var(--text-muted)}
+.promo-apply{padding:11px 16px;border-radius:9px;background:var(--navy);color:#fff;border:none;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;white-space:nowrap;transition:all .2s}
+.promo-apply:hover{background:var(--navy-light)}
+.promo-ok{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--green);margin-top:10px}
+.promo-ok svg{width:14px;height:14px;stroke:var(--green);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+
+/* SUMMARY */
+.summary{background:white;border-radius:var(--r-lg);border:1.5px solid var(--border);padding:24px}
+.summary-title{font-size:17px;color:var(--navy);margin-bottom:20px}
+.summary-rows{display:flex;flex-direction:column;gap:12px;margin-bottom:20px}
+.sum-row{display:flex;align-items:center;justify-content:space-between;font-size:14px}
+.sum-label{color:var(--text-muted)}
+.sum-val{color:var(--navy);font-weight:600}
+.sum-val.green{color:var(--green);font-weight:700}
+.sum-val.orange{color:var(--orange);font-weight:700}
+.sum-divider{height:1px;background:var(--border);margin:4px 0}
+.sum-total-row{display:flex;align-items:center;justify-content:space-between;padding-top:4px}
+.sum-total-label{font-family:'Nunito',sans-serif;font-weight:800;font-size:16px;color:var(--navy)}
+.sum-total-val{font-family:'Nunito',sans-serif;font-weight:900;font-size:24px;color:var(--navy)}
+.sum-note{font-size:11px;color:var(--text-muted);margin-top:4px;text-align:right}
+
+.checkout-btn{width:100%;padding:15px;border-radius:12px;background:var(--orange);color:#fff;border:none;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:800;font-size:16px;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 6px 20px rgba(255,107,53,.35);transition:all .25s cubic-bezier(.34,1.56,.64,1);margin-top:16px}
+.checkout-btn:hover{background:var(--orange-dark);transform:translateY(-2px);box-shadow:0 10px 28px rgba(255,107,53,.4)}
+.checkout-btn svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.checkout-btn:disabled{background:#d1d5db;box-shadow:none;cursor:not-allowed;transform:none}
+
+.continue-link{display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;color:var(--text-muted);margin-top:12px;cursor:pointer;transition:color .2s;font-weight:600}
+.continue-link:hover{color:var(--orange)}
+.continue-link svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+
+/* TRUST BADGES */
+.trust-badges{display:flex;flex-direction:column;gap:8px}
+.trust-item{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text-muted);font-weight:500}
+.trust-item svg{width:15px;height:15px;stroke:var(--green);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+
+/* MOBILE CHECKOUT BAR */
+.mobile-checkout{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);padding:12px 16px;z-index:800;box-shadow:0 -8px 24px rgba(27,42,74,.1);align-items:center;justify-content:space-between;gap:12px}
+.mc-total{font-family:'Nunito',sans-serif;font-weight:900;font-size:20px;color:var(--navy)}
+.mc-label{font-size:11px;color:var(--text-muted)}
+.mc-btn{flex:1;padding:13px;border-radius:11px;background:var(--orange);color:#fff;border:none;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;box-shadow:0 4px 16px rgba(255,107,53,.3);transition:all .2s;white-space:nowrap}
+.mc-btn:hover{background:var(--orange-dark)}
+
+/* TOAST */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:11px 22px;border-radius:100px;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;z-index:3000;box-shadow:0 8px 24px rgba(0,0,0,.2);white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .25s}
+.toast.show{opacity:1}
+
+/* RESPONSIVE */
+@media(max-width:1024px){
+  .cart-layout{grid-template-columns:1fr;gap:20px}
+  .cart-sidebar{position:static}
+  .page{padding:24px 24px 100px}
+  .breadcrumb{padding:12px 24px}
+}
+@media(max-width:768px){
+  .header{height:58px;padding:0 16px}
+  nav{display:none}
+  .h-right .btn{display:none}
+  .breadcrumb{margin-top:58px;padding:10px 16px;font-size:11px}
+  .page{padding:16px 16px 100px}
+  .page-head{margin-bottom:20px}
+  .page-title{font-size:22px}
+
+  .cart-item{grid-template-columns:76px 1fr;gap:12px}
+  .ci-right{display:none}
+  .ci-actions{gap:8px}
+  .ci-name{font-size:14px}
+
+  /* Show price in info section on mobile */
+  .ci-info::after{display:none}
+  .ci-price-mobile{display:block !important}
+  .summary{padding:18px}
+  .sum-total-val{font-size:20px}
+
+  /* Mobile checkout bar */
+  .mobile-checkout{display:flex}
+  .checkout-btn,.continue-link{display:none}
+}
+@media(max-width:420px){
+  .cart-item{grid-template-columns:64px 1fr;gap:10px;padding:14px 16px}
+  .ci-img{width:64px;height:56px}
+  .page-title{font-size:20px}
+}
+/* ── PHONE IN HEADER ── */
+.h-phone-link{display:inline-flex;align-items:center;gap:7px;text-decoration:none;color:var(--navy);font-family:'Nunito',sans-serif;font-weight:700;font-size:13.5px;padding:8px 12px;border-radius:10px;transition:all .2s;white-space:nowrap}
+.h-phone-link:hover{background:rgba(255,107,53,.07);color:var(--orange)}
+.h-phone-link svg{stroke:var(--orange);flex-shrink:0;transition:transform .2s}
+.h-phone-link:hover svg{transform:scale(1.12)}
+.h-phone-sep{width:1px;height:22px;background:var(--border);flex-shrink:0;margin:0 2px}
+@media(max-width:1024px){.h-phone-link .h-phone-text{display:none}}
+@media(max-width:640px){.h-phone-link{width:40px;height:40px;padding:0;justify-content:center}}
+
+.header,.header#hdr{border-top:12px solid #1B2A4A}
+
+  /* ── SEARCH OVERLAY ── */
+  .search-overlay{position:fixed;inset:0;background:rgba(15,25,55,.55);backdrop-filter:blur(6px);z-index:2000;display:none;align-items:flex-start;justify-content:center;padding:80px 20px 20px;opacity:0;transition:opacity .2s ease}
+  .search-overlay.open{display:flex;opacity:1}
+  .search-modal{background:white;border-radius:18px;width:100%;max-width:640px;box-shadow:0 30px 80px rgba(0,0,0,.35);overflow:hidden;animation:searchIn .25s cubic-bezier(.34,1.56,.64,1)}
+  @keyframes searchIn{from{transform:translateY(-12px) scale(.97);opacity:0}to{transform:none;opacity:1}}
+  .search-form{display:flex;align-items:center;gap:12px;padding:18px 22px;border-bottom:1px solid var(--border)}
+  .search-form svg.search-icon{width:20px;height:20px;stroke:var(--text-muted);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+  .search-form input{flex:1;border:none;outline:none;font-family:'Manrope',sans-serif;font-size:17px;color:var(--navy);background:none;padding:4px 0}
+  .search-form input::placeholder{color:#9aa4bf}
+  .search-kbd{font-family:'Manrope',sans-serif;font-size:11px;font-weight:700;color:var(--text-muted);background:var(--bg-soft);border:1px solid var(--border);padding:3px 8px;border-radius:6px}
+  .search-close{width:30px;height:30px;border:none;background:var(--bg-soft);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted);transition:all .2s}
+  .search-close:hover{background:#fee2e2;color:#dc2626}
+  .search-close svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round}
+  .search-body{max-height:60vh;overflow-y:auto;padding:8px 0}
+  .search-body-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);padding:12px 22px 6px}
+  .search-sug{display:flex;align-items:center;gap:14px;padding:11px 22px;text-decoration:none;color:var(--navy);font-size:14px;font-weight:600;transition:background .12s}
+  .search-sug-img{width:44px;height:44px;border-radius:8px;object-fit:contain;background:#f5f7fa;flex-shrink:0;padding:4px;box-sizing:border-box}
+  .search-sug:hover{background:var(--bg-soft)}
+  .search-sug-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .search-sug-arr{width:14px;height:14px;color:var(--text-muted);flex-shrink:0;opacity:0;transition:all .15s}
+  .search-sug:hover .search-sug-arr{opacity:1;color:var(--orange);transform:translateX(2px)}
+  .search-empty{padding:28px 22px;text-align:center;color:var(--text-muted);font-size:14px}
+  .search-empty strong{color:var(--navy)}
+  .search-empty a{color:var(--orange);font-weight:700;text-decoration:none}
+  .search-foot{padding:12px 22px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--text-muted);background:var(--bg-soft)}
+  .search-foot kbd{font-family:'Manrope',sans-serif;background:white;border:1px solid var(--border);padding:2px 7px;border-radius:5px;font-size:10px;font-weight:700;color:var(--navy)}
+  @media(max-width:520px){.search-overlay{padding:60px 12px 12px}.search-form{padding:14px 16px}.search-form input{font-size:15px}.search-foot{display:none}.search-kbd{display:none}}
+</style>
+<script>
+(function(){
+  try{
+    var s=JSON.parse(localStorage.getItem('kr_stripe')||'{"h":12,"c":"#1B2A4A"}');
+    var el=document.createElement('style');
+    el.id='kr-stripe-css';
+    el.textContent='.header,.header#hdr{border-top:'+s.h+'px solid '+s.c+' !important}';
+    document.head.appendChild(el);
+  }catch(e){}
+})();
+</script>
+<script>
+(function(){
+  try{var s=JSON.parse(localStorage.getItem('kr_stripe')||'{"h":12,"c":"#1B2A4A"}');
+  var el=document.createElement('style');el.id='kr-stripe-css';
+  el.textContent='.header,.header#hdr{border-top:'+s.h+'px solid '+s.c+' !important}';
+  document.head.appendChild(el);}catch(e){}
+})();
+</script>
+<script>try{if(localStorage.getItem('kr_logo_url')){document.write('<style>.logo-mark svg{display:none!important}.logo-mark{background:transparent!important;box-shadow:none!important;padding:0!important}</style>')}}catch(e){}</script>
+<script src="/analytics.js"></script>
+</head>
+<body>
+<script src="shared.js"></script>
+
+<!-- HEADER -->
+<header class="header" id="hdr">
+  <a href="index.html" class="logo">
+    <div class="logo-mark">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect x="9" y="11" width="14" height="10" rx="2"/><circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/></svg>
+    </div>
+    <span style="color:inherit">Kids<span>Ride</span></span>
+  </a>
+  <nav>
+    <a href="index.html">Головна</a>
+    <a href="catalog.html">Каталог</a>
+    <a href="index.html#delivery-section">Доставка</a>
+    <a href="index.html#warranty-section">Гарантія</a>
+    <a href="index.html#contacts-section">Контакти</a>
+  </nav>
+  <div class="h-right">
+    <a href="tel:+380980707348" class="h-phone-link" title="+380 98 070 73 48">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+      <span class="h-phone-text">+380 98 070 73 48</span>
+    </a>
+    <div class="h-phone-sep"></div>
+    
+    <button class="ic-btn" onclick="openSearchOverlay()" title="Пошук" aria-label="Пошук"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></button>
+    <button class="ic-btn" id="wishBtn" title="Список бажань" onclick="window.location.href='index.html#wishlist'" style="cursor:pointer"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span class="badge wish-badge" id="wishBadge" style="display:none">0</span></button>
+    <button class="ic-btn" id="compareBtn" title="Порівняння" onclick="window.location.href='compare.html'" style="cursor:pointer"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span class="badge" id="compareBadge" style="display:none">0</span></button>
+    <button class="ic-btn" id="cartBtn" onclick="window.location.href='cart.html'" style="cursor:pointer">
+      <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+      <span class="badge" id="cartBadge">2</span>
+    </button>
+    <a href="auth.html" class="btn btn-primary" style="margin-left:6px;font-size:13px;padding:9px 18px">Увійти</a>
+  </div>
+</header>
+<!-- SEARCH OVERLAY -->
+  <div class="search-overlay" id="searchOverlay" onclick="if(event.target===this)closeSearchOverlay()" role="dialog" aria-modal="true" aria-label="Пошук по сайту">
+    <div class="search-modal">
+      <form class="search-form" onsubmit="return submitSearch(event)" autocomplete="off">
+        <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="searchOverlayInput" placeholder="Шукати електромобіль, бренд, модель…" oninput="renderSearchSuggestions(this.value)" onkeyup="renderSearchSuggestions(this.value)" />
+        <span class="search-kbd">ESC</span>
+        <button type="button" class="search-close" onclick="closeSearchOverlay()" aria-label="Закрити пошук">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </form>
+      <div class="search-body">
+        <div class="search-body-label">Популярні моделі</div>
+        <div id="searchSuggestions"></div>
+        <div class="search-empty" id="searchEmpty" style="display:none">Нічого не знайдено за запитом «<strong></strong>».<br><a href="#" onclick="submitSearch(event)">Шукати в каталозі →</a></div>
+      </div>
+      <div class="search-foot"><span><kbd>↵</kbd> перейти до каталогу</span><span><kbd>⌘</kbd> + <kbd>K</kbd> швидкий виклик</span></div>
+    </div>
+  </div>
+
+
+<!-- BREADCRUMB -->
+<div class="breadcrumb">
+  <a href="index.html">Головна</a>
+  <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+  <span class="breadcrumb-cur">Кошик</span>
+</div>
+
+<!-- PAGE -->
+<div class="page">
+  <div class="page-head">
+    <h1 class="page-title">Кошик</h1>
+    <span class="cart-count-badge" id="itemCountBadge">2 товари</span>
+  </div>
+
+  <!-- CART LAYOUT -->
+  <div class="cart-layout" id="cartLayout">
+
+    <!-- LEFT: ITEMS -->
+    <div>
+      <div class="cart-items">
+        <div class="cart-items-head">
+          <span class="cart-items-title">Товари у кошику</span>
+          <button class="clear-cart-btn" onclick="clearCart()">
+            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+            Очистити кошик
+          </button>
+        </div>
+
+        <div id="cartItemsList"></div>
+        <!-- (приховані демо-товари — лишаємо як референс, динамічний рендер у скрипті) -->
+        <div style="display:none">
+        <!-- Item 1 -->
+        <div class="cart-item" id="item1" data-price="17224" data-qty="1">
+          <div class="ci-img">
+            <svg viewBox="0 0 120 90">
+              <rect x="10" y="38" width="100" height="32" rx="8" fill="#c8d0ea"/>
+              <rect x="24" y="18" width="65" height="28" rx="6" fill="#d0d8f0"/>
+              <rect x="27" y="21" width="28" height="18" rx="3" fill="#90CAF9" opacity=".6"/>
+              <rect x="58" y="21" width="24" height="18" rx="3" fill="#90CAF9" opacity=".5"/>
+              <rect x="94" y="36" width="16" height="18" rx="3" fill="#c0c8e0"/>
+              <circle cx="30" cy="76" r="13" fill="#2d3748"/>
+              <circle cx="30" cy="76" r="7" fill="#FF6B35" opacity=".7"/>
+              <circle cx="90" cy="76" r="13" fill="#2d3748"/>
+              <circle cx="90" cy="76" r="7" fill="#FF6B35" opacity=".7"/>
+            </svg>
+          </div>
+          <div class="ci-info">
+            <div class="ci-brand">Bambi Racer</div>
+            <div class="ci-name"><a href="product.html">Джип M 3804EBLR-1 — 4 мотори 45W, пульт 2.4G</a></div>
+            <div class="ci-meta">
+              <span class="ci-tag">Колір: Білий</span>
+              
+
+            </div>
+            <!-- Price visible on mobile -->
+            <div class="ci-price-mobile" style="display:none;font-family:'Nunito',sans-serif;font-weight:900;font-size:17px;color:var(--navy);margin-bottom:10px" id="price1-mobile">17 224 ₴</div>
+            <div class="ci-actions">
+              <div class="qty-ctrl">
+                <button class="qty-btn" onclick="changeQty('item1',-1)">
+                  <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+                <span class="qty-val" id="qty1">1</span>
+                <button class="qty-btn" onclick="changeQty('item1',1)">
+                  <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+              </div>
+              <button class="wish-move-btn" onclick="moveToWish('item1')">
+                <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                В список бажань
+              </button>
+            </div>
+          </div>
+          <div class="ci-right">
+            <div>
+              <div class="ci-price" id="price1">17 224 ₴</div>
+              <div class="ci-price-per">за 1 шт.</div>
+            </div>
+            <button class="ci-del" onclick="removeItem('item1')" title="Видалити">
+              <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Item 2 -->
+        <div class="cart-item" id="item2" data-price="12210" data-qty="1">
+          <div class="ci-img" style="background:linear-gradient(145deg,#eef0ff,#d6dcff)">
+            <svg viewBox="0 0 120 90">
+              <rect x="24" y="36" width="72" height="26" rx="6" fill="#3B4A8A" opacity=".25"/>
+              <rect x="34" y="20" width="52" height="24" rx="5" fill="#3B4A8A" opacity=".28"/>
+              <rect x="37" y="23" width="21" height="15" rx="3" fill="#90CAF9" opacity=".55"/>
+              <rect x="62" y="23" width="18" height="15" rx="3" fill="#90CAF9" opacity=".5"/>
+              <rect x="14" y="38" width="10" height="16" rx="2" fill="#2d4270" opacity=".2"/>
+              <rect x="96" y="38" width="10" height="16" rx="2" fill="#2d4270" opacity=".2"/>
+              <circle cx="34" cy="72" r="13" fill="#2d4270" opacity=".28"/>
+              <circle cx="34" cy="72" r="7" fill="#FF6B35" opacity=".4"/>
+              <circle cx="86" cy="72" r="13" fill="#2d4270" opacity=".28"/>
+              <circle cx="86" cy="72" r="7" fill="#FF6B35" opacity=".4"/>
+            </svg>
+          </div>
+          <div class="ci-info">
+            <div class="ci-brand">Bambi Racer</div>
+            <div class="ci-name"><a href="product.html">Квадроцикл M 4795EBLR — EVA колеса</a></div>
+            <div class="ci-meta">
+              <span class="ci-tag">Колір: Синій</span>
+              
+              
+            </div>
+            <div class="ci-price-mobile" style="display:none;font-family:'Nunito',sans-serif;font-weight:900;font-size:17px;color:var(--navy);margin-bottom:10px" id="price2-mobile">12 210 ₴</div>
+            <div class="ci-actions">
+              <div class="qty-ctrl">
+                <button class="qty-btn" onclick="changeQty('item2',-1)">
+                  <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+                <span class="qty-val" id="qty2">1</span>
+                <button class="qty-btn" onclick="changeQty('item2',1)">
+                  <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+              </div>
+              <button class="wish-move-btn" onclick="moveToWish('item2')">
+                <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                В список бажань
+              </button>
+            </div>
+          </div>
+          <div class="ci-right">
+            <div>
+              <div class="ci-price" id="price2">12 210 ₴</div>
+              <div class="ci-price-per">за 1 шт.</div>
+            </div>
+            <button class="ci-del" onclick="removeItem('item2')" title="Видалити">
+              <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+        </div>
+        </div><!-- /прихований шаблон демо -->
+      </div>
+
+      <!-- RIGHT: SIDEBAR -->
+    <div class="cart-sidebar">
+
+      <!-- PROMO -->
+      <div class="promo-block">
+        <div class="promo-title">
+          <svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+          Промокод
+        </div>
+        <div id="promoInputRow" class="promo-row">
+          <input class="promo-input" type="text" id="promoInput" placeholder="Введіть промокод"
+            oninput="this.value=this.value.toUpperCase()"
+            onkeydown="if(event.key==='Enter')applyPromo()">
+          <button class="promo-apply" onclick="applyPromo()">Застосувати</button>
+        </div>
+        <div id="promoAppliedBadge" style="display:none;align-items:center;gap:6px;margin-top:10px;font-size:12px;font-weight:700;color:#065f46;padding:9px 12px;background:#d1fae5;border-radius:8px;border:1px solid #6ee7b7">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <span id="promoAppliedText">Промокод застосовано</span>
+          <button onclick="removePromoCart()" style="margin-left:auto;background:none;border:none;cursor:pointer;font-size:11px;color:#065f46;text-decoration:underline;font-weight:600;padding:0">✕ Скасувати</button>
+        </div>
+        <div id="promoMsg" style="display:none"></div>
+      </div>
+
+      <!-- SUMMARY -->
+      <div class="summary">
+        <h3 class="summary-title">Підсумок замовлення</h3>
+        <div class="summary-rows">
+          <div class="sum-row">
+            <span class="sum-label">Товари (<span id="sumQty">0</span> шт.)</span>
+            <span class="sum-val" id="sumItems">0 ₴</span>
+          </div>
+          <div class="sum-row" id="discountRow" style="display:none">
+            <span class="sum-label">Знижка</span>
+            <span class="sum-val green" id="sumDiscount">−0 ₴</span>
+          </div>
+          <div class="sum-row" id="promoRow" style="display:none">
+            <span class="sum-label">Промокод</span>
+            <span class="sum-val green" id="sumPromo">−0 ₴</span>
+          </div>
+          <div class="sum-row">
+            <span class="sum-label">Доставка</span>
+            <span class="sum-val orange" id="sumDelivery">за тарифами НП</span>
+          </div>
+        </div>
+        <div class="sum-divider"></div>
+        <div class="sum-total-row">
+          <span class="sum-total-label">До сплати</span>
+          <div>
+            <span class="sum-total-val" id="sumTotal">0 ₴</span>
+            <div class="sum-note">+ доставка НП</div>
+          </div>
+        </div>
+
+        <!-- Installment hint -->
+        <div style="background:rgba(255,107,53,.06);border:1px solid rgba(255,107,53,.15);border-radius:9px;padding:12px 14px;margin-top:14px;display:flex;align-items:center;gap:10px">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          <div style="font-size:12px;color:var(--navy);line-height:1.5">Оплата частинами ПриватБанк:<br><strong id="installmentHint">від 4 306 ₴ × 4 платежі</strong></div>
+        </div>
+
+        <button class="checkout-btn" onclick="goCheckout()">
+          <svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          Оформити замовлення
+        </button>
+        <a href="catalog.html" class="continue-link">
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+          Продовжити покупки
+        </a>
+      </div>
+
+      <!-- TRUST -->
+      <div class="trust-badges">
+        <div class="trust-item">
+          <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Безпечне оформлення замовлення
+        </div>
+        <div class="trust-item">
+          <svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+          Доставка Новою Поштою по Україні
+        </div>
+        <div class="trust-item">
+          <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.57"/></svg>
+          Повернення протягом 14 днів
+        </div>
+        <div class="trust-item">
+          <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          Підтримка 7 днів на тиждень
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MOBILE CHECKOUT BAR -->
+<div class="mobile-checkout" id="mobileCheckout">
+  <div>
+    <div class="mc-label">До сплати</div>
+    <div class="mc-total" id="mcTotal">0 ₴</div>
+  </div>
+  <button class="mc-btn" onclick="goCheckout()">Оформити →</button>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── STATE ─────────────────────────────────────────────────────────────────
+let cartData = [];
+try { cartData = JSON.parse(localStorage.getItem('kr_cart') || '[]'); } catch(e) { cartData = []; }
+if (!Array.isArray(cartData)) cartData = [];
+
+let _cartPromo = null; // { code, name, type, discount_percent }
+
+// Header scroll
+window.addEventListener('scroll', () => {
+  document.getElementById('hdr').classList.toggle('scrolled', scrollY > 40);
+});
+
+// ── HELPERS ───────────────────────────────────────────────────────────────
+function slugify(str) {
+  const UA = {"а":"a","б":"b","в":"v","г":"h","ґ":"g","д":"d","е":"e","є":"ie","ж":"zh","з":"z","и":"y","і":"i","ї":"i","й":"i","к":"k","л":"l","м":"m","н":"n","о":"o","п":"p","р":"r","с":"s","т":"t","у":"u","ф":"f","х":"kh","ц":"ts","ч":"ch","ш":"sh","щ":"shch","ь":"","ю":"iu","я":"ia","ё":"e","ъ":"","ы":"y","э":"e"};
+  return str.toLowerCase().split("").map(function(c){return UA[c]!==undefined?UA[c]:c;}).join("")
+    .replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").substring(0,80);
+}
+function escHtml(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function formatPrice(n) { return Number(n||0).toLocaleString('uk-UA') + ' грн'; }
+function plural(n, one, few, many) {
+  if (n % 10 === 1 && n % 100 !== 11) return one;
+  if ([2,3,4].includes(n % 10) && ![12,13,14].includes(n % 100)) return few;
+  return many;
+}
+// Унікальний ключ: артикул (sku) + колір; якщо sku немає — id + колір
+function itemKey(it){
+  if (it.sku) return 'sku:' + String(it.sku) + '|' + String(it.color || '');
+  return 'id:' + String(it.id || '') + '|' + String(it.color || '');
+}
+function findIdx(key){ return cartData.findIndex(it => itemKey(it) === key); }
+function genericSvg(){
+  return `<svg viewBox="0 0 120 90">
+    <rect x="10" y="38" width="100" height="32" rx="8" fill="#c8d0ea"/>
+    <rect x="24" y="18" width="65" height="28" rx="6" fill="#d0d8f0"/>
+    <rect x="27" y="21" width="28" height="18" rx="3" fill="#90CAF9" opacity=".6"/>
+    <rect x="58" y="21" width="24" height="18" rx="3" fill="#90CAF9" opacity=".5"/>
+    <circle cx="30" cy="76" r="13" fill="#2d3748"/>
+    <circle cx="30" cy="76" r="7" fill="#FF6B35" opacity=".7"/>
+    <circle cx="90" cy="76" r="13" fill="#2d3748"/>
+    <circle cx="90" cy="76" r="7" fill="#FF6B35" opacity=".7"/>
+  </svg>`;
+}
+
+// ── PERSIST ───────────────────────────────────────────────────────────────
+function saveCart() {
+  localStorage.setItem('kr_cart', JSON.stringify(cartData));
+  const badge = document.getElementById('cartBadge');
+  if (badge) badge.textContent = cartData.reduce((s,i) => s + (Number(i.qty)||1), 0);
+  // Шлемо обидва імена події — різні сторінки слухають по-різному
+  try { window.dispatchEvent(new CustomEvent('kr:cartUpdated',  { detail: { cart: cartData } })); } catch(e) {}
+  try { window.dispatchEvent(new CustomEvent('kr:cart-changed', { detail: { cart: cartData } })); } catch(e) {}
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────
+// Вгадати колір крапки для кольору товару
+function colorDot(colorName) {
+  if (!colorName) return '#ccc';
+  const n = colorName.toLowerCase();
+  if (/біл|white/.test(n))   return '#f5f5f5';
+  if (/чорн|black/.test(n))  return '#1a1a1a';
+  if (/черв|red/.test(n))    return '#e53935';
+  if (/синь|blue/.test(n))   return '#1e88e5';
+  if (/зелен|green/.test(n)) return '#43a047';
+  if (/жовт|yellow/.test(n)) return '#fdd835';
+  if (/роже|pink/.test(n))   return '#ec407a';
+  if (/оранж|orange/.test(n))return '#fb8c00';
+  if (/фіолет|purple/.test(n))return '#8e24aa';
+  if (/сір|grey|gray/.test(n))return '#90a4ae';
+  if (/бежев|beige/.test(n)) return '#d7c4a3';
+  if (/корич|brown/.test(n)) return '#6d4c41';
+  if (/золот|gold/.test(n))  return '#ffc107';
+  if (/срібл|silver/.test(n))return '#bdbdbd';
+  return '#FF6B35';
+}
+
+function renderCartItems() {
+  const list = document.getElementById('cartItemsList');
+  if (!list) return;
+  if (!cartData.length) { list.innerHTML = ''; return; }
+  list.innerHTML = cartData.map(p => {
+    const key = itemKey(p);
+    const qty = Number(p.qty) || 1;
+    const total = (Number(p.price)||0) * qty;
+    const tags = [];
+
+
+    const _cSlug = p.slug || slugify(p.name || "");
+    const productHref = _cSlug ? '/product/' + _cSlug : (p.id && !/^p-/.test(String(p.id)) ? '/product/' + encodeURIComponent(p.id) : '/catalog.html');
+    const safeKey = escHtml(key);
+    const imgHtml = p.img
+      ? `<img src="${escHtml(String(p.img))}" alt="${escHtml(p.name||'')}" loading="lazy" data-sku="${escHtml(p.sku||'')}" style="width:100%;height:100%;object-fit:contain;background:#fff;border-radius:10px" onerror="this.style.display='none';this.parentNode.innerHTML+=genericSvg()">`
+      : `<span class="ci-img-placeholder" data-sku="${escHtml(p.sku||'')}" data-name="${escHtml(p.name||'')}">${genericSvg()}</span>`;
+    return `
+      <div class="cart-item" data-key="${safeKey}">
+        <div class="ci-img">${imgHtml}</div>
+        <div class="ci-info">
+          ${p.brand && !/^без\s*бренд/i.test(p.brand) ? `<div class="ci-brand">${escHtml(p.brand)}</div>` : ''}
+          ${p.sku ? `<div class="ci-sku"><span class="ci-sku-label">Арт.</span><span class="ci-sku-val">${escHtml(p.sku)}</span></div>` : ''}
+          <div class="ci-name"><a href="${escHtml(productHref)}">${escHtml(p.name || 'Товар')}</a></div>
+          ${p.color ? `<div class="ci-color"><span class="ci-color-dot" style="background:${colorDot(p.color)}"></span>Колір: <strong>${escHtml(p.color)}</strong></div>` : ''}
+          ${tags.length ? `<div class="ci-meta">${tags.join('')}</div>` : ''}
+          <div class="ci-price-mobile" style="display:none;font-family:'Nunito',sans-serif;font-weight:900;font-size:17px;color:var(--navy);margin-bottom:10px">${formatPrice(total)}</div>
+          <div class="ci-actions">
+            <div class="qty-ctrl">
+              <button class="qty-btn" onclick="changeQty('${safeKey}',-1)"><svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+              <span class="qty-val">${qty}</span>
+              <button class="qty-btn" onclick="changeQty('${safeKey}',1)"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+            </div>
+            <button class="wish-move-btn" onclick="moveToWish('${safeKey}')">
+              <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              В список бажань
+            </button>
+          </div>
+        </div>
+        <div class="ci-right">
+          <div>
+            <div class="ci-price">${formatPrice(total)}</div>
+            <div class="ci-price-per">за ${qty} шт.</div>
+          </div>
+          <button class="ci-del" onclick="removeItem('${safeKey}')" title="Видалити">
+            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      </div>`;
+  }).join('');
+  checkMobilePrices();
+  // Асинхронно підтягуємо фото для товарів без зображення
+  asyncLoadCartImages();
+}
+
+// ── ASYNC ЗАВАНТАЖЕННЯ ФОТО З SUPABASE ────────────────────────────────────
+const _SUPA_URL_CART = 'https://gwslintdrtnvbfjvivbb.supabase.co';
+const _SUPA_KEY_CART = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3c2xpbnRkcnRudmJmanZpdmJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTU4MTUsImV4cCI6MjA5NzczMTgxNX0.2hhyX_PMrXpBa_Q5DW7KiUjf4Jy9nnBStto47_SVF7k';
+
+async function asyncLoadCartImages() {
+  // Знаходимо всі placeholder-и без фото
+  const placeholders = document.querySelectorAll('.ci-img-placeholder[data-sku]');
+  if (!placeholders.length) return;
+
+  // Збираємо унікальні артикули
+  const skus = [...new Set([...placeholders].map(el => el.dataset.sku).filter(Boolean))];
+  if (!skus.length) return;
+
+  try {
+    const q = skus.map(s => encodeURIComponent('"' + s + '"')).join(',');
+    const res = await fetch(
+      `${_SUPA_URL_CART}/rest/v1/products?select=sku,images&sku=in.(${skus.map(s=>'"'+s+'"').join(',')})`,
+      { headers: { 'apikey': _SUPA_KEY_CART, 'Authorization': 'Bearer ' + _SUPA_KEY_CART } }
+    );
+    if (!res.ok) return;
+    const data = await res.json();
+    if (!Array.isArray(data)) return;
+
+    // Карта sku → перше зображення
+    const imgMap = {};
+    data.forEach(p => {
+      const imgs = Array.isArray(p.images) ? p.images : (typeof p.images === 'string' ? (() => { try { return JSON.parse(p.images); } catch{ return []; } })() : []);
+      if (imgs[0]) imgMap[p.sku] = imgs[0];
+    });
+
+    // Вставляємо зображення у DOM і оновлюємо localStorage
+    let cartUpdated = false;
+    placeholders.forEach(el => {
+      const sku = el.dataset.sku;
+      const imgUrl = imgMap[sku];
+      if (!imgUrl) return;
+      const wrapper = el.parentNode; // .ci-img
+      wrapper.innerHTML = `<img src="${imgUrl}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:contain;background:#fff;border-radius:10px" onerror="this.style.opacity=0">`;
+      // Зберігаємо у cart
+      const item = cartData.find(i => i.sku === sku);
+      if (item && !item.img) { item.img = imgUrl; cartUpdated = true; }
+    });
+
+    if (cartUpdated) localStorage.setItem('kr_cart', JSON.stringify(cartData));
+  } catch(e) {}
+}
+
+function recalc() {
+  const subtotal = cartData.reduce((s,p) => s + (Number(p.price)||0) * (Number(p.qty)||1), 0);
+  const totalQty = cartData.reduce((s,p) => s + (Number(p.qty)||1), 0);
+
+  // Знижка по промокоду
+  let promoDiscount = 0;
+  if (_cartPromo && _cartPromo.type === 'discount' && Number(_cartPromo.discount_percent) > 0) {
+    promoDiscount = Math.round(subtotal * Number(_cartPromo.discount_percent) / 100);
+  }
+  const grand = subtotal - promoDiscount;
+
+  const sumQty = document.getElementById('sumQty');
+  if (sumQty) sumQty.textContent = totalQty;
+  const sumItems = document.getElementById('sumItems');
+  if (sumItems) sumItems.textContent = formatPrice(subtotal);
+  const sumTotal = document.getElementById('sumTotal');
+  if (sumTotal) sumTotal.textContent = formatPrice(grand);
+  const mcTotal = document.getElementById('mcTotal');
+  if (mcTotal) mcTotal.textContent = formatPrice(grand);
+  const cnt = document.getElementById('itemCountBadge');
+  if (cnt) cnt.textContent = totalQty + ' ' + plural(totalQty, 'товар', 'товари', 'товарів');
+  const inst = document.getElementById('installmentHint');
+  if (inst) inst.textContent = 'від ' + formatPrice(Math.ceil(grand / 4)) + ' × 4 платежі';
+
+  // Рядок знижки
+  const pr = document.getElementById('promoRow');
+  const sp = document.getElementById('sumPromo');
+  if (promoDiscount > 0) {
+    if (pr) pr.style.display = 'flex';
+    if (sp) sp.textContent = '−' + formatPrice(promoDiscount);
+  } else {
+    if (pr) pr.style.display = 'none';
+  }
+
+  // Доставка
+  const delEl = document.getElementById('sumDelivery');
+  const noteEl = document.querySelector('.sum-note');
+  if (_cartPromo && _cartPromo.type === 'free_delivery') {
+    if (delEl) { delEl.textContent = 'Безкоштовна 🎁'; delEl.style.color = 'var(--green)'; }
+    if (noteEl) noteEl.style.display = 'none';
+  } else {
+    if (delEl) { delEl.textContent = 'за тарифами НП'; delEl.style.color = 'var(--orange)'; }
+    if (noteEl) noteEl.style.display = '';
+  }
+}
+
+// ── ACTIONS ───────────────────────────────────────────────────────────────
+function changeQty(key, delta) {
+  const idx = findIdx(key);
+  if (idx < 0) return;
+  const newQty = (Number(cartData[idx].qty)||1) + delta;
+  if (newQty < 1) { removeItem(key); return; }
+  if (newQty > 10) { showToast('Максимум 10 шт. одного товару'); return; }
+  cartData[idx].qty = newQty;
+  saveCart();
+  renderCartItems();
+  recalc();
+}
+
+function removeItem(key) {
+  const idx = findIdx(key);
+  if (idx < 0) return;
+  const el = document.querySelector('.cart-item[data-key="' + key + '"]');
+  const finish = () => {
+    cartData.splice(idx, 1);
+    saveCart();
+    if (!cartData.length) showEmptyCart();
+    else { renderCartItems(); recalc(); }
+    showToast('Товар видалено з кошика');
+  };
+  if (el) {
+    el.classList.add('removing');
+    setTimeout(finish, 300);
+  } else {
+    finish();
+  }
+}
+
+function moveToWish(key) {
+  const idx = cartData.findIndex(i => (i.id||i.name+i.color) === key || (i.name + (i.color||'')) === key || i.id === key || (i.name+i.price) === key);
+  const item = cartData[idx >= 0 ? idx : cartData.findIndex(i => itemKey(i) === key)];
+  if (item) {
+    try {
+      let wish = JSON.parse(localStorage.getItem('kr_wishlist') || '[]');
+      const isSameCW = w =>
+        (item.id && !item.id.startsWith('idx-') && !item.id.startsWith('p-') && w.id === item.id) ||
+        (item.sku && w.sku === item.sku) ||
+        w.name === item.name;
+      if (wish.some(isSameCW)) {
+        showToast('❤️ Вже є у списку бажань');
+        return;
+      }
+      wish.push({id: 'w-' + Date.now(), name: item.name, price: item.price, brand: item.brand, img: item.img, sku: item.sku||'', color: item.color||'', addedAt: Date.now()});
+      localStorage.setItem('kr_wishlist', JSON.stringify(wish));
+      // Update wishlist badge count in header
+      const wishBadge = document.getElementById('wishBadge');
+      if (wishBadge) {
+        wishBadge.textContent = wish.length;
+        wishBadge.style.display = 'flex';
+        wishBadge.style.transform = 'scale(1.5)';
+        setTimeout(() => { wishBadge.style.transform = ''; }, 300);
+      }
+      showToast('❤️ Додано до списку бажань');
+    } catch(e) { showToast('❤️ Додано до списку бажань'); }
+  } else {
+    showToast('Товар не знайдено в кошику');
+  }
+}
+
+function clearCart() {
+  if (!cartData.length) return;
+  if (!confirm('Очистити весь кошик?')) return;
+  cartData = [];
+  saveCart();
+  showEmptyCart();
+  showToast('Кошик очищено');
+}
+
+function showEmptyCart() {
+  const layout = document.getElementById('cartLayout');
+  if (layout) {
+    layout.innerHTML = `
+      <div class="empty-cart" style="grid-column:1/-1">
+        <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        <div class="empty-title">Кошик порожній</div>
+        <p class="empty-desc">Додайте товари з каталогу, щоб оформити замовлення</p>
+        <a href="catalog.html" class="btn btn-primary" style="font-size:15px;padding:13px 28px">Перейти до каталогу</a>
+      </div>`;
+  }
+  const cnt = document.getElementById('itemCountBadge');
+  if (cnt) cnt.textContent = '0 товарів';
+  const mc = document.getElementById('mobileCheckout');
+  if (mc) mc.style.display = 'none';
+}
+
+async function applyPromo() {
+  const input = document.getElementById('promoInput');
+  const msg   = document.getElementById('promoMsg');
+  const btn   = document.querySelector('.promo-apply');
+  if (!input || !msg) return;
+
+  const code = input.value.trim().toUpperCase();
+  if (!code) {
+    msg.style.display = 'block';
+    msg.innerHTML = '<div style="font-size:12px;color:var(--red);margin-top:8px">Введіть промокод</div>';
+    return;
+  }
+
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const url = _SUPA_URL_CART + '/rest/v1/promo_codes'
+      + '?code=eq.' + encodeURIComponent(code)
+      + '&status=eq.active'
+      + '&start_date=lte.' + today
+      + '&end_date=gte.'   + today
+      + '&select=code,name,type,discount_percent&limit=1';
+
+    const r = await fetch(url, {
+      headers: { 'apikey': _SUPA_KEY_CART, 'Authorization': 'Bearer ' + _SUPA_KEY_CART }
+    });
+    if (!r.ok) throw new Error('fetch');
+    const data = await r.json();
+
+    if (!Array.isArray(data) || !data.length) {
+      _cartPromo = null;
+      msg.style.display = 'block';
+      msg.innerHTML = '<div style="font-size:12px;color:var(--red);margin-top:8px">Промокод не знайдено або прострочений ❌</div>';
+      recalc();
+      return;
+    }
+
+    const promo = data[0];
+    _cartPromo = promo;
+    recalc();
+
+    // Ховаємо рядок вводу, показуємо бейдж
+    const promoRow = document.getElementById('promoInputRow');
+    const badge    = document.getElementById('promoAppliedBadge');
+    const badgeTxt = document.getElementById('promoAppliedText');
+    if (promoRow) promoRow.style.display = 'none';
+    if (badge)    badge.style.display    = 'flex';
+    if (badgeTxt) {
+      if (promo.type === 'free_delivery') {
+        badgeTxt.textContent = 'Промокод «' + promo.code + '» — безкоштовна доставка 🚚';
+      } else {
+        badgeTxt.textContent = 'Промокод «' + promo.code + '» — знижка ' + promo.discount_percent + '% 🎁';
+      }
+    }
+    msg.style.display = 'none';
+
+    // Тост-підтвердження
+    _cartPromoToast(promo);
+
+  } catch(e) {
+    msg.style.display = 'block';
+    msg.innerHTML = '<div style="font-size:12px;color:var(--red);margin-top:8px">Помилка перевірки. Спробуйте ще раз.</div>';
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Застосувати'; }
+  }
+}
+
+function removePromoCart() {
+  _cartPromo = null;
+  const input    = document.getElementById('promoInput');
+  const promoRow = document.getElementById('promoInputRow');
+  const badge    = document.getElementById('promoAppliedBadge');
+  const msg      = document.getElementById('promoMsg');
+  if (input)    input.value = '';
+  if (promoRow) promoRow.style.display = 'flex';
+  if (badge)    badge.style.display    = 'none';
+  if (msg)      msg.style.display      = 'none';
+  recalc();
+}
+
+function _cartPromoToast(promo) {
+  const t = document.createElement('div');
+  t.style.cssText = 'position:fixed;top:80px;right:24px;z-index:9999;background:white;border-radius:14px;padding:16px 20px;'
+    + 'box-shadow:0 8px 32px rgba(27,42,74,.18);max-width:300px;display:flex;align-items:flex-start;gap:12px;'
+    + 'transform:translateX(120%);transition:transform .4s cubic-bezier(.22,1,.36,1)';
+  const icon  = promo.type === 'free_delivery' ? '🚚' : '🎁';
+  const title = promo.type === 'free_delivery' ? 'Безкоштовна доставка!' : 'Знижку застосовано!';
+  const body  = promo.type === 'free_delivery'
+    ? 'Промокод «' + promo.code + '» — доставка НП безкоштовна'
+    : 'Промокод «' + promo.code + '» — знижка ' + promo.discount_percent + '% на весь кошик';
+  t.innerHTML = '<div style="font-size:24px;line-height:1;flex-shrink:0">' + icon + '</div>'
+    + '<div><div style="font-family:\'Nunito\',sans-serif;font-weight:800;font-size:14px;color:#1B2A4A;margin-bottom:3px">' + title + '</div>'
+    + '<div style="font-size:12px;color:#6b7280;line-height:1.5">' + body + '</div></div>';
+  document.body.appendChild(t);
+  requestAnimationFrame(() => { t.style.transform = 'translateX(0)'; });
+  setTimeout(() => { t.style.transform = 'translateX(120%)'; setTimeout(() => t.remove(), 420); }, 4500);
+}
+
+function goCheckout() {
+  // Завжди перечитуємо кошик безпосередньо з localStorage перед переходом,
+  // щоб уникнути ситуації "снапшот сторінки = 1, насправді 0/2"
+  let fresh = [];
+  try { fresh = JSON.parse(localStorage.getItem('kr_cart') || '[]'); } catch(e) { fresh = []; }
+  if (!Array.isArray(fresh) || !fresh.length) {
+    cartData = [];
+    showEmptyCart();
+    showToast('Кошик порожній');
+    return;
+  }
+  cartData = fresh;
+  // Зберігаємо застосований промокод щоб checkout.html міг його показати
+  if (_cartPromo) {
+    localStorage.setItem('kr_cart_promo', JSON.stringify(_cartPromo));
+  } else {
+    localStorage.removeItem('kr_cart_promo');
+  }
+  // GA4 begin_checkout event
+  try {
+    var _bcCart = fresh;
+    var _bcValue = _bcCart.reduce(function(s,i){return s+Number(i.price||0)*Number(i.qty||1);},0);
+    window.dataLayer = window.dataLayer || [];
+    dataLayer.push({ecommerce: null});
+    dataLayer.push({
+      event: 'begin_checkout',
+      ecommerce: {
+        currency: 'UAH',
+        value: _bcValue,
+        items: _bcCart.map(function(i){return{
+          item_id   : i.sku||i.id||'',
+          item_name : i.name||'',
+          item_brand: i.brand||'',
+          price     : Number(i.price||0),
+          quantity  : Number(i.qty||1)
+        };})
+      }
+    });
+  } catch(e){}
+  window.location.href = 'checkout.html';
+}
+
+// Синхронізація з іншими вкладками: якщо в іншій вкладці змінили kr_cart —
+// перечитуємо тут і ререндеримо.
+window.addEventListener('storage', e => {
+  if (e.key !== 'kr_cart') return;
+  try { cartData = JSON.parse(e.newValue || '[]'); } catch { cartData = []; }
+  if (!Array.isArray(cartData)) cartData = [];
+  if (!cartData.length) showEmptyCart();
+  else { renderCartItems(); recalc(); }
+});
+
+function checkMobilePrices() {
+  const isMobile = window.innerWidth <= 768;
+  document.querySelectorAll('.ci-price-mobile').forEach(el => {
+    el.style.display = isMobile ? 'block' : 'none';
+  });
+}
+window.addEventListener('resize', checkMobilePrices);
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+if (!cartData.length) {
+  showEmptyCart();
+} else {
+  renderCartItems();
+  recalc();
+  saveCart(); // sync badge
+}
+checkMobilePrices();
+</script>
+<!-- shared.js завантажено вгорі сторінки, щоб KR був гарантовано доступний -->
+
+<script>
+// Показати кнопку адмін панелі якщо залогінений як адмін
+(function() {
+  try {
+    const s = localStorage.getItem('kr_admin_session');
+    if (!s) return;
+    const session = JSON.parse(s);
+    if (!session.access_token) return;
+    // Перевірити термін дії
+    if (session.expires_at && Date.now() / 1000 > session.expires_at) return;
+    // Показувати кнопку ТІЛЬКИ адмінам
+    if (!session.is_admin) return;
+
+    // Додати кнопку адміна в header
+    const hRight = document.querySelector('.h-right, .header .h-actions, .header-right');
+    if (!hRight) return;
+
+    const adminBtn = document.createElement('a');
+    adminBtn.href = 'admin.html';
+    adminBtn.title = 'Адмін панель';
+    adminBtn.style.cssText = 'display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;background:rgba(27,42,74,.08);color:var(--navy);font-family:"Nunito",sans-serif;font-weight:700;font-size:12px;text-decoration:none;border:1.5px solid var(--border);transition:all .2s;margin-left:4px';
+    adminBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Адмін';
+    adminBtn.onmouseover = function() { this.style.background='var(--orange)'; this.style.color='white'; this.style.borderColor='var(--orange)'; };
+    adminBtn.onmouseout = function() { this.style.background='rgba(27,42,74,.08)'; this.style.color='var(--navy)'; this.style.borderColor='var(--border)'; };
+
+    hRight.insertBefore(adminBtn, hRight.firstChild);
+  } catch(e) {}
+})();
+</script>
+
+<script>
+  // ── SEARCH OVERLAY ──────────────────────────────────────────────────────────
+  const KR_SUPABASE_URL_SR=(typeof SUPABASE_URL!=='undefined'?SUPABASE_URL:'https://gwslintdrtnvbfjvivbb.supabase.co');
+  const KR_SUPABASE_KEY_SR=(typeof SUPABASE_KEY!=='undefined'?SUPABASE_KEY:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3c2xpbnRkcnRudmJmanZpdmJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTU4MTUsImV4cCI6MjA5NzczMTgxNX0.2hhyX_PMrXpBa_Q5DW7KiUjf4Jy9nnBStto47_SVF7k');
+  const KR_CAT_EMOJI={jeep:'🚙',car:'🚗',quad:'🏍️',moto:'🏍️',tractor:'🚜',truck:'🚚',buggy:'🛺',walker:'🛴'};
+  let KR_PRODUCTS_CACHE=null,KR_PRODUCTS_PROMISE=null;
+  async function krLoadAllProducts(){
+    if(KR_PRODUCTS_CACHE)return KR_PRODUCTS_CACHE;
+    if(KR_PRODUCTS_PROMISE)return KR_PRODUCTS_PROMISE;
+    KR_PRODUCTS_PROMISE=(async()=>{
+      try{
+        const h={'apikey':KR_SUPABASE_KEY_SR,'Authorization':'Bearer '+KR_SUPABASE_KEY_SR};
+        const base=KR_SUPABASE_URL_SR+'/rest/v1/products?select=id,name,brand,model_code,sku,category,price,images,slug&active=eq.true&order=created_at.desc&limit=1000';
+        const pages=await Promise.all([0,1000,2000].map(off=>fetch(base+'&offset='+off,{headers:h}).then(r=>r.ok?r.json():[]).catch(()=>[])));
+        const data=pages.flat();
+        if(data.length){const seen=new Set();KR_PRODUCTS_CACHE=data.filter(p=>{if(!p||seen.has(p.id))return false;seen.add(p.id);return true;}).map(p=>({id:p.id,name:p.name||'',brand:p.brand||'',model:p.model_code||p.sku||'',sku:p.sku||'',slug:p.slug||null,category:p.category||'',price:parseFloat(p.price)||0,emoji:KR_CAT_EMOJI[p.category]||'🚗',photo:Array.isArray(p.images)&&p.images[0]?p.images[0]:null}));return KR_PRODUCTS_CACHE;}
+      }catch(e){console.warn('KR search:',e);}
+      KR_PRODUCTS_CACHE=[];return KR_PRODUCTS_CACHE;
+    })();return KR_PRODUCTS_PROMISE;
+  }
+  function openSearchOverlay(){
+    document.getElementById('searchOverlay').classList.add('open');
+    document.body.style.overflow='hidden';
+    setTimeout(()=>{const i=document.getElementById('searchOverlayInput');if(i){i.focus();renderSearchSuggestions(i.value);}},50);
+    krLoadAllProducts().then(()=>{const i=document.getElementById('searchOverlayInput');if(i)renderSearchSuggestions(i.value);});
+  }
+  function closeSearchOverlay(){document.getElementById('searchOverlay').classList.remove('open');document.body.style.overflow='';}
+  function krNormalize(s){return(s||'').toString().toLowerCase().replace(/[\s\-_/.,]+/g,'');}
+  function krMatchScore(p,q){
+    if(!q)return 1;const qN=krNormalize(q);
+    const fs=[p.name,p.brand,p.model,p.sku].map(x=>(x||'').toString());
+    const fl=fs.map(f=>f.toLowerCase()),fn=fs.map(krNormalize);
+    if(fn[2]&&fn[2].includes(qN))return 100;if(fn[3]&&fn[3].includes(qN))return 95;
+    if(fn[0].startsWith(qN))return 80;if(fl[0].includes(q))return 70;if(fn[0].includes(qN))return 65;if(fl[1].includes(q))return 50;
+    const ts=q.split(/\s+/).filter(Boolean);
+    if(ts.length>1){if(ts.every(t=>fl[0].includes(t)||fn[0].includes(krNormalize(t))))return 60;
+      if(ts.every(t=>fl.some(f=>f.includes(t))||fn.some(f=>f.includes(krNormalize(t)))))return 40;}
+    return 0;
+  }
+  function krFmtPrice(n){return n?new Intl.NumberFormat('uk-UA').format(Math.round(n))+' грн':'';}
+  function renderSearchSuggestions(query){
+    const list=document.getElementById('searchSuggestions'),empty=document.getElementById('searchEmpty');
+    if(!list)return;const q=(query||'').trim(),products=KR_PRODUCTS_CACHE;
+    if(!products){list.innerHTML='<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:13px">Завантаження…</div>';if(empty)empty.style.display='none';krLoadAllProducts().then(()=>renderSearchSuggestions(query));return;}
+    const VC=new Set(Object.keys(KR_CAT_EMOJI));
+    if(!q){list.innerHTML='';if(empty)empty.style.display='none';return;}
+    const sc=products.map(p=>({p,s:krMatchScore(p,q)})).filter(x=>x.s>0);
+    const items=[...sc.filter(x=>VC.has(x.p.category)).sort((a,b)=>b.s-a.s).slice(0,6).map(x=>x.p),...sc.filter(x=>!VC.has(x.p.category)).sort((a,b)=>b.s-a.s).slice(0,4).map(x=>x.p)];
+    list.innerHTML='';
+    if(!items.length){if(empty){empty.style.display='block';const s=empty.querySelector('strong');if(s)s.textContent=q;}return;}
+    if(empty)empty.style.display='none';
+    items.forEach(p=>{
+      const a=document.createElement('a');
+      const _cSl=(p.slug||(p.name?p.name.toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi,'-').replace(/^-+|-+$/g,'').substring(0,60):null));a.href=_cSl?'product/'+_cSl:'catalog.html?search='+encodeURIComponent(p.name||'');
+      if(_cSl&&p.id)a.addEventListener('click',function(){try{sessionStorage.setItem('kr_slug_id_'+_cSl,p.id);}catch(e){}});
+      a.className='search-sug';
+      const sub=[p.brand,p.sku].filter(Boolean).join(' · Арт: ');
+      const thumb=p.photo?'<img class="search-sug-img" src="'+p.photo+'" alt="" loading="lazy">':'<span style="width:44px;height:44px;border-radius:8px;background:#f5f7fa;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px">'+(p.emoji||'🚗')+'</span>';
+      a.innerHTML=thumb+'<span class="search-sug-name" style="display:flex;flex-direction:column;gap:2px;flex:1;min-width:0"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+p.name+'</span>'+(sub?'<span style="font-size:11px;color:var(--text-muted);font-weight:500">'+sub+'</span>':'')+'</span>'+(p.price?'<span style="font-size:13px;font-weight:800;color:var(--orange);margin-right:8px;white-space:nowrap">'+krFmtPrice(p.price)+'</span>':'')+'<svg class="search-sug-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>';
+      list.appendChild(a);
+    });
+  }
+  function submitSearch(e){if(e)e.preventDefault();const q=(document.getElementById('searchOverlayInput')?.value||'').trim();if(!q)return false;window.location.href='catalog.html?search='+encodeURIComponent(q);return false;}
+  if(document.readyState!=='loading')krLoadAllProducts();
+  else document.addEventListener('DOMContentLoaded',krLoadAllProducts);
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSearchOverlay();if((e.key==='k'||e.key==='K')&&(e.metaKey||e.ctrlKey)){e.preventDefault();openSearchOverlay();}});
+  </script>
+
+<!-- MINIMAL FOOTER — юридичні посилання -->
+<footer style="background:#1B2A4A;padding:14px 20px;text-align:center;margin-top:40px">
+  <div style="font-size:12px;color:rgba(255,255,255,.4)">© 2024 KidsRide &nbsp;·&nbsp;
+    <a href="/privacy-policy.html" style="color:rgba(255,255,255,.55);text-decoration:none" onmouseover="this.style.color='rgba(255,255,255,.85)'" onmouseout="this.style.color='rgba(255,255,255,.55)'">Політика конфіденційності</a>
+    &nbsp;·&nbsp;
+    <a href="/payment-terms.html" style="color:rgba(255,255,255,.55);text-decoration:none" onmouseover="this.style.color='rgba(255,255,255,.85)'" onmouseout="this.style.color='rgba(255,255,255,.55)'">Умови оплати</a>
+  </div>
+</footer>
+</body>
+</html>
