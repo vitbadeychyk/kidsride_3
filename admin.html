@@ -7547,7 +7547,7 @@ async function ostatokLookupProduct() {
   if (sku.length < 2) { hint.style.display='none'; return; }
   _osLookupTimer = setTimeout(async () => {
     try {
-      const rows = await sbFetch('products?select=id,sku,name,slug,description,description2,short_desc,images&sku=eq.' + encodeURIComponent(sku) + '&limit=5');
+      const rows = await sbFetch('products?select=id,sku,name,price,old_price,slug,description,description2,short_desc,images&sku=eq.' + encodeURIComponent(sku) + '&limit=5');
       const p = rows && rows[0];
       if (!p) {
         hint.textContent = 'У каталозі товар з таким артикулом не знайдено. Поля можна заповнити вручну.';
@@ -7558,6 +7558,17 @@ async function ostatokLookupProduct() {
         const el = document.getElementById(id);
         if (el && !el.value.trim() && value) el.value = value;
       };
+      const fillNumber = (id, value) => {
+        const el = document.getElementById(id);
+        if (el && !el.value.trim() && value !== null && value !== undefined && value !== '') {
+          el.value = value;
+        }
+      };
+      // Підставляємо дані каталогу лише в порожні поля: ручні зміни адміністратора
+      // не повинні зникати при повторному введенні або виправленні артикулу.
+      fill('osF_name', p.name || '');
+      fillNumber('osF_sell_price', p.price);
+      fillNumber('osF_old_price', p.old_price);
       fill('osF_description', p.description || p.short_desc || '');
       fill('osF_description2', p.description2 || '');
       const imagesEl = document.getElementById('osF_images');
@@ -7565,8 +7576,15 @@ async function ostatokLookupProduct() {
         imagesEl.value = p.images.filter(Boolean).slice(0,15).join('\n');
         osRenderPreviews();
       }
+      const foundParts = [];
+      if (p.name) foundParts.push('назву');
+      if (p.price !== null && p.price !== undefined) foundParts.push('ціну');
+      if (p.old_price !== null && p.old_price !== undefined) foundParts.push('стару ціну');
+      if (p.description || p.short_desc) foundParts.push('опис');
+      if (Array.isArray(p.images) && p.images.length) foundParts.push('фото');
       hint.innerHTML = '✅ Знайдено в каталозі: <strong>' + _esc(p.name || p.sku) +
-        '</strong>. Опис і фото підставлено автоматично (порожні поля не перезаписуються).';
+        '</strong>. Підставлено: ' + (foundParts.length ? foundParts.join(', ') : 'дані відсутні') +
+        ' (порожні поля не перезаписуються).';
       hint.style.display = 'block';
     } catch(e) {
       hint.style.display = 'none';
