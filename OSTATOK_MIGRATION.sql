@@ -25,6 +25,7 @@ ALTER TABLE ostatok
 -- Вони дублюються у products під час збереження, щоб товар однаково
 -- відображався і як звичайний товар, і як синтетичний товар зі складу.
 ALTER TABLE ostatok
+  ADD COLUMN IF NOT EXISTS name text DEFAULT NULL,
   ADD COLUMN IF NOT EXISTS description text DEFAULT NULL,
   ADD COLUMN IF NOT EXISTS description2 text DEFAULT NULL;
 

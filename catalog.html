@@ -2753,13 +2753,13 @@ async function loadProductsFromSupabase() {
         const osTid = setTimeout(() => osCtrl.abort(), FETCH_TIMEOUT);
         const osHeaders = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY };
         let osRes = await fetch(
-          SUPABASE_URL + '/rest/v1/ostatok?select=id,sku,color,quantity,sell_price,old_price,active,images,category_id,description,description2,short_desc&quantity=gt.0&active=eq.true',
+          SUPABASE_URL + '/rest/v1/ostatok?select=id,sku,name,color,quantity,sell_price,old_price,active,images,category_id,description,description2,short_desc&quantity=gt.0&active=eq.true',
           { signal: osCtrl.signal, headers: osHeaders }
         );
         // Старі таблиці ostatok могли ще не мати нових полів опису.
         if (osRes.status === 400) {
           osRes = await fetch(
-            SUPABASE_URL + '/rest/v1/ostatok?select=id,sku,color,quantity,sell_price,old_price,active,images,category_id,short_desc&quantity=gt.0&active=eq.true',
+            SUPABASE_URL + '/rest/v1/ostatok?select=id,sku,name,color,quantity,sell_price,old_price,active,images,category_id,short_desc&quantity=gt.0&active=eq.true',
             { signal: osCtrl.signal, headers: osHeaders }
           );
         }
@@ -2828,7 +2828,7 @@ async function loadProductsFromSupabase() {
         } else {
           extra.push({
             id:'os_'+os.id, sku:os.sku, model_code:null, modelCode:null,
-            color:os.color||null, name:os.sku, brand:'',
+            color:os.color||null, name:os.name || os.sku, brand:'',
             price:parseFloat(os.sell_price)||0, oldPrice:os.old_price?parseFloat(os.old_price):null,
             category:null, category_id:os.category_id||null, voltage:null, age:null,
             stock:os.quantity, preorderDays:0, badge:null, img:'jeep',
@@ -2910,7 +2910,7 @@ async function loadProductsFromSupabase() {
           } else {
             mappedProducts.push({
               id:'os_'+os.id, sku:os.sku, model_code:null, modelCode:null,
-              color:os.color||null, name:os.sku, brand:'',
+              color:os.color||null, name:os.name || os.sku, brand:'',
               price:parseFloat(os.sell_price)||0,
               oldPrice:os.old_price?parseFloat(os.old_price):null,
               category:null, category_id:os.category_id||null, voltage:null, age:null,
@@ -3463,6 +3463,12 @@ async function renderCatalog() {
   ]);
 
   allProducts = (products || []).filter(p => p.active !== false);
+  // Лупа може запуститись раніше за каталог і закешувати неповний список.
+  // Після завантаження всіх джерел перебудовуємо її індекс.
+  if (typeof KR_PRODUCTS_CACHE !== 'undefined') {
+    KR_PRODUCTS_CACHE = null;
+    KR_PRODUCTS_PROMISE = null;
+  }
   { const prices=(allProducts||[]).filter(p=>p.price>0).map(p=>p.price);
     if(prices.length){
       const pMin=Math.floor(Math.min(...prices)),pMax=Math.ceil(Math.max(...prices));
@@ -4376,14 +4382,17 @@ document.addEventListener('DOMContentLoaded', () => {
         // Товари, додані через «Залишок (власний склад)», не мають запису
         // у products, але мають бути доступні в глобальному пошуку за артикулом.
         try {
-          const osUrl = KR_SUPABASE_URL_SR + '/rest/v1/ostatok?select=id,sku,color,quantity,sell_price,old_price,images,active&quantity=gt.0&active=eq.true';
-          const osRes = await fetch(osUrl, {headers:hdrs});
+          const osUrl = KR_SUPABASE_URL_SR + '/rest/v1/ostatok?select=id,sku,name,color,quantity,sell_price,old_price,images,active&quantity=gt.0&active=eq.true';
+          let osRes = await fetch(osUrl, {headers:hdrs});
+          if (osRes.status === 400) {
+            osRes = await fetch(KR_SUPABASE_URL_SR + '/rest/v1/ostatok?select=id,sku,color,quantity,sell_price,old_price,images,active&quantity=gt.0&active=eq.true', {headers:hdrs});
+          }
           if (osRes.ok) {
             const osRows = await osRes.json();
             (Array.isArray(osRows) ? osRows : []).forEach(os => {
               if (!os.sku || Number(os.quantity) <= 0) return;
               data.push({
-                id:'os_'+os.id, name:os.sku, brand:'', model:os.sku,
+                id:'os_'+os.id, name:os.name || os.sku, brand:'', model:os.sku,
                 sku:os.sku, category:'', price:parseFloat(os.sell_price)||0,
                 slug:slugify(os.sku), images:os.images, _fromOstatok:true
               });

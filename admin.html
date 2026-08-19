@@ -7403,6 +7403,12 @@ function ostatokOpenModal(id) {
               <input type="text" id="osF_color" placeholder="Чорний">
             </div>
           </div>
+          <div class="f-row single">
+            <div class="f-group">
+              <label>Назва товару *</label>
+              <input type="text" id="osF_name" placeholder="Дитячий електромобіль BMW JE1009EBLR-1 (4WD)">
+            </div>
+          </div>
           <div class="f-row">
             <div class="f-group">
               <label>Кількість *</label>
@@ -7481,6 +7487,7 @@ function ostatokOpenModal(id) {
   document.getElementById('osModalId').value         = row ? row.id : '';
   document.getElementById('osF_sku').value           = row ? (row.sku||'')        : '';
   document.getElementById('osF_color').value         = row ? (row.color||'')      : '';
+  document.getElementById('osF_name').value          = row ? (row.name||'')       : '';
   document.getElementById('osF_qty').value           = row ? (row.quantity??'')   : '';
   document.getElementById('osF_active').value        = row ? String(row.active !== false) : 'true';
   document.getElementById('osF_sell_price').value    = row ? (row.sell_price??'') : '';
@@ -7570,6 +7577,7 @@ async function ostatokLookupProduct() {
 async function ostatokSave() {
   const id         = document.getElementById('osModalId').value;
   const sku        = document.getElementById('osF_sku').value.trim();
+  const productName = document.getElementById('osF_name').value.trim();
   const color      = document.getElementById('osF_color').value.trim()||null;
   const qty        = parseInt(document.getElementById('osF_qty').value)||0;
   const price      = parseFloat(document.getElementById('osF_price').value)||null;
@@ -7579,6 +7587,7 @@ async function ostatokSave() {
   const description  = document.getElementById('osF_description')?.value.trim() || null;
   const description2 = document.getElementById('osF_description2')?.value.trim() || null;
   if(!sku){ showToast('Вкажи артикул','error'); return; }
+  if(!productName){ showToast('Вкажи назву товару','error'); return; }
 
   const btn = document.getElementById('osModalSave');
   btn.disabled = true; btn.textContent = 'Збереження…';
@@ -7586,7 +7595,7 @@ async function ostatokSave() {
   const oldPrice  = parseFloat(document.getElementById('osF_old_price').value)||null;
   const activeVal = document.getElementById('osF_active').value === 'true';
   const imgsRaw   = (document.getElementById('osF_images').value||'').split('\n').map(s=>s.trim()).filter(Boolean).slice(0,15);
-  const payload = { sku, color, quantity:qty, buy_price:price, note, sell_price:sellPrice, old_price:oldPrice, active:activeVal, images:imgsRaw.length?imgsRaw:null, category_id:categoryId, description, description2, short_desc:description2 || description };
+  const payload = { sku, name:productName, color, quantity:qty, buy_price:price, note, sell_price:sellPrice, old_price:oldPrice, active:activeVal, images:imgsRaw.length?imgsRaw:null, category_id:categoryId, description, description2, short_desc:description2 || description };
   try {
     if(id) {
       await sbFetch('ostatok?id=eq.'+id, { method:'PATCH', headers:{ Prefer:'return=minimal' }, body:JSON.stringify(payload) });
@@ -7616,6 +7625,7 @@ async function ostatokSave() {
         // Інші характеристики (назва, акумулятор, вік тощо) не чіпаємо.
         const generatedSlug = existing[0].slug || await osUniqueSlug(existing[0].name || sku, existing[0].id);
         const updateFields = {
+          name: productName,
           active: activeVal,
           stock: qty,
           images: imgsRaw.length ? imgsRaw : null,
@@ -7639,7 +7649,7 @@ async function ostatokSave() {
         const generatedSlug = await osUniqueSlug(sku);
         const newProduct = {
           sku,
-          name: sku,
+          name: productName,
           ...(generatedSlug ? { slug: generatedSlug } : {}),
           active: activeVal,
           price: sellPrice || 0,

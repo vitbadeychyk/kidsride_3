@@ -169,12 +169,17 @@ export default async function handler(req, res) {
     if (!product) {
       const osId = productId.match(/^os_(\d+)$/i) || slug.match(/^os_(\d+)$/i);
       if (osId || slug) {
-        const osSelect = 'id,sku,color,quantity,sell_price,old_price,images,category_id,description,description2,short_desc,active';
+        const osSelect = 'id,sku,name,color,quantity,sell_price,old_price,images,category_id,description,description2,short_desc,active';
         const osUrl = supaUrl + '/rest/v1/ostatok?select=' + osSelect +
           (osId
             ? '&id=eq.' + encodeURIComponent(osId[1])
             : '&quantity=gt.0&active=eq.true&limit=1000');
-        const osRes = await fetch(osUrl, { headers });
+        let osRes = await fetch(osUrl, { headers });
+        if (osRes.status === 400) {
+          const fallbackUrl = supaUrl + '/rest/v1/ostatok?select=id,sku,color,quantity,sell_price,old_price,images,category_id,description,description2,short_desc,active' +
+            (osId ? '&id=eq.' + encodeURIComponent(osId[1]) : '&quantity=gt.0&active=eq.true&limit=1000');
+          osRes = await fetch(fallbackUrl, { headers });
+        }
         if (osRes.ok) {
           const rows = await osRes.json();
           const slugKey = String(slug || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
@@ -187,7 +192,7 @@ export default async function handler(req, res) {
             product = {
               id: 'os_' + os.id,
               sku: os.sku,
-              name: os.sku,
+              name: os.name || os.sku,
               color: os.color || null,
               brand: '',
               price: Number(os.sell_price) || 0,

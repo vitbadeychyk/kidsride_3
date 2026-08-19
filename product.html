@@ -1826,18 +1826,24 @@ console.log('[KidsRide] product.html v3.9 — працюють: копіюван
       const osMatch = String(id).match(/^os_(\d+)$/i);
       if (osMatch) {
         try {
-          const osSel = 'id,sku,color,quantity,sell_price,old_price,images,category_id,description,description2,short_desc,active';
-          const osRes = await fetch(SUPA_URL + '/rest/v1/ostatok?id=eq.' +
+          const osSel = 'id,sku,name,color,quantity,sell_price,old_price,images,category_id,description,description2,short_desc,active';
+          let osRes = await fetch(SUPA_URL + '/rest/v1/ostatok?id=eq.' +
             encodeURIComponent(osMatch[1]) + '&quantity=gt.0&active=eq.true&select=' + osSel, {
             headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
           });
+          if (osRes.status === 400) {
+            osRes = await fetch(SUPA_URL + '/rest/v1/ostatok?id=eq.' +
+              encodeURIComponent(osMatch[1]) + '&quantity=gt.0&active=eq.true&select=id,sku,color,quantity,sell_price,old_price,images,category_id,description,description2,short_desc,active', {
+              headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
+            });
+          }
           if (osRes.ok) {
             const rows = await osRes.json();
             const os = rows && rows[0];
             if (os) {
               p = {
                 id:'os_'+os.id, sku:os.sku, model_code:null, color:os.color || null,
-                category_id:os.category_id || null, name:os.sku, brand:'',
+                category_id:os.category_id || null, name:os.name || os.sku, brand:'',
                 description:os.description || os.short_desc || null,
                 description2:os.description2 || null, short_desc:os.short_desc || null,
                 price:Number(os.sell_price) || 0, old_price:os.old_price || null,
