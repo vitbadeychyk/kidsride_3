@@ -7639,16 +7639,16 @@ async function ostatokSave() {
       }
 
       if(existing && existing.length > 0) {
-        // ✅ Товар є в каталозі — оновлюємо склад, ціни, фото та описи.
-        // Інші характеристики (назва, акумулятор, вік тощо) не чіпаємо.
+         // ✅ Товар є в каталозі — оновлюємо склад, фото та описи.
+         // Ціни існуючого товару належать постачальнику і не повинні
+         // перезаписуватися цінами з власного складу (ostatok).
+         // Інші характеристики (назва, акумулятор, вік тощо) також не чіпаємо.
         const generatedSlug = existing[0].slug || await osUniqueSlug(existing[0].name || sku, existing[0].id);
         const updateFields = {
           name: productName,
           active: activeVal,
           stock: qty,
           images: imgsRaw.length ? imgsRaw : null,
-          price: sellPrice,
-          old_price: oldPrice,
           category_id: categoryId,
           description,
           description2,

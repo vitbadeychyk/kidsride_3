@@ -2820,14 +2820,12 @@ async function loadProductsFromSupabase() {
         if (idx === undefined) idx = bySku[sk];
         if (idx !== undefined) {
           const p = src[idx];
-          // Якщо постачальник має залишок — products має повний пріоритет.
-          // Якщо постачальник недоступний, цей самий артикул може продаватися
-          // зі складу: тоді показуємо складський залишок та його ціни.
+           // Якщо SKU є в products, ціни постачальника мають повний пріоритет.
+           // Власний склад може лише додати наявність, коли постачальник
+           // тимчасово не має залишку, але не повинен підміняти ціни.
           if (p.stock == null || Number(p.stock) <= 0) {
             p.stock = Number(os.quantity) || 0;
             if (p.stock > 0) p.active = true;
-            if (Number(os.sell_price) > 0) p.price = Number(os.sell_price);
-            if (Number(os.old_price) > 0) p.oldPrice = Number(os.old_price);
             if (!p.description && (os.description || os.short_desc)) p.description = os.description || os.short_desc;
             if (!p.description2 && os.description2) p.description2 = os.description2;
             changed = true;
@@ -2910,14 +2908,11 @@ async function loadProductsFromSupabase() {
           if (idx === undefined) idx = bySku.get(skuKey);
           if (idx !== undefined) {
             const p = mappedProducts[idx];
-            // При наявності у постачальника залишку залишаємо products.
-            // При відсутності постачальника використовуємо складські дані,
-            // але не створюємо другий товар з тим самим артикулом.
+             // Якщо SKU є в products, ціни постачальника мають пріоритет.
+             // Складські дані додають тільки наявність та відсутні описи/фото.
             if (p.stock == null || Number(p.stock) <= 0) {
               p.stock = Number(os.quantity) || 0;
               if (p.stock > 0) p.active = true;
-              if (Number(os.sell_price) > 0) p.price = Number(os.sell_price);
-              if (Number(os.old_price) > 0) p.oldPrice = Number(os.old_price);
               if (!p.description) p.description = os.description || os.short_desc || null;
               if (!p.description2) p.description2 = os.description2 || null;
               if ((!p.images || !p.images.length) && Array.isArray(os.images)) p.images = os.images;

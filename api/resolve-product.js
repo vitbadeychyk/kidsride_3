@@ -219,8 +219,9 @@ export default async function handler(req, res) {
     // Slug не знайдено — перенаправляємо на каталог (щоб не показувати кешований не той товар)
     return res.redirect(302, '/catalog.html');
   }
-  // Якщо постачальник не має залишку, беремо складські ціни для SSR.
-  // При stock > 0 дані з products залишаються без змін.
+  // Якщо постачальник не має залишку, беремо зі складу тільки наявність для SSR.
+  // Якщо SKU вже знайдений у products, ціни постачальника не підміняємо
+  // складськими цінами — навіть коли товар є на власному складі.
   if (product.sku && !/^os_/i.test(String(product.id || '')) && Number(product.stock || 0) <= 0) {
     try {
       const stockRes = await fetch(
@@ -238,8 +239,6 @@ export default async function handler(req, res) {
         if (stockRow) {
           product.stock = Number(stockRow.quantity) || 0;
           if (product.stock > 0) product.active = true;
-          if (Number(stockRow.sell_price) > 0) product.price = Number(stockRow.sell_price);
-          if (Number(stockRow.old_price) > 0) product.old_price = Number(stockRow.old_price);
         }
       }
     } catch (_) {}
