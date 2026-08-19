@@ -263,10 +263,15 @@ function resolveStock(products, ostatokMap) {
       p.active = true;
       fromSupplier++;
     } else {
-      const myQty = ostatokMap.get(p.sku.trim()) || 0;
+      const own = ostatokMap.get(p.sku.trim());
+      const myQty = own ? Number(own.qty) || 0 : 0;
       if (myQty > 0) {
         p.stock  = myQty;
         p.active = true;
+        // Коли постачальник не має товару, на сайті працює власний склад:
+        // беремо з ostatok не тільки залишок, а й обидві його ціни.
+        if (Number(own.sell_price) > 0) p.price = Number(own.sell_price);
+        if (Number(own.old_price) > 0) p.old_price = Number(own.old_price);
         fromOstatok++;
       } else {
         p.stock  = 0;
@@ -507,16 +512,8 @@ async function main() {
   log('Визначаю залишки...');
   resolveStock(products, ostatokMap);
 
-  // Дані власного складу мають пріоритет для опису/фото. Інакше наступний
-  // XML-синк міг би повернути старий опис постачальника назад у products.
-  products.forEach(p => {
-    const own = ostatokMap.get((p.sku || '').trim());
-    if (!own) return;
-    if (own.description)  p.description = own.description;
-    if (own.description2) p.description2 = own.description2;
-    if (own.short_desc)   p.short_desc = own.short_desc;
-    if (Array.isArray(own.images) && own.images.length) p.images = own.images;
-  });
+  // Якщо артикул є у постачальника, products повністю формується з XML.
+  // Дані ostatok не повинні підміняти його ціни, фото чи описи.
 
   // 8) Прибрати колонки яких немає в базі + застосувати category_id
   products.forEach(p => {

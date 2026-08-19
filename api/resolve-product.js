@@ -219,27 +219,6 @@ export default async function handler(req, res) {
     // Slug не знайдено — перенаправляємо на каталог (щоб не показувати кешований не той товар)
     return res.redirect(302, '/catalog.html');
   }
-  // Товар постачальника може мати власний залишок в ostatok. Синхронізуємо
-  // його для SSR, щоб Google та сторінка бачили той самий статус, що й каталог.
-  if (product.sku && !/^os_/i.test(String(product.id || '')) && Number(product.stock || 0) <= 0) {
-    try {
-      const stockRes = await fetch(
-        supaUrl + '/rest/v1/ostatok?select=sku,quantity,active&quantity=gt.0&limit=1000',
-        { headers }
-      );
-      if (stockRes.ok) {
-        const stockRows = await stockRes.json();
-        const skuKey = String(product.sku).toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi, '');
-        const stockRow = (stockRows || []).find(row => {
-          if (row.active === false) return false;
-          const rowKey = String(row.sku || '').toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi, '');
-          return rowKey === skuKey;
-        });
-        if (stockRow) product.stock = Number(stockRow.quantity) || 0;
-      }
-    } catch (_) {}
-  }
-
   // ── 2. Завантажуємо відгуки для aggregateRating + review ───────────────
   let reviews = [];
   try {

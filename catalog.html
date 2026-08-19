@@ -2819,12 +2819,8 @@ async function loadProductsFromSupabase() {
         if (idx === undefined && cl) idx = bySkuColor[sk+'|'];
         if (idx === undefined) idx = bySku[sk];
         if (idx !== undefined) {
-          const p = src[idx];
-          if (p.stock == null || p.stock <= 0) { p.stock = os.quantity; changed = true; }
-          if (!p.description && (os.description || os.short_desc)) {
-            p.description = os.description || os.short_desc; changed = true;
-          }
-          if (!p.description2 && os.description2) { p.description2 = os.description2; changed = true; }
+          // Артикул уже є в products: products має пріоритет повністю.
+          // Не підміняємо його складським залишком або складськими цінами.
         } else {
           extra.push({
             id:'os_'+os.id, sku:os.sku, model_code:null, modelCode:null,
@@ -2902,11 +2898,8 @@ async function loadProductsFromSupabase() {
           if (idx === undefined && colorKey) idx = bySkuColor.get(skuKey + '|');
           if (idx === undefined) idx = bySku.get(skuKey);
           if (idx !== undefined) {
-            const p = mappedProducts[idx];
-            if (p.stock == null || p.stock <= 0) p.stock = os.quantity;
-            if (!p.description) p.description = os.description || os.short_desc || null;
-            if (!p.description2) p.description2 = os.description2 || null;
-            if ((!p.images || !p.images.length) && Array.isArray(os.images)) p.images = os.images;
+            // Дублікат артикула: якщо він є у products, складський рядок
+            // повністю ігноруємо — включно із залишком та цінами.
           } else {
             mappedProducts.push({
               id:'os_'+os.id, sku:os.sku, model_code:null, modelCode:null,
@@ -4379,7 +4372,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const base=KR_SUPABASE_URL_SR+'/rest/v1/products?select=id,name,brand,model_code,sku,category,price,images,slug&active=eq.true&order=created_at.desc&limit=1000';
         const pages=await Promise.all([0,1000,2000].map(off=>fetch(base+'&offset='+off,{headers:hdrs}).then(r=>r.ok?r.json():[]).catch(()=>[])));
         const data=pages.flat();
-        // Товари, додані через «Залишок (власний склад)», не мають запису
+         // Товари, додані через «Залишок (власний склад)», не мають запису
         // у products, але мають бути доступні в глобальному пошуку за артикулом.
         try {
           const osUrl = KR_SUPABASE_URL_SR + '/rest/v1/ostatok?select=id,sku,name,color,quantity,sell_price,old_price,images,active&quantity=gt.0';
@@ -4389,8 +4382,14 @@ document.addEventListener('DOMContentLoaded', () => {
           }
           if (osRes.ok) {
             const osRows = await osRes.json();
+            const productSkuKeys = new Set(data
+              .map(p => String(p.sku || '').trim().toLowerCase())
+              .filter(Boolean));
             (Array.isArray(osRows) ? osRows : []).forEach(os => {
               if (!os.sku || Number(os.quantity) <= 0 || os.active === false) return;
+               // Постачальник має пріоритет за артикулом: склад не дублюємо.
+               const osSkuKey = String(os.sku).trim().toLowerCase();
+               if (productSkuKeys.has(osSkuKey)) return;
               data.push({
                 id:'os_'+os.id, name:os.name || os.sku, brand:'', model:os.sku,
                 sku:os.sku, category:'', price:parseFloat(os.sell_price)||0,
