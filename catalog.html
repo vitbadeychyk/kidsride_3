@@ -2714,7 +2714,10 @@ async function loadProductsFromSupabase() {
 
     // Два варіанти SELECT: з slug (після міграції) і без (до міграції БД)
       const _SEL_FULL = 'id,sku,model_code,color,name,brand,price,old_price,category,category_id,voltage,age_range,stock,preorder_days,badge,img_type,images,active,created_at,slug,description,description2,short_desc';
-      const _SEL_BASE = 'id,sku,model_code,color,name,brand,price,old_price,category,category_id,voltage,age_range,stock,preorder_days,badge,img_type,images,active,created_at,description,description2,short_desc';
+      const _SEL_BASE = 'id,sku,model_code,color,name,brand,price,old_price,category,category_id,voltage,age_range,stock,preorder_days,badge,img_type,images,active,created_at,description,description2';
+      // Сумісність зі старою схемою: каталог не повинен повністю зникати,
+      // якщо SQL-міграцію short_desc/description2 ще не виконано.
+      const _SEL_LEGACY = 'id,sku,model_code,color,name,brand,price,old_price,category,category_id,voltage,age_range,stock,preorder_days,badge,img_type,images,active,created_at';
       const _fetchPage = async (from, sel) => {
         sel = sel || _SEL_FULL;
         const ctrl = new AbortController();
@@ -2733,8 +2736,10 @@ async function loadProductsFromSupabase() {
             }
           }
         ).finally(() => clearTimeout(tid));
-        // Якщо колонки slug ще немає в БД — повторюємо без неї
+        // Якщо частина нових колонок ще не додана в БД — поступово
+        // переходимо на сумісні варіанти, а не залишаємо каталог порожнім.
         if (res.status === 400 && sel === _SEL_FULL) return _fetchPage(from, _SEL_BASE);
+        if (res.status === 400 && sel === _SEL_BASE) return _fetchPage(from, _SEL_LEGACY);
         return res;
       };
 
@@ -2746,10 +2751,19 @@ async function loadProductsFromSupabase() {
       try {
         const osCtrl = new AbortController();
         const osTid = setTimeout(() => osCtrl.abort(), FETCH_TIMEOUT);
-        const osRes = await fetch(
+        const osHeaders = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY };
+        let osRes = await fetch(
           SUPABASE_URL + '/rest/v1/ostatok?select=id,sku,color,quantity,sell_price,old_price,active,images,category_id,description,description2,short_desc&quantity=gt.0&active=eq.true',
-          { signal: osCtrl.signal, headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
-        ).finally(() => clearTimeout(osTid));
+          { signal: osCtrl.signal, headers: osHeaders }
+        );
+        // Старі таблиці ostatok могли ще не мати нових полів опису.
+        if (osRes.status === 400) {
+          osRes = await fetch(
+            SUPABASE_URL + '/rest/v1/ostatok?select=id,sku,color,quantity,sell_price,old_price,active,images,category_id,short_desc&quantity=gt.0&active=eq.true',
+            { signal: osCtrl.signal, headers: osHeaders }
+          );
+        }
+        clearTimeout(osTid);
         if (osRes.ok) return await osRes.json();
       } catch(_) {}
       return [];
@@ -2837,7 +2851,7 @@ async function loadProductsFromSupabase() {
 
     if (all.length > 0) {
       // Конвертувати формат Supabase → формат сайту
-      return all.map(p => ({
+      const mappedProducts = all.map(p => ({
         id:           p.id,
         sku:          p.sku,
         model_code:   p.model_code || null,
@@ -2864,6 +2878,52 @@ async function loadProductsFromSupabase() {
         description2: p.description2 || null,
         _fromOstatok: p._fromOstatok || false
       }));
+      // Важливо для прямого відкриття каталогу з ?search=...:
+      // у цей момент глобальний allProducts ще порожній, тому фоновий merge
+      // вище не може додати позицію, якої немає в products. Дочекаємося
+      // власного складу перед поверненням результату і додамо такі товари
+      // синхронно до першого рендера.
+      try {
+        const earlyOstatok = await ostatokPromise;
+        const bySkuColor = new Map();
+        const bySku = new Map();
+        mappedProducts.forEach((p, idx) => {
+          if (!p.sku) return;
+          const skuKey = p.sku.trim().toLowerCase();
+          const colorKey = (p.color || '').trim().toLowerCase();
+          bySkuColor.set(skuKey + '|' + colorKey, idx);
+          if (!bySku.has(skuKey)) bySku.set(skuKey, idx);
+        });
+        (earlyOstatok || []).forEach(os => {
+          if (!os.sku || Number(os.quantity) <= 0) return;
+          const skuKey = os.sku.trim().toLowerCase();
+          const colorKey = (os.color || '').trim().toLowerCase();
+          let idx = bySkuColor.get(skuKey + '|' + colorKey);
+          if (idx === undefined && colorKey) idx = bySkuColor.get(skuKey + '|');
+          if (idx === undefined) idx = bySku.get(skuKey);
+          if (idx !== undefined) {
+            const p = mappedProducts[idx];
+            if (p.stock == null || p.stock <= 0) p.stock = os.quantity;
+            if (!p.description) p.description = os.description || os.short_desc || null;
+            if (!p.description2) p.description2 = os.description2 || null;
+            if ((!p.images || !p.images.length) && Array.isArray(os.images)) p.images = os.images;
+          } else {
+            mappedProducts.push({
+              id:'os_'+os.id, sku:os.sku, model_code:null, modelCode:null,
+              color:os.color||null, name:os.sku, brand:'',
+              price:parseFloat(os.sell_price)||0,
+              oldPrice:os.old_price?parseFloat(os.old_price):null,
+              category:null, category_id:os.category_id||null, voltage:null, age:null,
+              stock:os.quantity, preorderDays:0, badge:null, img:'jeep',
+              features:[], images:Array.isArray(os.images)?os.images:[],
+              active:true, addedAt:0,
+              description:os.description || os.short_desc || null,
+              description2:os.description2 || null, _fromOstatok:true
+            });
+          }
+        });
+      } catch(_) {}
+      return mappedProducts;
     }
   } catch(e) {
     console.warn('Supabase недоступний, використовую локальні дані:', e.message);
