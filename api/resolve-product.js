@@ -168,14 +168,21 @@ export default async function handler(req, res) {
     // назад у catalog.html.
     if (!product) {
       const osId = productId.match(/^os_(\d+)$/i) || slug.match(/^os_(\d+)$/i);
-      if (osId) {
+      if (osId || slug) {
         const osSelect = 'id,sku,color,quantity,sell_price,old_price,images,category_id,description,description2,short_desc,active';
         const osUrl = supaUrl + '/rest/v1/ostatok?select=' + osSelect +
-          '&id=eq.' + encodeURIComponent(osId[1]) + '&quantity=gt.0&active=eq.true&limit=1';
+          (osId
+            ? '&id=eq.' + encodeURIComponent(osId[1])
+            : '&quantity=gt.0&active=eq.true&limit=1000');
         const osRes = await fetch(osUrl, { headers });
         if (osRes.ok) {
           const rows = await osRes.json();
-          const os = rows && rows[0];
+          const slugKey = String(slug || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+          const os = (rows || []).find(row => {
+            if (osId) return String(row.id) === String(osId[1]);
+            const skuKey = String(row.sku || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+            return skuKey && (slugKey.includes(skuKey) || skuKey.includes(slugKey));
+          });
           if (os) {
             product = {
               id: 'os_' + os.id,
@@ -193,7 +200,9 @@ export default async function handler(req, res) {
               description2: os.description2 || null,
               short_desc: os.short_desc || os.description2 || null,
               active: os.active !== false,
-              slug: 'os_' + os.id
+              // Для SEO canonical використовуємо slug із запиту (назва/артикул),
+              // а не технічний ідентифікатор os_<id>.
+              slug: slug || ('os_' + os.id)
             };
           }
         }

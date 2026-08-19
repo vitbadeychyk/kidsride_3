@@ -2993,14 +2993,19 @@ function slugify(str) {
 function catOpenProduct(id) {
   let _slug = null;
   let _hasDbSlug = false;
+  let _isOstatok = false;
   try {
     const p = (allProducts || []).find(x => String(x.id) === String(id));
     if (p) {
       sessionStorage.setItem('kr_active_product', JSON.stringify(p));
       _hasDbSlug = !!p.slug;
-      // Якщо slug ще не згенерований, використовуємо реальний id як route
-      // slug. API вміє знайти товар за id, тому перехід не повертає в каталог.
-      _slug = p.slug || (p.id ? String(p.id) : slugify(p.name || "")) || null;
+      _isOstatok = !!p._fromOstatok || /^os_/i.test(String(p.id || ''));
+      // Для складських позицій не показуємо технічний os_<id> у посиланні:
+      // використовуємо читабельний slug з назви (або артикулу як fallback).
+      // Реальний ID передаємо окремо, щоб API однозначно знайшов ostatok.
+      _slug = p.slug || (_isOstatok
+        ? slugify(p.name || p.sku || '')
+        : (p.id ? String(p.id) : slugify(p.name || ""))) || null;
       if (_slug && p.id) try { sessionStorage.setItem('kr_slug_id_' + _slug, p.id); } catch{}
     }
     // Зберігаємо стан каталогу для кнопки "Назад" і відновлення позиції прокрутки
@@ -3018,7 +3023,9 @@ function catOpenProduct(id) {
   })();
   // Для складських товарів slug у products може бути порожнім. Передаємо
   // також id, щоб API знайшов товар навіть до генерації slug-тригера.
-  const _idQuery = (_hasDbSlug && id) ? '?id=' + encodeURIComponent(id) : '';
+  // Джерело товару не показуємо в URL: для всіх товарів використовуємо
+  // однакове чисте SEO-посилання без технічного ?id=...
+  const _idQuery = '';
   window.location.href = _slug
     ? (_catPathN ? _catPathN + '/' + _slug + _idQuery : 'product/' + _slug + _idQuery)
     : 'product/' + encodeURIComponent(id) + _idQuery;
@@ -3074,14 +3081,17 @@ function renderCard(p) {
     stockBadge = '<div style="font-size:11px;color:#16a34a;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:5px"><svg viewBox="0 0 8 8" style="width:8px;height:8px"><circle cx="4" cy="4" r="4" fill="#16a34a"/></svg>В наявності</div>';
   }
 
-  const _pSlug = p.slug || (p.id ? String(p.id) : slugify(p.name || ""));
+  const _isOstatok = !!p._fromOstatok || /^os_/i.test(String(p.id || ''));
+  const _pSlug = p.slug || (_isOstatok
+    ? slugify(p.name || p.sku || '')
+    : (p.id ? String(p.id) : slugify(p.name || "")));
   // Будуємо URL товару: якщо обрано підкатегорію — додаємо шлях категорії
   const _catPathR = (() => {
     const pts = window.location.pathname.split('/').filter(Boolean);
     if (pts.length < 2 || pts[0] === 'catalog.html') return '';
     return '/' + pts[0] + '/' + pts[1];
   })();
-  const _hrefId = p.slug && p.id ? '?id=' + encodeURIComponent(p.id) : '';
+  const _hrefId = '';
   const productHref = _pSlug
     ? (_catPathR ? _catPathR + '/' + _pSlug + _hrefId : 'product/' + _pSlug + _hrefId)
     : (p.id ? 'product/' + encodeURIComponent(p.id) + _hrefId : 'catalog.html');
@@ -4350,7 +4360,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if(typeof allProducts !== 'undefined' && Array.isArray(allProducts) && allProducts.length > 0){
       KR_PRODUCTS_CACHE = allProducts.map(p=>({
         id:p.id,name:p.name||'',brand:p.brand||'',model:p.model_code||p.sku||'',
-        sku:p.sku||'',category:p.category||'',price:parseFloat(p.price)||0,slug:p.slug||null,
+        sku:p.sku||'',category:p.category||'',price:parseFloat(p.price)||0,
+        slug:p.slug || (p._fromOstatok ? slugify(p.name || p.sku || '') : null),
         emoji:KR_CAT_EMOJI[p.category]||'🚗',photo:Array.isArray(p.images)&&p.images[0]?p.images[0]:null
       }));
       return KR_PRODUCTS_CACHE;
@@ -4374,7 +4385,7 @@ document.addEventListener('DOMContentLoaded', () => {
               data.push({
                 id:'os_'+os.id, name:os.sku, brand:'', model:os.sku,
                 sku:os.sku, category:'', price:parseFloat(os.sell_price)||0,
-                slug:null, images:os.images, _fromOstatok:true
+                slug:slugify(os.sku), images:os.images, _fromOstatok:true
               });
             });
           }
@@ -4383,7 +4394,8 @@ document.addEventListener('DOMContentLoaded', () => {
           const seen=new Set();
           KR_PRODUCTS_CACHE=data.filter(p=>{if(!p||seen.has(p.id))return false;seen.add(p.id);return true;})
             .map(p=>({id:p.id,name:p.name||'',brand:p.brand||'',model:p.model_code||p.sku||'',
-              sku:p.sku||'',category:p.category||'',price:parseFloat(p.price)||0,slug:p.slug||null,
+              sku:p.sku||'',category:p.category||'',price:parseFloat(p.price)||0,
+              slug:p.slug || (p._fromOstatok ? slugify(p.name || p.sku || '') : null),
               emoji:KR_CAT_EMOJI[p.category]||'🚗',photo:Array.isArray(p.images)&&p.images[0]?p.images[0]:null}));
           return KR_PRODUCTS_CACHE;
         }
@@ -4431,7 +4443,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const a=document.createElement('a');
        const _srSlug=p.slug||(p.id?String(p.id):(p.name?p.name.toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi,'-').replace(/^-+|-+$/g,'').substring(0,60):null));
        a.href=_srSlug
-         ? 'product/'+_srSlug+(p.id?'?id='+encodeURIComponent(p.id):'')
+       ? 'product/'+_srSlug
          : 'catalog.html?search='+encodeURIComponent(p.name||'');
       if(_srSlug&&p.id)a.addEventListener('click',function(){try{sessionStorage.setItem('kr_slug_id_'+_srSlug,p.id);}catch(e){}});
       a.className='search-sug';

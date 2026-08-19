@@ -1747,6 +1747,24 @@ console.log('[KidsRide] product.html v3.9 — працюють: копіюван
         if (_sr.ok) { const _sa = await _sr.json(); if (_sa && _sa[0]) id = _sa[0].id; }
       } catch(e) { console.warn('[KidsRide] slug lookup:', e); }
     }
+    // Чисті SEO-slug-и складських позицій не містять їх технічний ID.
+    // Знаходимо їх за нормалізованим артикулом у ostatok.
+    if (!id && _urlPathSlug) {
+      try {
+        const _or = await fetch(SUPA_URL + '/rest/v1/ostatok?select=id,sku&quantity=gt.0&active=eq.true&limit=1000', {
+          headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
+        });
+        if (_or.ok) {
+          const _oa = await _or.json();
+          const _slugKey = _urlPathSlug.toLowerCase().replace(/[^a-z0-9]+/g, '');
+          const _os = (_oa || []).find(row => {
+            const _skuKey = String(row.sku || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+            return _skuKey && (_slugKey.includes(_skuKey) || _skuKey.includes(_slugKey));
+          });
+          if (_os) id = 'os_' + _os.id;
+        }
+      } catch(e) { console.warn('[KidsRide] ostatok slug lookup:', e); }
+    }
     // Швидкий рендер з sessionStorage ТІЛЬКИ якщо:
     // 1. id збігається з cached.id
     // 2. І slug кешованого продукту збігається з URL-slug (захист від застарілого кешу з іншим товаром)
@@ -2285,6 +2303,12 @@ function applyProductData(p){
     const _ret = (() => { try { return JSON.parse(sessionStorage.getItem('kr_catalog_return') || 'null'); } catch {} return null; })();
     const CAT_LABELS = { jeep:'Джипи', quad:'Квадроцикли', moto:'Мотоцикли', car:'Машини', tractor:'Трактори', walker:'Каталки-толокари', truck:'Вантажівки', buggy:'Баггі' };
     const catEl = document.getElementById('breadcrumbCat');
+    const hideDuplicateCatalogCrumb = () => {
+      if (!catEl) return;
+      catEl.style.display = 'none';
+      const separator = catEl.previousElementSibling;
+      if (separator && separator.localName === 'svg') separator.style.display = 'none';
+    };
 
     // Якщо URL вигляду /:mainCat/:subCat/:productSlug — зчитуємо назву підкатегорії з URL
     const _ppParts = window.location.pathname.replace(/\/$/, '').split('/').filter(Boolean);
@@ -2305,7 +2329,11 @@ function applyProductData(p){
       if (bar) bar.style.display = '';
       if (lbl) lbl.textContent = '← ' + _subLabel;
     } else if (_ret && _ret.catLabel) {
-      if (catEl) { catEl.textContent = _ret.catLabel; catEl.href = _ret.url || '/catalog.html'; }
+      if (_ret.catLabel === 'Каталог') {
+        hideDuplicateCatalogCrumb();
+      } else if (catEl) {
+        catEl.textContent = _ret.catLabel; catEl.href = _ret.url || '/catalog.html';
+      }
       const bar = document.getElementById('backToCatalogBar');
       const lbl = document.getElementById('backToCatalogLabel');
       if (bar) bar.style.display = '';
@@ -2313,6 +2341,8 @@ function applyProductData(p){
     } else if (p.category && catEl) {
       catEl.textContent = CAT_LABELS[p.category] || 'Каталог';
       catEl.href = '/catalog.html?cat=' + encodeURIComponent(p.category);
+    } else {
+      hideDuplicateCatalogCrumb();
     }
   }
   if (p.brand && !/^без\s*бренд/i.test(p.brand)){
