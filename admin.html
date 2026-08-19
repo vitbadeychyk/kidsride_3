@@ -7510,6 +7510,27 @@ function ostatokOpenModal(id) {
 }
 
 let _osLookupTimer = null;
+function osSlugify(value) {
+  const ua = {'а':'a','б':'b','в':'v','г':'h','ґ':'g','д':'d','е':'e','є':'ie','ж':'zh','з':'z','и':'y','і':'i','ї':'i','й':'i','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f','х':'kh','ц':'ts','ч':'ch','ш':'sh','щ':'shch','ь':'','ю':'iu','я':'ia','ё':'e','ъ':'','ы':'y','э':'e'};
+  const slug = String(value || '').toLowerCase().split('').map(c => ua[c] !== undefined ? ua[c] : c).join('')
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80);
+  return slug || 'product';
+}
+async function osUniqueSlug(base, currentId) {
+  const root = osSlugify(base);
+  let candidate = root;
+  for (let i = 1; i <= 20; i++) {
+    try {
+      const rows = await sbFetch('products?select=id&slug=eq.' + encodeURIComponent(candidate) + '&limit=1');
+      if (!rows.length || (currentId && String(rows[0].id) === String(currentId))) return candidate;
+    } catch (_) {
+      // Якщо slug-колонки ще немає, не блокуємо збереження товару.
+      return null;
+    }
+    candidate = root + '-' + (i + 1);
+  }
+  return root + '-' + Date.now().toString(36).slice(-5);
+}
 async function ostatokLookupProduct() {
   clearTimeout(_osLookupTimer);
   const skuEl = document.getElementById('osF_sku');
@@ -7519,7 +7540,7 @@ async function ostatokLookupProduct() {
   if (sku.length < 2) { hint.style.display='none'; return; }
   _osLookupTimer = setTimeout(async () => {
     try {
-      const rows = await sbFetch('products?select=id,sku,name,description,description2,short_desc,images&sku=eq.' + encodeURIComponent(sku) + '&limit=5');
+      const rows = await sbFetch('products?select=id,sku,name,slug,description,description2,short_desc,images&sku=eq.' + encodeURIComponent(sku) + '&limit=5');
       const p = rows && rows[0];
       if (!p) {
         hint.textContent = 'У каталозі товар з таким артикулом не знайдено. Поля можна заповнити вручну.';
@@ -7584,15 +7605,16 @@ async function ostatokSave() {
     try {
       const colorFilter = color ? '&color=eq.'+encodeURIComponent(color) : '';
       // Перевіряємо чи існує продукт з таким SKU (з кольором або без)
-      let existing = await sbFetch('products?sku=eq.'+encodeURIComponent(sku)+colorFilter+'&select=id,stock');
+      let existing = await sbFetch('products?sku=eq.'+encodeURIComponent(sku)+colorFilter+'&select=id,stock,slug,name');
       // Якщо з кольором не знайшли — шукаємо без фільтру кольору
       if((!existing || existing.length === 0) && color) {
-        existing = await sbFetch('products?sku=eq.'+encodeURIComponent(sku)+'&select=id,stock');
+        existing = await sbFetch('products?sku=eq.'+encodeURIComponent(sku)+'&select=id,stock,slug,name');
       }
 
       if(existing && existing.length > 0) {
         // ✅ Товар є в каталозі — оновлюємо склад, ціни, фото та описи.
         // Інші характеристики (назва, акумулятор, вік тощо) не чіпаємо.
+        const generatedSlug = existing[0].slug || await osUniqueSlug(existing[0].name || sku, existing[0].id);
         const updateFields = {
           active: activeVal,
           stock: qty,
@@ -7602,7 +7624,8 @@ async function ostatokSave() {
           category_id: categoryId,
           description,
           description2,
-          short_desc: description2 || description
+          short_desc: description2 || description,
+          ...(generatedSlug ? { slug: generatedSlug } : {})
         };
         const filter = color
           ? 'products?sku=eq.'+encodeURIComponent(sku)+colorFilter
@@ -7613,9 +7636,11 @@ async function ostatokSave() {
         });
       } else {
         // 🆕 Товару немає в каталозі — створюємо новий запис з описом з остатку
+        const generatedSlug = await osUniqueSlug(sku);
         const newProduct = {
           sku,
           name: sku,
+          ...(generatedSlug ? { slug: generatedSlug } : {}),
           active: activeVal,
           price: sellPrice || 0,
           stock: qty,

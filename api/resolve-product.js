@@ -133,12 +133,13 @@ function buildSchema(product, pageUrl, desc, catName, catUrl, reviews = []) {
 
 export default async function handler(req, res) {
   const slug     = (req.query.slug      || '').trim().toLowerCase();
+  const productId = (req.query.id       || '').trim();
   const mainSlug = (req.query.main_slug || '').trim().toLowerCase();
   const catSlug  = (req.query.cat_slug  || '').trim().toLowerCase();
   const supaUrl  = process.env.SUPABASE_URL;
   const supaKey  = process.env.SUPABASE_ANON_KEY;
 
-  if (!slug || !supaUrl || !supaKey) {
+  if ((!slug && !productId) || !supaUrl || !supaKey) {
     return res.redirect(302, '/catalog.html');
   }
 
@@ -147,15 +148,20 @@ export default async function handler(req, res) {
   // ── 1. Завантажуємо товар за slug ────────────────────────────────────────
   let product = null;
   try {
-    const r = await fetch(
-      supaUrl +
-        '/rest/v1/products?select=id,name,description,description2,short_desc,price,old_price,images,category,brand,slug,sku,stock,active,updated_at&slug=eq.' +
-        encodeURIComponent(slug) + '&limit=1',
-      { headers }
-    );
-    if (r.ok) {
+    const select = 'id,name,description,description2,short_desc,price,old_price,images,category,brand,slug,sku,stock,active,updated_at';
+    const bySlug = slug
+      ? supaUrl + '/rest/v1/products?select=' + select + '&slug=eq.' + encodeURIComponent(slug) + '&limit=1'
+      : null;
+    const fallbackId = productId || (/^(?:\d+|[0-9a-f]{8,}(?:-[0-9a-f-]+)?)$/i.test(slug) ? slug : '');
+    const byId = fallbackId
+      ? supaUrl + '/rest/v1/products?select=' + select + '&id=eq.' + encodeURIComponent(fallbackId) + '&limit=1'
+      : null;
+    const urls = [bySlug, byId].filter(Boolean);
+    for (const url of urls) {
+      const r = await fetch(url, { headers });
+      if (!r.ok) continue;
       const arr = await r.json();
-      product = arr && arr[0] ? arr[0] : null;
+      if (arr && arr[0]) { product = arr[0]; break; }
     }
   } catch (_) {}
 
