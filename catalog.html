@@ -2836,7 +2836,7 @@ async function loadProductsFromSupabase() {
             active:true, addedAt:0,
             description:os.description || os.short_desc || null,
             description2:os.description2 || null,
-            _fromOstatok:true
+            _fromOstatok:true, _ostatok_id:os.id
           });
           changed = true;
         }
@@ -2918,7 +2918,7 @@ async function loadProductsFromSupabase() {
               features:[], images:Array.isArray(os.images)?os.images:[],
               active:true, addedAt:0,
               description:os.description || os.short_desc || null,
-              description2:os.description2 || null, _fromOstatok:true
+              description2:os.description2 || null, _fromOstatok:true, _ostatok_id:os.id
             });
           }
         });
@@ -4362,6 +4362,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const base=KR_SUPABASE_URL_SR+'/rest/v1/products?select=id,name,brand,model_code,sku,category,price,images,slug&active=eq.true&order=created_at.desc&limit=1000';
         const pages=await Promise.all([0,1000,2000].map(off=>fetch(base+'&offset='+off,{headers:hdrs}).then(r=>r.ok?r.json():[]).catch(()=>[])));
         const data=pages.flat();
+        // Товари, додані через «Залишок (власний склад)», не мають запису
+        // у products, але мають бути доступні в глобальному пошуку за артикулом.
+        try {
+          const osUrl = KR_SUPABASE_URL_SR + '/rest/v1/ostatok?select=id,sku,color,quantity,sell_price,old_price,images,active&quantity=gt.0&active=eq.true';
+          const osRes = await fetch(osUrl, {headers:hdrs});
+          if (osRes.ok) {
+            const osRows = await osRes.json();
+            (Array.isArray(osRows) ? osRows : []).forEach(os => {
+              if (!os.sku || Number(os.quantity) <= 0) return;
+              data.push({
+                id:'os_'+os.id, name:os.sku, brand:'', model:os.sku,
+                sku:os.sku, category:'', price:parseFloat(os.sell_price)||0,
+                slug:null, images:os.images, _fromOstatok:true
+              });
+            });
+          }
+        } catch(e) { console.warn('KR search ostatok:',e); }
         if(data.length){
           const seen=new Set();
           KR_PRODUCTS_CACHE=data.filter(p=>{if(!p||seen.has(p.id))return false;seen.add(p.id);return true;})

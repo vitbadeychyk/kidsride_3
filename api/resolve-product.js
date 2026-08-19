@@ -163,6 +163,42 @@ export default async function handler(req, res) {
       const arr = await r.json();
       if (arr && arr[0]) { product = arr[0]; break; }
     }
+    // Власний склад має окрему таблицю ostatok і синтетичний ID os_<id>.
+    // Без цього clean URL складського товару помилково повертав користувача
+    // назад у catalog.html.
+    if (!product) {
+      const osId = productId.match(/^os_(\d+)$/i) || slug.match(/^os_(\d+)$/i);
+      if (osId) {
+        const osSelect = 'id,sku,color,quantity,sell_price,old_price,images,category_id,description,description2,short_desc,active';
+        const osUrl = supaUrl + '/rest/v1/ostatok?select=' + osSelect +
+          '&id=eq.' + encodeURIComponent(osId[1]) + '&quantity=gt.0&active=eq.true&limit=1';
+        const osRes = await fetch(osUrl, { headers });
+        if (osRes.ok) {
+          const rows = await osRes.json();
+          const os = rows && rows[0];
+          if (os) {
+            product = {
+              id: 'os_' + os.id,
+              sku: os.sku,
+              name: os.sku,
+              color: os.color || null,
+              brand: '',
+              price: Number(os.sell_price) || 0,
+              old_price: os.old_price || null,
+              stock: Number(os.quantity) || 0,
+              images: Array.isArray(os.images) ? os.images : [],
+              category: null,
+              category_id: os.category_id || null,
+              description: os.description || os.short_desc || null,
+              description2: os.description2 || null,
+              short_desc: os.short_desc || os.description2 || null,
+              active: os.active !== false,
+              slug: 'os_' + os.id
+            };
+          }
+        }
+      }
+    }
   } catch (_) {}
 
   if (!product) {
