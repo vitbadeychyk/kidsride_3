@@ -1873,6 +1873,7 @@ console.log('[KidsRide] product.html v3.9 — працюють: копіюван
           });
           if (_os) {
             p.stock = Number(_os.quantity) || 0;
+            if (p.stock > 0) p.active = true;
             if (Number(_os.sell_price) > 0) p.price = Number(_os.sell_price);
             if (Number(_os.old_price) > 0) p.old_price = Number(_os.old_price);
           }
@@ -2560,6 +2561,27 @@ async function switchToVariant(id, supaUrl, supaKey){
   try { p = await tryFetch(true); } catch {}
   if (!p) { try { p = await tryFetch(false); } catch {} }
   if (!p) return false;
+  // Варіант кольору також має використовувати власний склад, інакше після
+  // перемикання картка знову покаже старий stock/preorder із products.
+  if (p.sku && Number(p.stock || 0) <= 0) {
+    try {
+      const osRes = await fetch(supaUrl + '/rest/v1/ostatok?select=sku,quantity,sell_price,old_price,active&quantity=gt.0&limit=1000', {
+        headers: { 'apikey': supaKey, 'Authorization': 'Bearer ' + supaKey }
+      });
+      if (osRes.ok) {
+        const osRows = await osRes.json();
+        const skuKey = String(p.sku).toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi, '');
+        const os = (osRows || []).find(row => row.active !== false &&
+          String(row.sku || '').toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi, '') === skuKey);
+        if (os) {
+          p.stock = Number(os.quantity) || 0;
+          if (p.stock > 0) p.active = true;
+          if (Number(os.sell_price) > 0) p.price = Number(os.sell_price);
+          if (Number(os.old_price) > 0) p.old_price = Number(os.old_price);
+        }
+      }
+    } catch {}
+  }
 
   // Оновлюємо вміст сторінки на місці
   applyProductData(p);

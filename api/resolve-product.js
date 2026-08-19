@@ -237,6 +237,7 @@ export default async function handler(req, res) {
         });
         if (stockRow) {
           product.stock = Number(stockRow.quantity) || 0;
+          if (product.stock > 0) product.active = true;
           if (Number(stockRow.sell_price) > 0) product.price = Number(stockRow.sell_price);
           if (Number(stockRow.old_price) > 0) product.old_price = Number(stockRow.old_price);
         }

@@ -2825,6 +2825,7 @@ async function loadProductsFromSupabase() {
           // зі складу: тоді показуємо складський залишок та його ціни.
           if (p.stock == null || Number(p.stock) <= 0) {
             p.stock = Number(os.quantity) || 0;
+            if (p.stock > 0) p.active = true;
             if (Number(os.sell_price) > 0) p.price = Number(os.sell_price);
             if (Number(os.old_price) > 0) p.oldPrice = Number(os.old_price);
             if (!p.description && (os.description || os.short_desc)) p.description = os.description || os.short_desc;
@@ -2914,6 +2915,7 @@ async function loadProductsFromSupabase() {
             // але не створюємо другий товар з тим самим артикулом.
             if (p.stock == null || Number(p.stock) <= 0) {
               p.stock = Number(os.quantity) || 0;
+              if (p.stock > 0) p.active = true;
               if (Number(os.sell_price) > 0) p.price = Number(os.sell_price);
               if (Number(os.old_price) > 0) p.oldPrice = Number(os.old_price);
               if (!p.description) p.description = os.description || os.short_desc || null;
