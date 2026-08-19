@@ -22,6 +22,7 @@ ALTER TABLE products
   ADD COLUMN IF NOT EXISTS warranty       text,        -- "12 міс."
   ADD COLUMN IF NOT EXISTS assembly_time  text,        -- "20 хв"
   ADD COLUMN IF NOT EXISTS short_desc     text,        -- короткий опис під назвою
+  ADD COLUMN IF NOT EXISTS description2   text,        -- альтернативний короткий опис для картки
   ADD COLUMN IF NOT EXISTS subcategory    text;        -- підкатегорія, напр. "Джипи"
 
 -- Індекс по color прискорить групування варіантів за моделлю+кольором.

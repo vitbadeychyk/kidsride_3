@@ -2713,8 +2713,8 @@ async function loadProductsFromSupabase() {
     let from = 0;
 
     // Два варіанти SELECT: з slug (після міграції) і без (до міграції БД)
-      const _SEL_FULL = 'id,sku,model_code,color,name,brand,price,old_price,category,category_id,voltage,age_range,stock,preorder_days,badge,img_type,images,active,created_at,slug,description2';
-      const _SEL_BASE = 'id,sku,model_code,color,name,brand,price,old_price,category,category_id,voltage,age_range,stock,preorder_days,badge,img_type,images,active,created_at,description2';
+      const _SEL_FULL = 'id,sku,model_code,color,name,brand,price,old_price,category,category_id,voltage,age_range,stock,preorder_days,badge,img_type,images,active,created_at,slug,description,description2,short_desc';
+      const _SEL_BASE = 'id,sku,model_code,color,name,brand,price,old_price,category,category_id,voltage,age_range,stock,preorder_days,badge,img_type,images,active,created_at,description,description2,short_desc';
       const _fetchPage = async (from, sel) => {
         sel = sel || _SEL_FULL;
         const ctrl = new AbortController();
@@ -2747,7 +2747,7 @@ async function loadProductsFromSupabase() {
         const osCtrl = new AbortController();
         const osTid = setTimeout(() => osCtrl.abort(), FETCH_TIMEOUT);
         const osRes = await fetch(
-          SUPABASE_URL + '/rest/v1/ostatok?select=id,sku,color,quantity,sell_price,old_price,active,images,category_id,short_desc&quantity=gt.0&active=eq.true',
+          SUPABASE_URL + '/rest/v1/ostatok?select=id,sku,color,quantity,sell_price,old_price,active,images,category_id,description,description2,short_desc&quantity=gt.0&active=eq.true',
           { signal: osCtrl.signal, headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
         ).finally(() => clearTimeout(osTid));
         if (osRes.ok) return await osRes.json();
@@ -2807,7 +2807,10 @@ async function loadProductsFromSupabase() {
         if (idx !== undefined) {
           const p = src[idx];
           if (p.stock == null || p.stock <= 0) { p.stock = os.quantity; changed = true; }
-          if (!p.description && os.short_desc) { p.description = os.short_desc; changed = true; }
+          if (!p.description && (os.description || os.short_desc)) {
+            p.description = os.description || os.short_desc; changed = true;
+          }
+          if (!p.description2 && os.description2) { p.description2 = os.description2; changed = true; }
         } else {
           extra.push({
             id:'os_'+os.id, sku:os.sku, model_code:null, modelCode:null,
@@ -2816,7 +2819,10 @@ async function loadProductsFromSupabase() {
             category:null, category_id:os.category_id||null, voltage:null, age:null,
             stock:os.quantity, preorderDays:0, badge:null, img:'jeep',
             features:[], images:Array.isArray(os.images)?os.images:[],
-            active:true, addedAt:0, description:os.short_desc||null, _fromOstatok:true
+            active:true, addedAt:0,
+            description:os.description || os.short_desc || null,
+            description2:os.description2 || null,
+            _fromOstatok:true
           });
           changed = true;
         }

@@ -1869,7 +1869,9 @@ function renderProductDescription(p){
   const desc = (p && typeof p.description === 'string' && p.description.trim())
     ? p.description.trim()
     : ((p && typeof p.description2 === 'string') ? p.description2.trim() : '');
-  const short = (p && typeof p.short_desc === 'string') ? p.short_desc.trim() : '';
+  const short = (p && typeof p.short_desc === 'string' && p.short_desc.trim())
+    ? p.short_desc.trim()
+    : ((p && typeof p.description2 === 'string') ? p.description2.trim() : '');
 
   if (wrap){
     wrap.innerHTML = '';
@@ -1877,7 +1879,9 @@ function renderProductDescription(p){
       const AGE_ICON = '<svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>';
 
       // ── Нормалізуємо рядки ──
-      const full = (short ? (short + '\n') : '') + desc;
+      // Не дублюємо текст, якщо description2 використовується як fallback
+      // або якщо старий short_desc дорівнює повному опису.
+      const full = [short, desc].filter((v, i, a) => v && a.indexOf(v) === i).join('\n');
       const lines = full.split(/\r?\n/).map(l => l.trim());
 
       // ── Буфери для групування списків ──

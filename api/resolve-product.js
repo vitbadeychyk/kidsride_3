@@ -149,7 +149,7 @@ export default async function handler(req, res) {
   try {
     const r = await fetch(
       supaUrl +
-        '/rest/v1/products?select=id,name,description,short_desc,price,old_price,images,category,brand,slug,sku,stock,active,updated_at&slug=eq.' +
+        '/rest/v1/products?select=id,name,description,description2,short_desc,price,old_price,images,category,brand,slug,sku,stock,active,updated_at&slug=eq.' +
         encodeURIComponent(slug) + '&limit=1',
       { headers }
     );
@@ -228,7 +228,7 @@ export default async function handler(req, res) {
   }
 
   const title    = escHtml(product.name) + ' — KidsRide';
-  const rawDesc  = product.short_desc || product.description ||
+  const rawDesc  = product.short_desc || product.description2 || product.description ||
     'Купити ' + product.name + ' в KidsRide. Гарантія 12 міс., доставка Новою Поштою.';
   const desc     = escHtml(rawDesc.substring(0, 160));
   const img      = escHtml((Array.isArray(product.images) && product.images[0]) || SITE + '/opengraph.jpg');

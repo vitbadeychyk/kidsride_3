@@ -323,7 +323,7 @@ async function loadOstatok() {
   let from   = 0;
 
   while (true) {
-    const data = await sbFetch('ostatok?select=sku,quantity,sell_price,old_price,images,active', {
+    const data = await sbFetch('ostatok?select=sku,quantity,sell_price,old_price,images,active,description,description2,short_desc', {
       headers: { 'Range': `${from}-${from + PAGE - 1}`, 'Range-Unit': 'items', 'Prefer': 'count=none' },
     });
     if (!data || !data.length) break;
@@ -336,6 +336,9 @@ async function loadOstatok() {
           sell_price: row.sell_price  != null ? row.sell_price  : (existing ? existing.sell_price  : null),
           old_price:  row.old_price   != null ? row.old_price   : (existing ? existing.old_price   : null),
           images:     Array.isArray(row.images) && row.images.length ? row.images : (existing ? existing.images : null),
+          description: row.description || (existing ? existing.description : null),
+          description2: row.description2 || (existing ? existing.description2 : null),
+          short_desc: row.short_desc || (existing ? existing.short_desc : null),
           active:     row.active !== false,
         });
     });
@@ -503,6 +506,17 @@ async function main() {
   // 7) Застосувати логіку залишків
   log('Визначаю залишки...');
   resolveStock(products, ostatokMap);
+
+  // Дані власного складу мають пріоритет для опису/фото. Інакше наступний
+  // XML-синк міг би повернути старий опис постачальника назад у products.
+  products.forEach(p => {
+    const own = ostatokMap.get((p.sku || '').trim());
+    if (!own) return;
+    if (own.description)  p.description = own.description;
+    if (own.description2) p.description2 = own.description2;
+    if (own.short_desc)   p.short_desc = own.short_desc;
+    if (Array.isArray(own.images) && own.images.length) p.images = own.images;
+  });
 
   // 8) Прибрати колонки яких немає в базі + застосувати category_id
   products.forEach(p => {

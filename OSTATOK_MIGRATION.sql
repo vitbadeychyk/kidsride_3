@@ -21,6 +21,13 @@ ALTER TABLE ostatok
 ALTER TABLE ostatok
   ADD COLUMN IF NOT EXISTS active boolean NOT NULL DEFAULT true;
 
+-- 5. Опис товару та короткий опис для власних позицій.
+-- Вони дублюються у products під час збереження, щоб товар однаково
+-- відображався і як звичайний товар, і як синтетичний товар зі складу.
+ALTER TABLE ostatok
+  ADD COLUMN IF NOT EXISTS description text DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS description2 text DEFAULT NULL;
+
 -- ══════════════════════════════════════════════════════════════
 -- Перевірка — має показати всі нові поля:
 -- SELECT column_name, data_type FROM information_schema.columns
