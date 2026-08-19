@@ -1856,6 +1856,29 @@ console.log('[KidsRide] product.html v3.9 — працюють: копіюван
       }
     }
     if (!p) { console.warn('[KidsRide] product not found in DB:', id); _revealProductPage(); return; }
+    // Для артикула без залишку у постачальника власний склад є джерелом
+    // продажу. Якщо products.stock > 0 — не підміняємо жодне поле products.
+    if (p.sku && !/^os_/i.test(String(p.id || '')) && Number(p.stock || 0) <= 0) {
+      try {
+        const _or = await fetch(SUPA_URL + '/rest/v1/ostatok?select=sku,quantity,sell_price,old_price,active&quantity=gt.0&limit=1000', {
+          headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
+        });
+        if (_or.ok) {
+          const _oa = await _or.json();
+          const _skuKey = String(p.sku).toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi, '');
+          const _os = (_oa || []).find(row => {
+            if (row.active === false) return false;
+            const rowKey = String(row.sku || '').toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi, '');
+            return rowKey === _skuKey;
+          });
+          if (_os) {
+            p.stock = Number(_os.quantity) || 0;
+            if (Number(_os.sell_price) > 0) p.price = Number(_os.sell_price);
+            if (Number(_os.old_price) > 0) p.old_price = Number(_os.old_price);
+          }
+        }
+      } catch(e) { console.warn('[KidsRide] stock fallback:', e); }
+    }
     console.log('[KidsRide] product loaded:', { sku: p.sku, model_code: p.model_code, name: p.name, images: Array.isArray(p.images) ? p.images.length : 0 });
 
     window.__krCurrentProduct = p;

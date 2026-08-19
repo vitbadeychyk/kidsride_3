@@ -219,6 +219,30 @@ export default async function handler(req, res) {
     // Slug не знайдено — перенаправляємо на каталог (щоб не показувати кешований не той товар)
     return res.redirect(302, '/catalog.html');
   }
+  // Якщо постачальник не має залишку, беремо складські ціни для SSR.
+  // При stock > 0 дані з products залишаються без змін.
+  if (product.sku && !/^os_/i.test(String(product.id || '')) && Number(product.stock || 0) <= 0) {
+    try {
+      const stockRes = await fetch(
+        supaUrl + '/rest/v1/ostatok?select=sku,quantity,sell_price,old_price,active&quantity=gt.0&limit=1000',
+        { headers }
+      );
+      if (stockRes.ok) {
+        const stockRows = await stockRes.json();
+        const skuKey = String(product.sku).toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi, '');
+        const stockRow = (stockRows || []).find(row => {
+          if (row.active === false) return false;
+          const rowKey = String(row.sku || '').toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi, '');
+          return rowKey === skuKey;
+        });
+        if (stockRow) {
+          product.stock = Number(stockRow.quantity) || 0;
+          if (Number(stockRow.sell_price) > 0) product.price = Number(stockRow.sell_price);
+          if (Number(stockRow.old_price) > 0) product.old_price = Number(stockRow.old_price);
+        }
+      }
+    } catch (_) {}
+  }
   // ── 2. Завантажуємо відгуки для aggregateRating + review ───────────────
   let reviews = [];
   try {
