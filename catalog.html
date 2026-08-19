@@ -4382,15 +4382,15 @@ document.addEventListener('DOMContentLoaded', () => {
         // Товари, додані через «Залишок (власний склад)», не мають запису
         // у products, але мають бути доступні в глобальному пошуку за артикулом.
         try {
-          const osUrl = KR_SUPABASE_URL_SR + '/rest/v1/ostatok?select=id,sku,name,color,quantity,sell_price,old_price,images,active&quantity=gt.0&active=eq.true';
+          const osUrl = KR_SUPABASE_URL_SR + '/rest/v1/ostatok?select=id,sku,name,color,quantity,sell_price,old_price,images,active&quantity=gt.0';
           let osRes = await fetch(osUrl, {headers:hdrs});
           if (osRes.status === 400) {
-            osRes = await fetch(KR_SUPABASE_URL_SR + '/rest/v1/ostatok?select=id,sku,color,quantity,sell_price,old_price,images,active&quantity=gt.0&active=eq.true', {headers:hdrs});
+            osRes = await fetch(KR_SUPABASE_URL_SR + '/rest/v1/ostatok?select=id,sku,color,quantity,sell_price,old_price,images,active&quantity=gt.0', {headers:hdrs});
           }
           if (osRes.ok) {
             const osRows = await osRes.json();
             (Array.isArray(osRows) ? osRows : []).forEach(os => {
-              if (!os.sku || Number(os.quantity) <= 0) return;
+              if (!os.sku || Number(os.quantity) <= 0 || os.active === false) return;
               data.push({
                 id:'os_'+os.id, name:os.name || os.sku, brand:'', model:os.sku,
                 sku:os.sku, category:'', price:parseFloat(os.sell_price)||0,

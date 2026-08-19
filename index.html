@@ -2706,6 +2706,32 @@ async function krLoadAllProducts() {
           .then(r => r.ok ? r.json() : []).catch(() => []))
       );
       const data = pages.flat();
+      // Додаємо активні позиції власного складу до глобального пошуку.
+      // Раніше пошук на головній читав тільки products.
+      try {
+        let osRes = await fetch(KR_SUPABASE_URL + '/rest/v1/ostatok?select=id,sku,name,quantity,sell_price,images,active&quantity=gt.0', { headers: hdrs });
+        if (osRes.status === 400) {
+          osRes = await fetch(KR_SUPABASE_URL + '/rest/v1/ostatok?select=id,sku,quantity,sell_price,images,active&quantity=gt.0', { headers: hdrs });
+        }
+        if (osRes.ok) {
+          const osRows = await osRes.json();
+          (osRows || []).forEach(os => {
+            if (!os.sku || Number(os.quantity) <= 0 || os.active === false) return;
+            data.push({
+              id: 'os_' + os.id,
+              name: os.name || os.sku,
+              brand: '',
+              model_code: os.sku,
+              sku: os.sku,
+              slug: String(os.name || os.sku).toLowerCase()
+                .replace(/[^a-z0-9а-яіїєґ]+/gi, '-').replace(/^-+|-+$/g, '').slice(0, 80),
+              category: '',
+              price: parseFloat(os.sell_price) || 0,
+              images: os.images
+            });
+          });
+        }
+      } catch (e) { console.warn('KR search ostatok fail:', e); }
       if (data.length) {
         const seen = new Set();
         KR_PRODUCTS_CACHE = data.filter(p => { if (!p || seen.has(p.id)) return false; seen.add(p.id); return true; })

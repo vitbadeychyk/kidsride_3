@@ -224,13 +224,18 @@ export default async function handler(req, res) {
   if (product.sku && !/^os_/i.test(String(product.id || '')) && Number(product.stock || 0) <= 0) {
     try {
       const stockRes = await fetch(
-        supaUrl + '/rest/v1/ostatok?select=quantity&sku=eq.' +
-          encodeURIComponent(product.sku) + '&quantity=gt.0&active=eq.true&limit=1',
+        supaUrl + '/rest/v1/ostatok?select=sku,quantity,active&quantity=gt.0&limit=1000',
         { headers }
       );
       if (stockRes.ok) {
         const stockRows = await stockRes.json();
-        if (stockRows && stockRows[0]) product.stock = Number(stockRows[0].quantity) || 0;
+        const skuKey = String(product.sku).toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi, '');
+        const stockRow = (stockRows || []).find(row => {
+          if (row.active === false) return false;
+          const rowKey = String(row.sku || '').toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi, '');
+          return rowKey === skuKey;
+        });
+        if (stockRow) product.stock = Number(stockRow.quantity) || 0;
       }
     } catch (_) {}
   }

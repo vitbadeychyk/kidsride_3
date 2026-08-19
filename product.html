@@ -1861,13 +1861,18 @@ console.log('[KidsRide] product.html v3.9 — працюють: копіюван
     // з products та помилково показувалось «Під замовлення».
     if (p.sku && !/^os_/i.test(String(p.id || '')) && Number(p.stock || 0) <= 0) {
       try {
-        const _or = await fetch(SUPA_URL + '/rest/v1/ostatok?select=quantity&sku=eq.' +
-          encodeURIComponent(p.sku) + '&quantity=gt.0&active=eq.true&limit=1', {
+        const _or = await fetch(SUPA_URL + '/rest/v1/ostatok?select=sku,quantity,active&quantity=gt.0&limit=1000', {
           headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
         });
         if (_or.ok) {
           const _oa = await _or.json();
-          if (_oa && _oa[0]) p.stock = Number(_oa[0].quantity) || 0;
+          const _skuKey = String(p.sku).toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi, '');
+          const _os = (_oa || []).find(row => {
+            if (row.active === false) return false;
+            const rowKey = String(row.sku || '').toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi, '');
+            return rowKey === _skuKey;
+          });
+          if (_os) p.stock = Number(_os.quantity) || 0;
         }
       } catch(e) { console.warn('[KidsRide] stock sync:', e); }
     }
