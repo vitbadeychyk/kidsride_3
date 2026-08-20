@@ -1573,7 +1573,10 @@ tr:hover td{background:rgba(240,242,248,.5)}
     <!-- ═══ PRODUCT ANALYTICS ═══ -->
     <div class="panel" id="panel-product-analytics">
       <div class="section-header" style="flex-wrap:wrap;gap:12px">
-        <h2 class="section-title">Аналітика <span>товарів</span></h2>
+         <div>
+           <h2 class="section-title">Аналітика <span>товарів</span></h2>
+           <div id="paBotFilterNote" style="font-size:11px;color:var(--text-muted);margin-top:4px">Автоматичні роботи та сканери не враховуються</div>
+         </div>
         <div class="date-range-bar">
           <div class="dr-presets">
             <button class="dr-preset" onclick="setPaPreset('today',this)">Сьогодні</button>
@@ -8702,6 +8705,11 @@ let _paTableData = [];
 let _paSortCol = 'views';
 let _paSortDir = -1;
 
+function _paIsLikelyBot(row) {
+  const ua = String(row && row.user_agent || '').toLowerCase();
+  return /bot|crawler|spider|crawling|slurp|google-inspectiontool|google web preview|headless|lighthouse|pagespeed|semrush|ahrefs|mj12bot|dotbot|bingpreview|facebookexternalhit|linkedinbot|twitterbot|telegrambot|whatsapp|applebot|petalbot|yandex|baiduspider|duckduckbot|sogou|gptbot|claudebot|perplexitybot/i.test(ua);
+}
+
 function _paFmtDate(d){ return d.toLocaleDateString('uk-UA',{day:'2-digit',month:'2-digit'}); }
 function _paIsoDate(d){ return d.toISOString().slice(0,10); }
 function _paDaysBetween(from,to){ return Math.max(1,Math.round((to-from)/(86400000))+1); }
@@ -8747,7 +8755,8 @@ async function loadProductAnalytics(from, to) {
       }
       throw new Error('HTTP ' + res.status);
     }
-    _paData = await res.json();
+    const rawData = await res.json();
+    _paData = Array.isArray(rawData) ? rawData.filter(r => !_paIsLikelyBot(r)) : [];
     renderProductAnalyticsUI(from, to);
   } catch(e) {
     tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--red)">Помилка: ${_escHtml(e.message)}</td></tr>`;

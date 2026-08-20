@@ -340,6 +340,11 @@ const KR = {
     if (/mobi|iphone|ipod|android.*mobile|blackberry|phone/.test(ua)) return 'mobile';
     return 'desktop';
   },
+  _isLikelyBot() {
+    const ua = String(navigator.userAgent || '').toLowerCase();
+    return !!navigator.webdriver ||
+      /bot|crawler|spider|crawling|slurp|google-inspectiontool|google web preview|headless|lighthouse|pagespeed|semrush|ahrefs|mj12bot|dotbot|bingpreview|facebookexternalhit|linkedinbot|twitterbot|telegrambot|whatsapp|applebot|petalbot|yandex|baiduspider|duckduckbot|sogou|gptbot|claudebot|perplexitybot/i.test(ua);
+  },
   _detectSource() {
     const ref = document.referrer || '';
     if (!ref) return 'direct';
@@ -369,6 +374,7 @@ const KR = {
     // Не логуємо адмін-сторінки
     const path = window.location.pathname || '/';
     if (/^\/?(admin|auth)/i.test(path) || /admin\.html|auth\.html/i.test(path)) return;
+    if (this._isLikelyBot()) return;
 
     // Анти-дубль за 10 секунд для тієї ж сторінки в межах сесії
     try {

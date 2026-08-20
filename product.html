@@ -1914,10 +1914,26 @@ console.log('[KidsRide] product.html v3.9 — працюють: копіюван
   } catch(e){ console.warn('[KidsRide] loadFullProduct error:', e); _revealProductPage(); }
 })();
 
+function _krIsLikelyBot() {
+  const ua = String(navigator.userAgent || '').toLowerCase();
+  return !!navigator.webdriver ||
+    /bot|crawler|spider|crawling|slurp|google-inspectiontool|google web preview|headless|lighthouse|pagespeed|semrush|ahrefs|mj12bot|dotbot|bingpreview|facebookexternalhit|linkedinbot|twitterbot|telegrambot|whatsapp|applebot|petalbot|yandex|baiduspider|duckduckbot|sogou|gptbot|claudebot|perplexitybot/i.test(ua);
+}
+
 async function _krTrackView(productId, productName, productSku) {
   try {
+    // Не рахуємо роботів/автоматизовані браузери. Саме вони часто обходять
+    // десятки URL поспіль в одну й ту саму хвилину.
+    if (_krIsLikelyBot()) return;
     let sid = sessionStorage.getItem('kr_sid');
     if (!sid) { sid = Math.random().toString(36).slice(2) + Date.now().toString(36); sessionStorage.setItem('kr_sid', sid); }
+    const viewKey = 'kr_product_view_' + String(productId);
+    if (sessionStorage.getItem(viewKey)) return;
+    // Даємо сторінці кілька секунд: короткі технічні відкриття/префетчі
+    // не повинні потрапляти у статистику як перегляд товару.
+    await new Promise(resolve => setTimeout(resolve, 2500));
+    if (document.visibilityState === 'hidden') return;
+    sessionStorage.setItem(viewKey, '1');
     await fetch(_krSupaUrl() + '/rest/v1/product_views', {
       method: 'POST',
       headers: {
