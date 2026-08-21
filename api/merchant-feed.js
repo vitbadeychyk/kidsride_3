@@ -124,6 +124,10 @@ function buildItem(p) {
 export default async function handler(req, res) {
   try {
     var products = await fetchAllProducts();
+    // Не передаємо в Google товари без ціни або з ціною 0
+    products = products.filter(function (p) {
+    return Number(p.price) > 0;
+    });
     var items = products.map(buildItem).join('\n');
     var now = new Date().toUTCString();
 
