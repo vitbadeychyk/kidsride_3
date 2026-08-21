@@ -1318,64 +1318,14 @@ tr:hover td{background:rgba(240,242,248,.5)}
         <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;margin-bottom:6px;color:var(--navy)">🏷️ Накрутка для окремих категорій</h3>
         <div style="font-size:12px;color:var(--text-muted);margin-bottom:20px">Ціна = ціна_постачальника × (1 + накрутка%). Налаштовується окремо від глобальних знижок.</div>
 
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
-
-          <!-- Запчастини (195) -->
-          <div>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-              <div>
-                <div style="font-weight:700;font-size:14px;color:var(--navy)">Запчастини</div>
-                <div style="font-size:11px;color:var(--text-muted)">category_id = 195</div>
-              </div>
-              <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r);padding:8px 14px;text-align:center">
-                <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:2px">Накрутка</div>
-                <div style="font-size:20px;font-weight:800;color:var(--orange);font-family:'Nunito',sans-serif" id="catMarkup195Current">—</div>
-              </div>
-            </div>
-            <div class="f-group" style="margin-bottom:6px">
-              <label class="f-label">Накрутка до ціни постачальника (%)</label>
-              <div style="display:flex;align-items:center;gap:10px">
-                <input type="number" id="catMarkup195Input" min="0" max="500" step="0.5" placeholder="0"
-                  style="flex:1;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:15px;font-weight:700;font-family:'Manrope',sans-serif;color:var(--navy);outline:none;transition:.2s"
-                  oninput="this.style.borderColor='var(--orange)';document.getElementById('catMarkup195Range').value=this.value"
-                  onfocus="this.style.borderColor='var(--orange)'"
-                  onblur="this.style.borderColor='var(--border)'">
-                <span style="font-size:18px;font-weight:800;color:var(--orange)">%</span>
-              </div>
-            </div>
-            <input type="range" id="catMarkup195Range" min="0" max="500" step="0.5" value="0"
-              style="width:100%;accent-color:var(--orange);cursor:pointer"
-              oninput="document.getElementById('catMarkup195Input').value=this.value">
-          </div>
-
-          <!-- Велозапчастини (543) -->
-          <div>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-              <div>
-                <div style="font-weight:700;font-size:14px;color:var(--navy)">Велозапчастини</div>
-                <div style="font-size:11px;color:var(--text-muted)">category_id = 543</div>
-              </div>
-              <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r);padding:8px 14px;text-align:center">
-                <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:2px">Накрутка</div>
-                <div style="font-size:20px;font-weight:800;color:var(--orange);font-family:'Nunito',sans-serif" id="catMarkup543Current">—</div>
-              </div>
-            </div>
-            <div class="f-group" style="margin-bottom:6px">
-              <label class="f-label">Накрутка до ціни постачальника (%)</label>
-              <div style="display:flex;align-items:center;gap:10px">
-                <input type="number" id="catMarkup543Input" min="0" max="500" step="0.5" placeholder="0"
-                  style="flex:1;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:15px;font-weight:700;font-family:'Manrope',sans-serif;color:var(--navy);outline:none;transition:.2s"
-                  oninput="this.style.borderColor='var(--orange)';document.getElementById('catMarkup543Range').value=this.value"
-                  onfocus="this.style.borderColor='var(--orange)'"
-                  onblur="this.style.borderColor='var(--border)'">
-                <span style="font-size:18px;font-weight:800;color:var(--orange)">%</span>
-              </div>
-            </div>
-            <input type="range" id="catMarkup543Range" min="0" max="500" step="0.5" value="0"
-              style="width:100%;accent-color:var(--orange);cursor:pointer"
-              oninput="document.getElementById('catMarkup543Input').value=this.value">
-          </div>
-
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:18px;flex-wrap:wrap">
+          <select id="catMarkupCategorySelect" style="flex:1;min-width:240px;padding:11px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:inherit;font-size:14px;color:var(--navy);background:white;outline:none">
+            <option value="">Завантаження категорій…</option>
+          </select>
+          <button class="btn btn-outline" type="button" style="padding:11px 16px;font-size:14px;font-weight:700" onclick="addCatMarkupRow()">＋ Додати категорію</button>
+        </div>
+        <div id="catMarkupRows" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px">
+          <div style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px;grid-column:1/-1">Завантаження категорій…</div>
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px">
@@ -7807,14 +7757,12 @@ async function loadPricesPanel() {
   if (!elS) return;
   elS.textContent = '…'; elP.textContent = '…'; if(elM) elM.textContent = '…';
   try {
-    const rows = await sbFetch('settings?select=key,value&key=in.(supplier_discount_pct,sell_discount_pct,old_price_markup_pct,cat_markup_195,cat_markup_543)');
+    const rows = await sbFetch('settings?select=key,value');
     const byKey = {};
     (rows||[]).forEach(r => { byKey[r.key] = parseFloat(r.value); });
     const suppDisc  = isNaN(byKey['supplier_discount_pct']) ? 22 : byKey['supplier_discount_pct'];
     const sellDisc  = isNaN(byKey['sell_discount_pct'])     ? 1  : byKey['sell_discount_pct'];
     const oldMarkup = isNaN(byKey['old_price_markup_pct'])  ? 30 : byKey['old_price_markup_pct'];
-    const cat195    = isNaN(byKey['cat_markup_195'])        ? 0  : byKey['cat_markup_195'];
-    const cat543    = isNaN(byKey['cat_markup_543'])        ? 0  : byKey['cat_markup_543'];
 
     elS.textContent = suppDisc + '%';
     elP.textContent = sellDisc + '%';
@@ -7825,12 +7773,7 @@ async function loadPricesPanel() {
     _set('pricesSellDiscInput',     sellDisc);  _set('pricesSellDiscRange',     sellDisc);
     _set('pricesOldMarkupInput',    oldMarkup); _set('pricesOldMarkupRange',    oldMarkup);
 
-    _set('catMarkup195Input', cat195); _set('catMarkup195Range', cat195);
-    _set('catMarkup543Input', cat543); _set('catMarkup543Range', cat543);
-    const el195 = document.getElementById('catMarkup195Current');
-    const el543 = document.getElementById('catMarkup543Current');
-    if (el195) el195.textContent = cat195 + '%';
-    if (el543) el543.textContent = cat543 + '%';
+    await loadCatMarkupRows(byKey);
 
     updatePricePreview();
   } catch(e) {
@@ -8094,6 +8037,113 @@ async function doRecalcCatMarkup() {
   }
 }
 
+// ── CATEGORY MARKUP (динамічний список категорій) ────────────────────────────
+let _catMarkupCategories = [];
+let _catMarkupValues = {};
+const catMarkupEsc = value => String(value ?? '').replace(/[&<>"']/g, c =>
+  ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+async function loadCatMarkupRows(byKey = {}) {
+  const rowsEl = document.getElementById('catMarkupRows');
+  const select = document.getElementById('catMarkupCategorySelect');
+  if (!rowsEl || !select) return;
+  try {
+    let categories = [], offset = 0, page;
+    do {
+      page = await sbFetch(`categories?select=id,name&order=name.asc&limit=1000&offset=${offset}`);
+      if (Array.isArray(page)) categories.push(...page);
+      offset += 1000;
+    } while (Array.isArray(page) && page.length === 1000);
+    _catMarkupCategories = categories;
+    _catMarkupValues = {};
+    Object.keys(byKey).forEach(key => {
+      const match = key.match(/^cat_markup_(\d+)$/);
+      if (match) _catMarkupValues[match[1]] = isNaN(byKey[key]) ? 0 : byKey[key];
+    });
+    [195, 543].forEach(id => { if (_catMarkupValues[id] == null) _catMarkupValues[id] = 0; });
+    renderCatMarkupRows();
+  } catch (e) {
+    rowsEl.innerHTML = `<div style="color:var(--red);font-size:13px;grid-column:1/-1">Не вдалося завантажити категорії: ${catMarkupEsc(e.message)}</div>`;
+  }
+}
+
+function renderCatMarkupRows() {
+  const rowsEl = document.getElementById('catMarkupRows');
+  const select = document.getElementById('catMarkupCategorySelect');
+  if (!rowsEl || !select) return;
+  const names = Object.fromEntries(_catMarkupCategories.map(c => [String(c.id), c.name]));
+  const fallback = {'195':'Запчастини','543':'Велозапчастини'};
+  const ids = Object.keys(_catMarkupValues).sort((a,b) =>
+    String(names[a] || fallback[a] || a).localeCompare(String(names[b] || fallback[b] || b), 'uk'));
+  rowsEl.innerHTML = ids.length ? ids.map(id => {
+    const name = names[id] || fallback[id] || `Категорія ${id}`, value = _catMarkupValues[id] ?? 0;
+    return `<div class="import-card" style="padding:16px" data-cat-markup-id="${id}">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div><div style="font-weight:700;font-size:14px;color:var(--navy)">${catMarkupEsc(name)}</div>
+        <div style="font-size:11px;color:var(--text-muted)">category_id = ${id}</div></div>
+        <button type="button" title="Видалити категорію зі списку" onclick="removeCatMarkupRow('${id}')"
+          style="border:0;background:transparent;color:var(--text-muted);font-size:18px;cursor:pointer">×</button>
+      </div>
+      <label class="f-label">Накрутка до ціни постачальника (%)</label>
+      <div style="display:flex;align-items:center;gap:10px">
+        <input type="number" id="catMarkupInput_${id}" min="0" max="500" step="0.5" value="${value}"
+          style="flex:1;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:15px;font-weight:700;color:var(--navy);outline:none"
+          oninput="document.getElementById('catMarkupRange_${id}').value=this.value">
+        <span style="font-size:18px;font-weight:800;color:var(--orange)">%</span>
+      </div>
+      <input type="range" id="catMarkupRange_${id}" min="0" max="500" step="0.5" value="${value}"
+        style="width:100%;accent-color:var(--orange);cursor:pointer"
+        oninput="document.getElementById('catMarkupInput_${id}').value=this.value">
+    </div>`;
+  }).join('') : '<div style="padding:20px;text-align:center;color:var(--text-muted);grid-column:1/-1">Додайте категорію зі списку вище.</div>';
+  select.innerHTML = '<option value="">Оберіть категорію для додавання…</option>' +
+    _catMarkupCategories.filter(c => _catMarkupValues[c.id] == null).map(c =>
+      `<option value="${c.id}">${catMarkupEsc(c.name)} (ID ${c.id})</option>`).join('');
+}
+
+function addCatMarkupRow() {
+  const id = document.getElementById('catMarkupCategorySelect')?.value;
+  if (!id) { showToast('Оберіть категорію зі списку', 'error'); return; }
+  _catMarkupValues[id] = 0; renderCatMarkupRows();
+}
+function removeCatMarkupRow(id) { delete _catMarkupValues[id]; renderCatMarkupRows(); }
+function getCatMarkupEntries() {
+  return Object.keys(_catMarkupValues).map(id => ({id, markup:parseFloat(document.getElementById('catMarkupInput_'+id)?.value)}));
+}
+async function saveCatMarkupSettings() {
+  const entries = getCatMarkupEntries();
+  for (const item of entries) if (isNaN(item.markup) || item.markup < 0 || item.markup > 500)
+    throw new Error(`Накрутка для категорії ${item.id}: 0–500%`);
+  await sbFetch('settings', {method:'POST', headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},
+    body:JSON.stringify(entries.map(item => ({key:'cat_markup_'+item.id, value:String(item.markup)})))});
+  return entries;
+}
+async function doSaveCatMarkup() {
+  const statusEl = document.getElementById('catMarkupStatus'), btn = document.getElementById('catMarkupSaveBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Збереження…'; }
+  try { await saveCatMarkupSettings(); if(statusEl) statusEl.textContent=''; showToast('✅ Відсотки для категорій збережено!','success'); }
+  catch(e) { if(statusEl) statusEl.textContent='Помилка: '+e.message; showToast('❌ Помилка збереження: '+e.message,'error'); }
+  finally { if(btn) { btn.disabled=false; btn.textContent='Зберегти відсотки'; } }
+}
+async function doRecalcCatMarkup() {
+  const statusEl = document.getElementById('catMarkupStatus'), btn = document.getElementById('catMarkupRecalcBtn');
+  if (btn) { btn.disabled=true; btn.textContent='Перерахунок…'; }
+  try {
+    const entries = await saveCatMarkupSettings(); let allProducts=[];
+    for (const item of entries) {
+      let offset=0, batch;
+      do {
+        batch=await sbFetch(`products?select=id,name,supplier_price&category_id=eq.${item.id}&supplier_price=gt.0&limit=1000&offset=${offset}`);
+        if(Array.isArray(batch)) batch.forEach(p=>allProducts.push({...p,markup:item.markup}));
+        offset+=1000;
+      } while(Array.isArray(batch)&&batch.length===1000);
+    }
+    const updates=allProducts.map(p=>{const price=Math.round(p.supplier_price*(1+p.markup/100)/100)*100;return{id:p.id,name:p.name,price,old_price:Math.round(price*1.3/100)*100};});
+    for(let i=0;i<updates.length;i+=500) await sbFetch('products',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(updates.slice(i,i+500))});
+    if(statusEl) statusEl.textContent=''; showToast('✅ Відсотки збережено. Перераховано товарів: '+updates.length,'success'); window._productsRawCache=null;
+  } catch(e) { if(statusEl) statusEl.textContent='Помилка: '+e.message; showToast('❌ Помилка: '+e.message,'error'); }
+  finally { if(btn) { btn.disabled=false; btn.textContent='Зберегти і перерахувати ціни'; } }
+}
 
 window.addEventListener('load', () => {
   const _visTimeout = setTimeout(() => {
