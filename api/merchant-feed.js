@@ -37,7 +37,6 @@ async function fetchAllProducts() {
         },
       }
     );
-
     if (!r.ok) {
       var text = await r.text().catch(function () { return ''; });
       throw new Error('Supabase ' + r.status + ': ' + text.slice(0, 300));
