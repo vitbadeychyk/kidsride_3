@@ -8128,20 +8128,25 @@ async function doSaveCatMarkup() {
 async function doRecalcCatMarkup() {
   const statusEl = document.getElementById('catMarkupStatus'), btn = document.getElementById('catMarkupRecalcBtn');
   if (btn) { btn.disabled=true; btn.textContent='Перерахунок…'; }
+  let phase = 'збереження налаштувань';
   try {
     const entries = await saveCatMarkupSettings(); let allProducts=[];
     for (const item of entries) {
       let offset=0, batch;
       do {
+        phase = `завантаження товарів категорії ${item.id}`;
         batch=await sbFetch(`products?select=id,name,supplier_price&category_id=eq.${item.id}&supplier_price=gt.0&limit=1000&offset=${offset}`);
         if(Array.isArray(batch)) batch.forEach(p=>allProducts.push({...p,markup:item.markup}));
         offset+=1000;
       } while(Array.isArray(batch)&&batch.length===1000);
     }
     const updates=allProducts.map(p=>{const price=Math.round(p.supplier_price*(1+p.markup/100)/100)*100;return{id:p.id,name:p.name,price,old_price:Math.round(price*1.3/100)*100};});
-    for(let i=0;i<updates.length;i+=500) await sbFetch('products',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(updates.slice(i,i+500))});
+    for(let i=0;i<updates.length;i+=500) {
+      phase = `збереження цін (${i + 1}–${Math.min(i + 500, updates.length)})`;
+      await sbFetch('products',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(updates.slice(i,i+500))});
+    }
     if(statusEl) statusEl.textContent=''; showToast('✅ Відсотки збережено. Перераховано товарів: '+updates.length,'success'); window._productsRawCache=null;
-  } catch(e) { if(statusEl) statusEl.textContent='Помилка: '+e.message; showToast('❌ Помилка: '+e.message,'error'); }
+  } catch(e) { if(statusEl) statusEl.textContent='Помилка (' + phase + '): ' + e.message; showToast('❌ Помилка (' + phase + '): ' + e.message,'error'); }
   finally { if(btn) { btn.disabled=false; btn.textContent='Зберегти і перерахувати ціни'; } }
 }
 
