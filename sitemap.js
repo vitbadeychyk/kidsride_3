@@ -21,7 +21,7 @@ function escJson(s) {
 }
 
 function buildSchema(product, pageUrl, desc, catName, catUrl, reviews = []) {
-  const inStock = (typeof product.stock === 'number' ? product.stock > 0 : true) && product.active !== false;
+  const inStock = Number(product.stock) > 0;
   const imgList = Array.isArray(product.images) && product.images.length
     ? product.images.filter(Boolean)
     : [SITE + '/opengraph.jpg'];
