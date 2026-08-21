@@ -232,7 +232,7 @@ async function loadDiscount() {
  * Перерахувати price та old_price для кожного товару.
  *
  * Та сама формула що використовує адмінка:
- *   price     = ROUND(supplier_price × (1 − sellDisc/100) / 100) × 100
+ *   price     = max(100, ROUND(supplier_price × (1 − sellDisc/100) / 100) × 100)
  *   old_price = ROUND(price × (1 + oldMarkup/100) / 100) × 100
  *
  * Якщо supplier_price = 0 (не передається в XML) — ціни не чіпаємо.
@@ -245,7 +245,8 @@ function applyDiscount(products, { sellDisc, oldMarkup }) {
   let applied = 0;
   for (const p of products) {
     if (p.supplier_price > 0) {
-      p.price     = Math.round(p.supplier_price * (1 - sellDisc / 100) / 100) * 100;
+      const calculatedPrice = p.supplier_price * (1 - sellDisc / 100);
+      p.price     = Math.max(100, Math.round(calculatedPrice / 100) * 100);
       p.old_price = Math.round(p.price * (1 + oldMarkup / 100) / 100) * 100;
       applied++;
     }

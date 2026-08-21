@@ -2820,6 +2820,15 @@ async function loadProductsFromSupabase() {
         if (idx === undefined) idx = bySku[sk];
         if (idx !== undefined) {
           const p = src[idx];
+           // Якщо ціна в products порожня або дорівнює нулю, а для цього
+           // артикулу є ціна на власному складі — використовуємо її. Інакше
+           // каталог показує «0 грн», тоді як сторінка товару має правильну
+           // ціну з таблиці ostatok.
+           if (Number(p.price) <= 0 && Number(os.sell_price) > 0) {
+             p.price = Number(os.sell_price);
+             if (Number(os.old_price) > 0) p.oldPrice = Number(os.old_price);
+             changed = true;
+           }
            // Якщо SKU є в products, ціни постачальника мають повний пріоритет.
            // Власний склад може лише додати наявність, коли постачальник
            // тимчасово не має залишку, але не повинен підміняти ціни.
