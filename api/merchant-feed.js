@@ -27,7 +27,6 @@ async function fetchAllProducts() {
     var r = await fetch(
       SUPABASE_URL + '/rest/v1/products' +
       '?select=id,name,description,price,old_price,stock,preorder_days,images,brand,slug,sku' +
-      '&active=eq.true' +
       '&order=id.asc',
       {
         headers: {
