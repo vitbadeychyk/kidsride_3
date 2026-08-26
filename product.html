@@ -593,9 +593,9 @@ nav a.active{color:var(--orange)}
   <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
   <a href="/catalog.html">Каталог</a>
   <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-  <a href="/catalog.html" class="breadcrumb-cat" id="breadcrumbCat">Каталог</a>
+  <a href="/catalog.html" class="breadcrumb-cat" id="breadcrumbCat"></a>
   <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-  <span class="breadcrumb-cur">Завантаження…</span>
+  <span class="breadcrumb-cur"></span>
 </div>
 <!-- Кнопка "Назад до каталогу" — показується тільки якщо є збережений контекст -->
 <div id="backToCatalogBar" style="display:none;background:white;border-bottom:1px solid var(--border);padding:8px 40px">
@@ -611,6 +611,7 @@ nav a.active{color:var(--orange)}
 
     <!-- GALLERY -->
     <div class="gallery">
+      <!-- SSR_GALLERY_START -->
       <div class="gallery-main" id="mainGallery" onclick="openZoom()">
         <span class="gallery-badge">🔥 Хіт</span>
         <div class="gallery-share">
@@ -715,22 +716,20 @@ nav a.active{color:var(--orange)}
           <svg viewBox="0 0 80 60"><rect x="5" y="18" width="70" height="24" rx="6" fill="#2d4270"/><rect x="14" y="8" width="46" height="18" rx="4" fill="#3d5280"/><rect x="16" y="10" width="18" height="11" rx="2" fill="#90CAF9" opacity=".5"/><rect x="36" y="10" width="17" height="11" rx="2" fill="#90CAF9" opacity=".4"/><circle cx="22" cy="48" r="11" fill="#2d3748"/><circle cx="58" cy="48" r="11" fill="#2d3748"/><circle cx="22" cy="48" r="6" fill="#FF6B35" opacity=".8"/><circle cx="58" cy="48" r="6" fill="#FF6B35" opacity=".8"/></svg>
         </div>
       </div>
+      <!-- SSR_GALLERY_END -->
     </div>
 
     <!-- PRODUCT INFO -->
     <div class="product-info">
       <div class="product-meta">
-        <span class="meta-brand">Bambi Racer</span>
+        <span class="meta-brand"></span>
         <span class="meta-sep">·</span>
-        <span class="meta-sku">Арт: M 3804EBLR-1</span>
+        <span class="meta-sku"></span>
         <span class="meta-sep">·</span>
-        <span class="meta-stock stock-in">
-          <svg viewBox="0 0 8 8"><circle cx="4" cy="4" r="4"/></svg>
-          В наявності
-        </span>
+        <span class="meta-stock"></span>
       </div>
 
-      <h1 class="product-title">Дитячий електромобіль Джип M 3804EBLR — 4 мотори, пульт 2.4G, EVA</h1>
+      <h1 class="product-title"></h1>
 
       <div class="rating-row" id="ratingRow" style="display:none">
         <div class="stars" id="ratingStars"></div>
@@ -742,13 +741,13 @@ nav a.active{color:var(--orange)}
       <div class="price-block">
         <div class="price-sale-label" style="display:none">Акційна ціна</div>
         <div class="price-row">
-          <span class="price-main">17 224 грн</span>
+          <span class="price-main"></span>
         </div>
-        <div class="price-hint" style="display:none">РРЦ: <strong>18 500 грн</strong></div>
+        <div class="price-hint" style="display:none"></div>
         <div class="price-savings" style="display:none"></div>
         <div class="installment">
           <svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-          <div class="installment-text">Оплата частинами від ПриватБанк: <span>від 4 306 грн</span> × 4 платежі</div>
+          <div class="installment-text">Оплата частинами від ПриватБанк: <span></span> × 4 платежі</div>
         </div>
       </div>
 
@@ -823,9 +822,7 @@ nav a.active{color:var(--orange)}
     <div class="tab-panel active" id="tab-desc">
       <!-- Динамічний відеоогляд (заповнюється з Supabase, якщо у товара заповнено video_url) -->
       <div id="productVideo" style="display:none;margin-bottom:20px"></div>
-      <div id="productDescription">
-        <p class="desc-text" style="color:var(--text-muted)">Опис товару поки не заповнений. Додайте його в адмінці у полі «Опис».</p>
-      </div>
+      <div id="productDescription"></div>
       <div class="desc-features" id="productFeatures" style="display:none"></div>
     </div>
 
@@ -896,8 +893,8 @@ nav a.active{color:var(--orange)}
 <!-- MOBILE BUY BAR -->
 <div class="mobile-buy-bar" id="mobileBuyBar">
   <div>
-    <div class="mbb-price">17 224 грн</div>
-    <div style="font-size:11px;color:var(--text-muted)">В наявності</div>
+    <div class="mbb-price"></div>
+    <div class="mbb-stock" style="font-size:11px;color:var(--text-muted)"></div>
   </div>
   <div class="mbb-actions">
     <button class="btn btn-ghost" style="padding:10px 14px" onclick="quickOrder()">
@@ -1199,8 +1196,8 @@ function _buildCompareItem() {
     'Час їзди': t['Час їзди'] || '—',
     'Гарантія': t['Гарантія'] || '—',
   };
-  return { id: id || 'p-' + (base.name || '').toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi,'-').slice(0,40),
-           name: base.name, brand: base.brand || 'Bambi Racer', price: base.price || 0, img, photo, specs };
+  return { id: id || (window.__KR_PRODUCT_ID__ || 'p-' + (base.name || '').toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi,'-').slice(0,40)),
+           name: base.name, brand: base.brand || '', price: base.price || 0, img, photo, specs };
 }
 function _getCompareList() {
   try { return JSON.parse(localStorage.getItem('kr_compare') || '[]'); } catch { return []; }
@@ -1748,19 +1745,18 @@ console.log('[KidsRide] product.html v3.9 — працюють: копіюван
       } catch(e) { console.warn('[KidsRide] slug lookup:', e); }
     }
     // Чисті SEO-slug-и складських позицій не містять їх технічний ID.
-    // Знаходимо їх за нормалізованим артикулом у ostatok.
+    // Знаходимо їх у ostatok тільки за повним slug із URL.
     if (!id && _urlPathSlug) {
       try {
-        const _or = await fetch(SUPA_URL + '/rest/v1/ostatok?select=id,sku&quantity=gt.0&active=eq.true&limit=1000', {
+        const _ostatokSlug = _urlPathSlug.toLowerCase();
+        const _or = await fetch(SUPA_URL + '/rest/v1/ostatok?select=id,slug&slug=eq.' + encodeURIComponent(_ostatokSlug) + '&quantity=gt.0&active=eq.true&limit=1', {
           headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
         });
         if (_or.ok) {
           const _oa = await _or.json();
-          const _slugKey = _urlPathSlug.toLowerCase().replace(/[^a-z0-9]+/g, '');
-          const _os = (_oa || []).find(row => {
-            const _skuKey = String(row.sku || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
-            return _skuKey && (_slugKey.includes(_skuKey) || _skuKey.includes(_slugKey));
-          });
+          const _os = (_oa || []).find(row =>
+            String(row.slug || '').trim().toLowerCase() === _ostatokSlug
+          );
           if (_os) id = 'os_' + _os.id;
         }
       } catch(e) { console.warn('[KidsRide] ostatok slug lookup:', e); }
@@ -1801,11 +1797,11 @@ console.log('[KidsRide] product.html v3.9 — працюють: копіюван
     // Пробуємо МАКСИМАЛЬНИЙ select (description/features/age_range/voltage/...);
     // якщо PostgREST повертає 400 (колонок ще нема), скорочуємо до меншого набору.
     const SELECTS = [
-      'id,sku,model_code,color,category_id,name,brand,description,description2,features,category,voltage,age_range,age,motor,battery,speed,max_load,weight,warranty,assembly_time,short_desc,price,old_price,stock,badge,images,active',
-      'id,sku,model_code,color,category_id,name,brand,description,description2,features,category,voltage,age_range,price,old_price,stock,badge,images,active',
-      'id,sku,model_code,color,category_id,name,brand,description,description2,features,price,old_price,stock,badge,images,active',
-      'id,sku,model_code,color,category_id,name,brand,price,old_price,stock,badge,images,active',
-      'id,sku,category_id,name,brand,price,old_price,stock,badge,images,active'
+      'id,sku,model_code,color,category_id,name,brand,description,description2,features,category,slug,voltage,age_range,age,motor,battery,speed,max_load,weight,warranty,assembly_time,short_desc,price,old_price,stock,badge,images,active',
+      'id,sku,model_code,color,category_id,name,brand,description,description2,features,category,slug,voltage,age_range,price,old_price,stock,badge,images,active',
+      'id,sku,model_code,color,category_id,name,brand,description,description2,features,slug,price,old_price,stock,badge,images,active',
+      'id,sku,model_code,color,category_id,name,brand,slug,price,old_price,stock,badge,images,active',
+      'id,sku,category_id,name,brand,slug,price,old_price,stock,badge,images,active'
     ];
     let p = null;
     for (const sel of SELECTS){
@@ -1860,22 +1856,22 @@ console.log('[KidsRide] product.html v3.9 — працюють: копіюван
     // продажу. Якщо products.stock > 0 — не підміняємо жодне поле products.
     if (p.sku && !/^os_/i.test(String(p.id || '')) && Number(p.stock || 0) <= 0) {
       try {
-        const _or = await fetch(SUPA_URL + '/rest/v1/ostatok?select=sku,quantity,sell_price,old_price,active&quantity=gt.0&limit=1000', {
-          headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
-        });
-        if (_or.ok) {
-          const _oa = await _or.json();
-          const _skuKey = String(p.sku).toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi, '');
-          const _os = (_oa || []).find(row => {
-            if (row.active === false) return false;
-            const rowKey = String(row.sku || '').toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi, '');
-            return rowKey === _skuKey;
+        const _productSlug = String(p.slug || _urlPathSlug || '').trim().toLowerCase();
+        if (_productSlug) {
+          const _or = await fetch(SUPA_URL + '/rest/v1/ostatok?select=slug,quantity,sell_price,old_price,active&slug=eq.' + encodeURIComponent(_productSlug) + '&quantity=gt.0&active=eq.true&limit=1', {
+            headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
           });
-          if (_os) {
-            p.stock = Number(_os.quantity) || 0;
-            if (p.stock > 0) p.active = true;
-            if (Number(_os.sell_price) > 0) p.price = Number(_os.sell_price);
-            if (Number(_os.old_price) > 0) p.old_price = Number(_os.old_price);
+          if (_or.ok) {
+            const _oa = await _or.json();
+            const _os = (_oa || []).find(row =>
+              String(row.slug || '').trim().toLowerCase() === _productSlug
+            );
+            if (_os) {
+              p.stock = Number(_os.quantity) || 0;
+              if (p.stock > 0) p.active = true;
+              if (Number(_os.sell_price) > 0) p.price = Number(_os.sell_price);
+              if (Number(_os.old_price) > 0) p.old_price = Number(_os.old_price);
+            }
           }
         }
       } catch(e) { console.warn('[KidsRide] stock fallback:', e); }
@@ -2068,7 +2064,7 @@ function renderProductDescription(p){
       flushPara(wrap);
 
     } else {
-      wrap.innerHTML = '<p class="desc-text" style="color:var(--text-muted)">Опис товару поки не заповнений. Додайте його в адмінці у полі «Опис».</p>';
+    wrap.innerHTML = '<p class="desc-text" style="color:var(--text-muted)">Опис товару ще не додано.</p>';
     }
   }
   // ─ Features (масив рядків) рендеримо як акуратні картки ─
@@ -2253,7 +2249,10 @@ function applyProductData(p){
   // ── Динамічне SEO ──
   (function updateSEO(p) {
     const site = 'https://www.kidsride.com.ua';
-    const pageUrl = site + (p.slug ? '/product/' + p.slug : '/product.html?id=' + encodeURIComponent(p.id || ''));
+    const cleanPath = /^\/product\/[^/]+$/.test(window.location.pathname) || window.location.pathname.split('/').filter(Boolean).length === 3
+      ? window.location.pathname
+      : (p.slug ? '/product/' + p.slug : '/product.html?id=' + encodeURIComponent(p.id || ''));
+    const pageUrl = site + cleanPath;
     const CAT_LABELS = { jeep:'Джипи', quad:'Квадроцикли', moto:'Мотоцикли', car:'Машини', tractor:'Трактори', walker:'Каталки-толокари', truck:'Вантажівки', buggy:'Баггі' };
     const catName = CAT_LABELS[p.category] || 'Електромобілі';
     const inStock = (typeof p.stock === 'number' ? p.stock > 0 : true) && p.active !== false;
@@ -2581,19 +2580,22 @@ async function switchToVariant(id, supaUrl, supaKey){
   // перемикання картка знову покаже старий stock/preorder із products.
   if (p.sku && Number(p.stock || 0) <= 0) {
     try {
-      const osRes = await fetch(supaUrl + '/rest/v1/ostatok?select=sku,quantity,sell_price,old_price,active&quantity=gt.0&limit=1000', {
-        headers: { 'apikey': supaKey, 'Authorization': 'Bearer ' + supaKey }
-      });
-      if (osRes.ok) {
-        const osRows = await osRes.json();
-        const skuKey = String(p.sku).toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi, '');
-        const os = (osRows || []).find(row => row.active !== false &&
-          String(row.sku || '').toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi, '') === skuKey);
-        if (os) {
-          p.stock = Number(os.quantity) || 0;
-          if (p.stock > 0) p.active = true;
-          if (Number(os.sell_price) > 0) p.price = Number(os.sell_price);
-          if (Number(os.old_price) > 0) p.old_price = Number(os.old_price);
+      const productSlug = String(p.slug || '').trim().toLowerCase();
+      if (productSlug) {
+        const osRes = await fetch(supaUrl + '/rest/v1/ostatok?select=slug,quantity,sell_price,old_price,active&slug=eq.' + encodeURIComponent(productSlug) + '&quantity=gt.0&active=eq.true&limit=1', {
+          headers: { 'apikey': supaKey, 'Authorization': 'Bearer ' + supaKey }
+        });
+        if (osRes.ok) {
+          const osRows = await osRes.json();
+          const os = (osRows || []).find(row =>
+            String(row.slug || '').trim().toLowerCase() === productSlug
+          );
+          if (os) {
+            p.stock = Number(os.quantity) || 0;
+            if (p.stock > 0) p.active = true;
+            if (Number(os.sell_price) > 0) p.price = Number(os.sell_price);
+            if (Number(os.old_price) > 0) p.old_price = Number(os.old_price);
+          }
         }
       }
     } catch {}

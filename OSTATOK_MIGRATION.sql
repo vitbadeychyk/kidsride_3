@@ -1,27 +1,41 @@
 -- ══════════════════════════════════════════════════════════════
 -- KidsRide — Міграція таблиці ostatok
--- Додає нові поля: sell_price, old_price, images, active
+-- Додає нові поля: slug, sell_price, old_price, images, active
 --
 -- Запусти один раз у Supabase → SQL Editor
 -- ══════════════════════════════════════════════════════════════
 
--- 1. Ціна продажу (що показується покупцю)
+-- 1. Власний SEO-slug. SSR шукає записи ostatok тільки за точним slug.
+ALTER TABLE ostatok
+  ADD COLUMN IF NOT EXISTS slug text DEFAULT NULL;
+
+-- Старим записам даємо безпечний технічний slug, щоб вони не залежали
+-- від fuzzy-пошуку за SKU. За потреби його можна змінити в адмінці.
+UPDATE ostatok
+SET slug = 'os-' || id::text
+WHERE slug IS NULL OR btrim(slug) = '';
+
+CREATE UNIQUE INDEX IF NOT EXISTS ostatok_slug_unique_idx
+  ON ostatok (slug)
+  WHERE slug IS NOT NULL AND btrim(slug) <> '';
+
+-- 2. Ціна продажу (що показується покупцю)
 ALTER TABLE ostatok
   ADD COLUMN IF NOT EXISTS sell_price numeric(10,2) DEFAULT NULL;
 
--- 2. Стара ціна / РРЦ (перекреслена ціна)
+-- 3. Стара ціна / РРЦ (перекреслена ціна)
 ALTER TABLE ostatok
   ADD COLUMN IF NOT EXISTS old_price numeric(10,2) DEFAULT NULL;
 
--- 3. Масив URL фото (до 15 посилань)
+-- 4. Масив URL фото (до 15 посилань)
 ALTER TABLE ostatok
   ADD COLUMN IF NOT EXISTS images text[] DEFAULT NULL;
 
--- 4. Статус: чи показувати товар на сайті (за замовч. true)
+-- 5. Статус: чи показувати товар на сайті (за замовч. true)
 ALTER TABLE ostatok
   ADD COLUMN IF NOT EXISTS active boolean NOT NULL DEFAULT true;
 
--- 5. Опис товару та короткий опис для власних позицій.
+-- 6. Опис товару та короткий опис для власних позицій.
 -- Вони дублюються у products під час збереження, щоб товар однаково
 -- відображався і як звичайний товар, і як синтетичний товар зі складу.
 ALTER TABLE ostatok

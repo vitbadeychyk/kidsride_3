@@ -7358,6 +7358,13 @@ function ostatokOpenModal(id) {
           </div>
           <div class="f-row single">
             <div class="f-group">
+              <label>SEO slug *</label>
+              <input type="text" id="osF_slug" placeholder="dytiachyi-elektromobil-m6139eblr">
+              <small style="display:block;margin-top:5px;color:var(--text-muted)">Унікальний slug позиції. Пошук на сайті виконується тільки за повним збігом.</small>
+            </div>
+          </div>
+          <div class="f-row single">
+            <div class="f-group">
               <label>Назва товару *</label>
               <input type="text" id="osF_name" placeholder="Дитячий електромобіль BMW JE1009EBLR-1 (4WD)">
             </div>
@@ -7439,6 +7446,7 @@ function ostatokOpenModal(id) {
   document.getElementById('osModalTitle').textContent = row ? 'Редагувати позицію' : 'Новий товар';
   document.getElementById('osModalId').value         = row ? row.id : '';
   document.getElementById('osF_sku').value           = row ? (row.sku||'')        : '';
+  document.getElementById('osF_slug').value          = row ? (row.slug||'')       : '';
   document.getElementById('osF_color').value         = row ? (row.color||'')      : '';
   document.getElementById('osF_name').value          = row ? (row.name||'')       : '';
   document.getElementById('osF_qty').value           = row ? (row.quantity??'')   : '';
@@ -7465,6 +7473,11 @@ function ostatokOpenModal(id) {
   ov.classList.add('open');
   const skuInput = document.getElementById('osF_sku');
   skuInput.oninput = ostatokLookupProduct;
+  const slugInput = document.getElementById('osF_slug');
+  const nameInput = document.getElementById('osF_name');
+  if(nameInput) nameInput.oninput = function(){
+    if(slugInput && !slugInput.value.trim()) slugInput.value = osSlugify(nameInput.value);
+  };
   setTimeout(()=>skuInput.focus(), 80);
   if (!row) ostatokLookupProduct();
 }
@@ -7475,6 +7488,22 @@ function osSlugify(value) {
   const slug = String(value || '').toLowerCase().split('').map(c => ua[c] !== undefined ? ua[c] : c).join('')
     .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80);
   return slug || 'product';
+}
+async function osUniqueOstatokSlug(base, currentId) {
+  const root = osSlugify(base);
+  let candidate = root;
+  for (let i = 1; i <= 20; i++) {
+    try {
+      const rows = await sbFetch('ostatok?select=id&slug=eq.' + encodeURIComponent(candidate) + '&limit=1');
+      if (!rows.length || (currentId && String(rows[0].id) === String(currentId))) return candidate;
+    } catch (_) {
+      // Міграція slug може бути ще не застосована. Не ламаємо збереження
+      // самої позиції, але після міграції slug буде додано наступним save.
+      return null;
+    }
+    candidate = root + '-' + (i + 1);
+  }
+  return root + '-' + Date.now().toString(36).slice(-5);
 }
 async function osUniqueSlug(base, currentId) {
   const root = osSlugify(base);
@@ -7520,6 +7549,7 @@ async function ostatokLookupProduct() {
       // Підставляємо дані каталогу лише в порожні поля: ручні зміни адміністратора
       // не повинні зникати при повторному введенні або виправленні артикулу.
       fill('osF_name', p.name || '');
+       fill('osF_slug', p.slug || '');
       fillNumber('osF_sell_price', p.price);
       fillNumber('osF_old_price', p.old_price);
       fill('osF_description', p.description || p.short_desc || '');
@@ -7549,6 +7579,7 @@ async function ostatokSave() {
   const id         = document.getElementById('osModalId').value;
   const sku        = document.getElementById('osF_sku').value.trim();
   const productName = document.getElementById('osF_name').value.trim();
+  const requestedSlug = document.getElementById('osF_slug').value.trim();
   const color      = document.getElementById('osF_color').value.trim()||null;
   const qty        = parseInt(document.getElementById('osF_qty').value)||0;
   const price      = parseFloat(document.getElementById('osF_price').value)||null;
@@ -7566,7 +7597,8 @@ async function ostatokSave() {
   const oldPrice  = parseFloat(document.getElementById('osF_old_price').value)||null;
   const activeVal = document.getElementById('osF_active').value === 'true';
   const imgsRaw   = (document.getElementById('osF_images').value||'').split('\n').map(s=>s.trim()).filter(Boolean).slice(0,15);
-  const payload = { sku, name:productName, color, quantity:qty, buy_price:price, note, sell_price:sellPrice, old_price:oldPrice, active:activeVal, images:imgsRaw.length?imgsRaw:null, category_id:categoryId, description, description2, short_desc:description2 || description };
+  const ownSlug = await osUniqueOstatokSlug(requestedSlug || (productName + '-' + sku), id);
+  const payload = { sku, name:productName, color, quantity:qty, buy_price:price, note, sell_price:sellPrice, old_price:oldPrice, active:activeVal, images:imgsRaw.length?imgsRaw:null, category_id:categoryId, description, description2, short_desc:description2 || description, ...(ownSlug ? { slug: ownSlug } : {}) };
   try {
     if(id) {
       await sbFetch('ostatok?id=eq.'+id, { method:'PATCH', headers:{ Prefer:'return=minimal' }, body:JSON.stringify(payload) });
