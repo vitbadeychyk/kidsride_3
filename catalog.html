@@ -1221,7 +1221,7 @@ function openProduct(card) {
   if (product) {
     try { sessionStorage.setItem('kr_active_product', JSON.stringify(product)); } catch{}
   }
-  window.location.href = 'product/' + encodeURIComponent(realId || '');
+  window.location.href = '/product/' + encodeURIComponent(realId || '');
 }
 
 // Wishlist
@@ -2753,7 +2753,7 @@ async function loadProductsFromSupabase() {
         const osTid = setTimeout(() => osCtrl.abort(), FETCH_TIMEOUT);
         const osHeaders = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY };
         let osRes = await fetch(
-          SUPABASE_URL + '/rest/v1/ostatok?select=id,sku,name,color,quantity,sell_price,old_price,active,images,category_id,description,description2,short_desc&quantity=gt.0&active=eq.true',
+          SUPABASE_URL + '/rest/v1/ostatok?select=id,slug,sku,name,color,quantity,sell_price,old_price,active,images,category_id,description,description2,short_desc&quantity=gt.0&active=eq.true',
           { signal: osCtrl.signal, headers: osHeaders }
         );
         // Старі таблиці ostatok могли ще не мати нових полів опису.
@@ -2841,7 +2841,7 @@ async function loadProductsFromSupabase() {
           }
         } else {
           extra.push({
-            id:'os_'+os.id, sku:os.sku, model_code:null, modelCode:null,
+            id:'os_'+os.id, slug:os.slug || ('os_' + os.id), sku:os.sku, model_code:null, modelCode:null,
             color:os.color||null, name:os.name || os.sku, brand:'',
             price:parseFloat(os.sell_price)||0, oldPrice:os.old_price?parseFloat(os.old_price):null,
             category:null, category_id:os.category_id||null, voltage:null, age:null,
@@ -2867,6 +2867,7 @@ async function loadProductsFromSupabase() {
       // Конвертувати формат Supabase → формат сайту
       const mappedProducts = all.map(p => ({
         id:           p.id,
+        slug:         p.slug || null,
         sku:          p.sku,
         model_code:   p.model_code || null,
         modelCode:    p.model_code || null,
@@ -2928,7 +2929,7 @@ async function loadProductsFromSupabase() {
             }
           } else {
             mappedProducts.push({
-              id:'os_'+os.id, sku:os.sku, model_code:null, modelCode:null,
+              id:'os_'+os.id, slug:os.slug || ('os_' + os.id), sku:os.sku, model_code:null, modelCode:null,
               color:os.color||null, name:os.name || os.sku, brand:'',
               price:parseFloat(os.sell_price)||0,
               oldPrice:os.old_price?parseFloat(os.old_price):null,
@@ -3034,20 +3035,14 @@ function catOpenProduct(id) {
       catLabel: _currentCatLabel()
     }));
   } catch {}
-  // Зберігаємо шлях категорії в URL товару
-  const _catPathN = (() => {
-    const pts = window.location.pathname.split('/').filter(Boolean);
-    if (pts.length < 2 || pts[0] === 'catalog.html') return '';
-    return '/' + pts[0] + '/' + pts[1];
-  })();
   // Для складських товарів slug у products може бути порожнім. Передаємо
   // також id, щоб API знайшов товар навіть до генерації slug-тригера.
   // Джерело товару не показуємо в URL: для всіх товарів використовуємо
   // однакове чисте SEO-посилання без технічного ?id=...
   const _idQuery = '';
   window.location.href = _slug
-    ? (_catPathN ? _catPathN + '/' + _slug + _idQuery : 'product/' + _slug + _idQuery)
-    : 'product/' + encodeURIComponent(id) + _idQuery;
+    ? '/product/' + encodeURIComponent(_slug) + _idQuery
+    : '/product/' + encodeURIComponent(id) + _idQuery;
 }
 
 
@@ -3104,16 +3099,10 @@ function renderCard(p) {
   const _pSlug = p.slug || (_isOstatok
     ? slugify(p.name || p.sku || '')
     : (p.id ? String(p.id) : slugify(p.name || "")));
-  // Будуємо URL товару: якщо обрано підкатегорію — додаємо шлях категорії
-  const _catPathR = (() => {
-    const pts = window.location.pathname.split('/').filter(Boolean);
-    if (pts.length < 2 || pts[0] === 'catalog.html') return '';
-    return '/' + pts[0] + '/' + pts[1];
-  })();
   const _hrefId = '';
   const productHref = _pSlug
-    ? (_catPathR ? _catPathR + '/' + _pSlug + _hrefId : 'product/' + _pSlug + _hrefId)
-    : (p.id ? 'product/' + encodeURIComponent(p.id) + _hrefId : 'catalog.html');
+    ? '/product/' + encodeURIComponent(_pSlug) + _hrefId
+    : (p.id ? '/product/' + encodeURIComponent(p.id) + _hrefId : 'catalog.html');
 
   return `
     <div class="p-card reveal" data-id="${escAttr(p.id)}" data-category="${escAttr(p.category)}" data-age="${escAttr(p.age)}" data-voltage="${escAttr(p.voltage)}" data-price="${p.price}" data-brand="${escAttr(p.brand)}">
@@ -4401,10 +4390,10 @@ document.addEventListener('DOMContentLoaded', () => {
          // Товари, додані через «Залишок (власний склад)», не мають запису
         // у products, але мають бути доступні в глобальному пошуку за артикулом.
         try {
-          const osUrl = KR_SUPABASE_URL_SR + '/rest/v1/ostatok?select=id,sku,name,color,quantity,sell_price,old_price,images,active&quantity=gt.0';
+           const osUrl = KR_SUPABASE_URL_SR + '/rest/v1/ostatok?select=id,slug,sku,name,color,quantity,sell_price,old_price,images,active&quantity=gt.0';
           let osRes = await fetch(osUrl, {headers:hdrs});
           if (osRes.status === 400) {
-            osRes = await fetch(KR_SUPABASE_URL_SR + '/rest/v1/ostatok?select=id,sku,color,quantity,sell_price,old_price,images,active&quantity=gt.0', {headers:hdrs});
+             osRes = await fetch(KR_SUPABASE_URL_SR + '/rest/v1/ostatok?select=id,sku,color,quantity,sell_price,old_price,images,active&quantity=gt.0', {headers:hdrs});
           }
           if (osRes.ok) {
             const osRows = await osRes.json();
@@ -4419,7 +4408,7 @@ document.addEventListener('DOMContentLoaded', () => {
               data.push({
                 id:'os_'+os.id, name:os.name || os.sku, brand:'', model:os.sku,
                 sku:os.sku, category:'', price:parseFloat(os.sell_price)||0,
-                slug:slugify(os.sku), images:os.images, _fromOstatok:true
+                 slug:os.slug || ('os_' + os.id), images:os.images, _fromOstatok:true
               });
             });
           }

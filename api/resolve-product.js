@@ -1,7 +1,8 @@
 // Vercel Serverless Function: SSR-lite handler для SEO-friendly product URLs
-// Підтримує два формати URL:
-//   /product/:slug                        — старий формат
-//   /:main_slug/:cat_slug/:product_slug   — новий SEO-формат (3 сегменти)
+// Підтримує два формати вхідних URL:
+//   /product/:slug                        — канонічний формат
+//   /:main_slug/:cat_slug/:product_slug   — legacy SEO-формат (3 сегменти)
+// Обидва формати повертають canonical /product/:slug.
 
 import fs from 'fs';
 import path from 'path';
@@ -545,13 +546,11 @@ export default async function handler(req, res) {
   }
 
   // ── 4. Визначаємо canonical URL ──────────────────────────────────────────
-  // Пріоритет: 3-сегментний URL > /product/:slug
-  let pageUrl;
-  if (mainSlug && catSlug && product.slug) {
-    pageUrl = SITE + '/' + mainSlug + '/' + catSlug + '/' + product.slug;
-  } else {
-    pageUrl = SITE + '/product/' + (product.slug || slug || ('id-' + product.id));
-  }
+  // mainSlug/catSlug потрібні лише для breadcrumbs. Canonical завжди
+  // використовує єдиний формат /product/{slug}.
+  const pageUrl = SITE + '/product/' + encodeURIComponent(
+    product.slug || slug || ('id-' + product.id)
+  );
 
   // ── 5. Зчитуємо шаблон product.html ─────────────────────────────────────
   let html;

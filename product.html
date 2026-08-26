@@ -2249,9 +2249,18 @@ function applyProductData(p){
   // ── Динамічне SEO ──
   (function updateSEO(p) {
     const site = 'https://www.kidsride.com.ua';
-    const cleanPath = /^\/product\/[^/]+$/.test(window.location.pathname) || window.location.pathname.split('/').filter(Boolean).length === 3
-      ? window.location.pathname
-      : (p.slug ? '/product/' + p.slug : '/product.html?id=' + encodeURIComponent(p.id || ''));
+    // Канонічний формат для всіх товарів — /product/{slug}.
+    // Трисегментні URL категорій підтримуються сервером лише як legacy-вхід
+    // і не повинні потрапляти в canonical або зберігатися після клієнтського рендера.
+    const _pathParts = window.location.pathname.split('/').filter(Boolean);
+    const _pathSlug = _pathParts[0] === 'product'
+      ? _pathParts[1]
+      : (_pathParts.length >= 3 ? _pathParts[_pathParts.length - 1] : '');
+    const cleanPath = p.slug
+      ? '/product/' + encodeURIComponent(p.slug)
+      : (_pathSlug
+        ? '/product/' + encodeURIComponent(_pathSlug)
+        : '/product/' + encodeURIComponent(p.id || ''));
     const pageUrl = site + cleanPath;
     const CAT_LABELS = { jeep:'Джипи', quad:'Квадроцикли', moto:'Мотоцикли', car:'Машини', tractor:'Трактори', walker:'Каталки-толокари', truck:'Вантажівки', buggy:'Баггі' };
     const catName = CAT_LABELS[p.category] || 'Електромобілі';
