@@ -8,6 +8,7 @@ import path from 'path';
 
 const SITE = 'https://www.kidsride.com.ua';
 const PAGE_SIZE = 1000;
+const SEO_MARKER = '<!-- SEO_PRODUCT_LINKS -->';
 
 function escHtml(value) {
   return String(value || '')
@@ -86,21 +87,39 @@ export default async function handler(req, res) {
 
   const supaUrl = process.env.SUPABASE_URL;
   const supaKey = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_KEY;
+  const diagnostics = {
+    products: 0,
+    markerFound: html.includes(SEO_MARKER),
+    htmlLength: html.length,
+    productLinks: 0,
+    supabaseConfigured: Boolean(supaUrl && supaKey),
+  };
 
   if (supaUrl && supaKey) {
     try {
       const products = await fetchAllActiveProducts(supaUrl, supaKey);
-      html = html.replace('<!-- SEO_PRODUCT_LINKS -->', buildSeoProductLinks(products));
+      const seoLinks = buildSeoProductLinks(products);
+      diagnostics.products = products.length;
+      diagnostics.productLinks = (seoLinks.match(/<a\b[^>]*href="[^"]*\/product\//gi) || []).length;
+      html = html.replace(SEO_MARKER, seoLinks);
+      diagnostics.htmlLength = html.length;
     } catch (error) {
       // Не ламаємо каталог, якщо Supabase тимчасово недоступний:
       // клієнтський код все одно спробує завантажити товари у браузері.
       console.error('[catalog SSR] products fetch failed:', error.message);
-      html = html.replace('<!-- SEO_PRODUCT_LINKS -->', '');
+      html = html.replace(SEO_MARKER, '');
+      diagnostics.htmlLength = html.length;
     }
   } else {
-    html = html.replace('<!-- SEO_PRODUCT_LINKS -->', '');
+    html = html.replace(SEO_MARKER, '');
+    diagnostics.htmlLength = html.length;
   }
 
+  console.error('[catalog SSR] diagnostics:', JSON.stringify(diagnostics));
+  res.setHeader('X-Catalog-SSR-Products', String(diagnostics.products));
+  res.setHeader('X-Catalog-SSR-Marker', String(diagnostics.markerFound));
+  res.setHeader('X-Catalog-SSR-HTML-Length', String(diagnostics.htmlLength));
+  res.setHeader('X-Catalog-SSR-Product-Links', String(diagnostics.productLinks));
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
   res.status(200).send(html);
