@@ -2305,6 +2305,9 @@ function applyProductData(p){
 
     // Product schema
     document.getElementById('schema-product')?.remove();
+    // Google Merchant Listings requires Product.sku to contain no whitespace.
+    // Keep the database value and the visible article number unchanged.
+    const schemaSku = String(p.sku || p.id || '').replace(/\s+/g, '');
     const schema = {
       "@context": "https://schema.org",
       "@type": "Product",
@@ -2312,11 +2315,11 @@ function applyProductData(p){
       "name": p.name || '',
       "description": autoDesc,
       "brand": { "@type": "Brand", "name": p.brand || 'KidsRide' },
-      "sku": p.sku || String(p.id || ''),
-      "mpn": p.sku || String(p.id || ''),
+      "sku": schemaSku,
+      "mpn": schemaSku,
       "image": Array.isArray(p.images) && p.images.length ? p.images.filter(Boolean) : [imgUrl],
       "url": pageUrl,
-      "category": catName,
+      "category": String(catName),
       "offers": {
         "@type": "Offer",
         "@id": pageUrl + "#offer",

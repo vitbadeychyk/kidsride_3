@@ -54,6 +54,8 @@ function buildSchema(product, pageUrl, desc) {
   const imgList = Array.isArray(product.images) && product.images.length
     ? product.images.filter(Boolean)
     : [SITE + '/opengraph.jpg'];
+  const schemaSku = String(product.sku || product.id || '').replace(/\s+/g, '');
+  const schemaCategory = String(catName);
 
   // priceValidUntil — 1 рік вперед
   const pvu = new Date();
@@ -67,11 +69,11 @@ function buildSchema(product, pageUrl, desc) {
     'name': product.name || '',
     'description': desc,
     'brand': { '@type': 'Brand', 'name': product.brand || 'KidsRide' },
-    'sku': product.sku || String(product.id || ''),
-    'mpn': product.sku || String(product.id || ''),
+    'sku': schemaSku,
+    'mpn': schemaSku,
     'image': imgList,
     'url': pageUrl,
-    'category': catName,
+    'category': schemaCategory,
     'offers': {
       '@type': 'Offer',
       '@id': pageUrl + '#offer',

@@ -248,6 +248,8 @@ function buildSchema(product, pageUrl, desc, catName, catUrl, reviews = []) {
   const imgList = Array.isArray(product.images) && product.images.length
     ? product.images.map(image => safeUrl(image)).filter(Boolean)
     : [SITE + '/opengraph.jpg'];
+  const schemaSku = String(product.sku || product.id || '').replace(/\s+/g, '');
+  const schemaCategory = String(catName || '');
 
   const pvu = new Date();
   pvu.setFullYear(pvu.getFullYear() + 1);
@@ -260,11 +262,11 @@ function buildSchema(product, pageUrl, desc, catName, catUrl, reviews = []) {
     name: product.name || '',
     description: desc,
     brand: { '@type': 'Brand', name: product.brand || 'KidsRide' },
-    sku: (product.sku || String(product.id || '')).replace(/\s+/g, ''),
-    mpn: (product.sku || String(product.id || '')).replace(/\s+/g, ''),
+    sku: schemaSku,
+    mpn: schemaSku,
     image: imgList,
     url: pageUrl,
-    category: catName,
+    category: schemaCategory,
     ...(reviews.length > 0 ? {
       aggregateRating: {
         '@type': 'AggregateRating',
