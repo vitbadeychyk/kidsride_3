@@ -55,7 +55,6 @@ function buildSchema(product, pageUrl, desc) {
     ? product.images.filter(Boolean)
     : [SITE + '/opengraph.jpg'];
   const schemaSku = String(product.sku || product.id || '').replace(/\s+/g, '');
-  const schemaCategory = String(catName);
 
   // priceValidUntil — 1 рік вперед
   const pvu = new Date();
@@ -73,7 +72,6 @@ function buildSchema(product, pageUrl, desc) {
     'mpn': schemaSku,
     'image': imgList,
     'url': pageUrl,
-    'category': schemaCategory,
     'offers': {
       '@type': 'Offer',
       '@id': pageUrl + '#offer',

@@ -249,7 +249,6 @@ function buildSchema(product, pageUrl, desc, catName, catUrl, reviews = []) {
     ? product.images.map(image => safeUrl(image)).filter(Boolean)
     : [SITE + '/opengraph.jpg'];
   const schemaSku = String(product.sku || product.id || '').replace(/\s+/g, '');
-  const schemaCategory = String(catName || '');
 
   const pvu = new Date();
   pvu.setFullYear(pvu.getFullYear() + 1);
@@ -266,7 +265,6 @@ function buildSchema(product, pageUrl, desc, catName, catUrl, reviews = []) {
     mpn: schemaSku,
     image: imgList,
     url: pageUrl,
-    category: schemaCategory,
     ...(reviews.length > 0 ? {
       aggregateRating: {
         '@type': 'AggregateRating',
