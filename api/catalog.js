@@ -76,7 +76,10 @@ ${items}
 export default async function handler(req, res) {
   let html;
   try {
-    html = fs.readFileSync(path.join(process.cwd(), 'catalog.html'), 'utf8');
+    // catalog.html is the public URL handled by vercel.json. Keep the SSR
+    // template under a different filename so Vercel cannot serve it directly
+    // before applying the rewrite to this function.
+    html = fs.readFileSync(path.join(process.cwd(), 'catalog-template.html'), 'utf8');
   } catch (_) {
     return res.status(500).send('Catalog template not found');
   }
