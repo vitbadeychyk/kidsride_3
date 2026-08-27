@@ -193,6 +193,12 @@ nav a.active{color:var(--orange)}
 .products-grid.cols-2{grid-template-columns:repeat(2,1fr)}
 .products-grid.cols-4{grid-template-columns:repeat(4,1fr)}
 .products-grid.list{grid-template-columns:1fr}
+.seo-product-links{margin:24px 40px;padding:18px 22px;background:white;border:1px solid var(--border);border-radius:14px}
+.seo-product-links h2{font-size:18px;color:var(--navy);margin:0 0 5px}
+.seo-product-links p{font-size:12px;color:var(--text-muted);margin:0 0 14px}
+.seo-product-links ul{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 24px;margin:0;padding:0;list-style:none}
+.seo-product-links a{display:block;padding:4px 0;color:var(--navy);font-size:13px;line-height:1.35;text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.seo-product-links a:hover{color:var(--orange);text-decoration:underline}
 
 /* ── PRODUCT CARD ── */
 .p-card{background:white;border-radius:var(--r);overflow:hidden;border:1.5px solid var(--border);transition:all .3s cubic-bezier(.34,1.56,.64,1);cursor:pointer;position:relative}
@@ -323,6 +329,9 @@ nav a.active{color:var(--orange)}
   .page-size-select{display:none}
   .sort-select{flex:1;min-width:0}
   .view-btns{flex-shrink:0}
+  .seo-product-links{margin:16px;padding:16px}
+  .seo-product-links ul{grid-template-columns:1fr 1fr;gap:4px 16px}
+  .seo-product-links a{font-size:12px}
 
   /* Active filters */
   .active-filters{padding:10px 16px}
@@ -662,6 +671,10 @@ nav a.active{color:var(--orange)}
     <div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:var(--text-muted);font-size:14px">Завантаження…</div>
   </div>
 </div>
+
+<!-- Server-rendered SEO fallback. api/catalog injects active product links here.
+     The client removes this section after the interactive catalog is ready. -->
+<!-- SEO_PRODUCT_LINKS -->
 
 <!-- CATALOG HEAD --><div class="catalog-head" style="display:none">
   <div class="catalog-title-row">
@@ -3516,6 +3529,13 @@ function _getActiveCategoryIds() {
 
 function applyFiltersAndRender() {
   const grid = document.getElementById('productsGrid');
+  // Після завантаження товарів інтерактивна сітка стає основним каталогом.
+  // SEO-список залишається корисним fallback-ом для no-JS, але не дублює
+  // картки для звичайного користувача.
+  if (Array.isArray(allProducts) && allProducts.length) {
+    const seoLinks = document.getElementById('seoProductLinks');
+    if (seoLinks) seoLinks.remove();
+  }
 
   // On mobile, if showing category nav (not products), just update filters without rendering
   if (typeof _isMobileView === 'function' && _isMobileView() &&

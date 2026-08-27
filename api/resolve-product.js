@@ -362,8 +362,11 @@ export default async function handler(req, res) {
   const supaUrl  = process.env.SUPABASE_URL;
   const supaKey  = process.env.SUPABASE_ANON_KEY;
 
-  if ((!slug && !productId) || !supaUrl || !supaKey) {
-    return res.redirect(302, '/catalog.html');
+  if (!slug && !productId) {
+    return res.status(404).send('Product not found');
+  }
+  if (!supaUrl || !supaKey) {
+    return res.status(500).send('Product service is not configured');
   }
 
   const headers = { apikey: supaKey, Authorization: 'Bearer ' + supaKey };
@@ -410,7 +413,7 @@ export default async function handler(req, res) {
         // може повернути іншу позицію.
         if (osRes.status === 400 && osId) {
           const fallbackUrl = supaUrl + '/rest/v1/ostatok?select=id,sku,color,quantity,sell_price,old_price,images,category_id,description,description2,short_desc,active' +
-            '&id=eq.' + encodeURIComponent(osId[1]);
+            '&id=eq.' + encodeURIComponent(osId[1]) + '&active=eq.true';
           osRes = await fetch(fallbackUrl, { headers });
         }
         if (osRes.ok) {
@@ -447,9 +450,9 @@ export default async function handler(req, res) {
     }
   } catch (_) {}
 
-  if (!product) {
-    // Slug не знайдено — перенаправляємо на каталог (щоб не показувати кешований не той товар)
-    return res.redirect(302, '/catalog.html');
+  if (!product || product.active !== true) {
+    // Не показуємо неіснуючі або неактивні товари через clean URL.
+    return res.status(404).send('Product not found');
   }
   // Якщо постачальник не має залишку, беремо зі складу тільки наявність для SSR.
   // Якщо SKU вже знайдений у products, ціни постачальника не підміняємо

@@ -90,15 +90,18 @@ export default async function handler(req, res) {
       }
     } catch (_) {}
 
-    // ── Товари (через view products_sitemap) ───────────────────────────────
-    // View містить умову: active = true AND description IS NOT NULL AND length(trim(description)) >= 400
+    // ── Товари ─────────────────────────────────────────────────────────────
+    // Sitemap має містити кожен активний товар із валідним slug.
+    // Не використовуємо view products_sitemap: у ньому була додаткова умова
+    // щодо довжини description (>= 400 символів), через яку короткі описи
+    // виключалися з індексації, хоча сторінка товару існує.
     try {
       const products = await supaFetch(
         supaUrl, supaKey,
-        'products_sitemap?select=id,slug,updated_at&order=id.asc'
+        'products?select=id,slug,updated_at&active=eq.true&slug=not.is.null&order=id.asc'
       );
       for (const p of products) {
-        if (!p.slug) continue;
+        if (!String(p.slug || '').trim()) continue;
         productUrls.push({
           loc:        SITE + '/product/' + p.slug,
           lastmod:    p.updated_at ? p.updated_at.substring(0, 10) : '',

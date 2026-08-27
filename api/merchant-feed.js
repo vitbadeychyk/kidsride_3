@@ -26,8 +26,11 @@ async function fetchAllProducts() {
   while (true) {
     var r = await fetch(
       SUPABASE_URL + '/rest/v1/products' +
-      '?select=id,name,description,price,old_price,stock,preorder_days,images,brand,slug,sku' +
+      '?select=id,name,description,price,old_price,stock,preorder_days,images,brand,slug,sku,active' +
+      '&active=eq.true' +
       '&price=gt.0' +
+      '&slug=not.is.null' +
+      '&slug=neq.' +
       '&order=id.asc',
       {
         headers: {
@@ -61,9 +64,7 @@ function buildItem(p) {
   var oldPrice = Number(p.old_price) || 0;
   var hasDiscount = oldPrice > price && oldPrice > 0;
 
-  var productUrl = p.slug
-    ? SITE + '/product/' + escXml(p.slug)
-    : SITE + '/product.html?id=' + escXml(String(p.id));
+  var productUrl = escXml(SITE + '/product/' + encodeURIComponent(String(p.slug).trim()));
 
   // Колонка images — масив URL фотографій
   var imgList = Array.isArray(p.images) ? p.images.filter(Boolean) : [];
@@ -124,9 +125,11 @@ function buildItem(p) {
 export default async function handler(req, res) {
   try {
     var products = await fetchAllProducts();
-    // Не передаємо в Google товари без ціни або з ціною 0
+    // Передаємо лише активні товари з ціною та непорожнім slug.
     products = products.filter(function (p) {
-    return Number(p.price) > 0;
+      return p.active === true
+        && Number(p.price) > 0
+        && String(p.slug || '').trim() !== '';
     });
     var items = products.map(buildItem).join('\n');
     var now = new Date().toUTCString();
@@ -149,7 +152,7 @@ export default async function handler(req, res) {
     res.status(200).send(xml);
 
   } catch (err) {
-    // Повертаємо порожній валідний XML замість HTML-помилки Vercel
+    // Повертаємо 503, щоб Google повторив завантаження після тимчасової помилки.
     var emptyXml = [
       '<?xml version="1.0" encoding="UTF-8"?>',
       '<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">',
@@ -164,6 +167,6 @@ export default async function handler(req, res) {
     console.error('[merchant-feed] ERROR:', err.message);
     res.setHeader('Content-Type', 'application/xml; charset=utf-8');
     res.setHeader('Cache-Control', 'no-store');
-    res.status(200).send(emptyXml);
+    res.status(503).send(emptyXml);
   }
 }

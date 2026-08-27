@@ -28,6 +28,10 @@
       "destination": "/api/merchant-feed"
     },
     {
+      "source": "/catalog.html",
+      "destination": "/api/catalog"
+    },
+    {
       "source": "/robots.txt",
       "destination": "/robots.txt"
     },
