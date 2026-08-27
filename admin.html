@@ -235,6 +235,17 @@ tr:hover td{background:rgba(240,242,248,.5)}
 .ta-btn:hover{background:var(--orange-soft);color:var(--orange)}
 .ta-btn.danger:hover{background:var(--red-soft);color:var(--red)}
 .ta-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.reviews-table-wrap{overflow-x:auto}
+.reviews-table{min-width:860px}
+.review-product{display:flex;align-items:center;gap:10px;min-width:220px;max-width:310px}
+.review-product-image{width:52px;height:52px;border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;color:var(--text-muted);font-size:20px}
+.review-product-image img{width:100%;height:100%;object-fit:cover}
+.review-product-info{min-width:0}
+.review-product-name{font-weight:700;color:var(--navy);line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.review-product-sku{font-size:11px;color:var(--text-muted);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.reviews-page-size{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-muted);white-space:nowrap}
+.reviews-page-size .filter-select{padding-top:6px;padding-bottom:6px}
+.reviews-pagination{border-top:1px solid var(--border)}
 
 /* STATUS BADGES */
 .status{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:700;white-space:nowrap}
@@ -999,15 +1010,29 @@ tr:hover td{background:rgba(240,242,248,.5)}
       </div>
       <div class="table-card">
         <div class="table-head">
-          <span class="table-head-title">Опубліковані відгуки</span>
-          <span style="font-size:12px;color:var(--text-muted)">Відгуки публікуються на сайті без модерації</span>
+          <span class="table-head-title">Всі відгуки</span>
+          <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+            <span style="font-size:12px;color:var(--text-muted)">Відгуки публікуються на сайті без модерації</span>
+            <label class="reviews-page-size">На сторінці:
+              <select id="reviewsPageSize" class="filter-select" onchange="setReviewsPageSize(this.value)">
+                <option value="100" selected>100</option>
+                <option value="300">300</option>
+                <option value="500">500</option>
+                <option value="1000">1 000</option>
+                <option value="all">Всі</option>
+              </select>
+            </label>
+          </div>
         </div>
-        <table>
+        <div class="reviews-table-wrap">
+        <table class="reviews-table">
           <thead><tr><th>Покупець</th><th>Товар</th><th>Оцінка</th><th>Відгук</th><th>Дата</th><th>Дії</th></tr></thead>
           <tbody id="reviewsTbody">
             <tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:24px">Поки що немає відгуків</td></tr>
           </tbody>
         </table>
+        </div>
+        <div id="reviewsPagination" class="pagination reviews-pagination" style="display:none"></div>
       </div>
     </div>
 
@@ -5216,63 +5241,184 @@ function _krStarsTxt(n){
   return '★★★★★☆☆☆☆☆'.slice(5-n, 10-n);
 }
 
-// Кеш мапи product_id → name (щоб не робити окремий запит на кожен відгук)
+// Відгуки завантажуються сторінками по 1000 записів, бо Supabase має
+// стандартний max_rows=1000. У таблиці адмінки показуємо потрібну кількість
+// рядків, але дані ніколи не обрізаємо на першій тисячі.
 let _krReviewProductsCache = null;
-async function _krLoadProductNames(){
-  if (_krReviewProductsCache) return _krReviewProductsCache;
-  try{
-    const r = await fetch(SUPABASE_URL + '/rest/v1/products?select=id,name,sku', {
-      headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY }
-    });
-    if (r.ok){
-      const arr = await r.json();
-      const m = {};
-      (arr||[]).forEach(p => { m[p.id] = p.name || p.sku || p.id; });
-      _krReviewProductsCache = m;
-      return m;
-    }
-  } catch(e){ console.warn('[admin reviews] product names fetch failed', e); }
-  _krReviewProductsCache = {};
-  return _krReviewProductsCache;
+let _krReviews = null;
+let _krReviewsPage = 1;
+let _krReviewsPageSize = (() => {
+  try {
+    const saved = localStorage.getItem('kr_reviews_page_size');
+    return saved === 'all' ? 'all' : ([100, 300, 500, 1000].includes(Number(saved)) ? Number(saved) : 100);
+  } catch(e) { return 100; }
+})();
+let _krReviewsRequest = 0;
+
+function _krReviewHeaders(extra){
+  const token = (typeof _adminToken !== 'undefined' && _adminToken) || SUPABASE_KEY;
+  return {
+    apikey: SUPABASE_KEY,
+    Authorization: 'Bearer ' + token,
+    ...(extra || {})
+  };
 }
 
-async function renderReviewsTable(){
+function _krTotalFromContentRange(value){
+  const match = String(value || '').match(/\/(\d+|\*)$/);
+  return match && match[1] !== '*' ? Number(match[1]) : null;
+}
+
+async function _krFetchAllReviews(){
+  const batchSize = 1000;
+  const result = [];
+  let offset = 0;
+  let total = null;
+
+  while (true) {
+    const r = await fetch(SUPABASE_URL + '/rest/v1/reviews?select=id,product_id,author_name,city,rating,text,approved,created_at&order=created_at.desc,id.desc', {
+      headers: _krReviewHeaders({
+        Prefer: 'count=exact',
+        Range: offset + '-' + (offset + batchSize - 1)
+      })
+    });
+
+    if (r.status === 404 || r.status === 400) {
+      const err = new Error('REVIEWS_TABLE_MISSING');
+      err.status = r.status;
+      throw err;
+    }
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+
+    const batch = await r.json();
+    if (!Array.isArray(batch)) throw new Error('Несподівана відповідь Supabase');
+    result.push(...batch);
+    total = total == null ? _krTotalFromContentRange(r.headers.get('content-range')) : total;
+
+    if (!batch.length || batch.length < batchSize || (total != null && result.length >= total)) break;
+    offset += batch.length;
+  }
+
+  return result;
+}
+
+function _krParseImages(images){
+  if (Array.isArray(images)) return images.filter(Boolean).map(String);
+  if (typeof images !== 'string' || !images.trim()) return [];
+  try {
+    const parsed = JSON.parse(images);
+    return Array.isArray(parsed) ? parsed.filter(Boolean).map(String) : [];
+  } catch(e) {
+    return images.split(',').map(s => s.trim()).filter(Boolean);
+  }
+}
+
+function _krMainProductImage(product){
+  const image = _krParseImages(product && product.images).find(url => /^(https?:\/\/|data:image\/|\/)/i.test(url));
+  return image || '';
+}
+
+// Кеш мапи product_id → дані товару. Він теж завантажується сторінками,
+// інакше після першої 1000 товарів артикул/фото не знаходяться.
+async function _krLoadReviewProducts(){
+  if (_krReviewProductsCache) return _krReviewProductsCache;
+  const map = {};
+  const batchSize = 1000;
+  let offset = 0;
+  let total = null;
+
+  try{
+    while (true) {
+      const r = await fetch(SUPABASE_URL + '/rest/v1/products?select=id,name,sku,images&order=id.asc', {
+        headers: _krReviewHeaders({
+          Prefer: 'count=exact',
+          Range: offset + '-' + (offset + batchSize - 1)
+        })
+      });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const batch = await r.json();
+      if (!Array.isArray(batch)) break;
+      batch.forEach(p => { map[p.id] = p; });
+      total = total == null ? _krTotalFromContentRange(r.headers.get('content-range')) : total;
+      if (!batch.length || batch.length < batchSize || (total != null && Object.keys(map).length >= total)) break;
+      offset += batch.length;
+    }
+  } catch(e){ console.warn('[admin reviews] product names fetch failed', e); }
+  _krReviewProductsCache = map;
+  return map;
+}
+
+function setReviewsPageSize(value){
+  _krReviewsPageSize = value === 'all' ? 'all' : Number(value) || 100;
+  _krReviewsPage = 1;
+  try { localStorage.setItem('kr_reviews_page_size', String(_krReviewsPageSize)); } catch(e) {}
+  const select = document.getElementById('reviewsPageSize');
+  if (select) select.value = String(_krReviewsPageSize);
+  if (_krReviews) _renderReviewsRows();
+}
+
+function _renderReviewsPagination(total, page, pageSize){
+  const box = document.getElementById('reviewsPagination');
+  if (!box) return;
+  if (pageSize === 'all' || total <= pageSize) {
+    box.style.display = 'none';
+    return;
+  }
+
+  const pages = Math.ceil(total / pageSize);
+  const buttons = [];
+  const from = Math.max(1, page - 2);
+  const to = Math.min(pages, from + 4);
+  for (let i = from; i <= to; i++) {
+    buttons.push('<button class="pag-btn' + (i === page ? ' active' : '') + '" onclick="setReviewsPage(' + i + ')">' + i + '</button>');
+  }
+  box.style.display = 'flex';
+  box.innerHTML =
+    '<span>Показано ' + ((page - 1) * pageSize + 1).toLocaleString('uk-UA') + '–' +
+      Math.min(page * pageSize, total).toLocaleString('uk-UA') + ' з ' + total.toLocaleString('uk-UA') + '</span>' +
+    '<div class="pag-btns">' +
+      '<button class="pag-btn" title="Попередня сторінка" onclick="setReviewsPage(' + Math.max(1, page - 1) + ')"' + (page === 1 ? ' disabled' : '') + '>‹</button>' +
+      buttons.join('') +
+      '<button class="pag-btn" title="Наступна сторінка" onclick="setReviewsPage(' + Math.min(pages, page + 1) + ')"' + (page === pages ? ' disabled' : '') + '>›</button>' +
+    '</div>';
+}
+
+function setReviewsPage(page){
+  _krReviewsPage = Math.max(1, Number(page) || 1);
+  if (_krReviews) _renderReviewsRows();
+}
+
+function _renderReviewsRows(){
   const tbody = document.getElementById('reviewsTbody');
   const label = document.getElementById('reviewsCountLabel');
-  if(!tbody) return;
-  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:24px">Завантаження…</td></tr>';
+  if (!tbody || !Array.isArray(_krReviews)) return;
 
-  let all = [];
-  try{
-    const r = await fetch(SUPABASE_URL + '/rest/v1/reviews?select=id,product_id,author_name,city,rating,text,approved,created_at&order=created_at.desc', {
-      headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY }
-    });
-    if (r.ok) all = await r.json();
-    else if (r.status === 404 || r.status === 400){
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#e53935;padding:24px">Таблиця <code>reviews</code> ще не створена. Виконайте <code>SUPABASE_REVIEWS.sql</code> у Supabase → SQL Editor.</td></tr>';
-      if (label) label.textContent = 'покупців';
-      return;
-    } else {
-      throw new Error('HTTP ' + r.status);
-    }
-  } catch(e){
-    console.error('[admin reviews] load failed', e);
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#e53935;padding:24px">Не вдалось завантажити відгуки: ' + _krEsc(e.message||'') + '</td></tr>';
-    return;
-  }
+  const all = _krReviews;
+  const pageSize = _krReviewsPageSize === 'all' ? all.length || 1 : _krReviewsPageSize;
+  const pages = Math.max(1, Math.ceil(all.length / pageSize));
+  _krReviewsPage = Math.min(_krReviewsPage, pages);
+  const start = (_krReviewsPage - 1) * pageSize;
+  const visible = all.slice(start, start + pageSize);
+  if (label) label.textContent = all.length ? '(' + all.length.toLocaleString('uk-UA') + ')' : 'покупців';
 
-  if(label) label.textContent = all.length ? ('(' + all.length + ')') : 'покупців';
-  if(!all.length){
+  if (!all.length) {
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:24px">Поки що немає відгуків</td></tr>';
+    _renderReviewsPagination(0, 1, _krReviewsPageSize);
     return;
   }
 
-  const names = await _krLoadProductNames();
+  const products = _krReviewProductsCache || {};
   const ICON_EYE = '<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
   const ICON_EYE_OFF = '<svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
   const ICON_TRASH = '<svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>';
-  tbody.innerHTML = all.map(r => {
-    const productName = names[r.product_id] || r.product_id || '—';
+  tbody.innerHTML = visible.map(r => {
+    const product = products[r.product_id] || {};
+    const productName = product.name || product.sku || r.product_id || '—';
+    const productSku = product.sku || '—';
+    const productImage = _krMainProductImage(product);
+    const imageHtml = productImage
+      ? '<img src="' + _krEsc(productImage) + '" alt="" loading="lazy" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'"><span style="display:none">📦</span>'
+      : '<span>📦</span>';
     const dim = r.approved ? '' : 'opacity:.55';
     const approvedTag = r.approved
       ? '<span style="font-size:10px;background:rgba(46,160,67,.12);color:#2ea043;padding:2px 6px;border-radius:4px;margin-left:6px">опубл.</span>'
@@ -5283,7 +5429,16 @@ async function renderReviewsTable(){
     return `
     <tr data-id="${_krEsc(r.id)}" style="${dim}">
       <td><div style="font-weight:600">${_krEsc(r.author_name)}</div>${r.city?'<div style="font-size:11px;color:var(--text-muted)">'+_krEsc(r.city)+'</div>':''}</td>
-      <td style="font-size:12px">${_krEsc(productName)}${approvedTag}</td>
+      <td>
+        <div class="review-product">
+          <div class="review-product-image">${imageHtml}</div>
+          <div class="review-product-info">
+            <div class="review-product-name">${_krEsc(productName)}</div>
+            <div class="review-product-sku">Артикул: ${_krEsc(productSku)}</div>
+          </div>
+        </div>
+        ${approvedTag}
+      </td>
       <td><div style="color:#f59e0b;font-size:14px;letter-spacing:1px">${_krStarsTxt(r.rating)}</div></td>
       <td style="max-width:280px"><div style="font-size:12px;color:var(--text);line-height:1.5">${_krEsc(r.text)}</div></td>
       <td style="font-size:12px;color:var(--text-muted);white-space:nowrap">${_krFmtDate(r.created_at)}</td>
@@ -5293,6 +5448,35 @@ async function renderReviewsTable(){
       </div></td>
     </tr>`;
   }).join('');
+  _renderReviewsPagination(all.length, _krReviewsPage, _krReviewsPageSize);
+}
+
+async function renderReviewsTable(){
+  const tbody = document.getElementById('reviewsTbody');
+  const label = document.getElementById('reviewsCountLabel');
+  if(!tbody) return;
+  const requestId = ++_krReviewsRequest;
+  const select = document.getElementById('reviewsPageSize');
+  if (select) select.value = String(_krReviewsPageSize);
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:24px">Завантаження…</td></tr>';
+
+  try{
+    const all = await _krFetchAllReviews();
+    if (requestId !== _krReviewsRequest) return;
+    _krReviews = all;
+    await _krLoadReviewProducts();
+    if (requestId !== _krReviewsRequest) return;
+    _renderReviewsRows();
+  } catch(e){
+    if (e && e.message === 'REVIEWS_TABLE_MISSING'){
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#e53935;padding:24px">Таблиця <code>reviews</code> ще не створена. Виконайте <code>SUPABASE_REVIEWS.sql</code> у Supabase → SQL Editor.</td></tr>';
+      if (label) label.textContent = 'покупців';
+      return;
+    }
+    console.error('[admin reviews] load failed', e);
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#e53935;padding:24px">Не вдалось завантажити відгуки: ' + _krEsc(e.message||'') + '</td></tr>';
+    return;
+  }
 }
 
 async function toggleReviewApproved(id, approved){
