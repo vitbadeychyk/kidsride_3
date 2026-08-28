@@ -1747,7 +1747,13 @@ function _dispatchTreeAction(row) {
 }
 
 // ── CATEGORIES CACHE ─────────────────────────────────────────────────────────
-const CATS_CACHE_KEY = 'kidsride_cats_v2';
+// Критичний запит каталогу не повинен тягнути image_url:
+// у старих записах це поле може містити data/base64 зображення на мегабайти.
+// Зображення не потрібне для побудови дерева та першого рендера — картки
+// використовують легку SVG/emoji-іконку, якщо image_url не завантажено.
+const CATS_CACHE_KEY = 'kidsride_cats_v3';
+const MAIN_CATEGORIES_SELECT = 'id,name,slug';
+const CATEGORIES_SELECT = 'id,name,slug,main_category_id,sort_order';
 function _loadCatsFromStorage() {
   try {
     const raw = localStorage.getItem(CATS_CACHE_KEY);
@@ -1773,8 +1779,8 @@ async function _fetchCategoriesFromSupabase() {
     return fetch(url, { headers, signal: ctrl.signal }).finally(() => clearTimeout(tid));
   };
   const [mcRes, catRes] = await Promise.all([
-    _ctFetch(SUPABASE_URL + '/rest/v1/main_categories?select=id,name,slug,image_url&active=eq.true&order=sort_order.asc,name.asc'),
-    _ctFetch(SUPABASE_URL + '/rest/v1/categories?select=id,name,slug,main_category_id,image_url,sort_order&active=eq.true&order=sort_order.asc.nullslast,name.asc')
+    _ctFetch(SUPABASE_URL + '/rest/v1/main_categories?select=' + MAIN_CATEGORIES_SELECT + '&active=eq.true&order=sort_order.asc,name.asc'),
+    _ctFetch(SUPABASE_URL + '/rest/v1/categories?select=' + CATEGORIES_SELECT + '&active=eq.true&order=sort_order.asc.nullslast,name.asc')
   ]);
   if (!mcRes.ok || !catRes.ok) throw new Error('HTTP error');
   _mainCategories = await mcRes.json() || [];
