@@ -2265,11 +2265,13 @@ function _mobCatNavToggleProductsArea(show) {
 }
 
 // На мобільному екрані видно дві колонки і приблизно два рядки тайлів.
-// Перші чотири зображення завантажуються одразу, решта — за потреби.
-function _mobCatImageAttrs(index) {
-  return Number(index) < 4
-    ? 'loading="eager" fetchpriority="high" decoding="async"'
-    : 'loading="lazy" decoding="async"';
+// Лише перше зображення є кандидатом на LCP і отримує high priority.
+// Інші зображення першого екрану завантажуються eager, але без конкуренції
+// за найвищий пріоритет мережі.
+function _mobCatImageAttrs(index, isFirstImage) {
+  if (isFirstImage) return 'loading="eager" fetchpriority="high" decoding="async"';
+  if (Number(index) < 4) return 'loading="eager" fetchpriority="auto" decoding="async"';
+  return 'loading="lazy" fetchpriority="auto" decoding="async"';
 }
 
 function _mobNavShowMain() {
@@ -2305,10 +2307,13 @@ function _mobNavShowMain() {
     }
   });
 
+  let _lcpImageAssigned = false;
   grid.innerHTML = _mainCategories.map((mc, index) => {
     const cnt = prodCounts[mc.id] || 0;
+    const isFirstImage = !!mc.image_url && !_lcpImageAssigned;
+    if (isFirstImage) _lcpImageAssigned = true;
     const thumb = mc.image_url
-      ? `<img class="mob-cat-tile-img" src="${mc.image_url}" alt="${escAttr ? escAttr(mc.name) : mc.name}" ${_mobCatImageAttrs(index)}>`
+      ? `<img class="mob-cat-tile-img" src="${mc.image_url}" alt="${escAttr ? escAttr(mc.name) : mc.name}" ${_mobCatImageAttrs(index, isFirstImage)}>`
       : `<div class="mob-cat-tile-icon">${_getCatIcon(mc.name)}</div>`;
     return `<div class="mob-cat-tile" onclick="_mobNavShowSub(${mc.id})">
       ${thumb}

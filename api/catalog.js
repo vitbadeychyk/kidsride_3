@@ -53,14 +53,15 @@ async function fetchAllActiveProducts(supaUrl, supaKey) {
 
 async function fetchLcpCategoryImages(supaUrl, supaKey) {
   const response = await fetch(
-    supaUrl + '/rest/v1/main_categories?select=image_url&active=eq.true&order=sort_order.asc.nullslast,name.asc&limit=4',
+    supaUrl + '/rest/v1/main_categories?select=image_url&active=eq.true&order=sort_order.asc.nullslast,name.asc&limit=20',
     { headers: { apikey: supaKey, Authorization: 'Bearer ' + supaKey } }
   );
   if (!response.ok) return [];
   const rows = await response.json();
-  return [...new Set((rows || [])
+  const firstImage = (rows || [])
     .map(row => String(row.image_url || '').trim())
-    .filter(url => /^https?:\/\//i.test(url)))];
+    .find(url => /^https?:\/\//i.test(url));
+  return firstImage ? [firstImage] : [];
 }
 
 function buildLcpPreloads(urls) {
