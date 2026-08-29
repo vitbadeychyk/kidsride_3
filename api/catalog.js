@@ -10,6 +10,10 @@ const SITE = 'https://www.kidsride.com.ua';
 const PAGE_SIZE = 1000;
 const SEO_MARKER = '<!-- SEO_PRODUCT_LINKS -->';
 const MAIN_CATEGORIES_MARKER = '<!-- SSR_MAIN_CATEGORIES -->';
+// Browser revalidates on navigation, while Vercel's CDN serves the SSR
+// response for five minutes and refreshes it in the background afterwards.
+const CATALOG_CACHE_CONTROL =
+  'public, max-age=0, s-maxage=300, stale-while-revalidate=86400';
 
 function escHtml(value) {
   return String(value || '')
@@ -72,6 +76,7 @@ async function fetchActiveMainCategories(supaUrl, supaKey) {
 
 function buildMainCategoryTiles(categories) {
   let eagerImages = 0;
+  let lcpImageMarked = false;
 
   return categories
     .map(category => {
@@ -82,15 +87,19 @@ function buildMainCategoryTiles(categories) {
       const slug = String(category.slug || '').trim();
       const imageUrl = String(category.image_url || '').trim();
       const sortOrder = category.sort_order == null ? '' : String(category.sort_order);
+      const isLcpImage =
+        !lcpImageMarked && name === 'Електромобілі' && Boolean(imageUrl);
+      if (isLcpImage) lcpImageMarked = true;
       let media;
 
       if (imageUrl) {
         const loading = eagerImages < 2 ? 'eager' : 'lazy';
         eagerImages += 1;
+        const fetchPriority = isLcpImage ? ' fetchpriority="high"' : '';
         media =
           '<img class="mob-cat-tile-img" src="' + escHtml(imageUrl) +
           '" alt="' + escHtml(name) + '" loading="' + loading +
-          '" decoding="async">';
+          '" decoding="async"' + fetchPriority + '>';
       } else {
         media = '<div class="mob-cat-tile-icon">' + escHtml(category.icon || '') + '</div>';
       }
@@ -138,6 +147,11 @@ ${items}
 }
 
 export default async function handler(req, res) {
+  // Set this before any streaming starts. The explicit /catalog.html and
+  // /api/catalog rules in vercel.json keep the generic HTML no-store rule
+  // from disabling CDN caching for this SSR endpoint.
+  res.setHeader('Cache-Control', CATALOG_CACHE_CONTROL);
+
   let html;
   try {
     // catalog.html is the public URL handled by vercel.json. Keep the SSR
@@ -198,7 +212,6 @@ export default async function handler(req, res) {
       res.setHeader('X-Catalog-SSR-Product-Links', 'pending');
       res.setHeader('X-Catalog-SSR-Streaming', 'categories-first');
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
       res.statusCode = 200;
 
       // Everything before SEO_PRODUCT_LINKS includes the complete SSR
@@ -250,6 +263,5 @@ export default async function handler(req, res) {
   res.setHeader('X-Catalog-SSR-HTML-Length', String(diagnostics.htmlLength));
   res.setHeader('X-Catalog-SSR-Product-Links', String(diagnostics.productLinks));
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
   res.status(200).send(html);
 }
