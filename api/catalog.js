@@ -9,7 +9,6 @@ import path from 'path';
 const SITE = 'https://www.kidsride.com.ua';
 const PAGE_SIZE = 1000;
 const SEO_MARKER = '<!-- SEO_PRODUCT_LINKS -->';
-const LCP_PRELOAD_MARKER = '<!-- LCP_CATEGORY_PRELOADS -->';
 
 function escHtml(value) {
   return String(value || '')
@@ -49,25 +48,6 @@ async function fetchAllActiveProducts(supaUrl, supaKey) {
   }
 
   return all;
-}
-
-async function fetchLcpCategoryImages(supaUrl, supaKey) {
-  const response = await fetch(
-    supaUrl + '/rest/v1/main_categories?select=image_url&active=eq.true&order=sort_order.asc.nullslast,name.asc&limit=20',
-    { headers: { apikey: supaKey, Authorization: 'Bearer ' + supaKey } }
-  );
-  if (!response.ok) return [];
-  const rows = await response.json();
-  const firstImage = (rows || [])
-    .map(row => String(row.image_url || '').trim())
-    .find(url => /^https?:\/\//i.test(url));
-  return firstImage ? [firstImage] : [];
-}
-
-function buildLcpPreloads(urls) {
-  return urls
-    .map(url => '<link rel="preload" as="image" href="' + escHtml(url) + '" fetchpriority="high">')
-    .join('\n');
 }
 
 function buildSeoProductLinks(products) {
@@ -117,29 +97,21 @@ export default async function handler(req, res) {
 
   if (supaUrl && supaKey) {
     try {
-      // Категорії потрібні лише для preload і завантажуються паралельно з
-      // товарами, щоб не додавати окрему затримку до SSR-відповіді.
-      const [products, lcpCategoryImages] = await Promise.all([
-        fetchAllActiveProducts(supaUrl, supaKey),
-        fetchLcpCategoryImages(supaUrl, supaKey).catch(() => []),
-      ]);
+      const products = await fetchAllActiveProducts(supaUrl, supaKey);
       const seoLinks = buildSeoProductLinks(products);
       diagnostics.products = products.length;
       diagnostics.productLinks = (seoLinks.match(/<a\b[^>]*href="[^"]*\/product\//gi) || []).length;
       html = html.replace(SEO_MARKER, seoLinks);
-      html = html.replace(LCP_PRELOAD_MARKER, buildLcpPreloads(lcpCategoryImages));
       diagnostics.htmlLength = html.length;
     } catch (error) {
       // Не ламаємо каталог, якщо Supabase тимчасово недоступний:
       // клієнтський код все одно спробує завантажити товари у браузері.
       console.error('[catalog SSR] products fetch failed:', error.message);
       html = html.replace(SEO_MARKER, '');
-      html = html.replace(LCP_PRELOAD_MARKER, '');
       diagnostics.htmlLength = html.length;
     }
   } else {
     html = html.replace(SEO_MARKER, '');
-    html = html.replace(LCP_PRELOAD_MARKER, '');
     diagnostics.htmlLength = html.length;
   }
 
