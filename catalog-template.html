@@ -41,6 +41,7 @@
 </script>
 <link rel="preconnect" href="https://gwslintdrtnvbfjvivbb.supabase.co" crossorigin>
 <link rel="dns-prefetch" href="https://gwslintdrtnvbfjvivbb.supabase.co">
+<!-- LCP_CATEGORY_PRELOADS -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
@@ -2263,6 +2264,14 @@ function _mobCatNavToggleProductsArea(show) {
   if (!show && bb) bb.style.display = 'none';
 }
 
+// На мобільному екрані видно дві колонки і приблизно два рядки тайлів.
+// Перші чотири зображення завантажуються одразу, решта — за потреби.
+function _mobCatImageAttrs(index) {
+  return Number(index) < 4
+    ? 'loading="eager" fetchpriority="high" decoding="async"'
+    : 'loading="lazy" decoding="async"';
+}
+
 function _mobNavShowMain() {
   if (!_isMobileView()) return;
   _mobNavLevel = 'main';
@@ -2296,10 +2305,10 @@ function _mobNavShowMain() {
     }
   });
 
-  grid.innerHTML = _mainCategories.map(mc => {
+  grid.innerHTML = _mainCategories.map((mc, index) => {
     const cnt = prodCounts[mc.id] || 0;
     const thumb = mc.image_url
-      ? `<img class="mob-cat-tile-img" src="${mc.image_url}" alt="${escAttr ? escAttr(mc.name) : mc.name}" loading="lazy">`
+      ? `<img class="mob-cat-tile-img" src="${mc.image_url}" alt="${escAttr ? escAttr(mc.name) : mc.name}" ${_mobCatImageAttrs(index)}>`
       : `<div class="mob-cat-tile-icon">${_getCatIcon(mc.name)}</div>`;
     return `<div class="mob-cat-tile" onclick="_mobNavShowSub(${mc.id})">
       ${thumb}
@@ -2376,7 +2385,7 @@ function _mobNavShowSub(parentId, _skipHistory) {
 
   const _VT_SLUG_CODES = ['jeep','quad','moto','car','tractor','truck','buggy','walker'];
   const tiles = [];
-  subs.forEach(sub => {
+  subs.forEach((sub, index) => {
     // Пропустити тайли типів транспорту — вони рендеряться через vehicle types loop
     if (sub.slug && _VT_SLUG_CODES.includes(sub.slug)) return;
     // "Запчастини" та подібні — завжди звичайний тайл, не розгортаємо
@@ -2391,12 +2400,12 @@ function _mobNavShowSub(parentId, _skipHistory) {
         // Розгортаємо підкатегорію транспорту одразу в тайли типів — без додаткового кліку
         const _catIdx2={};(_allCategories||[]).forEach((c,i)=>{if(c.slug)_catIdx2[c.slug]=i;});
         const sorted = _vtypes.filter(code=>code in _catIdx2).sort((a,b)=>{const ia=_catIdx2[a]??9999,ib=_catIdx2[b]??9999;return ia!==ib?ia-ib:(_VT_UA_SUB[a]||a).localeCompare(_VT_UA_SUB[b]||b,'uk');});
-        sorted.forEach(code => {
+        sorted.forEach((code, index) => {
           const icon = _VT_ICON_SUB[code] || '📦';
           const name = _VT_UA_SUB[code]   || code;
           const _vtCat = (_allCategories||[]).find(c=>c.slug===code);
           const _vtThumb = _vtCat && _vtCat.image_url
-            ? `<img class="mob-cat-tile-img" src="${_vtCat.image_url}" alt="${name}" loading="lazy">`
+            ? `<img class="mob-cat-tile-img" src="${_vtCat.image_url}" alt="${name}" ${_mobCatImageAttrs(index)}>`
             : `<div class="mob-cat-tile-icon" style="font-size:2.4rem;display:flex;align-items:center;justify-content:center;width:100%;height:100%">${icon}</div>`;
           tiles.push(`<div class="mob-cat-tile" onclick="_mobNavSelectVehicleType('${code}',${sub.id})">
             ${_vtThumb}
@@ -2410,7 +2419,7 @@ function _mobNavShowSub(parentId, _skipHistory) {
 
     // Звичайний тайл підкатегорії (Запчастини, аксесуари тощо)
     const thumb = sub.image_url
-      ? `<img class="mob-cat-tile-img" src="${sub.image_url}" alt="${escAttr ? escAttr(sub.name) : sub.name}" loading="lazy">`
+      ? `<img class="mob-cat-tile-img" src="${sub.image_url}" alt="${escAttr ? escAttr(sub.name) : sub.name}" ${_mobCatImageAttrs(index)}>`
       : `<div class="mob-cat-tile-icon">${_getCatIcon(sub.name)}</div>`;
     tiles.push(`<div class="mob-cat-tile" onclick="_mobNavSelectSub(${sub.id})">
       ${thumb}
@@ -2495,13 +2504,13 @@ function _mobNavShowVehicleTypes(catId, vtypes) {
   const _catIdx3={};(_allCategories||[]).forEach((c,i)=>{if(c.slug)_catIdx3[c.slug]=i;});
   const sorted=[...vtypes].filter(code=>code in _catIdx3).sort((a,b)=>{const ia=_catIdx3[a]??9999,ib=_catIdx3[b]??9999;return ia!==ib?ia-ib:(_VT_UA[a]||a).localeCompare(_VT_UA[b]||b,'uk');});
 
-  grid.innerHTML = sorted.map(code => {
+  grid.innerHTML = sorted.map((code, index) => {
     const cnt  = _subP.filter(p => p.category === code).length;
     const icon = _VT_ICON[code] || '📦';
     const name = _VT_UA[code] || code;
     const _vtCat2 = (_allCategories||[]).find(c=>c.slug===code);
     const _vtThumb2 = _vtCat2 && _vtCat2.image_url
-      ? `<img class="mob-cat-tile-img" src="${_vtCat2.image_url}" alt="${name}" loading="lazy">`
+      ? `<img class="mob-cat-tile-img" src="${_vtCat2.image_url}" alt="${name}" ${_mobCatImageAttrs(index)}>`
       : `<div class="mob-cat-tile-icon" style="font-size:2.4rem;display:flex;align-items:center;justify-content:center;width:100%;height:100%">${icon}</div>`;
     return `<div class="mob-cat-tile" onclick="_mobNavSelectVehicleType('${code}',${catId})">
       ${_vtThumb2}
