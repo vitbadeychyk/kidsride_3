@@ -668,7 +668,7 @@ nav a.active{color:var(--orange)}
     <div class="mob-cat-heading" id="mobCatHeading">Каталог</div>
   </div>
   <div class="mob-cat-grid" id="mobCatGrid">
-    <div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:var(--text-muted);font-size:14px">Завантаження…</div>
+    <!-- SSR_MAIN_CATEGORIES -->
   </div>
 </div>
 
@@ -1773,7 +1773,7 @@ async function _fetchCategoriesFromSupabase() {
     return fetch(url, { headers, signal: ctrl.signal }).finally(() => clearTimeout(tid));
   };
   const [mcRes, catRes] = await Promise.all([
-    _ctFetch(SUPABASE_URL + '/rest/v1/main_categories?select=id,name,slug,image_url&active=eq.true&order=sort_order.asc,name.asc'),
+    _ctFetch(SUPABASE_URL + '/rest/v1/main_categories?select=id,name,slug,image_url,sort_order&active=eq.true&order=sort_order.asc,name.asc'),
     _ctFetch(SUPABASE_URL + '/rest/v1/categories?select=id,name,slug,main_category_id,image_url,sort_order&active=eq.true&order=sort_order.asc.nullslast,name.asc')
   ]);
   if (!mcRes.ok || !catRes.ok) throw new Error('HTTP error');
@@ -2263,8 +2263,69 @@ function _mobCatNavToggleProductsArea(show) {
   if (!show && bb) bb.style.display = 'none';
 }
 
+function _mainCategoryGridMatches(grid) {
+  if (!grid || !_mainCategories.length) return false;
+  const tiles = Array.from(grid.querySelectorAll('[data-ssr-main-category]'));
+  if (tiles.length !== _mainCategories.length) return false;
+
+  return tiles.every((tile, index) => {
+    const category = _mainCategories[index] || {};
+    return String(tile.dataset.mainCategoryId || '') === String(category.id || '') &&
+      String(tile.dataset.mainCategoryName || '') === String(category.name || '') &&
+      String(tile.dataset.mainCategorySlug || '') === String(category.slug || '') &&
+      String(tile.dataset.mainCategoryImageUrl || '') === String(category.image_url || '') &&
+      (category.sort_order == null ||
+        String(tile.dataset.mainCategorySortOrder || '') === String(category.sort_order));
+  });
+}
+
+function _hydrateMainCategoriesFromSSR() {
+  // The SSR tiles are the source for the first paint. Hydrate their small
+  // category payload synchronously so navigation does not depend on either
+  // loadProductsFromSupabase() or the client category request.
+  if (_mainCategories.length) return false;
+  const grid = document.getElementById('mobCatGrid');
+  if (!grid) return false;
+  const tiles = Array.from(grid.querySelectorAll('[data-ssr-main-category]'));
+  if (!tiles.length) return false;
+
+  const hydrated = tiles.map(tile => ({
+    id: Number(tile.dataset.mainCategoryId),
+    name: tile.dataset.mainCategoryName || '',
+    slug: tile.dataset.mainCategorySlug || '',
+    image_url: tile.dataset.mainCategoryImageUrl || '',
+    sort_order: tile.dataset.mainCategorySortOrder || ''
+  })).filter(category => Number.isFinite(category.id));
+  if (!hydrated.length) return false;
+  _mainCategories = hydrated;
+  return true;
+}
+
+function _renderMainCategoryGrid(grid) {
+  let eagerImages = 0;
+  grid.innerHTML = (_mainCategories || []).map(mc => {
+    const imageUrl = String(mc.image_url || '').trim();
+    const loading = imageUrl && eagerImages++ < 2 ? 'eager' : 'lazy';
+    const thumb = imageUrl
+      ? `<img class="mob-cat-tile-img" src="${escAttr(imageUrl)}" alt="${escAttr(mc.name)}" loading="${loading}" decoding="async">`
+      : `<div class="mob-cat-tile-icon">${_getCatIcon(mc.name)}</div>`;
+    return `<div class="mob-cat-tile" data-ssr-main-category="true"
+      data-main-category-id="${mc.id}"
+      data-main-category-name="${escAttr(mc.name)}"
+      data-main-category-slug="${escAttr(mc.slug || '')}"
+      data-main-category-image-url="${escAttr(imageUrl)}"
+      data-main-category-sort-order="${escAttr(mc.sort_order == null ? '' : mc.sort_order)}"
+      onclick="_mobNavShowSub(${mc.id})">
+      ${thumb}
+      <div class="mob-cat-tile-grad"></div>
+      <div class="mob-cat-tile-name">${escAttr(mc.name)}</div>
+    </div>`;
+  }).join('');
+}
+
 function _mobNavShowMain() {
   if (!_isMobileView()) return;
+  _hydrateMainCategoriesFromSSR();
   _mobNavLevel = 'main';
   _mobNavParentId = 0;
 
@@ -2282,31 +2343,25 @@ function _mobNavShowMain() {
   if (!grid) return;
 
   if (!_mainCategories.length) {
+    // The SSR response already contains the first-view category tiles. Keep
+    // them in place while the client category request is in flight so the
+    // browser can discover their images during the initial HTML parse.
+    if (grid.querySelector('[data-ssr-main-category]')) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      try { history.replaceState({ level: 'main', catId: 0, parentId: 0, vType: '' }, '', location.href); } catch(_){}
+      return;
+    }
     grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted)">Категорії завантажуються…</div>';
     return;
   }
 
-  const available = (allProducts || []).filter(p => !(p.stock != null && p.stock <= 0 && !(Number(p.preorderDays) > 0)));
-  const prodCounts = {};
-  available.forEach(p => {
-    if (!p.category_id) return;
-    const cat = (_allCategories || []).find(c => c.id === p.category_id);
-    if (cat && cat.main_category_id) {
-      prodCounts[cat.main_category_id] = (prodCounts[cat.main_category_id] || 0) + 1;
-    }
-  });
-
-  grid.innerHTML = _mainCategories.map(mc => {
-    const cnt = prodCounts[mc.id] || 0;
-    const thumb = mc.image_url
-      ? `<img class="mob-cat-tile-img" src="${mc.image_url}" alt="${escAttr ? escAttr(mc.name) : mc.name}" loading="lazy">`
-      : `<div class="mob-cat-tile-icon">${_getCatIcon(mc.name)}</div>`;
-    return `<div class="mob-cat-tile" onclick="_mobNavShowSub(${mc.id})">
-      ${thumb}
-      <div class="mob-cat-tile-grad"></div>
-      <div class="mob-cat-tile-name">${mc.name}</div>
-    </div>`;
-  }).join('');
+  // Main category tiles depend only on _mainCategories. Keep this first
+  // render independent from allProducts so SSR categories can appear before
+  // the products request finishes.
+  // If the server tiles still describe the same categories, preserve their
+  // DOM nodes and already-discovered images. Only rebuild when category data
+  // actually changed.
+  if (!_mainCategoryGridMatches(grid)) _renderMainCategoryGrid(grid);
 
   window.scrollTo({ top: 0, behavior: 'smooth' });
   // Replace state with 'main' level so back button can return here
@@ -2315,6 +2370,7 @@ function _mobNavShowMain() {
 
 function _mobNavShowSub(parentId, _skipHistory) {
   if (!_isMobileView()) return;
+  _hydrateMainCategoriesFromSSR();
   _mobNavLevel = 'sub';
   _mobNavParentId = parentId;
 
@@ -2620,6 +2676,7 @@ function _mobNavGoBack() {
 function _initMobileCatNav() {
   if (!_isMobileView()) return;
   if (_mobNavInitDone) return;
+  _hydrateMainCategoriesFromSSR();
 
   const p = new URLSearchParams(location.search);
   const catId     = p.get('catId');
@@ -3399,7 +3456,7 @@ async function renderCatalog() {
     if (!_mainCategories.length) {
       if(!document.getElementById('_shimmerStyle')){const _ss=document.createElement('style');_ss.id='_shimmerStyle';_ss.textContent='@keyframes _shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}';document.head.appendChild(_ss);}
       const _cg=document.getElementById('mobCatGrid');
-      if(_cg){const _cs=()=>`<div class="mob-cat-tile" style="pointer-events:none"><div style="position:absolute;inset:0;background:linear-gradient(90deg,#dce4f0 25%,#c8d4e8 50%,#dce4f0 75%);background-size:200% 100%;animation:_shimmer 1.4s infinite"></div></div>`;_cg.innerHTML=_cs()+_cs()+_cs()+_cs()+_cs()+_cs();}
+      if(_cg && !_cg.querySelector('[data-ssr-main-category]')){const _cs=()=>`<div class="mob-cat-tile" style="pointer-events:none"><div style="position:absolute;inset:0;background:linear-gradient(90deg,#dce4f0 25%,#c8d4e8 50%,#dce4f0 75%);background-size:200% 100%;animation:_shimmer 1.4s infinite"></div></div>`;_cg.innerHTML=_cs()+_cs()+_cs()+_cs()+_cs()+_cs();}
     }
     // Дерево будуємо вже з allProducts заповненим
     loadCategoryTree();
@@ -3448,10 +3505,10 @@ async function renderCatalog() {
   // Shimmer tiles in category nav while cats load
   if(!document.getElementById('_shimmerStyle')){const _ss=document.createElement('style');_ss.id='_shimmerStyle';_ss.textContent='@keyframes _shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}';document.head.appendChild(_ss);}
   const _catNavGrid2=document.getElementById('mobCatGrid');
-  if(_catNavGrid2){const _cs2=()=>`<div class="mob-cat-tile" style="pointer-events:none"><div style="position:absolute;inset:0;background:linear-gradient(90deg,#dce4f0 25%,#c8d4e8 50%,#dce4f0 75%);background-size:200% 100%;animation:_shimmer 1.4s infinite"></div></div>`;_catNavGrid2.innerHTML=_cs2()+_cs2()+_cs2()+_cs2()+_cs2()+_cs2();}
+   if(_catNavGrid2 && !_catNavGrid2.querySelector('[data-ssr-main-category]')){const _cs2=()=>`<div class="mob-cat-tile" style="pointer-events:none"><div style="position:absolute;inset:0;background:linear-gradient(90deg,#dce4f0 25%,#c8d4e8 50%,#dce4f0 75%);background-size:200% 100%;animation:_shimmer 1.4s infinite"></div></div>`;_catNavGrid2.innerHTML=_cs2()+_cs2()+_cs2()+_cs2()+_cs2()+_cs2();}
 
-  // Запускаємо товари та категорії одночасно — категорії завантажаться першими
-  // і покажуться без затримки (без підрахунку товарів — він з'явиться після)
+  // Запускаємо товари та категорії незалежно. SSR main-category grid уже
+  // готовий у HTML і не повинен чекати loadProductsFromSupabase().
   const catsAlreadyCached = _loadCatsFromStorage();
   if (catsAlreadyCached) {
     // Категорії є в кеші — показуємо дерево одразу (без лічильників, вони будуть після)
@@ -3462,13 +3519,11 @@ async function renderCatalog() {
 
   // Завантажуємо товари і категорії паралельно
   // Якщо категорії НЕ в кеші — завантажуємо їх окремо і показуємо одразу, як тільки прийдуть
-  let _catsFetchDone = false;
   const catsPromise = catsAlreadyCached
     ? Promise.resolve()
     : _fetchCategoriesFromSupabase()
         .then(() => {
           _saveCatsToStorage();
-          _catsFetchDone = true;
           // Показуємо дерево категорій одразу (без лічильників товарів — з'являться після)
           const treeEl = document.getElementById('catTree');
           if (treeEl && !allProducts.length) {
@@ -3478,10 +3533,13 @@ async function renderCatalog() {
         })
         .catch(() => {});
 
-  const [products] = await Promise.all([
-    loadProductsFromSupabase(),
-    catsPromise
-  ]);
+  // Products/ostatok keep their current loading and rendering logic, but
+  // their promise is not part of the category-grid initialization path.
+  const productsPromise = loadProductsFromSupabase();
+  const products = await productsPromise;
+  // Wait only before building the product-dependent sidebar/filter state.
+  // The SSR category tiles and their LCP images are already on screen.
+  await catsPromise;
 
   allProducts = (products || []).filter(p => p.active !== false);
   // Лупа може запуститись раніше за каталог і закешувати неповний список.

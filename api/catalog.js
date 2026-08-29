@@ -9,6 +9,7 @@ import path from 'path';
 const SITE = 'https://www.kidsride.com.ua';
 const PAGE_SIZE = 1000;
 const SEO_MARKER = '<!-- SEO_PRODUCT_LINKS -->';
+const MAIN_CATEGORIES_MARKER = '<!-- SSR_MAIN_CATEGORIES -->';
 
 function escHtml(value) {
   return String(value || '')
@@ -50,6 +51,68 @@ async function fetchAllActiveProducts(supaUrl, supaKey) {
   return all;
 }
 
+async function fetchActiveMainCategories(supaUrl, supaKey) {
+  const query =
+    '/rest/v1/main_categories?select=id,name,slug,image_url,sort_order&active=eq.true&order=sort_order.asc,name.asc';
+  const response = await fetch(supaUrl + query, {
+    headers: {
+      apikey: supaKey,
+      Authorization: 'Bearer ' + supaKey,
+    },
+  });
+
+  if (!response.ok) {
+    const message = await response.text().catch(() => '');
+    throw new Error('Supabase ' + response.status + ': ' + message.slice(0, 240));
+  }
+
+  const categories = await response.json();
+  return Array.isArray(categories) ? categories : [];
+}
+
+function buildMainCategoryTiles(categories) {
+  let eagerImages = 0;
+
+  return categories
+    .map(category => {
+      const id = Number(category.id);
+      if (!Number.isFinite(id)) return '';
+
+      const name = String(category.name || 'Категорія').trim();
+      const slug = String(category.slug || '').trim();
+      const imageUrl = String(category.image_url || '').trim();
+      const sortOrder = category.sort_order == null ? '' : String(category.sort_order);
+      let media;
+
+      if (imageUrl) {
+        const loading = eagerImages < 2 ? 'eager' : 'lazy';
+        eagerImages += 1;
+        media =
+          '<img class="mob-cat-tile-img" src="' + escHtml(imageUrl) +
+          '" alt="' + escHtml(name) + '" loading="' + loading +
+          '" decoding="async">';
+      } else {
+        media = '<div class="mob-cat-tile-icon">' + escHtml(category.icon || '') + '</div>';
+      }
+
+      return [
+        '<div class="mob-cat-tile" data-ssr-main-category="true"',
+        ' data-main-category-id="' + id + '"',
+        ' data-main-category-name="' + escHtml(name) + '"',
+        ' data-main-category-slug="' + escHtml(slug) + '"',
+        ' data-main-category-image-url="' + escHtml(imageUrl) + '"',
+        ' data-main-category-sort-order="' + escHtml(sortOrder) + '"',
+        ' onclick="_mobNavShowSub(' + id + ')">',
+        media,
+        '<div class="mob-cat-tile-grad"></div>',
+        '<div class="mob-cat-tile-name">' + escHtml(name) + '</div>',
+        '</div>',
+      ].join('');
+    })
+    .filter(Boolean)
+    .join('\n');
+}
+
 function buildSeoProductLinks(products) {
   const items = products
     .filter(product => String(product.slug || '').trim())
@@ -89,34 +152,100 @@ export default async function handler(req, res) {
   const supaKey = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_KEY;
   const diagnostics = {
     products: 0,
+    mainCategories: 0,
     markerFound: html.includes(SEO_MARKER),
+    mainCategoriesMarkerFound: html.includes(MAIN_CATEGORIES_MARKER),
     htmlLength: html.length,
     productLinks: 0,
     supabaseConfigured: Boolean(supaUrl && supaKey),
   };
 
   if (supaUrl && supaKey) {
-    try {
-      const products = await fetchAllActiveProducts(supaUrl, supaKey);
+    // Start the SEO query in parallel, but do not make the first response byte
+    // wait for all products. The category grid is part of the first streamed
+    // chunk; product links are inserted into the second chunk when ready.
+    const productsPromise = fetchAllActiveProducts(supaUrl, supaKey)
+      .then(value => ({ status: 'fulfilled', value }))
+      .catch(reason => ({ status: 'rejected', reason }));
+    const categoriesResult = await Promise.allSettled([
+      fetchActiveMainCategories(supaUrl, supaKey),
+    ]).then(results => results[0]);
+
+    if (categoriesResult.status === 'fulfilled') {
+      const categories = categoriesResult.value;
+      const tiles = buildMainCategoryTiles(categories);
+      diagnostics.mainCategories = categories.length;
+      html = html.replace(MAIN_CATEGORIES_MARKER, tiles);
+    } else {
+      // Без SSR-категорій клієнтський код завантажить їх як раніше.
+      console.error('[catalog SSR] main_categories fetch failed:', categoriesResult.reason?.message || categoriesResult.reason);
+      html = html.replace(MAIN_CATEGORIES_MARKER, '');
+    }
+    diagnostics.htmlLength = html.length;
+
+    const seoMarkerIndex = html.indexOf(SEO_MARKER);
+    const canStream = seoMarkerIndex >= 0 &&
+      typeof res.write === 'function' && typeof res.end === 'function';
+
+    if (canStream) {
+      // Headers must be sent before write(). Product diagnostics are finalized
+      // in logs; the response header intentionally reports the first chunk's
+      // state because the product query is still running at this point.
+      res.setHeader('X-Catalog-SSR-Products', 'pending');
+      res.setHeader('X-Catalog-SSR-Main-Categories', String(diagnostics.mainCategories));
+      res.setHeader('X-Catalog-SSR-Marker', String(diagnostics.markerFound));
+      res.setHeader('X-Catalog-SSR-HTML-Length', String(diagnostics.htmlLength));
+      res.setHeader('X-Catalog-SSR-Product-Links', 'pending');
+      res.setHeader('X-Catalog-SSR-Streaming', 'categories-first');
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
+      res.statusCode = 200;
+
+      // Everything before SEO_PRODUCT_LINKS includes the complete SSR
+      // category grid and its Storage image URLs, so the browser can paint it
+      // without waiting for products/ostatok.
+      res.write(html.slice(0, seoMarkerIndex));
+
+      const productsResult = await productsPromise;
+      let seoLinks = '';
+      if (productsResult.status === 'fulfilled') {
+        const products = productsResult.value;
+        seoLinks = buildSeoProductLinks(products);
+        diagnostics.products = products.length;
+        diagnostics.productLinks = (seoLinks.match(/<a\b[^>]*href="[^"]*\/product\//gi) || []).length;
+      } else {
+        // Не ламаємо каталог, якщо Supabase тимчасово недоступний:
+        // клієнтський код все одно спробує завантажити товари у браузері.
+        console.error('[catalog SSR] products fetch failed:', productsResult.reason?.message || productsResult.reason);
+      }
+      diagnostics.htmlLength = html.length - SEO_MARKER.length + seoLinks.length;
+      console.error('[catalog SSR] diagnostics:', JSON.stringify(diagnostics));
+      res.end(seoLinks + html.slice(seoMarkerIndex + SEO_MARKER.length));
+      return;
+    }
+
+    // Non-streaming fallback for local adapters that do not expose write/end.
+    const productsResult = await productsPromise;
+    if (productsResult.status === 'fulfilled') {
+      const products = productsResult.value;
       const seoLinks = buildSeoProductLinks(products);
       diagnostics.products = products.length;
       diagnostics.productLinks = (seoLinks.match(/<a\b[^>]*href="[^"]*\/product\//gi) || []).length;
       html = html.replace(SEO_MARKER, seoLinks);
-      diagnostics.htmlLength = html.length;
-    } catch (error) {
-      // Не ламаємо каталог, якщо Supabase тимчасово недоступний:
-      // клієнтський код все одно спробує завантажити товари у браузері.
-      console.error('[catalog SSR] products fetch failed:', error.message);
+    } else {
+      console.error('[catalog SSR] products fetch failed:', productsResult.reason?.message || productsResult.reason);
       html = html.replace(SEO_MARKER, '');
-      diagnostics.htmlLength = html.length;
     }
+    diagnostics.htmlLength = html.length;
   } else {
     html = html.replace(SEO_MARKER, '');
+    html = html.replace(MAIN_CATEGORIES_MARKER, '');
     diagnostics.htmlLength = html.length;
   }
 
   console.error('[catalog SSR] diagnostics:', JSON.stringify(diagnostics));
   res.setHeader('X-Catalog-SSR-Products', String(diagnostics.products));
+  res.setHeader('X-Catalog-SSR-Main-Categories', String(diagnostics.mainCategories));
   res.setHeader('X-Catalog-SSR-Marker', String(diagnostics.markerFound));
   res.setHeader('X-Catalog-SSR-HTML-Length', String(diagnostics.htmlLength));
   res.setHeader('X-Catalog-SSR-Product-Links', String(diagnostics.productLinks));
