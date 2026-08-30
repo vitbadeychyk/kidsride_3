@@ -62,6 +62,26 @@ function safeUrl(value, fallback = '') {
   return /^(?:https?:\/\/|\/)/i.test(url) ? url : fallback;
 }
 
+// Складські позиції можуть не мати окремого slug у старій схемі БД.
+// Каталог у такому випадку будує URL із назви, тому resolver повинен
+// використовувати абсолютно такий самий fallback.
+function slugify(value) {
+  const UA = {
+    а:'a', б:'b', в:'v', г:'h', ґ:'g', д:'d', е:'e', є:'ie', ж:'zh',
+    з:'z', и:'y', і:'i', ї:'i', й:'i', к:'k', л:'l', м:'m', н:'n',
+    о:'o', п:'p', р:'r', с:'s', т:'t', у:'u', ф:'f', х:'kh', ц:'ts',
+    ч:'ch', ш:'sh', щ:'shch', ь:'', ю:'iu', я:'ia', ё:'e', ъ:'', ы:'y', э:'e',
+  };
+  return String(value || '')
+    .toLowerCase()
+    .split('')
+    .map(char => UA[char] !== undefined ? UA[char] : char)
+    .join('')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .substring(0, 80);
+}
+
 // Опис у БД може містити базове форматування. Відкидаємо небезпечні теги й
 // атрибути, щоб SSR не перетворив поле адмінки на виконуваний HTML.
 function safeRichText(value) {
@@ -408,20 +428,33 @@ export default async function handler(req, res) {
             ? '&id=eq.' + encodeURIComponent(osId[1])
             : '&slug=eq.' + encodeURIComponent(slug) + '&quantity=gt.0&active=eq.true&limit=1');
         let osRes = await fetch(osUrl, { headers });
-        // Підтримуємо старі посилання os_<id>, якщо міграція slug ще не запущена.
-        // Для clean URL fallback навмисно немає: пошук по SKU або частині slug
-        // може повернути іншу позицію.
-        if (osRes.status === 400 && osId) {
-          const fallbackUrl = supaUrl + '/rest/v1/ostatok?select=id,sku,color,quantity,sell_price,old_price,images,category_id,description,description2,short_desc,active' +
-            '&id=eq.' + encodeURIComponent(osId[1]) + '&active=eq.true';
+        let osRows = [];
+        if (osRes.ok) {
+          osRows = await osRes.json();
+        }
+
+        // До виконання міграції slug поле могло бути відсутнім або
+        // незаповненим. У такому разі каталог все одно будує clean URL із
+        // назви, тому шукаємо серед доступних складських позицій тим самим
+        // slugify(name), а не повертаємо помилку 404.
+        const needsLegacyFallback = osRes.status === 400 ||
+          (!osId && osRes.ok && !osRows.some(row =>
+            String(row.slug || '').trim().toLowerCase() === slug
+          ));
+        if (needsLegacyFallback) {
+          const fallbackUrl = supaUrl + '/rest/v1/ostatok?select=id,sku,name,color,quantity,sell_price,old_price,images,category_id,description,description2,short_desc,active' +
+            (osId
+              ? '&id=eq.' + encodeURIComponent(osId[1]) + '&active=eq.true'
+              : '&quantity=gt.0&active=eq.true&limit=1000');
           osRes = await fetch(fallbackUrl, { headers });
+          if (osRes.ok) osRows = await osRes.json();
         }
         if (osRes.ok) {
-          const rows = await osRes.json();
-          const os = (rows || []).find(row =>
+          const os = (osRows || []).find(row =>
             osId
               ? String(row.id) === String(osId[1])
-              : String(row.slug || '').trim().toLowerCase() === slug
+              : String(row.slug || '').trim().toLowerCase() === slug ||
+                (!row.slug && slugify(row.name || row.sku || '') === slug)
           );
           if (os) {
             product = {
