@@ -417,9 +417,10 @@ export default async function handler(req, res) {
       if (product) break;
     }
     // Власний склад має окрему таблицю ostatok і синтетичний ID os_<id>.
-    // Без цього clean URL складського товару помилково повертав користувача
-    // назад у catalog.html.
-    if (!product) {
+    // Важливо перевіряти ostatok не тільки коли товар відсутній у products:
+    // запис постачальника може існувати, але бути inactive/stock=0, тоді як
+    // активна позиція з кількістю 1 є на власному складі.
+    if (!product || product.active !== true) {
       const osId = productId.match(/^os_(\d+)$/i) || slug.match(/^os_(\d+)$/i);
       if (osId || slug) {
         const osSelect = 'id,slug,sku,name,color,quantity,sell_price,old_price,images,category_id,description,description2,short_desc,active';
