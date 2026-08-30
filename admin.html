@@ -10,6 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
+<script src="xlsx.full.min.js"></script>
 <style>
 :root{
   --orange:#FF6B35;--orange-dark:#e85520;--orange-soft:rgba(255,107,53,.1);
@@ -339,6 +340,23 @@ tr:hover td{background:rgba(240,242,248,.5)}
 .log-ok{color:#4ade80}
 .log-err{color:#f87171}
 .log-info{color:rgba(255,255,255,.5)}
+.os-import-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.os-import-hint{font-size:12px;color:var(--text-muted);line-height:1.55;margin:0 0 16px}
+.os-import-modal{max-width:1120px!important;width:min(1120px,calc(100vw - 32px))!important}
+.os-import-summary{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.os-import-summary-item{padding:8px 11px;border-radius:8px;background:var(--bg);font-size:12px;color:var(--navy);font-weight:700}
+.os-import-summary-item.ok{background:var(--green-soft);color:#15803d}
+.os-import-summary-item.err{background:var(--red-soft);color:#b91c1c}
+.os-import-table-wrap{border:1px solid var(--border);border-radius:10px;overflow:auto;max-height:430px}
+.os-import-table{width:100%;border-collapse:collapse;font-size:12px;min-width:860px}
+.os-import-table th{position:sticky;top:0;background:var(--bg);z-index:1;padding:9px 10px;text-align:left;color:var(--text-muted);font-size:10px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+.os-import-table td{padding:9px 10px;border-top:1px solid var(--border-light);vertical-align:top;color:var(--navy);max-width:260px}
+.os-import-table tr.import-row-error{background:var(--red-soft)}
+.os-import-table .import-status{font-weight:800;white-space:nowrap}
+.os-import-table .import-status.ok{color:#15803d}
+.os-import-table .import-status.err{color:#b91c1c}
+.os-import-table .import-slug{font-family:monospace;font-size:11px;word-break:break-all}
+.os-import-note{margin-top:12px;padding:10px 12px;background:var(--blue-soft);border-radius:8px;color:var(--navy);font-size:12px;line-height:1.55}
 
 /* ── MODAL ── */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
@@ -1041,10 +1059,20 @@ tr:hover td{background:rgba(240,242,248,.5)}
     <div class="panel" id="panel-ostatok">
       <div class="section-header">
         <h2 class="section-title">Залишок <span>власного складу</span></h2>
-        <button class="btn btn-primary" onclick="ostatokOpenModal()">
-          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Додати товар
-        </button>
+        <div class="section-actions">
+          <button class="btn btn-outline btn-sm" onclick="downloadOstatokTemplate()" title="Завантажити Excel-шаблон">
+            <svg viewBox="0 0 24 24"><path d="M12 3v12"/><polyline points="7 10 12 15 17 10"/><path d="M5 21h14"/></svg>
+            Шаблон Excel
+          </button>
+          <button class="btn btn-outline btn-sm" onclick="openOstatokImportModal()" title="Завантажити залишки з Excel">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M12 12v6"/><polyline points="9 15 12 18 15 15"/></svg>
+            Імпорт Excel
+          </button>
+          <button class="btn btn-primary" onclick="ostatokOpenModal()">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Додати товар
+          </button>
+        </div>
       </div>
 
       <!-- Статистика -->
@@ -4937,20 +4965,15 @@ function handleDrop(e){
 function handleFileUpload(inp){if(inp.files[0]) processSlideFile(inp.files[0])}
 function processSlideFile(file){showToast(`Слайд "${file.name}" завантажено`,'success')}
 
-// ── IMPORT (Excel — заглушка, XML — справжній імпорт у Supabase) ─────────
+// ── IMPORT (Excel залишків + XML синхронізація) ───────────────────────────
 function handleExcelDrop(e){
   e.preventDefault();e.currentTarget.classList.remove('drag');
   const files=e.dataTransfer.files;
-  if(files[0]) simulateExcelImport(files[0].name);
+  if(files[0]) parseOstatokExcelFile(files[0]);
 }
-function startExcelImport(inp){ if(inp.files[0]) simulateExcelImport(inp.files[0].name) }
-
-function simulateExcelImport(filename){
-  showToast('Excel-імпорт ще не активний. Поки що використай XML-фід або додавай товари вручну.', 'info');
-  const log=document.getElementById('excelLog');
-  const progress=document.getElementById('excelProgress');
-  if (progress) progress.classList.add('show');
-  if (log) log.innerHTML = '<span class="log-info">Файл «'+filename+'» отримано, але Excel-парсер ще не реалізований у цьому модулі.</span>';
+function startExcelImport(inp){
+  if(inp.files[0]) parseOstatokExcelFile(inp.files[0]);
+  inp.value = '';
 }
 
 function toggleAutoSync(btn){
@@ -7414,6 +7437,419 @@ function clearAdminCache() {
   showToast('✅ Кеш очищено. Дані оновляться при наступному відкритті розділу.', 'success');
 }
 
+
+// ── OSTATOK EXCEL IMPORT ────────────────────────────────────────────────────
+const OS_IMPORT_HEADERS = [
+  'Артикул (SKU)', 'Колір', 'SEO slug', 'Назва товару', 'Кількість',
+  'Статус на сайті', 'Ціна продажу (₴)', 'Стара ціна / РРЦ (₴)',
+  'Ціна закупки (₴)', 'Нотатка', 'Підкатегорія (ID або назва)',
+  'Опис товару', 'Короткий опис', 'Фото (до 15 посилань)'
+];
+let _osImportRows = [];
+
+function _osImportHeaderKey(value) {
+  return String(value == null ? '' : value).toLowerCase()
+    .replace(/[\s_().:/\\-]+/g, '');
+}
+
+function _osImportCell(row, aliases) {
+  const keys = Object.keys(row || {});
+  for (const alias of aliases) {
+    const exact = keys.find(k => k === alias);
+    if (exact !== undefined) return row[exact];
+    const normal = _osImportHeaderKey(alias);
+    const match = keys.find(k => _osImportHeaderKey(k) === normal);
+    if (match !== undefined) return row[match];
+  }
+  return '';
+}
+
+function _osImportNumber(value, integer) {
+  if (value === null || value === undefined || String(value).trim() === '') return null;
+  if (typeof value === 'number') return Number.isFinite(value) ? (integer ? Math.round(value) : value) : null;
+  const normalized = String(value).replace(/\u00a0/g, ' ').replace(/\s/g, '').replace(',', '.');
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? (integer ? Math.round(parsed) : parsed) : null;
+}
+
+function _osImportBoolean(value) {
+  if (value === null || value === undefined || String(value).trim() === '') return true;
+  const normalized = String(value).trim().toLowerCase();
+  if (/^(false|0|no|ні|нет|прихований|приховано|🚫)$/.test(normalized)) return false;
+  if (/^(true|1|yes|так|да|активний|активна|показується|✅)$/.test(normalized)) return true;
+  return null;
+}
+
+function _osImportImages(value) {
+  if (Array.isArray(value)) return value.map(v => String(v).trim()).filter(Boolean).slice(0, 15);
+  return String(value || '').split(/[\r\n;]+/).map(v => v.trim()).filter(Boolean).slice(0, 15);
+}
+
+function _osImportKey(sku, color) {
+  return [String(sku || '').trim().toLowerCase(), String(color || '').trim().toLowerCase()].join('|');
+}
+
+function _osImportCategory(value) {
+  if (value === null || value === undefined || String(value).trim() === '') return null;
+  const raw = String(value).trim();
+  if (/^\d+$/.test(raw)) {
+    const id = parseInt(raw, 10);
+    return (_osCategories || []).some(c => Number(c.id) === id) ? id : null;
+  }
+  const category = (_osCategories || []).find(c => String(c.name || '').trim().toLowerCase() === raw.toLowerCase());
+  return category ? Number(category.id) : null;
+}
+
+function _osImportSlug(base, used, existingId) {
+  const root = osSlugify(base) || 'product';
+  let candidate = root;
+  let counter = 2;
+  while (used.has(candidate)) {
+    candidate = root + '-' + counter;
+    counter += 1;
+  }
+  used.add(candidate);
+  return candidate;
+}
+
+function _osImportPrepareRows(rawRows) {
+  const existingByKey = new Map((_osRows || []).map(row => [_osImportKey(row.sku, row.color), row]));
+  const existingSlugOwners = new Map((_osRows || []).filter(row => row.slug).map(row => [String(row.slug), row.id]));
+  const usedSlugs = new Set();
+  const seenKeys = new Set();
+  const rows = [];
+
+  for (let index = 0; index < rawRows.length; index += 1) {
+    const source = rawRows[index] || {};
+    const values = {
+      rowNumber: index + 2,
+      sku: String(_osImportCell(source, ['Артикул (SKU)', 'SKU', 'sku', 'Код_товару', 'Код товару']) || '').trim(),
+      color: String(_osImportCell(source, ['Колір', 'color', 'colour']) || '').trim(),
+      slugInput: String(_osImportCell(source, ['SEO slug', 'slug', 'Slug']) || '').trim(),
+      name: String(_osImportCell(source, ['Назва товару', 'name', 'Назва_позиції_укр']) || '').trim(),
+      quantity: _osImportNumber(_osImportCell(source, ['Кількість', 'quantity', 'stock']), true),
+      active: _osImportBoolean(_osImportCell(source, ['Статус на сайті', 'active', 'Активний'])),
+      sellPrice: _osImportNumber(_osImportCell(source, ['Ціна продажу (₴)', 'sell_price', 'Ціна']), false),
+      oldPrice: _osImportNumber(_osImportCell(source, ['Стара ціна / РРЦ (₴)', 'old_price', 'РРЦ']), false),
+      buyPrice: _osImportNumber(_osImportCell(source, ['Ціна закупки (₴)', 'buy_price', 'Закупка']), false),
+      note: String(_osImportCell(source, ['Нотатка', 'note', 'Примітка']) || '').trim(),
+      categoryRaw: _osImportCell(source, ['Підкатегорія (ID або назва)', 'Підкатегорія', 'category_id', 'category']),
+      description: String(_osImportCell(source, ['Опис товару', 'Опис', 'description', 'Опис_укр']) || '').trim(),
+      description2: String(_osImportCell(source, ['Короткий опис', 'description2', 'short_desc']) || '').trim(),
+      images: _osImportImages(_osImportCell(source, ['Фото (до 15 посилань)', 'Фото', 'images', 'Посилання_зображення']))
+    };
+    const blank = Object.values(source).every(value => String(value == null ? '' : value).trim() === '');
+    if (blank) continue;
+
+    const errors = [];
+    if (!values.sku) errors.push('не вказано SKU');
+    if (!values.name) errors.push('не вказано назву');
+    if (values.quantity === null || values.quantity < 0) errors.push('кількість має бути числом ≥ 0');
+    if (values.active === null) errors.push('невідомий статус');
+    for (const [label, value] of [['ціна продажу', values.sellPrice], ['стара ціна', values.oldPrice], ['ціна закупки', values.buyPrice]]) {
+      if (value !== null && value < 0) errors.push(label + ' не може бути відʼємною');
+    }
+    const categoryId = _osImportCategory(values.categoryRaw);
+    if (values.categoryRaw !== '' && categoryId === null) errors.push('не знайдено підкатегорію');
+
+    const key = _osImportKey(values.sku, values.color);
+    const existing = existingByKey.get(key);
+    if (seenKeys.has(key) && values.sku) errors.push('дубль SKU + кольору у файлі');
+    if (values.sku) seenKeys.add(key);
+
+    const requestedSlug = values.slugInput ? osSlugify(values.slugInput) : (existing && existing.slug) || osSlugify(values.name + '-' + values.sku);
+    let slug = requestedSlug || 'product';
+    let slugCounter = 2;
+    while (usedSlugs.has(slug) || (existingSlugOwners.has(slug) && String(existingSlugOwners.get(slug)) !== String(existing && existing.id))) {
+      slug = (requestedSlug || 'product') + '-' + slugCounter;
+      slugCounter += 1;
+    }
+    usedSlugs.add(slug);
+    rows.push({
+      ...values,
+      categoryId,
+      existingId: existing ? existing.id : null,
+      action: existing ? 'Оновити' : 'Додати',
+      slug,
+      errors
+    });
+  }
+  return rows;
+}
+
+function _osImportValue(value) {
+  return value === null || value === undefined || value === '' ? '—' : _esc(String(value));
+}
+
+function _osImportRenderPreview() {
+  const summary = document.getElementById('osImportSummary');
+  const table = document.getElementById('osImportTable');
+  const commit = document.getElementById('osImportCommit');
+  if (!summary || !table) return;
+  const valid = _osImportRows.filter(row => !row.errors.length);
+  const invalid = _osImportRows.length - valid.length;
+  summary.innerHTML =
+    '<span class="os-import-summary-item">Рядків: ' + _osImportRows.length + '</span>' +
+    '<span class="os-import-summary-item ok">Готові до імпорту: ' + valid.length + '</span>' +
+    '<span class="os-import-summary-item err">З помилками: ' + invalid + '</span>';
+  const visibleRows = _osImportRows.slice(0, 200);
+  table.innerHTML = visibleRows.length ? visibleRows.map(row => {
+    const message = row.errors.length ? row.errors.join('; ') : row.action;
+    return '<tr class="' + (row.errors.length ? 'import-row-error' : '') + '">' +
+      '<td>' + row.rowNumber + '</td>' +
+      '<td><strong>' + _osImportValue(row.sku) + '</strong>' + (row.color ? '<br><span style="color:var(--text-muted)">' + _osImportValue(row.color) + '</span>' : '') + '</td>' +
+      '<td>' + _osImportValue(row.name) + '</td>' +
+      '<td class="import-slug">' + _osImportValue(row.slug) + '</td>' +
+      '<td>' + _osImportValue(row.quantity) + '</td>' +
+      '<td>' + _osImportValue(row.sellPrice) + '</td>' +
+      '<td class="import-status ' + (row.errors.length ? 'err' : 'ok') + '">' + _esc(message) + '</td>' +
+      '</tr>';
+  }).join('') : '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-muted)">У файлі немає рядків з даними</td></tr>';
+  const note = document.getElementById('osImportNote');
+  if (note) note.textContent = _osImportRows.length > 200
+    ? 'Показано перші 200 рядків. Імпорт буде виконано для всіх коректних рядків файлу.'
+    : 'Slug згенеровано автоматично для рядків без slug. Під час імпорту існуючі позиції визначаються за SKU + кольором.';
+  if (commit) {
+    commit.disabled = valid.length === 0;
+    commit.textContent = valid.length ? 'Імпортувати ' + valid.length + ' позицій' : 'Немає коректних рядків';
+  }
+}
+
+function openOstatokImportModal() {
+  let modal = document.getElementById('osImportModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'osImportModal';
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+      <div class="modal os-import-modal">
+        <div class="modal-head">
+          <h3 class="modal-title">Імпорт залишків з Excel</h3>
+          <button class="modal-close" onclick="document.getElementById('osImportModal').classList.remove('open')">
+            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p class="os-import-hint">Завантажте шаблон кнопкою «Шаблон Excel», заповніть один або кілька рядків і поверніть файл сюди. Порожній slug буде створено з назви та SKU.</p>
+          <div class="upload-zone" id="osImportDropZone" style="padding:20px;margin-bottom:16px"
+            ondragover="event.preventDefault();this.classList.add('drag')"
+            ondragleave="this.classList.remove('drag')"
+            ondrop="handleOstatokExcelDrop(event)">
+            <svg viewBox="0 0 24 24" style="width:32px;height:32px;margin:0 auto 8px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <p style="font-size:13px">Перетягніть файл .xlsx або</p>
+            <button type="button" class="btn btn-outline btn-sm" style="margin-top:8px" onclick="document.getElementById('osImportFile').click()">Обрати файл</button>
+            <input type="file" id="osImportFile" accept=".xlsx,.xls" style="display:none" onchange="startOstatokExcelImport(this)">
+          </div>
+          <div id="osImportSummary" class="os-import-summary"></div>
+          <div class="os-import-table-wrap">
+            <table class="os-import-table">
+              <thead><tr><th>Рядок</th><th>SKU / колір</th><th>Назва</th><th>Slug</th><th>Кількість</th><th>Ціна продажу</th><th>Результат</th></tr></thead>
+              <tbody id="osImportTable"><tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-muted)">Спочатку оберіть Excel-файл</td></tr></tbody>
+            </table>
+          </div>
+          <div id="osImportNote" class="os-import-note">Після вибору файлу тут зʼявиться попередній перегляд.</div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="document.getElementById('osImportModal').classList.remove('open')">Скасувати</button>
+          <button class="btn btn-primary" id="osImportCommit" onclick="commitOstatokExcelImport()" disabled>Імпортувати</button>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+  }
+  modal.classList.add('open');
+}
+
+function handleOstatokExcelDrop(event) {
+  event.preventDefault();
+  event.currentTarget.classList.remove('drag');
+  const file = event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0];
+  if (file) parseOstatokExcelFile(file);
+}
+
+function startOstatokExcelImport(input) {
+  const file = input && input.files && input.files[0];
+  if (file) parseOstatokExcelFile(file);
+  if (input) input.value = '';
+}
+
+function parseOstatokExcelFile(file) {
+  if (!window.XLSX) {
+    showToast('Не вдалося завантажити Excel-парсер', 'error');
+    return;
+  }
+  const extension = String(file.name || '').toLowerCase();
+  if (!/\.xlsx?$/.test(extension)) {
+    showToast('Потрібен файл у форматі .xlsx або .xls', 'error');
+    return;
+  }
+  openOstatokImportModal();
+  const note = document.getElementById('osImportNote');
+  if (note) note.textContent = 'Читаю файл «' + file.name + '»…';
+  file.arrayBuffer().then(buffer => {
+    const workbook = XLSX.read(buffer, { type: 'array', cellDates: false });
+    const sheetName = workbook.SheetNames[0];
+    if (!sheetName) throw new Error('У файлі немає аркушів');
+    const sheet = workbook.Sheets[sheetName];
+    const rawRows = XLSX.utils.sheet_to_json(sheet, { defval: '', raw: true });
+    _osImportRows = _osImportPrepareRows(rawRows);
+    _osImportRenderPreview();
+    showToast('Файл прочитано: ' + _osImportRows.length + ' рядків', 'success');
+  }).catch(error => {
+    _osImportRows = [];
+    _osImportRenderPreview();
+    if (note) note.textContent = 'Не вдалося прочитати файл: ' + error.message;
+    showToast('Помилка Excel: ' + error.message, 'error');
+  });
+}
+
+function _osImportPayload(row) {
+  return {
+    sku: row.sku,
+    name: row.name,
+    color: row.color || null,
+    quantity: row.quantity,
+    buy_price: row.buyPrice,
+    note: row.note || null,
+    sell_price: row.sellPrice,
+    old_price: row.oldPrice,
+    active: row.active !== false,
+    images: row.images.length ? row.images : null,
+    category_id: row.categoryId,
+    description: row.description || null,
+    description2: row.description2 || null,
+    short_desc: row.description2 || row.description || null,
+    slug: row.slug
+  };
+}
+
+async function syncImportedOstatokProduct(row) {
+  const payload = _osImportPayload(row);
+  const colorFilter = row.color ? '&color=eq.' + encodeURIComponent(row.color) : '';
+  let existing = await sbFetch('products?sku=eq.' + encodeURIComponent(row.sku) + colorFilter + '&select=id,stock,slug,name');
+  if ((!existing || !existing.length) && row.color) {
+    existing = await sbFetch('products?sku=eq.' + encodeURIComponent(row.sku) + '&select=id,stock,slug,name');
+  }
+  if (existing && existing.length) {
+    const product = existing[0];
+    const productSlug = product.slug || await osUniqueSlug(product.name || row.sku, product.id);
+    const updateFields = {
+      name: row.name,
+      active: payload.active,
+      stock: row.quantity,
+      images: payload.images,
+      category_id: payload.category_id,
+      description: payload.description,
+      description2: payload.description2,
+      short_desc: payload.short_desc,
+      ...(productSlug ? { slug: productSlug } : {})
+    };
+    const filter = row.color
+      ? 'products?sku=eq.' + encodeURIComponent(row.sku) + colorFilter
+      : 'products?sku=eq.' + encodeURIComponent(row.sku);
+    await sbFetch(filter, { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify(updateFields) });
+  } else {
+    const productSlug = await osUniqueSlug(row.sku, null);
+    const newProduct = {
+      sku: row.sku,
+      name: row.name,
+      ...(productSlug ? { slug: productSlug } : {}),
+      active: payload.active,
+      price: row.sellPrice || 0,
+      stock: row.quantity,
+      ...(row.color ? { color: row.color } : {}),
+      ...(payload.description ? { description: payload.description } : {}),
+      ...(payload.description2 ? { description2: payload.description2 } : {}),
+      ...(payload.short_desc ? { short_desc: payload.short_desc } : {}),
+      ...(payload.images ? { images: payload.images } : {}),
+      ...(row.oldPrice !== null ? { old_price: row.oldPrice } : {}),
+      ...(row.categoryId ? { category_id: row.categoryId } : {})
+    };
+    await sbFetch('products', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: JSON.stringify(newProduct) });
+  }
+}
+
+async function commitOstatokExcelImport() {
+  const validRows = _osImportRows.filter(row => !row.errors.length);
+  if (!validRows.length) return;
+  if (!confirm('Імпортувати ' + validRows.length + ' позицій? Існуючі рядки з таким самим SKU + кольором будуть оновлені.')) return;
+  const button = document.getElementById('osImportCommit');
+  if (button) { button.disabled = true; button.textContent = 'Імпорт…'; }
+  let imported = 0;
+  let added = 0;
+  let updated = 0;
+  let failed = 0;
+  const failures = [];
+  try {
+    const current = await sbFetch('ostatok?select=id,sku,color,slug&limit=10000');
+    const existingByKey = new Map((current || []).map(row => [_osImportKey(row.sku, row.color), row]));
+    for (const row of validRows) {
+      try {
+        const currentRow = existingByKey.get(_osImportKey(row.sku, row.color));
+        const payload = _osImportPayload(row);
+        if (currentRow) {
+          await sbFetch('ostatok?id=eq.' + encodeURIComponent(currentRow.id), {
+            method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify(payload)
+          });
+          updated += 1;
+        } else {
+          const response = await sbFetch('ostatok', {
+            method: 'POST', headers: { Prefer: 'return=representation' }, body: JSON.stringify(payload)
+          });
+          if (response && response[0]) existingByKey.set(_osImportKey(row.sku, row.color), response[0]);
+          added += 1;
+        }
+        try {
+          await syncImportedOstatokProduct(row);
+        } catch (syncError) {
+          console.warn('products sync:', syncError);
+        }
+        imported += 1;
+      } catch (error) {
+        failed += 1;
+        failures.push('Рядок ' + row.rowNumber + ': ' + error.message);
+      }
+    }
+    await loadOstatokPanel();
+    if (failed) {
+      const note = document.getElementById('osImportNote');
+      if (note) note.textContent = 'Завершено частково: додано ' + added + ', оновлено ' + updated + ', помилок ' + failed + '. ' + failures.slice(0, 3).join(' | ');
+      if (button) { button.disabled = false; button.textContent = 'Повторити для помилок'; }
+      showToast('Імпорт завершено частково', 'error');
+      return;
+    }
+    document.getElementById('osImportModal').classList.remove('open');
+    showToast('Імпорт завершено: додано ' + added + ', оновлено ' + updated + ' ✓', 'success');
+  } catch (error) {
+    showToast('Помилка імпорту: ' + error.message, 'error');
+    if (button) { button.disabled = false; button.textContent = 'Повторити імпорт'; }
+  }
+}
+
+function downloadOstatokTemplate() {
+  if (!window.XLSX) {
+    showToast('Не вдалося завантажити Excel-парсер', 'error');
+    return;
+  }
+  const worksheet = XLSX.utils.aoa_to_sheet([OS_IMPORT_HEADERS]);
+  worksheet['!cols'] = OS_IMPORT_HEADERS.map((header, index) => ({ wch: index === 13 ? 36 : index === 0 || index === 3 ? 30 : 18 }));
+  const instructions = [
+    ['Шаблон імпорту залишків KidsRide', ''],
+    ['Як заповнювати', 'Один рядок Excel = одна складська позиція. Не змінюйте назви колонок.'],
+    ['Ключ оновлення', 'Артикул (SKU) + Колір. Якщо така комбінація вже є — рядок оновиться, інакше буде додана нова позиція.'],
+    ['SEO slug', 'Можна залишити порожнім — його буде створено з назви та SKU. Slug автоматично робиться унікальним.'],
+    ['Статус на сайті', 'Активний / Прихований або TRUE / FALSE. Якщо порожньо — Активний.'],
+    ['Підкатегорія', 'Вкажіть ID або точну назву підкатегорії з адмінки.'],
+    ['Фото', 'До 15 URL, кожен з нового рядка або через крапку з комою.'],
+    ['Обовʼязкові поля', 'Артикул (SKU), Назва товару, Кількість.']
+  ];
+  const infoSheet = XLSX.utils.aoa_to_sheet(instructions);
+  infoSheet['!cols'] = [{ wch: 24 }, { wch: 100 }];
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Залишок складу');
+  XLSX.utils.book_append_sheet(workbook, infoSheet, 'Інструкція');
+  XLSX.writeFile(workbook, 'kidsride-ostatok-template.xlsx');
+  showToast('Шаблон Excel завантажено ✓', 'success');
+}
 
 // ── OSTATOK (власний склад) ────────────────────────────────────────────────
 let _osRows = [];
