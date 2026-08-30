@@ -132,6 +132,11 @@ nav a.active{color:var(--orange)}
 /* ── HERO ── */
 .hero{margin-top:72px;position:relative;height:calc(100vh - 72px);min-height:560px;max-height:780px;background:linear-gradient(135deg,#1B2A4A 0%,#243660 100%);overflow:hidden}
 .swiper-hero{height:100%;overflow:hidden;background:linear-gradient(135deg,#1B2A4A 0%,#243660 100%)}
+/* Do not paint the pre-init DOM while Swiper is normalising the slides.
+   Without this small boot state, the static first slide and Swiper's first
+   state can be visible in the same paint, which looks like duplicated text. */
+.swiper-hero.is-booting{visibility:hidden}
+.swiper-hero.is-ready{visibility:visible}
 /* Swiper wrapper — works without CDN */
 .swiper-hero .swiper-wrapper{display:flex;width:100%;height:100%;position:relative}
 /* Fade slides — слайди завжди є і завжди показані, opacity керується через .swiper-slide-active або інлайн стилі від Swiper.
@@ -1086,7 +1091,7 @@ function _krOptImg(url,w,q){
 
 <!-- HERO -->
 <section class="hero">
-  <div class="swiper swiper-hero">
+  <div class="swiper swiper-hero is-booting">
     <div class="swiper-wrapper">
 
       <div class="swiper-slide" data-slide-id="slide-1">
@@ -1845,6 +1850,7 @@ if(typeof Swiper === 'undefined') {
       this.opts.on?.slideChange?.call(this);
       if(this.opts.autoplay) this._startAuto();
       if(this.opts.pagination?.el) this._initPag();
+      this.el.classList.add('swiper-initialized');
     }
     _goTo(n) {
       const prev = this.realIndex;
@@ -1880,6 +1886,20 @@ if(typeof Swiper === 'undefined') {
 <script>
 // Custom pagination — спочатку готуємо DOM, бо Swiper може викликати slideChange під час init
 const pag = document.getElementById('heroPag');
+const heroEl = document.querySelector('.swiper-hero');
+function revealHero() {
+  if (!heroEl) return;
+  heroEl.classList.remove('is-booting');
+  heroEl.classList.add('is-ready');
+}
+function heroSlideTo(index) {
+  if (!window.heroSwiper) return;
+  if (typeof window.heroSwiper.slideToLoop === 'function') {
+    window.heroSwiper.slideToLoop(index);
+  } else if (typeof window.heroSwiper.slideTo === 'function') {
+    window.heroSwiper.slideTo(index);
+  }
+}
 function updatePag(idx) {
   if (!pag) return;
   pag.querySelectorAll('.hp-dot').forEach((d, i) => d.classList.toggle('active', i === idx));
@@ -2130,7 +2150,7 @@ window._krAppliedSlidesSig = '';
       const slidesCount = document.querySelectorAll('.swiper-hero .swiper-slide:not(.swiper-slide-duplicate)').length;
       const initSlide = Math.max(0, Math.min(preservedIdx, Math.max(0, slidesCount - 1)));
       window.heroSwiper = new Swiper('.swiper-hero', {
-        loop: true, autoplay: { delay: 5500, disableOnInteraction: false },
+        loop: false, rewind: true, autoplay: { delay: 5500, disableOnInteraction: false },
         speed: 900, effect: 'fade', fadeEffect: { crossFade: true },
         initialSlide: initSlide,
         on: {
@@ -2148,6 +2168,7 @@ window._krAppliedSlidesSig = '';
           slideChange() { updatePag(this.realIndex); }
         }
       });
+      revealHero();
       // Rewire pagination dots count
       if (pag) {
         pag.innerHTML = '';
@@ -2155,7 +2176,7 @@ window._krAppliedSlidesSig = '';
           const d = document.createElement('div');
           d.className = 'hp-dot' + (i === initSlide ? ' active' : '');
           d.dataset.index = i;
-          d.addEventListener('click', () => window.heroSwiper.slideToLoop(i));
+          d.addEventListener('click', () => heroSlideTo(i));
           pag.appendChild(d);
         }
       }
@@ -2168,15 +2189,17 @@ let heroIdx = 0;
 // Зберігаємо посилання на window, щоб пересоздання у applySlideSettings()
 // не лишало стрілки "в сторони" прив'язаними до знищеного екземпляра.
 window.heroSwiper = new Swiper('.swiper-hero', {
-  loop: true,
+  // Rewind keeps navigation circular without creating cloned slides.
+  // Clones were the source of the one-frame duplicated hero text on load.
+  loop: false,
+  rewind: true,
   autoplay: { delay: 5500, disableOnInteraction: false },
   speed: 900,
   effect: 'fade',
   fadeEffect: { crossFade: true },
   on: {
-    // init: миттєво прибираємо будь-який opacity > 0 з неактивних слайдів
-    // (loop вставляє clone-slide-3 перед slide-1 → він міг отримати opacity:1 і
-    //  потім плавно зникати протягом 0.9s — саме це бачив юзер як "overlap")
+    // Init: прибираємо будь-який opacity > 0 з неактивних слайдів,
+    // щоб перший paint містив рівно один видимий слайд.
     init(swiper) {
       swiper.slides.forEach(slide => {
         slide.style.transition = 'none';
@@ -2187,16 +2210,19 @@ window.heroSwiper = new Swiper('.swiper-hero', {
       // Повертаємо transition після наступного paint, щоб подальші слайди фейдились нормально
       requestAnimationFrame(() => {
         swiper.slides.forEach(slide => { slide.style.transition = ''; });
+        revealHero();
       });
     },
     slideChange() { updatePag(this.realIndex); }
   }
 });
+// Also reveals the fallback implementation, which has no init callback.
+revealHero();
 
 // Wire pagination clicks after Swiper exists
 if (pag) {
   pag.querySelectorAll('.hp-dot').forEach((d) => {
-    d.addEventListener('click', () => window.heroSwiper && window.heroSwiper.slideToLoop(Number(d.dataset.index)));
+    d.addEventListener('click', () => heroSlideTo(Number(d.dataset.index)));
   });
 }
 
