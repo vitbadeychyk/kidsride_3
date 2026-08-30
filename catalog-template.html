@@ -3123,11 +3123,9 @@ function catOpenProduct(id) {
       catLabel: _currentCatLabel()
     }));
   } catch {}
-  // Slug потрібен для читабельної адреси, а id — для однозначного відкриття
-  // позицій власного складу та старих товарів без коректного slug у БД.
-  // API використовує id як надійний fallback, canonical URL при цьому
-  // залишається чистим і не містить технічного параметра.
-  const _idQuery = id ? '?id=' + encodeURIComponent(id) : '';
+  // Для всіх товарів використовуємо однакове чисте SEO-посилання без
+  // технічного параметра ?id=.
+  const _idQuery = '';
   window.location.href = _slug
     ? '/product/' + encodeURIComponent(_slug) + _idQuery
     : '/product/' + encodeURIComponent(id) + _idQuery;
@@ -3187,10 +3185,7 @@ function renderCard(p) {
   const _pSlug = p.slug || (_isOstatok
     ? slugify(p.name || p.sku || '')
     : (p.id ? String(p.id) : slugify(p.name || "")));
-  // Передаємо id разом зі slug: це захищає перехід від розбіжностей між
-  // slug у картці, products і ostatok. Сервер використає slug як основний
-  // ідентифікатор, а id — як точний fallback.
-  const _hrefId = p.id ? '?id=' + encodeURIComponent(p.id) : '';
+  const _hrefId = '';
   const productHref = _pSlug
     ? '/product/' + encodeURIComponent(_pSlug) + _hrefId
     : (p.id ? '/product/' + encodeURIComponent(p.id) + _hrefId : 'catalog.html');
