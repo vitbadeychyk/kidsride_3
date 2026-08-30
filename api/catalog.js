@@ -173,6 +173,33 @@ export default async function handler(req, res) {
     productLinks: 0,
     supabaseConfigured: Boolean(supaUrl && supaKey),
   };
+  const searchQuery = (() => {
+    try {
+      return new URL(req.url || '', SITE).searchParams.get('search')?.trim() || '';
+    } catch (_) {
+      return String(req.query?.search || '').trim();
+    }
+  })();
+
+  // Search requests go straight to the interactive catalog. Do not stream
+  // the category landing page or the large SEO product list first — both are
+  // useful for the plain catalog route, but they cause a visible detour when
+  // the user has explicitly searched for an article/SKU.
+  if (searchQuery) {
+    html = html
+      .replace(MAIN_CATEGORIES_MARKER, '')
+      .replace(SEO_MARKER, '');
+    diagnostics.mainCategories = 0;
+    diagnostics.productLinks = 0;
+    diagnostics.htmlLength = html.length;
+    res.setHeader('X-Catalog-SSR-Products', 'skipped-search');
+    res.setHeader('X-Catalog-SSR-Main-Categories', 'skipped-search');
+    res.setHeader('X-Catalog-SSR-Marker', String(diagnostics.markerFound));
+    res.setHeader('X-Catalog-SSR-HTML-Length', String(diagnostics.htmlLength));
+    res.setHeader('X-Catalog-SSR-Product-Links', 'skipped-search');
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    return res.status(200).send(html);
+  }
 
   if (supaUrl && supaKey) {
     // Start the SEO query in parallel, but do not make the first response byte

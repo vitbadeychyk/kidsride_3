@@ -570,6 +570,24 @@ nav a.active{color:var(--orange)}
   document.head.appendChild(el);}catch(e){}
 })();
 </script>
+<script>
+// Search URLs should open directly in the product view. Mark the document
+// before the body is painted so SSR category tiles never flash first.
+(function(){
+  try {
+    if (new URLSearchParams(location.search).get('search')?.trim()) {
+      document.documentElement.classList.add('catalog-search-mode');
+    }
+  } catch(e) {}
+})();
+</script>
+<style>
+/* A search result is a product view, not the category landing page. */
+html.catalog-search-mode #mob-cat-nav,
+html.catalog-search-mode #seoProductLinks{display:none !important}
+html.catalog-search-mode .catalog-head{display:flex !important}
+html.catalog-search-mode .catalog-layout{display:grid !important}
+</style>
 <script>try{if(localStorage.getItem('kr_logo_url')){document.write('<style>.logo-mark svg{display:none!important}.logo-mark{background:transparent!important;box-shadow:none!important;padding:0!important}</style>')}}catch(e){}</script>
 <script>
 (function(){
@@ -3408,6 +3426,22 @@ function renderAttributeFilters() {
 async function renderCatalog() {
   const grid = document.getElementById('productsGrid');
   if (!grid) return;
+
+  // Enter product mode synchronously for direct searches. This prevents the
+  // mobile-first category navigation from winning the first render while
+  // products are being fetched.
+  const initialSearch = new URLSearchParams(location.search).get('search')?.trim() || '';
+  if (initialSearch) {
+    _mobNavLevel = 'products';
+    _mobNavInitDone = true;
+    const nav = document.getElementById('mob-cat-nav');
+    if (nav) nav.style.display = 'none';
+    if (typeof _mobCatNavToggleProductsArea === 'function') {
+      _mobCatNavToggleProductsArea(true);
+    }
+    const input = document.getElementById('searchInput');
+    if (input) input.value = initialSearch;
+  }
 
   // Spin CSS
   if (!document.getElementById('_spinStyle')) {
