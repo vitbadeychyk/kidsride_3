@@ -383,6 +383,7 @@ export default async function handler(req, res) {
   const supaKey  = process.env.SUPABASE_ANON_KEY;
 
   if (!slug && !productId) {
+    res.setHeader('Cache-Control', 'no-store');
     return res.status(404).send('Product not found');
   }
   if (!supaUrl || !supaKey) {
@@ -454,7 +455,7 @@ export default async function handler(req, res) {
             osId
               ? String(row.id) === String(osId[1])
               : String(row.slug || '').trim().toLowerCase() === slug ||
-                (!row.slug && slugify(row.name || row.sku || '') === slug)
+                slugify(row.name || row.sku || '') === slug
           );
           if (os) {
             product = {
@@ -485,6 +486,7 @@ export default async function handler(req, res) {
 
   if (!product || product.active !== true) {
     // Не показуємо неіснуючі або неактивні товари через clean URL.
+    res.setHeader('Cache-Control', 'no-store');
     return res.status(404).send('Product not found');
   }
   // Якщо постачальник не має залишку, беремо зі складу тільки наявність для SSR.
