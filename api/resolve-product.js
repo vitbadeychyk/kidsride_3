@@ -637,7 +637,7 @@ export default async function handler(req, res) {
   // ── 8. Вставляємо Schema.org + window vars ───────────────────────────────
   html = html.replace(
     '</head>',
-    `<script>window.__KR_PRODUCT_ID__=${escJson(JSON.stringify(String(product.id)))};window.__KR_PRODUCT_SLUG__=${escJson(JSON.stringify(String(product.slug || slug || "")))};window.__KR_CAT_NAME__=${escJson(JSON.stringify(catName || ""))};window.__KR_CAT_URL__=${escJson(JSON.stringify(catUrl || ""))};</script>\n` +
+    `<script>window.__KR_PRODUCT_ID__=${escJson(JSON.stringify(String(product.id)))};window.__KR_PRODUCT_SLUG__=${escJson(JSON.stringify(String(product.slug || slug || "")))};window.__KR_CATEGORY_ID__=${escJson(JSON.stringify(product.category_id || ""))};window.__KR_CAT_NAME__=${escJson(JSON.stringify(catName || ""))};window.__KR_CAT_URL__=${escJson(JSON.stringify(catUrl || ""))};</script>\n` +
     buildSchema(product, pageUrl, schemaDesc, catName, catUrl, reviews) + '\n' +
     '</head>'
   );

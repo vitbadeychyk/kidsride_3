@@ -2354,9 +2354,9 @@ function applyProductData(p){
     bcScript.textContent = JSON.stringify(bcSchema);
     document.head.appendChild(bcScript);
   })(p);
-  // Категорія в хлібних крихтах — з URL-шляху або з sessionStorage
+  // Категорія в хлібних крихтах — з URL-шляху або з актуального snapshot каталогу
   {
-    const _ret = (() => { try { return JSON.parse(sessionStorage.getItem('kr_catalog_return') || 'null'); } catch {} return null; })();
+    const _ret = (typeof krReadCatalogReturn === 'function') ? krReadCatalogReturn() : null;
     const CAT_LABELS = { jeep:'Джипи', quad:'Квадроцикли', moto:'Мотоцикли', car:'Машини', tractor:'Трактори', walker:'Каталки-толокари', truck:'Вантажівки', buggy:'Баггі' };
     const catEl = document.getElementById('breadcrumbCat');
     const hideDuplicateCatalogCrumb = () => {
@@ -2384,11 +2384,14 @@ function applyProductData(p){
       const lbl = document.getElementById('backToCatalogLabel');
       if (bar) bar.style.display = '';
       if (lbl) lbl.textContent = '← ' + _subLabel;
-    } else if (_ret && _ret.catLabel) {
-      if (_ret.catLabel === 'Каталог') {
+    } else if (_ret && (_ret.catLabel || _ret.catalogState)) {
+      const _retLabel = _ret.catLabel ||
+        _ret.catalogState?.vType && (CAT_LABELS[_ret.catalogState.vType] || _ret.catalogState.vType) ||
+        _ret.catalogState?.catName || _ret.catalogState?.parentName || 'Каталог';
+      if (_retLabel === 'Каталог') {
         hideDuplicateCatalogCrumb();
       } else if (catEl) {
-        catEl.textContent = _ret.catLabel;
+        catEl.textContent = _retLabel;
         catEl.href = (typeof krCatalogReturnUrl === 'function')
           ? krCatalogReturnUrl(_ret)
           : (_ret.url || '/catalog.html');
@@ -2396,10 +2399,16 @@ function applyProductData(p){
       const bar = document.getElementById('backToCatalogBar');
       const lbl = document.getElementById('backToCatalogLabel');
       if (bar) bar.style.display = '';
-      if (lbl) lbl.textContent = '← ' + _ret.catLabel;
+      if (lbl) lbl.textContent = '← ' + _retLabel;
     } else if (p.category && catEl) {
       catEl.textContent = CAT_LABELS[p.category] || 'Каталог';
-      catEl.href = '/catalog.html?cat=' + encodeURIComponent(p.category);
+      catEl.href = (typeof krFallbackCatalogUrl === 'function')
+        ? krFallbackCatalogUrl(p)
+        : '/catalog.html?cat=' + encodeURIComponent(p.category);
+      const bar = document.getElementById('backToCatalogBar');
+      const lbl = document.getElementById('backToCatalogLabel');
+      if (bar) bar.style.display = '';
+      if (lbl) lbl.textContent = '← ' + (CAT_LABELS[p.category] || 'Каталог');
     } else {
       hideDuplicateCatalogCrumb();
     }
@@ -3495,64 +3504,128 @@ function _ytEmbedFromUrl(url){
   document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSearchOverlay();if((e.key==='k'||e.key==='K')&&(e.metaKey||e.ctrlKey)){e.preventDefault();openSearchOverlay();}});
   </script>
 <script>
-// Навігація назад до каталогу з відновленням позиції прокрутки
-function krCatalogReturnUrl(ret) {
-  let target = new URL(ret.url || '/catalog.html', window.location.origin);
-  const state = ret.catalogState || {};
-  const hasCategoryState = Number(state.catId || 0) || Number(state.parentId || 0) || state.vType;
+// ── Повернення з товару в каталог ──────────────────────────────────────────
+function krProductSlug() {
+  const explicit = window.__KR_PRODUCT_SLUG__;
+  if (explicit) return String(explicit).toLowerCase();
+  const parts = window.location.pathname.split('/').filter(Boolean);
+  const last = parts[parts.length - 1] || '';
+  return last && !/\.(html|js|css|json)$/i.test(last)
+    ? decodeURIComponent(last).toLowerCase()
+    : '';
+}
 
-  if (hasCategoryState) {
-    target.pathname = '/catalog.html';
-    target.hash = '';
-    target.search = '';
-    if (Number(state.catId || 0)) {
-      target.searchParams.set('catId', String(Number(state.catId)));
-      if (state.catName) target.searchParams.set('catName', state.catName);
-    } else if (Number(state.parentId || 0)) {
-      target.searchParams.set('parentId', String(Number(state.parentId)));
-      if (state.parentName) target.searchParams.set('parentName', state.parentName);
-    }
-    if (state.vType) target.searchParams.set('vType', state.vType);
-  } else if (state.search) {
-    target.pathname = '/catalog.html';
-    target.hash = '';
-    target.search = '';
-    target.searchParams.set('search', state.search);
+function krParseStoredReturn(raw) {
+  try {
+    const value = JSON.parse(raw || 'null');
+    return value && typeof value === 'object' && value.url ? value : null;
+  } catch (_) {
+    return null;
   }
-  return target.toString();
+}
+
+function krIsSameUrl(a, b) {
+  try {
+    const left = new URL(a, window.location.origin);
+    const right = new URL(b, window.location.origin);
+    return left.origin === right.origin &&
+      left.pathname === right.pathname &&
+      left.search === right.search &&
+      left.hash === right.hash;
+  } catch (_) {
+    return false;
+  }
+}
+
+function krReturnBelongsToProduct(ret) {
+  const currentSlug = krProductSlug();
+  const savedSlug = String(ret?.productSlug || '').toLowerCase();
+  const currentId = String(window.__KR_PRODUCT_ID__ || window.__krCurrentProduct?.id || '');
+  const savedId = String(ret?.productId || '');
+  if (savedSlug && currentSlug && savedSlug !== currentSlug) return false;
+  if (savedId && currentId && savedId !== currentId && !savedSlug) return false;
+  return true;
+}
+
+// Повертаємо snapshot лише коли ця картка справді була відкрита з catalog.
+// Це не дає старому sessionStorage-значенню вплинути на прямий Google-вхід.
+function krReadCatalogReturn() {
+  try {
+    const slug = krProductSlug();
+    const candidates = [];
+    if (slug) candidates.push(sessionStorage.getItem('kr_catalog_return_v2:slug:' + slug));
+    candidates.push(sessionStorage.getItem('kr_catalog_return_v2'));
+    candidates.push(sessionStorage.getItem('kr_catalog_return'));
+    const referrer = document.referrer;
+    for (const raw of candidates) {
+      const ret = krParseStoredReturn(raw);
+      if (ret && krReturnBelongsToProduct(ret) && referrer && krIsSameUrl(referrer, ret.url)) {
+        return ret;
+      }
+    }
+  } catch (_) {}
+  return null;
+}
+
+function krCatalogReturnUrl(ret) {
+  try {
+    const target = new URL(ret?.url || '', window.location.origin);
+    if (target.origin === window.location.origin &&
+        !target.pathname.startsWith('/product/')) {
+      return target.toString();
+    }
+  } catch (_) {}
+  return krFallbackCatalogUrl(window.__krCurrentProduct || {});
+}
+
+function krFallbackCatalogUrl(product) {
+  const safeCategoryUrl = window.__KR_CAT_URL__;
+  if (safeCategoryUrl && safeCategoryUrl !== '/' && safeCategoryUrl !== '/catalog.html') {
+    try {
+      const target = new URL(safeCategoryUrl, window.location.origin);
+      if (target.origin === window.location.origin && !target.pathname.startsWith('/product/')) {
+        return target.toString();
+      }
+    } catch (_) {}
+  }
+
+  const categoryId = product?.category_id || window.__KR_CATEGORY_ID__;
+  const categoryName = window.__KR_CAT_NAME__ || '';
+  if (categoryId) {
+    return '/catalog.html?catId=' + encodeURIComponent(String(categoryId)) +
+      (categoryName ? '&catName=' + encodeURIComponent(categoryName) : '');
+  }
+
+  const category = String(product?.category || '').toLowerCase();
+  const validTypes = new Set(['jeep', 'quad', 'moto', 'car', 'tractor', 'walker', 'truck', 'buggy']);
+  if (validTypes.has(category)) {
+    return '/catalog.html?cat=' + encodeURIComponent(category);
+  }
+  return '/catalog.html?search=' + encodeURIComponent(product?.name || '');
 }
 
 function krGoBack() {
-  try {
-    const ret = JSON.parse(sessionStorage.getItem('kr_catalog_return') || 'null');
-    if (ret && ret.url) {
-      // Якщо товар відкрили зі списку в цій же вкладці, history.back()
-      // повертає вже відрендерений список з його точним станом. Це важливо
-      // для мобільної послідовності: товари → підкатегорії → головні категорії.
+  const ret = krReadCatalogReturn();
+  if (ret) {
+    try {
       sessionStorage.setItem('kr_catalog_restore_scroll', String(ret.scrollY || 0));
-      const ref = document.referrer ? new URL(document.referrer, window.location.origin) : null;
-      const returnPage = new URL(ret.url, window.location.origin);
-      const cameFromSavedCatalogPage = ref &&
-        ref.origin === returnPage.origin &&
-        ref.pathname === returnPage.pathname &&
-        ref.search === returnPage.search;
-      if (cameFromSavedCatalogPage && history.length > 1) {
+      // У тій самій вкладці history.back() повертає саме попередній список,
+      // а наступні натискання браузерної кнопки Back проходять рівні каталогу.
+      if (history.length > 1 && krIsSameUrl(document.referrer, ret.url)) {
         history.back();
         return;
       }
-
-      // Резервний шлях для прямого відкриття товару або нової вкладки:
-      // повертаємося в catalog.html з явними параметрами підкатегорії.
+      // Нова вкладка: завантажуємо збережений URL списку, не втрачаючи
+      // фільтри через окремий одноразовий restore-state.
+      sessionStorage.setItem('kr_catalog_restore_state', JSON.stringify(ret.catalogState || {}));
       window.location.replace(krCatalogReturnUrl(ret));
       return;
-    }
-  } catch {}
-  // Fallback: просто назад
-  if (document.referrer && document.referrer.includes('catalog')) {
-    history.back();
-  } else {
-    window.location.href = '/catalog.html';
+    } catch (_) {}
   }
+
+  // Прямий вхід: повертаємо в категорію самого товару, а не в загальний
+  // каталог. Дані категорії надходять із SSR або вже завантаженого product.
+  window.location.replace(krFallbackCatalogUrl(window.__krCurrentProduct || {}));
 }
 </script>
 

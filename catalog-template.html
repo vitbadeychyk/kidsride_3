@@ -1244,6 +1244,76 @@ function addToCart(btn) {
   setTimeout(() => { btn.classList.remove('added'); btn.innerHTML = originalHTML; }, 1400);
 }
 
+// Контекст каталогу для повернення з картки товару.
+// Зберігаємо окремий snapshot для кожного товару: загальний ключ міг
+// залишатися від попереднього перегляду і вести пряме відкриття товару
+// в неправильний список.
+function krCaptureCatalogReturn(productId, productSlug) {
+  try {
+    const url = new URL(window.location.href);
+    const subcategory = _activeCatIdFilter
+      ? ((_allCategories || []).find(c => c.id === _activeCatIdFilter) || null)
+      : null;
+    const mainCategoryId = subcategory?.main_category_id || _activeParentIdFilter || 0;
+    const mainCategory = mainCategoryId
+      ? ((_mainCategories || []).find(c => c.id === mainCategoryId) || null)
+      : null;
+    const snapshot = {
+      version: 2,
+      productId: productId == null ? '' : String(productId),
+      productSlug: productSlug ? String(productSlug) : '',
+      url: url.href,
+      scrollY: Math.max(0, Math.round(window.scrollY || 0)),
+      catalogState: {
+        mainCategory: mainCategory ? {
+          id: Number(mainCategory.id) || 0,
+          name: mainCategory.name || '',
+          slug: mainCategory.slug || ''
+        } : null,
+        subcategory: subcategory ? {
+          id: Number(subcategory.id) || 0,
+          name: subcategory.name || '',
+          slug: subcategory.slug || ''
+        } : null,
+        category: _activeVehicleType || (subcategory?.slug || ''),
+        mainCategoryId: Number(mainCategoryId) || 0,
+        parentId: Number(_activeParentIdFilter || 0),
+        catId: Number(_activeCatIdFilter || 0),
+        vType: _activeVehicleType || '',
+        catName: subcategory?.name || '',
+        parentName: mainCategory?.name || '',
+        filters: {
+          search: activeFilters?.search || document.getElementById('searchInput')?.value?.trim() || '',
+          types: [...(activeFilters?.types || [])],
+          ages: [...(activeFilters?.ages || [])],
+          brands: [...(activeFilters?.brands || [])],
+          voltages: [...(activeFilters?.voltages || [])],
+          attrs: { ...(activeFilters?.attrs || {}) },
+          priceMin: Number(activeFilters?.priceMin || 0),
+          priceMax: Number(activeFilters?.priceMax || 999999),
+          sort: document.getElementById('sortSelect')?.value || 'popular',
+          page: Number(currentPage || 1)
+        },
+        search: activeFilters?.search || document.getElementById('searchInput')?.value?.trim() || ''
+      },
+      savedAt: Date.now()
+    };
+    const serialized = JSON.stringify(snapshot);
+    sessionStorage.setItem('kr_catalog_return_v2', serialized);
+    if (productId != null && String(productId)) {
+      sessionStorage.setItem('kr_catalog_return_v2:id:' + String(productId), serialized);
+    }
+    if (productSlug) {
+      sessionStorage.setItem('kr_catalog_return_v2:slug:' + String(productSlug).toLowerCase(), serialized);
+    }
+    // Залишаємо legacy-ключ для сумісності з уже відкритими вкладками.
+    sessionStorage.setItem('kr_catalog_return', serialized);
+    return snapshot;
+  } catch (_) {
+    return null;
+  }
+}
+
 function openProduct(card) {
   if (event && event.stopPropagation) event.stopPropagation();
   const realId = card && card.dataset && card.dataset.id;
@@ -1253,25 +1323,7 @@ function openProduct(card) {
     return;
   }
   // Fallback: мінімальні дані з картки
-  try {
-    sessionStorage.setItem('kr_catalog_return', JSON.stringify({
-      url: window.location.href,
-      scrollY: window.scrollY,
-      catLabel: (typeof _currentCatLabel === 'function') ? _currentCatLabel() : 'Каталог',
-      catalogState: {
-        catId: Number(_activeCatIdFilter || 0),
-        parentId: Number(_activeParentIdFilter || 0),
-        vType: _activeVehicleType || '',
-        catName: _activeCatIdFilter
-          ? ((_allCategories || []).find(c => c.id === _activeCatIdFilter) || {}).name || ''
-          : '',
-        parentName: _activeParentIdFilter
-          ? ((_mainCategories || []).find(c => c.id === _activeParentIdFilter) || {}).name || ''
-          : '',
-        search: activeFilters && activeFilters.search ? activeFilters.search : ''
-      }
-    }));
-  } catch {}
+  krCaptureCatalogReturn(realId || '', '');
   const product = getCardProduct(card);
   if (product) {
     try { sessionStorage.setItem('kr_active_product', JSON.stringify(product)); } catch{}
@@ -3201,24 +3253,8 @@ function catOpenProduct(id) {
         : (p.id ? String(p.id) : slugify(p.name || ""))) || null;
       if (_slug && p.id) try { sessionStorage.setItem('kr_slug_id_' + _slug, p.id); } catch{}
     }
-    // Зберігаємо стан каталогу для кнопки "Назад" і відновлення позиції прокрутки
-    sessionStorage.setItem('kr_catalog_return', JSON.stringify({
-      url: window.location.href,
-      scrollY: window.scrollY,
-      catLabel: _currentCatLabel(),
-      catalogState: {
-        catId: Number(_activeCatIdFilter || 0),
-        parentId: Number(_activeParentIdFilter || 0),
-        vType: _activeVehicleType || '',
-        catName: _activeCatIdFilter
-          ? ((_allCategories || []).find(c => c.id === _activeCatIdFilter) || {}).name || ''
-          : '',
-        parentName: _activeParentIdFilter
-          ? ((_mainCategories || []).find(c => c.id === _activeParentIdFilter) || {}).name || ''
-          : '',
-        search: activeFilters && activeFilters.search ? activeFilters.search : ''
-      }
-    }));
+    // Зберігаємо повний стан саме для товару, який відкриваємо.
+    krCaptureCatalogReturn(id, _slug);
   } catch {}
   // Для всіх товарів використовуємо однакове чисте SEO-посилання без
   // технічного параметра ?id=.
@@ -3227,6 +3263,22 @@ function catOpenProduct(id) {
     ? '/product/' + encodeURIComponent(_slug) + _idQuery
     : '/product/' + encodeURIComponent(id) + _idQuery;
 }
+
+// Перехоплюємо і звичайні SEO-посилання (пошук, середні кнопки, відкриття
+// в новій вкладці). Для звичайної картки snapshot буде уточнений catOpenProduct,
+// а для інших посилань цього достатньо, щоб повернутися в поточний список.
+document.addEventListener('click', function(event) {
+  const link = event.target && event.target.closest
+    ? event.target.closest('a[href]')
+    : null;
+  if (!link || !link.href) return;
+  try {
+    const target = new URL(link.href, window.location.href);
+    if (target.origin !== window.location.origin || !target.pathname.startsWith('/product/')) return;
+    const slug = decodeURIComponent(target.pathname.split('/').filter(Boolean).pop() || '');
+    krCaptureCatalogReturn('', slug);
+  } catch (_) {}
+}, true);
 
 
 // Найвища якість зображення: metr-plus → size=12, Supabase → без трансформацій
@@ -4088,6 +4140,54 @@ function updateDynamicFilters() {
 // Підтримуємо ?catId=77&catName=…  (підкатегорія), ?parentId=9001&parentName=… (батьківська)
 // Також зворотна сумісність: ?cat=jeep,car, ?type=, ?category=
 // + ?search=… для пошуку, + ?brand=… для бренду
+function krRestoreCatalogStateFromStorage() {
+  try {
+    const raw = sessionStorage.getItem('kr_catalog_restore_state');
+    if (!raw) return;
+    const saved = JSON.parse(raw);
+    const currentUrl = new URL(location.href);
+    if (saved.url) {
+      const savedUrl = new URL(saved.url, location.origin);
+      if (savedUrl.pathname !== currentUrl.pathname ||
+          savedUrl.search !== currentUrl.search ||
+          savedUrl.hash !== currentUrl.hash) return;
+    }
+
+    const filters = saved.filters || {};
+    const markOptions = (group, values, normalize = value => value) => {
+      const wanted = new Set((values || []).map(value => normalize(String(value))));
+      document.querySelectorAll('.filter-option[data-group="' + group + '"]').forEach(opt => {
+        const label = normalize((opt.querySelector('.filter-label')?.textContent || '').trim());
+        if (wanted.has(label)) opt.classList.add('checked');
+      });
+    };
+    markOptions('brand', filters.brands, value => value.toLowerCase());
+    markOptions('voltage', filters.voltages, value => value.toUpperCase().replace(/\s+/g, ''));
+    markOptions('age', filters.ages, value => value.replace(/\s/g, '').replace(/[–—]/g, '-'));
+    markOptions('type', filters.types, value => CAT_MAP[value] || value.toLowerCase());
+
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput && filters.search) searchInput.value = filters.search;
+    if (filters.search) activeFilters.search = String(filters.search).trim();
+    if (Number.isFinite(Number(filters.priceMin)) && filters.priceMin > 0) {
+      const priceMin = document.getElementById('priceMin');
+      if (priceMin) priceMin.value = filters.priceMin;
+      activeFilters.priceMin = Number(filters.priceMin);
+    }
+    if (Number.isFinite(Number(filters.priceMax)) && filters.priceMax < 999999) {
+      const priceMax = document.getElementById('priceMax');
+      if (priceMax) priceMax.value = filters.priceMax;
+      activeFilters.priceMax = Number(filters.priceMax);
+    }
+    const sortSelect = document.getElementById('sortSelect');
+    if (sortSelect && filters.sort) sortSelect.value = filters.sort;
+    if (Number(filters.page) > 0) currentPage = Number(filters.page);
+    syncActiveFiltersFromDOM();
+    updateActiveFilters();
+    sessionStorage.removeItem('kr_catalog_restore_state');
+  } catch (_) {}
+}
+
 function applyUrlFilters() {
 
   // ── Розбір URL-шляху (нові чисті адреси) ──────────────────────────────────
@@ -4311,6 +4411,7 @@ function applyUrlFilters() {
   }
   syncActiveFiltersFromDOM();
   updateActiveFilters();
+  krRestoreCatalogStateFromStorage();
 }
 
 // ── CATEGORY-SPECIFIC FILTERS ──────────────────────────────────────────────
