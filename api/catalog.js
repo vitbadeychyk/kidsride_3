@@ -220,9 +220,12 @@ function buildCategoryPreload(categories) {
 
 export default async function handler(req, res) {
   // Set this before any streaming starts. The explicit /catalog.html and
-  // /api/catalog rules in vercel.json keep the generic HTML no-store rule
-  // from disabling CDN caching for this SSR endpoint.
+  // /api/catalog rules in vercel.json keep this public SSR response cacheable.
   res.setHeader('Cache-Control', CATALOG_CACHE_CONTROL);
+  // Keep the browser revalidation policy above, while making the intended
+  // Vercel edge policy explicit even if another route rule is later added.
+  res.setHeader('Vercel-CDN-Cache-Control',
+    'public, max-age=0, s-maxage=300, stale-while-revalidate=86400');
 
   let html;
   try {
@@ -261,6 +264,8 @@ export default async function handler(req, res) {
     html = html
       .replace(MAIN_CATEGORIES_MARKER, '')
       .replace(SEO_MARKER, '');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+    res.setHeader('Vercel-CDN-Cache-Control', 'no-store');
     diagnostics.mainCategories = 0;
     diagnostics.productLinks = 0;
     diagnostics.htmlLength = html.length;
