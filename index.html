@@ -2841,7 +2841,7 @@ function krMatchScore(p, qRaw) {
 
 function krFmtPrice(n) {
   if (!n) return '';
-  return new Intl.NumberFormat('uk-UA').format(Math.round(n)) + ' ₴';
+  return new Intl.NumberFormat('uk-UA').format(Math.round(n)) + ' грн';
 }
 
 function renderSearchSuggestions(query) {

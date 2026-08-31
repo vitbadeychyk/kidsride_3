@@ -3466,7 +3466,7 @@ function _ytEmbedFromUrl(url){
       if(ts.every(t=>fl.some(f=>f.includes(t))||fn.some(f=>f.includes(krNormalize(t)))))return 40;}
     return 0;
   }
-  function krFmtPrice(n){return n?new Intl.NumberFormat('uk-UA').format(Math.round(n))+' ₴':'';}
+  function krFmtPrice(n){return n?new Intl.NumberFormat('uk-UA').format(Math.round(n))+' грн':'';}
   function renderSearchSuggestions(query){
     const list=document.getElementById('searchSuggestions'),empty=document.getElementById('searchEmpty');
     if(!list)return;const q=(query||'').trim(),products=KR_PRODUCTS_CACHE;
