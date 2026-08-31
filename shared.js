@@ -502,7 +502,7 @@ const KR = {
         <div style="background:white;border-radius:16px;padding:20px;width:calc(100% - 32px);max-width:560px;box-shadow:0 20px 60px rgba(0,0,0,.3)">
           <div style="display:flex;gap:10px">
             <input id="_krSearchInput" type="text" placeholder="Пошук електромобілів, моделей, брендів…"
-              style="flex:1;padding:13px 16px;border:2px solid #e5e7eb;border-radius:10px;font-size:15px;font-family:inherit;outline:none;transition:border-color .2s"
+              style="flex:1;padding:13px 16px;border:2px solid #e5e7eb;border-radius:10px;font-size:16px;font-family:inherit;outline:none;transition:border-color .2s;-webkit-text-size-adjust:100%"
               onfocus="this.style.borderColor='#ff6b35'" onblur="this.style.borderColor='#e5e7eb'">
             <button onclick="KR._doSearch()" style="padding:13px 20px;background:#ff6b35;color:white;border:none;border-radius:10px;font-weight:700;font-size:14px;cursor:pointer;white-space:nowrap;font-family:inherit">Знайти</button>
           </div>
