@@ -2141,7 +2141,12 @@ function selectCategory(catId, parentId, _noPush) {
         const parent = _mainCategories.find(c => c.id === parentId);
         newUrl = '/' + (parent ? slugify(parent.name) : String(parentId));
       }
-      history.pushState({ catId: catId || 0, parentId: parentId || 0, vType: '' }, '', newUrl);
+      history.pushState({
+        catId: catId || 0,
+        parentId: parentId || 0,
+        vType: '',
+        level: 'products'
+      }, '', newUrl);
     } catch(e) {}
   }
 
@@ -2190,7 +2195,12 @@ function selectVehicleType(code, parentId, _noPush) {
       const parentSlug = parent ? slugify(parent.name) : '';
       const typeSlug   = slugify(typeName);
       const newUrl = '/' + (parentSlug ? parentSlug + '/' + typeSlug : typeSlug);
-      history.pushState({ catId: 0, parentId: parentId || 0, vType: code }, '', newUrl);
+      history.pushState({
+        catId: 0,
+        parentId: parentId || 0,
+        vType: code,
+        level: 'products'
+      }, '', newUrl);
     } catch(e) {}
   }
 
@@ -2563,7 +2573,7 @@ function _mobNavSelectSub(catId) {
 }
 
 // ── Показати тайли типів транспорту для підкатегорії ──────────────────────────
-function _mobNavShowVehicleTypes(catId, vtypes) {
+function _mobNavShowVehicleTypes(catId, vtypes, _skipHistory) {
   if (!_isMobileView()) return;
   _mobNavLevel  = 'vehicleType';
   _mobNavCatId  = catId;
@@ -2609,7 +2619,17 @@ function _mobNavShowVehicleTypes(catId, vtypes) {
   }).join('');
 
   // Push state for browser back support
-  try { history.pushState({ catId: catId || 0, parentId: 0, vType: '', vtypes: [...vtypes], level: 'vehicleType' }, '', location.href); } catch(_){}
+  if (!_skipHistory) {
+    try {
+      history.pushState({
+        catId: catId || 0,
+        parentId: 0,
+        vType: '',
+        vtypes: [...vtypes],
+        level: 'vehicleType'
+      }, '', location.href);
+    } catch(_){}
+  }
   window.scrollTo({ top: 0, behavior: 'instant' });
 }
 
@@ -2644,7 +2664,12 @@ function _mobNavSelectVehicleType(code, catId) {
     const _vMainSlug = _vMain ? slugify(_vMain.name) : '';
     const _vTypeSlug = slugify(_vTypeName);
     const _vUrl = _vMainSlug ? '/' + _vMainSlug + '/' + _vTypeSlug : '/' + _vTypeSlug;
-    history.pushState({ catId: catId || 0, parentId: 0, vType: code }, '', _vUrl);
+    history.pushState({
+      catId: catId || 0,
+      parentId: 0,
+      vType: code,
+      level: 'products'
+    }, '', _vUrl);
   } catch(_e) {}
 
   window.scrollTo({ top: 0, behavior: 'instant' });
@@ -2684,6 +2709,14 @@ function _mobNavBack() {
 }
 
 function _mobNavGoBack() {
+  // Якщо список відкрито через послідовність навігації каталогу, повертаємося
+  // до попереднього history state. Це зберігає точну послідовність:
+  // товари → підкатегорії → основні категорії.
+  if (_mobNavLevel === 'products' && history.state?.level === 'products' && history.length > 1) {
+    history.back();
+    return;
+  }
+
   // Back bar above products → go back one level
   const bb = document.getElementById('mob-back-bar');
   if (bb) bb.style.display = 'none';
@@ -3228,7 +3261,7 @@ function renderCard(p) {
 
   return `
     <div class="p-card reveal" data-id="${escAttr(p.id)}" data-category="${escAttr(p.category)}" data-age="${escAttr(p.age)}" data-voltage="${escAttr(p.voltage)}" data-price="${p.price}" data-brand="${escAttr(p.brand)}">
-      <a class="p-card-link" href="${productHref}" aria-label="${escAttr(p.name)}" onclick="if(typeof catOpenProduct==='function'&&!event.ctrlKey&&!event.metaKey&&!event.shiftKey){event.preventDefault();catOpenProduct('${escAttr(p.id)}');}else if(event.ctrlKey||event.metaKey||event.shiftKey){return true;}"></a>
+      <a class="p-card-link" href="${productHref}" aria-label="${escAttr(p.name)}" onclick="if(typeof catOpenProduct==='function'&&!event.ctrlKey&&!event.metaKey&&!event.shiftKey&&!event.altKey){event.preventDefault();catOpenProduct('${escAttr(p.id)}');}else if(event.ctrlKey||event.metaKey||event.shiftKey||event.altKey){return true;}"></a>
       <div class="p-img-wrap">
         <div class="p-img" style="background:${wrapBg}">
           ${visual}
@@ -4427,15 +4460,15 @@ window.addEventListener('popstate', function(e) {
   if (level === 'main') {
     _mobNavShowMain();
   } else if (level === 'sub') {
-    if (st.parentId) _mobNavShowSub(st.parentId);
+    if (st.parentId) _mobNavShowSub(st.parentId, true);
     else _mobNavShowMain();
   } else if (level === 'vehicleType') {
     const _avail = (allProducts||[]).filter(p=>!(p.stock!=null&&p.stock<=0&&!(Number(p.preorderDays)>0)));
     const _subP  = _avail.filter(p=>p.category_id===st.catId);
     const _VT_UA = {'jeep':'Джипи','quad':'Квадроцикли','moto':'Мотоцикли','car':'Машини','tractor':'Трактори','walker':'Каталки-толокари','truck':'Вантажівки','buggy':'Баggі'};
     const vtypes = st.vtypes || [...new Set(_subP.map(p=>p.category).filter(c=>c&&_VT_UA[c]))];
-    if (vtypes.length) _mobNavShowVehicleTypes(st.catId, vtypes);
-    else if (st.parentId) _mobNavShowSub(st.parentId);
+    if (vtypes.length) _mobNavShowVehicleTypes(st.catId, vtypes, true);
+    else if (st.parentId) _mobNavShowSub(st.parentId, true);
     else _mobNavShowMain();
   } else {
     // Products level — restore via selectCategory/selectVehicleType

@@ -3526,10 +3526,23 @@ function krGoBack() {
   try {
     const ret = JSON.parse(sessionStorage.getItem('kr_catalog_return') || 'null');
     if (ret && ret.url) {
-      // Передаємо scrollY через sessionStorage — catalog.html відновить після завантаження.
-      // Категорійний URL може бути оброблений SSR як головний каталог, тому для
-      // повернення використовуємо явний стан фільтра з моменту відкриття товару.
+      // Якщо товар відкрили зі списку в цій же вкладці, history.back()
+      // повертає вже відрендерений список з його точним станом. Це важливо
+      // для мобільної послідовності: товари → підкатегорії → головні категорії.
       sessionStorage.setItem('kr_catalog_restore_scroll', String(ret.scrollY || 0));
+      const ref = document.referrer ? new URL(document.referrer, window.location.origin) : null;
+      const returnPage = new URL(ret.url, window.location.origin);
+      const cameFromSavedCatalogPage = ref &&
+        ref.origin === returnPage.origin &&
+        ref.pathname === returnPage.pathname &&
+        ref.search === returnPage.search;
+      if (cameFromSavedCatalogPage && history.length > 1) {
+        history.back();
+        return;
+      }
+
+      // Резервний шлях для прямого відкриття товару або нової вкладки:
+      // повертаємося в catalog.html з явними параметрами підкатегорії.
       window.location.replace(krCatalogReturnUrl(ret));
       return;
     }
