@@ -2421,7 +2421,7 @@ function _categoryImageAttrs(imageUrl) {
   const widths = [320, 480, 600];
   const srcset = widths.map(width =>
     renderBase + '?width=' + width + '&height=' + width +
-    '&resize=cover&format=webp&quality=90 ' + width + 'w'
+    '&resize=cover&format=webp&quality=85 ' + width + 'w'
   ).join(', ');
 
   return {
@@ -2435,10 +2435,13 @@ function _renderMainCategoryGrid(grid) {
   let eagerImages = 0;
   grid.innerHTML = (_mainCategories || []).map(mc => {
     const imageUrl = String(mc.image_url || '').trim();
-    const loading = imageUrl && eagerImages++ < 2 ? 'eager' : 'lazy';
+    const isLcpImage = Boolean(imageUrl) && eagerImages === 0;
+    const loading = isLcpImage ? 'eager' : 'lazy';
+    const fetchPriority = isLcpImage ? ' fetchpriority="high"' : '';
+    if (imageUrl) eagerImages += 1;
     const image = imageUrl ? _categoryImageAttrs(imageUrl) : null;
     const thumb = imageUrl
-      ? `<img class="mob-cat-tile-img" src="${escAttr(image.src)}" alt="${escAttr(mc.name)}" loading="${loading}" decoding="async"${image.srcset ? ` srcset="${escAttr(image.srcset)}" sizes="${escAttr(image.sizes)}"` : ''}>`
+      ? `<img class="mob-cat-tile-img" src="${escAttr(image.src)}" alt="${escAttr(mc.name)}" loading="${loading}" decoding="async"${fetchPriority}${image.srcset ? ` srcset="${escAttr(image.srcset)}" sizes="${escAttr(image.sizes)}"` : ''}>`
       : `<div class="mob-cat-tile-icon">${_getCatIcon(mc.name)}</div>`;
     return `<div class="mob-cat-tile" data-ssr-main-category="true"
       data-main-category-id="${mc.id}"

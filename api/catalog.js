@@ -26,23 +26,26 @@ function escHtml(value) {
 function getCategoryImageAttrs(imageUrl) {
   const marker = '/storage/v1/object/public/';
   const markerIndex = imageUrl.indexOf(marker);
-  if (markerIndex < 0) return { src: imageUrl, srcset: '', sizes: '' };
+  if (markerIndex < 0) {
+    return { src: imageUrl, srcset: '', sizes: '', preloadSrc: imageUrl };
+  }
 
   const renderBase =
     imageUrl.slice(0, markerIndex) +
     '/storage/v1/render/image/public/' +
     imageUrl.slice(markerIndex + marker.length);
   const widths = [320, 480, 600];
-  const srcset = widths.map(width =>
+  const toRenderUrl = width =>
     renderBase + '?width=' + width + '&height=' + width +
-    '&resize=cover&format=webp&quality=90 ' + width + 'w'
-  ).join(', ');
+    '&resize=cover&format=webp&quality=85';
+  const srcset = widths.map(width => toRenderUrl(width) + ' ' + width + 'w').join(', ');
 
   return {
     // Keep the original, cache-busted URL as the fallback/source of truth.
     src: imageUrl,
     srcset,
     sizes: '(min-width: 1280px) 18vw, (min-width: 768px) 30vw, 48vw',
+    preloadSrc: toRenderUrl(480),
   };
 }
 
@@ -127,7 +130,6 @@ function buildProductLinks(products) {
 
 function buildMainCategoryTiles(categories) {
   let eagerImages = 0;
-  let lcpImageMarked = false;
 
   return categories
     .map(category => {
@@ -138,13 +140,13 @@ function buildMainCategoryTiles(categories) {
       const slug = String(category.slug || '').trim();
       const imageUrl = String(category.image_url || '').trim();
       const sortOrder = category.sort_order == null ? '' : String(category.sort_order);
-      const isLcpImage =
-        !lcpImageMarked && name === 'Електромобілі' && Boolean(imageUrl);
-      if (isLcpImage) lcpImageMarked = true;
+      // The first category image is the expected mobile LCP candidate.
+      // Below-the-fold tiles remain lazy so they do not compete with it.
+      const isLcpImage = Boolean(imageUrl) && eagerImages === 0;
       let media;
 
       if (imageUrl) {
-        const loading = eagerImages < 2 ? 'eager' : 'lazy';
+        const loading = isLcpImage ? 'eager' : 'lazy';
         eagerImages += 1;
         const fetchPriority = isLcpImage ? ' fetchpriority="high"' : '';
         const image = getCategoryImageAttrs(imageUrl);
@@ -152,7 +154,7 @@ function buildMainCategoryTiles(categories) {
           '<img class="mob-cat-tile-img" src="' + escHtml(imageUrl) +
           '" alt="' + escHtml(name) + '" loading="' + loading +
           '" decoding="async"' + fetchPriority +
-          (image.srcset ? '" srcset="' + escHtml(image.srcset) +
+          (image.srcset ? ' srcset="' + escHtml(image.srcset) +
             '" sizes="' + escHtml(image.sizes) : '') + '">';
       } else {
         media = '<div class="mob-cat-tile-icon">' + escHtml(category.icon || '') + '</div>';
@@ -174,6 +176,16 @@ function buildMainCategoryTiles(categories) {
     })
     .filter(Boolean)
     .join('\n');
+}
+
+function buildCategoryPreload(categories) {
+  const first = categories.find(category => String(category.image_url || '').trim());
+  if (!first) return '';
+  const image = getCategoryImageAttrs(String(first.image_url).trim());
+  return '<link rel="preload" as="image" href="' + escHtml(image.preloadSrc) +
+    '" fetchpriority="high"' +
+    (image.srcset ? ' imagesrcset="' + escHtml(image.srcset) +
+      '" imagesizes="' + escHtml(image.sizes) + '"' : '') + '>';
 }
 
 export default async function handler(req, res) {
@@ -232,32 +244,61 @@ export default async function handler(req, res) {
   }
 
   if (supaUrl && supaKey) {
-    // Категорії та SEO-посилання не залежать одне від одного. Запускаємо
-    // обидва запити паралельно, щоб один не додавався до TTFB іншого.
-    const [categoriesResult, productsResult] = await Promise.allSettled([
-      fetchActiveMainCategories(supaUrl, supaKey),
-      fetchActiveProductLinks(supaUrl, supaKey),
-    ]);
-
-    if (categoriesResult.status === 'fulfilled') {
-      const categories = categoriesResult.value;
-      const tiles = buildMainCategoryTiles(categories);
+    // Send the category landing screen as soon as its small query completes.
+    // SEO product links are still emitted in this response, but their
+    // potentially large products query no longer delays the first HTML chunk.
+    let categories = [];
+    try {
+      categories = await fetchActiveMainCategories(supaUrl, supaKey);
       diagnostics.mainCategories = categories.length;
-      html = html.replace(MAIN_CATEGORIES_MARKER, tiles);
-    } else {
-      // Без SSR-категорій клієнтський код завантажить їх як раніше.
-      console.error('[catalog SSR] main_categories fetch failed:', categoriesResult.reason?.message || categoriesResult.reason);
+      html = html.replace(MAIN_CATEGORIES_MARKER, buildMainCategoryTiles(categories));
+      const preload = buildCategoryPreload(categories);
+      if (preload) html = html.replace('</head>', preload + '</head>');
+    } catch (error) {
+      console.error('[catalog SSR] main_categories fetch failed:', error?.message || error);
       html = html.replace(MAIN_CATEGORIES_MARKER, '');
     }
 
-    if (productsResult.status === 'fulfilled') {
-      const products = productsResult.value;
-      const productLinks = buildProductLinks(products);
+    const seoIndex = html.indexOf(SEO_MARKER);
+    const canStream = seoIndex >= 0 && typeof res.write === 'function' && typeof res.end === 'function';
+    if (canStream) {
+      // Headers must be complete before write(). Product totals are marked as
+      // streamed because they are intentionally resolved after the first
+      // paint-priority chunk has reached the browser.
+      diagnostics.htmlLength = html.length;
+      res.setHeader('X-Catalog-SSR-Products', 'streamed');
+      res.setHeader('X-Catalog-SSR-Main-Categories', String(diagnostics.mainCategories));
+      res.setHeader('X-Catalog-SSR-Marker', String(diagnostics.markerFound));
+      res.setHeader('X-Catalog-SSR-HTML-Length', String(diagnostics.htmlLength));
+      res.setHeader('X-Catalog-SSR-Product-Links', 'streamed');
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      if (typeof res.flushHeaders === 'function') res.flushHeaders();
+      res.write(html.slice(0, seoIndex));
+
+      let productLinks = '';
+      try {
+        const products = await fetchActiveProductLinks(supaUrl, supaKey);
+        productLinks = buildProductLinks(products);
+        diagnostics.products = products.length;
+        diagnostics.productLinks = products.filter(product => String(product.slug || '').trim()).length;
+      } catch (error) {
+        console.error('[catalog SSR] products fetch failed:', error?.message || error);
+      }
+      console.error('[catalog SSR] diagnostics:', JSON.stringify(diagnostics));
+      res.write(productLinks);
+      res.end(html.slice(seoIndex + SEO_MARKER.length));
+      return;
+    }
+
+    // Test/local response objects may not support streaming. Keep the same
+    // HTML and SEO output with a safe non-streaming fallback.
+    try {
+      const products = await fetchActiveProductLinks(supaUrl, supaKey);
       diagnostics.products = products.length;
       diagnostics.productLinks = products.filter(product => String(product.slug || '').trim()).length;
-      html = html.replace(SEO_MARKER, productLinks);
-    } else {
-      console.error('[catalog SSR] products fetch failed:', productsResult.reason?.message || productsResult.reason);
+      html = html.replace(SEO_MARKER, buildProductLinks(products));
+    } catch (error) {
+      console.error('[catalog SSR] products fetch failed:', error?.message || error);
       html = html.replace(SEO_MARKER, '');
     }
     diagnostics.htmlLength = html.length;
