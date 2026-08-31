@@ -2388,7 +2388,10 @@ function applyProductData(p){
       if (_ret.catLabel === 'Каталог') {
         hideDuplicateCatalogCrumb();
       } else if (catEl) {
-        catEl.textContent = _ret.catLabel; catEl.href = _ret.url || '/catalog.html';
+        catEl.textContent = _ret.catLabel;
+        catEl.href = (typeof krCatalogReturnUrl === 'function')
+          ? krCatalogReturnUrl(_ret)
+          : (_ret.url || '/catalog.html');
       }
       const bar = document.getElementById('backToCatalogBar');
       const lbl = document.getElementById('backToCatalogLabel');
@@ -3493,13 +3496,41 @@ function _ytEmbedFromUrl(url){
   </script>
 <script>
 // Навігація назад до каталогу з відновленням позиції прокрутки
+function krCatalogReturnUrl(ret) {
+  let target = new URL(ret.url || '/catalog.html', window.location.origin);
+  const state = ret.catalogState || {};
+  const hasCategoryState = Number(state.catId || 0) || Number(state.parentId || 0) || state.vType;
+
+  if (hasCategoryState) {
+    target.pathname = '/catalog.html';
+    target.hash = '';
+    target.search = '';
+    if (Number(state.catId || 0)) {
+      target.searchParams.set('catId', String(Number(state.catId)));
+      if (state.catName) target.searchParams.set('catName', state.catName);
+    } else if (Number(state.parentId || 0)) {
+      target.searchParams.set('parentId', String(Number(state.parentId)));
+      if (state.parentName) target.searchParams.set('parentName', state.parentName);
+    }
+    if (state.vType) target.searchParams.set('vType', state.vType);
+  } else if (state.search) {
+    target.pathname = '/catalog.html';
+    target.hash = '';
+    target.search = '';
+    target.searchParams.set('search', state.search);
+  }
+  return target.toString();
+}
+
 function krGoBack() {
   try {
     const ret = JSON.parse(sessionStorage.getItem('kr_catalog_return') || 'null');
     if (ret && ret.url) {
-      // Передаємо scrollY через sessionStorage — catalog.html відновить після завантаження
+      // Передаємо scrollY через sessionStorage — catalog.html відновить після завантаження.
+      // Категорійний URL може бути оброблений SSR як головний каталог, тому для
+      // повернення використовуємо явний стан фільтра з моменту відкриття товару.
       sessionStorage.setItem('kr_catalog_restore_scroll', String(ret.scrollY || 0));
-      window.location.href = ret.url;
+      window.location.replace(krCatalogReturnUrl(ret));
       return;
     }
   } catch {}

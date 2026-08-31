@@ -201,13 +201,13 @@ nav a.active{color:var(--orange)}
 .seo-product-links a:hover{color:var(--orange);text-decoration:underline}
 
 /* ── PRODUCT CARD ── */
-.p-card{background:white;border-radius:var(--r);overflow:hidden;border:1.5px solid var(--border);transition:all .3s cubic-bezier(.34,1.56,.64,1);cursor:pointer;position:relative}
+.p-card{background:white;border-radius:var(--r);overflow:hidden;border:1.5px solid var(--border);transition:all .3s cubic-bezier(.34,1.56,.64,1);cursor:pointer;position:relative;min-width:0}
 .p-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg);border-color:transparent}
 .p-img-wrap{position:relative;overflow:hidden}
 .p-img{aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;width:100%}
 .p-img svg{transition:transform .4s ease}
 .p-card:hover .p-img svg{transform:scale(1.06) translateY(-3px)}
-.p-overlay{position:absolute;inset:0;background:rgba(27,42,74,.45);display:flex;align-items:center;justify-content:center;gap:10px;opacity:0;pointer-events:none;transition:opacity .25s;backdrop-filter:blur(3px);z-index:1}
+.p-overlay{position:absolute;inset:0;background:rgba(27,42,74,.45);display:flex;align-items:center;justify-content:center;gap:10px;opacity:0;pointer-events:none;transition:opacity .25s;backdrop-filter:blur(3px);z-index:3}
 .p-card:hover .p-overlay{opacity:1;pointer-events:auto}
 .p-overlay-btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:8px;font-family:'Nunito',sans-serif;font-weight:700;font-size:12px;border:none;cursor:pointer;transition:all .2s}
 .ob-white{background:white;color:var(--navy)}
@@ -242,7 +242,7 @@ nav a.active{color:var(--orange)}
 .p-bottom{display:flex;align-items:center;justify-content:space-between}
 .p-price{font-family:'Nunito',sans-serif;font-size:20px;font-weight:900;color:var(--navy)}
 .p-price-old{font-size:12px;color:var(--text-muted);text-decoration:line-through;margin-left:5px;font-weight:500}
-.p-actions{display:flex;gap:6px}
+.p-actions{display:flex;gap:6px;position:relative;z-index:4;flex:0 0 auto}
 .btn-cart{width:38px;height:38px;border-radius:9px;border:none;background:var(--orange);color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .25s cubic-bezier(.34,1.56,.64,1);box-shadow:0 4px 12px rgba(255,107,53,.28);flex-shrink:0}
 .btn-cart:hover{transform:scale(1.12);box-shadow:0 6px 18px rgba(255,107,53,.4)}
 .btn-cart svg{width:16px;height:16px;stroke:white;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
@@ -262,8 +262,16 @@ nav a.active{color:var(--orange)}
 .products-grid.list .p-specs{gap:8px;margin-bottom:8px}
 .products-grid.list .p-overlay{display:none}
 /* transparent link overlay — allows "open in new tab" on long-press */
-.p-card-link{position:absolute;inset:0;z-index:0;border-radius:var(--r)}
-.p-img-wrap,.p-body{position:relative;z-index:1}
+.p-card-link{position:absolute;inset:0;z-index:2;border-radius:var(--r)}
+/* Keep the whole row a real link so long-press exposes the browser's
+   "Open in new tab" action. Interactive controls sit above that link. */
+.p-img-wrap,.p-body{position:relative;min-width:0}
+.p-body{overflow:hidden}
+.p-name,.p-desc2,.p-sku{min-width:0;overflow-wrap:anywhere;word-break:break-word}
+.p-bottom{min-width:0;gap:8px;flex-wrap:wrap}
+.p-bottom>div:first-child{min-width:0;flex:1 1 120px}
+.p-price,.p-price-old{white-space:nowrap}
+.p-overlay-btn{position:relative;z-index:4}
 .p-wish,.p-compare{z-index:6}
 .p-badge{z-index:6}
 
@@ -344,9 +352,9 @@ nav a.active{color:var(--orange)}
   .products-area{padding:12px 16px}
   .products-grid{grid-template-columns:1fr;gap:12px}
   .products-grid.list{grid-template-columns:1fr}
-  .products-grid.list .p-card{grid-template-columns:130px 1fr}
+  .products-grid.list .p-card{grid-template-columns:minmax(112px,130px) minmax(0,1fr)}
   .products-grid.list .p-img{min-height:130px;max-height:160px}
-  .products-grid.list .p-body{padding:10px 12px;min-height:130px}
+  .products-grid.list .p-body{padding:10px 12px;min-height:130px;min-width:0}
   .products-grid.list .p-name{font-size:14px}
   .products-grid.list .p-price{font-size:17px}
   .products-grid.list .p-specs{display:none}
@@ -368,6 +376,10 @@ nav a.active{color:var(--orange)}
   .p-price{font-size:18px}
   .p-specs{gap:6px}
   .p-spec{font-size:10px;padding:2px 6px}
+  .products-grid.list .p-card{grid-template-columns:minmax(104px,34%) minmax(0,1fr)}
+  .products-grid.list .p-body{padding:10px 10px 12px}
+  .products-grid.list .p-price{font-size:clamp(16px,4.5vw,18px)}
+  .products-grid.list .p-price-old{display:block;margin-left:0;font-size:10px}
 
   /* Header shrink */
   .logo{font-size:18px}
@@ -1245,7 +1257,19 @@ function openProduct(card) {
     sessionStorage.setItem('kr_catalog_return', JSON.stringify({
       url: window.location.href,
       scrollY: window.scrollY,
-      catLabel: (typeof _currentCatLabel === 'function') ? _currentCatLabel() : 'Каталог'
+      catLabel: (typeof _currentCatLabel === 'function') ? _currentCatLabel() : 'Каталог',
+      catalogState: {
+        catId: Number(_activeCatIdFilter || 0),
+        parentId: Number(_activeParentIdFilter || 0),
+        vType: _activeVehicleType || '',
+        catName: _activeCatIdFilter
+          ? ((_allCategories || []).find(c => c.id === _activeCatIdFilter) || {}).name || ''
+          : '',
+        parentName: _activeParentIdFilter
+          ? ((_mainCategories || []).find(c => c.id === _activeParentIdFilter) || {}).name || ''
+          : '',
+        search: activeFilters && activeFilters.search ? activeFilters.search : ''
+      }
     }));
   } catch {}
   const product = getCardProduct(card);
@@ -3120,7 +3144,19 @@ function catOpenProduct(id) {
     sessionStorage.setItem('kr_catalog_return', JSON.stringify({
       url: window.location.href,
       scrollY: window.scrollY,
-      catLabel: _currentCatLabel()
+      catLabel: _currentCatLabel(),
+      catalogState: {
+        catId: Number(_activeCatIdFilter || 0),
+        parentId: Number(_activeParentIdFilter || 0),
+        vType: _activeVehicleType || '',
+        catName: _activeCatIdFilter
+          ? ((_allCategories || []).find(c => c.id === _activeCatIdFilter) || {}).name || ''
+          : '',
+        parentName: _activeParentIdFilter
+          ? ((_mainCategories || []).find(c => c.id === _activeParentIdFilter) || {}).name || ''
+          : '',
+        search: activeFilters && activeFilters.search ? activeFilters.search : ''
+      }
     }));
   } catch {}
   // Для всіх товарів використовуємо однакове чисте SEO-посилання без
@@ -4052,6 +4088,22 @@ function applyUrlFilters() {
     if (bcCur)  bcCur.textContent = name;
     if (titleEl) titleEl.textContent = name;
     _applyCategoryFilters(name);
+
+    // Зберігаємо також вибраний тип транспорту, коли товар відкрито
+    // зі списку типу (наприклад /електромобілі/джипи).
+    const _vTypeParamParent = params.get('vType') || params.get('vtype') || '';
+    const _VALID_VT_PARENT = new Set(['jeep','quad','moto','car','tractor','walker','truck','buggy']);
+    if (_VALID_VT_PARENT.has(_vTypeParamParent)) {
+      _activeVehicleType = _vTypeParamParent;
+      _isDefaultMode = false;
+      const _TYPE_UA_PARENT = {
+        jeep:'Джипи', quad:'Квадроцикли', moto:'Мотоцикли', car:'Машини',
+        tractor:'Трактори', walker:'Каталки-толокари', truck:'Вантажівки', buggy:'Баггі'
+      };
+      const _typeNameParent = _TYPE_UA_PARENT[_vTypeParamParent];
+      if (bcCur) bcCur.textContent = _typeNameParent;
+      if (titleEl) titleEl.textContent = _typeNameParent;
+    }
   } else {
     _activeCatIdFilter    = 0;
     _activeParentIdFilter = 0;
