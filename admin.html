@@ -217,6 +217,9 @@ button{cursor:pointer;font-family:'Manrope',sans-serif}
 .search-input input{border:none;background:none;font-family:'Manrope',sans-serif;font-size:13px;color:var(--navy);outline:none;width:160px}
 .filter-select{padding:7px 28px 7px 10px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:'Manrope',sans-serif;font-size:12px;color:var(--navy);background:var(--bg);outline:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b7280' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;cursor:pointer}
 .filter-select:focus{border-color:var(--orange)}
+.os-sortable{cursor:pointer;user-select:none;white-space:nowrap;transition:color .15s}
+.os-sortable:hover{color:var(--orange)}
+.os-sort-indicator{display:inline-block;margin-left:3px;color:var(--orange);font-size:10px;font-weight:900;min-width:10px}
 
 table{width:100%;border-collapse:collapse}
 thead tr{background:var(--bg)}
@@ -1111,24 +1114,29 @@ tr:hover td{background:rgba(240,242,248,.5)}
               <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
               <input type="text" id="osSearch" placeholder="Пошук за артикулом…" oninput="ostatokRenderTable()">
             </div>
+            <select id="osCategoryFilter" class="filter-select" onchange="ostatokRenderTable()" title="Фільтр за категорією">
+              <option value="">Всі категорії</option>
+            </select>
           </div>
         </div>
         <div style="overflow-x:auto">
           <table>
             <thead>
               <tr>
-                <th>Артикул (SKU)</th>
-                <th>Колір</th>
-                <th>К-сть</th>
-                <th>Ціна продажу</th>
-                <th>Ціна закупки</th>
-                <th>Нотатка</th>
-                <th>Статус</th>
+                <th class="os-sortable" data-os-sort-column="sku" onclick="ostatokSortBy('sku')" title="Сортувати за SKU">Артикул (SKU) <span class="os-sort-indicator" data-os-sort-indicator="sku">↕</span></th>
+                <th class="os-sortable" data-os-sort-column="color" onclick="ostatokSortBy('color')" title="Сортувати за кольором">Колір <span class="os-sort-indicator" data-os-sort-indicator="color">↕</span></th>
+                <th class="os-sortable" data-os-sort-column="category" onclick="ostatokSortBy('category')" title="Сортувати за категорією">Категорія <span class="os-sort-indicator" data-os-sort-indicator="category">↕</span></th>
+                <th class="os-sortable" data-os-sort-column="quantity" onclick="ostatokSortBy('quantity')" title="Сортувати за кількістю">К-сть <span class="os-sort-indicator" data-os-sort-indicator="quantity">↕</span></th>
+                <th class="os-sortable" data-os-sort-column="sell_price" onclick="ostatokSortBy('sell_price')" title="Сортувати за ціною продажу">Ціна продажу <span class="os-sort-indicator" data-os-sort-indicator="sell_price">↕</span></th>
+                <th class="os-sortable" data-os-sort-column="old_price" onclick="ostatokSortBy('old_price')" title="Сортувати за старою ціною">Стара ціна / РРЦ <span class="os-sort-indicator" data-os-sort-indicator="old_price">↕</span></th>
+                <th class="os-sortable" data-os-sort-column="buy_price" onclick="ostatokSortBy('buy_price')" title="Сортувати за ціною закупки">Ціна закупки <span class="os-sort-indicator" data-os-sort-indicator="buy_price">↕</span></th>
+                <th class="os-sortable" data-os-sort-column="note" onclick="ostatokSortBy('note')" title="Сортувати за нотаткою">Нотатка <span class="os-sort-indicator" data-os-sort-indicator="note">↕</span></th>
+                <th class="os-sortable" data-os-sort-column="active" onclick="ostatokSortBy('active')" title="Сортувати за статусом">Статус <span class="os-sort-indicator" data-os-sort-indicator="active">↕</span></th>
                 <th></th>
               </tr>
             </thead>
             <tbody id="osTbody">
-              <tr><td colspan="8" style="text-align:center;padding:40px"><div class="spinner" style="margin:0 auto"></div></td></tr>
+              <tr><td colspan="10" style="text-align:center;padding:40px"><div class="spinner" style="margin:0 auto"></div></td></tr>
             </tbody>
           </table>
         </div>
@@ -7854,11 +7862,12 @@ function downloadOstatokTemplate() {
 // ── OSTATOK (власний склад) ────────────────────────────────────────────────
 let _osRows = [];
 let _osCategories = [];
+let _osSort = { key: 'sku', direction: 'asc' };
 
 async function loadOstatokPanel() {
   const tbody = document.getElementById('osTbody');
   if(!tbody) return;
-  tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px"><div class="spinner" style="margin:0 auto"></div></td></tr>';
+  tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:40px"><div class="spinner" style="margin:0 auto"></div></td></tr>';
   try {
     const [osData, catsData] = await Promise.all([
       (async () => {
@@ -7879,13 +7888,14 @@ async function loadOstatokPanel() {
     ]);
     _osRows = osData;
     _osCategories = catsData || [];
+    ostatokRenderCategoryFilter();
     ostatokRenderStats();
     ostatokRenderTable();
     // badge
     const badge = document.getElementById('navBadgeOstatok');
     if(badge){ badge.textContent=osData.length; badge.style.display=osData.length?'':'none'; }
   } catch(e) {
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--red);padding:32px">Помилка: ${e.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;color:var(--red);padding:32px">Помилка: ${e.message}</td></tr>`;
     showToast('Помилка завантаження ostatok: '+e.message,'error');
   }
 }
@@ -7900,24 +7910,94 @@ function ostatokRenderStats() {
   if(el('osZero'))  el('osZero').textContent  = zero;
 }
 
+function ostatokRenderCategoryFilter() {
+  const select = document.getElementById('osCategoryFilter');
+  if (!select) return;
+  const selected = select.value;
+  const categories = [...(_osCategories || [])].sort((a, b) =>
+    String(a.name || '').localeCompare(String(b.name || ''), 'uk', { sensitivity: 'base' })
+  );
+  select.innerHTML = '<option value="">Всі категорії</option>' +
+    categories.map(category => '<option value="' + _esc(String(category.id)) + '">' + _esc(category.name || ('Категорія #' + category.id)) + '</option>').join('');
+  if (categories.some(category => String(category.id) === selected)) select.value = selected;
+}
+
+function ostatokSortBy(key) {
+  if (_osSort.key === key) {
+    _osSort.direction = _osSort.direction === 'asc' ? 'desc' : 'asc';
+  } else {
+    _osSort = { key, direction: 'asc' };
+  }
+  ostatokRenderTable();
+}
+
+function _osCategoryName(categoryId) {
+  const category = (_osCategories || []).find(item => String(item.id) === String(categoryId));
+  return category ? String(category.name || '') : '';
+}
+
+function _osSortValue(row, key) {
+  if (key === 'quantity') return Number(row.quantity) || 0;
+  if (key === 'sell_price') return row.sell_price == null ? null : Number(row.sell_price);
+  if (key === 'old_price') return row.old_price == null ? null : Number(row.old_price);
+  if (key === 'buy_price') return row.buy_price == null ? null : Number(row.buy_price);
+  if (key === 'active') return row.active === false ? 0 : 1;
+  if (key === 'category') return _osCategoryName(row.category_id);
+  return String(row[key] == null ? '' : row[key]).trim();
+}
+
+function _osCompareRows(a, b) {
+  const av = _osSortValue(a, _osSort.key);
+  const bv = _osSortValue(b, _osSort.key);
+  if (av === null || av === '') return (bv === null || bv === '') ? 0 : 1;
+  if (bv === null || bv === '') return -1;
+  let result;
+  if (typeof av === 'number' && typeof bv === 'number') {
+    result = av - bv;
+  } else {
+    result = String(av).localeCompare(String(bv), 'uk', { numeric: true, sensitivity: 'base' });
+  }
+  return _osSort.direction === 'desc' ? -result : result;
+}
+
+function ostatokUpdateSortIndicators() {
+  document.querySelectorAll('[data-os-sort-indicator]').forEach(indicator => {
+    const key = indicator.getAttribute('data-os-sort-indicator');
+    const active = key === _osSort.key;
+    indicator.textContent = active ? (_osSort.direction === 'asc' ? '↑' : '↓') : '↕';
+    indicator.style.opacity = active ? '1' : '.45';
+  });
+  document.querySelectorAll('[data-os-sort-column]').forEach(header => {
+    const key = header.getAttribute('data-os-sort-column');
+    header.setAttribute('aria-sort', key === _osSort.key ? (_osSort.direction === 'asc' ? 'ascending' : 'descending') : 'none');
+  });
+}
+
 function ostatokRenderTable() {
   const q = (document.getElementById('osSearch')?.value||'').toLowerCase().trim();
-  const rows = q ? _osRows.filter(r=>
+  const categoryFilter = document.getElementById('osCategoryFilter')?.value || '';
+  const filteredRows = _osRows.filter(r =>
+    (!categoryFilter || String(r.category_id || '') === String(categoryFilter)) &&
+    (!q ||
     (r.sku||'').toLowerCase().includes(q)||
     (r.color||'').toLowerCase().includes(q)||
-    (r.note||'').toLowerCase().includes(q)
-  ) : _osRows;
+    (r.note||'').toLowerCase().includes(q)||
+    _osCategoryName(r.category_id).toLowerCase().includes(q))
+  );
+  const rows = filteredRows.slice().sort(_osCompareRows);
 
   const tbody = document.getElementById('osTbody');
   if(!tbody) return;
+  ostatokUpdateSortIndicators();
   if(!rows.length){
-    tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:40px">Нічого не знайдено</td></tr>';
+    tbody.innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--text-muted);padding:40px">Нічого не знайдено</td></tr>';
     return;
   }
   tbody.innerHTML = rows.map(r=>{
     const qty   = parseInt(r.quantity)||0;
     const qtyColor = qty<=0?'var(--red)':'var(--green)';
     const sellPrice = r.sell_price!=null ? Number(r.sell_price).toLocaleString('uk-UA')+' ₴' : '—';
+    const oldPrice  = r.old_price!=null  ? Number(r.old_price).toLocaleString('uk-UA')+' ₴'  : '—';
     const buyPrice  = r.buy_price!=null  ? Number(r.buy_price).toLocaleString('uk-UA')+' ₴'  : '—';
     const photo     = Array.isArray(r.images)&&r.images[0] ? '<img src="'+r.images[0]+'" style="width:34px;height:34px;object-fit:cover;border-radius:5px;vertical-align:middle;margin-right:6px" onerror="this.style.display=\'none\'">' : '';
     const activeTag = r.active===false
@@ -7926,8 +8006,10 @@ function ostatokRenderTable() {
     return `<tr>
       <td>${photo}<span style="font-family:monospace;font-weight:700;font-size:12px">${_esc(r.sku)}</span></td>
       <td>${r.color?`<span style="background:var(--bg);border-radius:20px;padding:2px 10px;font-size:12px">${_esc(r.color)}</span>`:'<span style="color:var(--text-light)">—</span>'}</td>
+      <td style="font-size:12px">${_osCategoryName(r.category_id) ? _esc(_osCategoryName(r.category_id)) : '<span style="color:var(--text-light)">—</span>'}</td>
       <td><strong style="color:${qtyColor};font-size:15px">${qty}</strong></td>
       <td>${sellPrice}</td>
+      <td>${oldPrice}</td>
       <td>${buyPrice}</td>
       <td style="font-size:12px;color:var(--text-muted)">${r.note?_esc(r.note):'—'}</td>
       <td>${activeTag}</td>
