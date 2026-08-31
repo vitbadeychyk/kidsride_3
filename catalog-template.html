@@ -2151,7 +2151,9 @@ function selectCategory(catId, parentId, _noPush) {
   }
 
   currentPage = 1;
-  applyFiltersAndRender(); // оновить товари + updateDynamicFilters всередині
+  ensureProductsLoaded()
+    .then(() => applyFiltersAndRender())
+    .catch(() => {}); // оновити товари + updateDynamicFilters після завантаження
 }
 
 // Клік на тип транспорту в дереві (Джипи, Квадроцикли тощо)
@@ -2205,7 +2207,9 @@ function selectVehicleType(code, parentId, _noPush) {
   }
 
   currentPage = 1;
-  applyFiltersAndRender();
+  ensureProductsLoaded()
+    .then(() => applyFiltersAndRender())
+    .catch(() => {});
 }
 
 
@@ -2470,6 +2474,7 @@ function _mobNavShowSub(parentId, _skipHistory) {
     }
     const _cs = () => `<div class="mob-cat-tile" style="pointer-events:none"><div style="position:absolute;inset:0;border-radius:inherit;background:linear-gradient(90deg,#dce4f0 25%,#c8d4e8 50%,#dce4f0 75%);background-size:200% 100%;animation:_shimmer 1.4s infinite"></div></div>`;
     grid.innerHTML = _cs()+_cs()+_cs()+_cs()+_cs()+_cs()+_cs()+_cs()+_cs()+_cs();
+    ensureProductsLoaded().catch(() => {});
     window.scrollTo({ top: 0, behavior: 'instant' });
     return;
   }
@@ -3313,6 +3318,79 @@ function renderCard(p) {
 let allProducts = [];
 let filteredProducts = [];
 let activeFilters = { types: [], ages: [], brands: [], voltages: [], attrs: {}, priceMin: 0, priceMax: 999999, search: '' };
+const PRODUCTS_CACHE_KEY = 'kidsride_products_v6'; // v6: parallel ostatok fetch (performance fix)
+let _productsLoadPromise = null;
+
+function _catalogUrlNeedsProducts() {
+  const params = new URLSearchParams(location.search);
+  const productQueryKeys = [
+    'catId', 'mainCatId', 'parentId', 'vType', 'vtype', 'q',
+    'cat', 'type', 'category', 'brand', 'voltage', 'volt', 'age'
+  ];
+  if (productQueryKeys.some(key => params.has(key))) return true;
+  if (params.get('search')?.trim()) return true;
+
+  const pathname = location.pathname.replace(/\/+$/g, '');
+  const nonProductPaths = new Set([
+    '', '/', '/catalog.html', '/catalog', '/index.html',
+    '/cart.html', '/checkout.html', '/compare.html', '/product.html',
+    '/calculator.html', '/auth.html', '/admin.html'
+  ]);
+  return !nonProductPaths.has(pathname) &&
+    !pathname.startsWith('/product') &&
+    !pathname.startsWith('/api');
+}
+
+function _finishProductsLoading(products) {
+  allProducts = (products || []).filter(p => p.active !== false);
+
+  // Лупа може запуститись раніше за каталог і закешувати неповний список.
+  // Після завантаження всіх джерел перебудовуємо її індекс.
+  if (typeof KR_PRODUCTS_CACHE !== 'undefined') {
+    KR_PRODUCTS_CACHE = null;
+    KR_PRODUCTS_PROMISE = null;
+  }
+
+  const prices = (allProducts || []).filter(p => p.price > 0).map(p => p.price);
+  if (prices.length) {
+    const pMin = Math.floor(Math.min(...prices));
+    const pMax = Math.ceil(Math.max(...prices));
+    const pmEl = document.getElementById('priceMin');
+    const pxEl = document.getElementById('priceMax');
+    if (pmEl) { pmEl.min = pMin; pmEl.value = pMin; pmEl.setAttribute('min', pMin); }
+    if (pxEl) { pxEl.max = pMax; pxEl.value = pMax; pxEl.setAttribute('max', pMax); }
+    activeFilters.priceMin = 0;
+    activeFilters.priceMax = 999999;
+  }
+
+  try { localStorage.setItem(PRODUCTS_CACHE_KEY, JSON.stringify(allProducts)); } catch(_) {}
+
+  const countEl = document.getElementById('catalogCount');
+  if (countEl) countEl.textContent = allProducts.length + ' товарів';
+
+  updateDynamicFilters();
+  applyUrlFilters();
+  loadCategoryTree();
+  applyFiltersAndRender();
+
+  // Виправлення: якщо сітка підкатегорій була показана до завантаження товарів
+  // (наприклад при навігації з іншої сторінки) — перерендерити її тепер.
+  if (_mobNavLevel === 'sub' && _mobNavParentId) {
+    _mobNavShowSub(_mobNavParentId, true);
+  }
+  return allProducts;
+}
+
+// Повне завантаження products + ostatok виконується максимум один раз за сесію.
+// Важливо: ця функція викликається лише після дії користувача або для URL,
+// який має одразу показати список товарів.
+function ensureProductsLoaded() {
+  if (_productsLoadPromise) return _productsLoadPromise;
+
+  _productsLoadPromise = loadProductsFromSupabase()
+    .then(_finishProductsLoading);
+  return _productsLoadPromise;
+}
 
 // ── ДИНАМІЧНІ ФІЛЬТРИ ХАРАКТЕРИСТИК (product_attributes / product_attribute_values) ──
 // Категорії, для яких існують характеристики в новій архітектурі (див. документ архітектури)
@@ -3493,11 +3571,13 @@ function renderAttributeFilters() {
 async function renderCatalog() {
   const grid = document.getElementById('productsGrid');
   if (!grid) return;
+  const _needsProducts = _catalogUrlNeedsProducts();
 
   // Enter product mode synchronously for direct searches. This prevents the
   // mobile-first category navigation from winning the first render while
   // products are being fetched.
-  const initialSearch = new URLSearchParams(location.search).get('search')?.trim() || '';
+  const _initialSearchParams = new URLSearchParams(location.search);
+  const initialSearch = (_initialSearchParams.get('search') || _initialSearchParams.get('q'))?.trim() || '';
   if (initialSearch) {
     _mobNavLevel = 'products';
     _mobNavInitDone = true;
@@ -3509,6 +3589,25 @@ async function renderCatalog() {
     const input = document.getElementById('searchInput');
     if (input) input.value = initialSearch;
   }
+  const _directListParams = [
+    'catId', 'parentId', 'vType', 'vtype',
+    'cat', 'type', 'category', 'brand', 'voltage', 'volt', 'age'
+  ];
+  if (_needsProducts && !initialSearch &&
+      _directListParams.some(key => _initialSearchParams.has(key))) {
+    _mobNavLevel = 'products';
+    _mobNavInitDone = true;
+    const nav = document.getElementById('mob-cat-nav');
+    if (nav) nav.style.display = 'none';
+    _mobCatNavToggleProductsArea(true);
+  }
+
+  // Чистий /catalog.html — це навігація по категоріях. Не завантажуємо
+  // products/ostatok, доки користувач не відкриє категорію, пошук або фільтр.
+  if (!_needsProducts) {
+    await loadCategoryTree();
+    return;
+  }
 
   // Spin CSS
   if (!document.getElementById('_spinStyle')) {
@@ -3519,7 +3618,6 @@ async function renderCatalog() {
   }
 
   // ── Крок 1: Показати кешовані товари ОДРАЗУ (якщо є в localStorage) ─────
-  const PRODUCTS_CACHE_KEY = 'kidsride_products_v6'; // v6: parallel ostatok fetch (performance fix)
   let cached = null;
   try {
     const raw = localStorage.getItem(PRODUCTS_CACHE_KEY);
@@ -3530,7 +3628,7 @@ async function renderCatalog() {
   // актуальні результати (кеш може бути застарілим і не мати нових товарів).
   const _hasSearchParam = !!new URLSearchParams(location.search).get('search');
 
-  if (cached && cached.length > 0 && !_hasSearchParam) {
+  if (cached && cached.length > 0 && !_hasSearchParam && !_needsProducts) {
     // ── Є кеш і немає пошукового запиту: показуємо одразу ───────────────────
     allProducts = cached;
 // Динамічне оновлення діапазону ціни
@@ -3563,7 +3661,7 @@ async function renderCatalog() {
     loadCategoryTree();
     applyFiltersAndRender();
     // У фоні оновлюємо товари (без блокування)
-    loadProductsFromSupabase().then(freshProds => {
+    ensureProductsLoaded().then(freshProds => {
       if (freshProds && freshProds.length > 0) {
         allProducts = freshProds.filter(p => p.active !== false);
 // Динамічне оновлення діапазону ціни
@@ -3634,46 +3732,11 @@ async function renderCatalog() {
         })
         .catch(() => {});
 
-  // Products/ostatok keep their current loading and rendering logic, but
-  // their promise is not part of the category-grid initialization path.
-  const productsPromise = loadProductsFromSupabase();
-  const products = await productsPromise;
-  // Wait only before building the product-dependent sidebar/filter state.
-  // The SSR category tiles and their LCP images are already on screen.
   await catsPromise;
-
-  allProducts = (products || []).filter(p => p.active !== false);
-  // Лупа може запуститись раніше за каталог і закешувати неповний список.
-  // Після завантаження всіх джерел перебудовуємо її індекс.
-  if (typeof KR_PRODUCTS_CACHE !== 'undefined') {
-    KR_PRODUCTS_CACHE = null;
-    KR_PRODUCTS_PROMISE = null;
-  }
-  { const prices=(allProducts||[]).filter(p=>p.price>0).map(p=>p.price);
-    if(prices.length){
-      const pMin=Math.floor(Math.min(...prices)),pMax=Math.ceil(Math.max(...prices));
-      const pmEl=document.getElementById('priceMin'),pxEl=document.getElementById('priceMax');
-      if(pmEl){pmEl.min=pMin;pmEl.value=pMin;pmEl.setAttribute('min',pMin);}
-      if(pxEl){pxEl.max=pMax;pxEl.value=pMax;pxEl.setAttribute('max',pMax);}
-      activeFilters.priceMin=0; activeFilters.priceMax=999999;
-    }
-  }
-  try { localStorage.setItem(PRODUCTS_CACHE_KEY, JSON.stringify(allProducts)); } catch(_) {}
-
-  const countEl = document.getElementById('catalogCount');
-  if (countEl) countEl.textContent = allProducts.length + ' товарів';
-
-  updateDynamicFilters();
+  // Parse the URL before loading so the first product render already uses
+  // the requested category/search/filter state.
   applyUrlFilters();
-  // Дерево з актуальними лічильниками (тепер allProducts заповнений)
-  loadCategoryTree();
-  applyFiltersAndRender();
-  // Виправлення: якщо сітка підкатегорій була показана до завантаження товарів
-  // (наприклад при навігації з іншої сторінки) — перерендерити її тепер,
-  // щоб типи транспорту (Джипи, Машини тощо) відображались одразу без оновлення сторінки.
-  if (_mobNavLevel === 'sub' && _mobNavParentId) {
-    _mobNavShowSub(_mobNavParentId, true);
-  }
+  await ensureProductsLoaded();
 }
 
 // Повертає масив category_id для поточного вибору в дереві категорій
@@ -4190,7 +4253,7 @@ function applyUrlFilters() {
     }
   }
   // Пошуковий запит
-  const search = params.get('search');
+  const search = params.get('search') || params.get('q');
   if (search) {
     const inp = document.getElementById('searchInput');
     if (inp) inp.value = search;
@@ -4302,7 +4365,9 @@ function applyFilters() {
     history.replaceState(null, '', url.toString());
   } catch(e) {}
   currentPage = 1;
-  applyFiltersAndRender();
+  ensureProductsLoaded()
+    .then(() => applyFiltersAndRender())
+    .catch(() => {});
 }
 
 function resetFilters() {
@@ -4339,8 +4404,12 @@ function resetFilters() {
   _activeVehicleType    = _savedVType;
   _isDefaultMode        = (_savedCatId === 0 && _savedParentId === 0 && _savedVType === '');
 
-  applyFiltersAndRender();
-  loadCategoryTree(); // відновити підсвічення категорії у дереві
+  ensureProductsLoaded()
+    .then(() => {
+      applyFiltersAndRender();
+      loadCategoryTree(); // відновити підсвічення категорії у дереві
+    })
+    .catch(() => {});
 }
 
 // Знайти товар у завантаженому списку (для отримання img URL, sku та інших полів)
@@ -4564,62 +4633,20 @@ document.addEventListener('DOMContentLoaded', () => {
   let KR_PRODUCTS_CACHE = null, KR_PRODUCTS_PROMISE = null;
   async function krLoadAllProducts(){
     if(KR_PRODUCTS_CACHE)return KR_PRODUCTS_CACHE;
-    // На сторінці каталогу allProducts вже завантажено — використовуємо їх напряму
-    // щоб не робити зайві запити до Supabase (2799 товарів × 3 сторінки = зайве навантаження)
-    if(typeof allProducts !== 'undefined' && Array.isArray(allProducts) && allProducts.length > 0){
-      KR_PRODUCTS_CACHE = allProducts.map(p=>({
+    if(KR_PRODUCTS_PROMISE)return KR_PRODUCTS_PROMISE;
+    KR_PRODUCTS_PROMISE=ensureProductsLoaded().then(products => {
+      KR_PRODUCTS_CACHE=(products || []).map(p=>({
         id:p.id,name:p.name||'',brand:p.brand||'',model:p.model_code||p.sku||'',
         sku:p.sku||'',category:p.category||'',price:parseFloat(p.price)||0,
         slug:p.slug || (p._fromOstatok ? slugify(p.name || p.sku || '') : null),
         emoji:KR_CAT_EMOJI[p.category]||'🚗',photo:Array.isArray(p.images)&&p.images[0]?p.images[0]:null
       }));
       return KR_PRODUCTS_CACHE;
-    }
-    if(KR_PRODUCTS_PROMISE)return KR_PRODUCTS_PROMISE;
-    KR_PRODUCTS_PROMISE=(async()=>{
-      try{
-        const hdrs={'apikey':KR_SUPABASE_KEY_SR,'Authorization':'Bearer '+KR_SUPABASE_KEY_SR};
-        const base=KR_SUPABASE_URL_SR+'/rest/v1/products?select=id,name,brand,model_code,sku,category,price,images,slug&active=eq.true&order=created_at.desc&limit=1000';
-        const pages=await Promise.all([0,1000,2000].map(off=>fetch(base+'&offset='+off,{headers:hdrs}).then(r=>r.ok?r.json():[]).catch(()=>[])));
-        const data=pages.flat();
-         // Товари, додані через «Залишок (власний склад)», не мають запису
-        // у products, але мають бути доступні в глобальному пошуку за артикулом.
-        try {
-           const osUrl = KR_SUPABASE_URL_SR + '/rest/v1/ostatok?select=id,slug,sku,name,color,quantity,sell_price,old_price,images,active&quantity=gt.0';
-          let osRes = await fetch(osUrl, {headers:hdrs});
-          if (osRes.status === 400) {
-             osRes = await fetch(KR_SUPABASE_URL_SR + '/rest/v1/ostatok?select=id,sku,color,quantity,sell_price,old_price,images,active&quantity=gt.0', {headers:hdrs});
-          }
-          if (osRes.ok) {
-            const osRows = await osRes.json();
-            const productSkuKeys = new Set(data
-              .map(p => String(p.sku || '').trim().toLowerCase())
-              .filter(Boolean));
-            (Array.isArray(osRows) ? osRows : []).forEach(os => {
-              if (!os.sku || Number(os.quantity) <= 0 || os.active === false) return;
-               // Постачальник має пріоритет за артикулом: склад не дублюємо.
-               const osSkuKey = String(os.sku).trim().toLowerCase();
-               if (productSkuKeys.has(osSkuKey)) return;
-              data.push({
-                id:'os_'+os.id, name:os.name || os.sku, brand:'', model:os.sku,
-                sku:os.sku, category:'', price:parseFloat(os.sell_price)||0,
-                 slug:os.slug || ('os_' + os.id), images:os.images, _fromOstatok:true
-              });
-            });
-          }
-        } catch(e) { console.warn('KR search ostatok:',e); }
-        if(data.length){
-          const seen=new Set();
-          KR_PRODUCTS_CACHE=data.filter(p=>{if(!p||seen.has(p.id))return false;seen.add(p.id);return true;})
-            .map(p=>({id:p.id,name:p.name||'',brand:p.brand||'',model:p.model_code||p.sku||'',
-              sku:p.sku||'',category:p.category||'',price:parseFloat(p.price)||0,
-              slug:p.slug || (p._fromOstatok ? slugify(p.name || p.sku || '') : null),
-              emoji:KR_CAT_EMOJI[p.category]||'🚗',photo:Array.isArray(p.images)&&p.images[0]?p.images[0]:null}));
-          return KR_PRODUCTS_CACHE;
-        }
-      }catch(e){console.warn('KR search:',e);}
-      KR_PRODUCTS_CACHE=[];return KR_PRODUCTS_CACHE;
-    })();
+    }).catch(e => {
+      console.warn('KR search:', e);
+      KR_PRODUCTS_CACHE=[];
+      return KR_PRODUCTS_CACHE;
+    });
     return KR_PRODUCTS_PROMISE;
   }
   function openSearchOverlay(){
@@ -4672,8 +4699,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
   function submitSearch(e){if(e)e.preventDefault();const q=(document.getElementById('searchOverlayInput')?.value||'').trim();if(!q)return false;window.location.href='catalog.html?search='+encodeURIComponent(q);return false;}
-  if(document.readyState!=='loading')krLoadAllProducts();
-  else document.addEventListener('DOMContentLoaded',krLoadAllProducts);
   document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSearchOverlay();if((e.key==='k'||e.key==='K')&&(e.metaKey||e.ctrlKey)){e.preventDefault();openSearchOverlay();}});
   </script>
 
