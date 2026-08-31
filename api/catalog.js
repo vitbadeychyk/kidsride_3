@@ -7,7 +7,6 @@ import fs from 'fs';
 import path from 'path';
 
 const SITE = 'https://www.kidsride.com.ua';
-const PAGE_SIZE = 1000;
 const SEO_MARKER = '<!-- SEO_PRODUCT_LINKS -->';
 const MAIN_CATEGORIES_MARKER = '<!-- SSR_MAIN_CATEGORIES -->';
 // Browser revalidates on navigation, while Vercel's CDN serves the SSR
@@ -22,37 +21,6 @@ function escHtml(value) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
-}
-
-async function fetchAllActiveProducts(supaUrl, supaKey) {
-  const all = [];
-  let offset = 0;
-
-  while (true) {
-    const query =
-      '/rest/v1/products?select=id,name,sku,slug&active=eq.true&slug=not.is.null&order=id.asc';
-    const response = await fetch(supaUrl + query, {
-      headers: {
-        apikey: supaKey,
-        Authorization: 'Bearer ' + supaKey,
-        Range: offset + '-' + (offset + PAGE_SIZE - 1),
-        'Range-Unit': 'items',
-      },
-    });
-
-    if (!response.ok) {
-      const message = await response.text().catch(() => '');
-      throw new Error('Supabase ' + response.status + ': ' + message.slice(0, 240));
-    }
-
-    const page = await response.json();
-    if (!Array.isArray(page) || !page.length) break;
-    all.push(...page);
-    if (page.length < PAGE_SIZE) break;
-    offset += page.length;
-  }
-
-  return all;
 }
 
 async function fetchActiveMainCategories(supaUrl, supaKey) {
@@ -122,30 +90,6 @@ function buildMainCategoryTiles(categories) {
     .join('\n');
 }
 
-function buildSeoProductLinks(products) {
-  const items = products
-    .filter(product => String(product.slug || '').trim())
-    .map(product => {
-      const slug = String(product.slug).trim();
-      const name = String(product.name || product.sku || 'Товар KidsRide').trim();
-      const href = SITE + '/product/' + encodeURIComponent(slug);
-      return '      <li><a href="' + escHtml(href) + '">' + escHtml(name) + '</a></li>';
-    })
-    .join('\n');
-
-  if (!items) return '';
-
-  return `
-<section id="seoProductLinks" class="seo-product-links" aria-labelledby="seoProductLinksTitle">
-  <h2 id="seoProductLinksTitle">Товари каталогу</h2>
-  <p>Активні товари KidsRide</p>
-  <ul>
-${items}
-  </ul>
-</section>
-`;
-}
-
 export default async function handler(req, res) {
   // Set this before any streaming starts. The explicit /catalog.html and
   // /api/catalog rules in vercel.json keep the generic HTML no-store rule
@@ -202,12 +146,9 @@ export default async function handler(req, res) {
   }
 
   if (supaUrl && supaKey) {
-    // Start the SEO query in parallel, but do not make the first response byte
-    // wait for all products. The category grid is part of the first streamed
-    // chunk; product links are inserted into the second chunk when ready.
-    const productsPromise = fetchAllActiveProducts(supaUrl, supaKey)
-      .then(value => ({ status: 'fulfilled', value }))
-      .catch(reason => ({ status: 'rejected', reason }));
+    // На стартовій сторінці каталогу потрібні лише 9 основних категорій.
+    // Не завантажуємо весь список товарів і не показуємо SEO-блок
+    // «Товари каталогу» під картками.
     const categoriesResult = await Promise.allSettled([
       fetchActiveMainCategories(supaUrl, supaKey),
     ]).then(results => results[0]);
@@ -222,60 +163,7 @@ export default async function handler(req, res) {
       console.error('[catalog SSR] main_categories fetch failed:', categoriesResult.reason?.message || categoriesResult.reason);
       html = html.replace(MAIN_CATEGORIES_MARKER, '');
     }
-    diagnostics.htmlLength = html.length;
-
-    const seoMarkerIndex = html.indexOf(SEO_MARKER);
-    const canStream = seoMarkerIndex >= 0 &&
-      typeof res.write === 'function' && typeof res.end === 'function';
-
-    if (canStream) {
-      // Headers must be sent before write(). Product diagnostics are finalized
-      // in logs; the response header intentionally reports the first chunk's
-      // state because the product query is still running at this point.
-      res.setHeader('X-Catalog-SSR-Products', 'pending');
-      res.setHeader('X-Catalog-SSR-Main-Categories', String(diagnostics.mainCategories));
-      res.setHeader('X-Catalog-SSR-Marker', String(diagnostics.markerFound));
-      res.setHeader('X-Catalog-SSR-HTML-Length', String(diagnostics.htmlLength));
-      res.setHeader('X-Catalog-SSR-Product-Links', 'pending');
-      res.setHeader('X-Catalog-SSR-Streaming', 'categories-first');
-      res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      res.statusCode = 200;
-
-      // Everything before SEO_PRODUCT_LINKS includes the complete SSR
-      // category grid and its Storage image URLs, so the browser can paint it
-      // without waiting for products/ostatok.
-      res.write(html.slice(0, seoMarkerIndex));
-
-      const productsResult = await productsPromise;
-      let seoLinks = '';
-      if (productsResult.status === 'fulfilled') {
-        const products = productsResult.value;
-        seoLinks = buildSeoProductLinks(products);
-        diagnostics.products = products.length;
-        diagnostics.productLinks = (seoLinks.match(/<a\b[^>]*href="[^"]*\/product\//gi) || []).length;
-      } else {
-        // Не ламаємо каталог, якщо Supabase тимчасово недоступний:
-        // клієнтський код все одно спробує завантажити товари у браузері.
-        console.error('[catalog SSR] products fetch failed:', productsResult.reason?.message || productsResult.reason);
-      }
-      diagnostics.htmlLength = html.length - SEO_MARKER.length + seoLinks.length;
-      console.error('[catalog SSR] diagnostics:', JSON.stringify(diagnostics));
-      res.end(seoLinks + html.slice(seoMarkerIndex + SEO_MARKER.length));
-      return;
-    }
-
-    // Non-streaming fallback for local adapters that do not expose write/end.
-    const productsResult = await productsPromise;
-    if (productsResult.status === 'fulfilled') {
-      const products = productsResult.value;
-      const seoLinks = buildSeoProductLinks(products);
-      diagnostics.products = products.length;
-      diagnostics.productLinks = (seoLinks.match(/<a\b[^>]*href="[^"]*\/product\//gi) || []).length;
-      html = html.replace(SEO_MARKER, seoLinks);
-    } else {
-      console.error('[catalog SSR] products fetch failed:', productsResult.reason?.message || productsResult.reason);
-      html = html.replace(SEO_MARKER, '');
-    }
+    html = html.replace(SEO_MARKER, '');
     diagnostics.htmlLength = html.length;
   } else {
     html = html.replace(SEO_MARKER, '');

@@ -193,7 +193,7 @@ nav a.active{color:var(--orange)}
 .products-grid.cols-2{grid-template-columns:repeat(2,1fr)}
 .products-grid.cols-4{grid-template-columns:repeat(4,1fr)}
 .products-grid.list{grid-template-columns:1fr}
-.seo-product-links{margin:24px 40px;padding:18px 22px;background:white;border:1px solid var(--border);border-radius:14px}
+.seo-product-links{display:none!important}
 .seo-product-links h2{font-size:18px;color:var(--navy);margin:0 0 5px}
 .seo-product-links p{font-size:12px;color:var(--text-muted);margin:0 0 14px}
 .seo-product-links ul{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 24px;margin:0;padding:0;list-style:none}
@@ -702,8 +702,8 @@ html.catalog-search-mode .catalog-layout{display:grid !important}
   </div>
 </div>
 
-<!-- Server-rendered SEO fallback. api/catalog injects active product links here.
-     The client removes this section after the interactive catalog is ready. -->
+<!-- Reserved marker kept for SSR compatibility; the product list below the
+     category cards is intentionally disabled. -->
 <!-- SEO_PRODUCT_LINKS -->
 
 <!-- CATALOG HEAD --><div class="catalog-head" style="display:none">
