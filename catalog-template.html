@@ -1876,6 +1876,27 @@ async function _fetchCategoriesFromSupabase() {
   return true;
 }
 
+// SSR already supplies the nine main tiles. Refresh the live hierarchy only
+// after the initial paint so the same main_categories request is not required
+// to show the first screen.
+function _refreshCategoriesInBackground() {
+  if (window._catsRefreshPromise) return window._catsRefreshPromise;
+  window._catsFreshFetchDone = true;
+  window._catsRefreshPromise = _fetchCategoriesFromSupabase().then(ok => {
+    if (ok) {
+      _saveCatsToStorage();
+      const tree = document.getElementById('catTree');
+      if (tree) {
+        _renderCategoryTree(tree);
+        if (typeof _initMobileCatNav === 'function') _initMobileCatNav();
+      }
+      applyFiltersAndRender();
+    }
+    return ok;
+  }).catch(() => false);
+  return window._catsRefreshPromise;
+}
+
 function _renderCategoryTree(treeEl) {
   const parents  = _mainCategories;
   const children = _allCategories.filter(c => c.main_category_id);
@@ -2042,6 +2063,23 @@ function _renderCategoryTree(treeEl) {
 async function loadCategoryTree() {
   const treeEl = document.getElementById('catTree');
   if (!treeEl) return;
+
+  // The SSR bootstrap is enough to render the landing screen. Do not await a
+  // duplicate main_categories request here; refresh the hierarchy in the
+  // background for clicks, breadcrumbs, and the desktop tree.
+  if (document.querySelector('[data-ssr-main-category]') &&
+      typeof _hydrateMainCategoriesFromSSR === 'function' &&
+      _hydrateMainCategoriesFromSSR()) {
+    _renderCategoryTree(treeEl);
+    if (typeof _initMobileCatNav === 'function') _initMobileCatNav();
+    const refresh = () => _refreshCategoriesInBackground();
+    if (typeof window.requestIdleCallback === 'function') {
+      window.requestIdleCallback(refresh, { timeout: 1200 });
+    } else {
+      setTimeout(refresh, 250);
+    }
+    return;
+  }
 
   // Якщо категорії вже в пам'яті — рендеримо одразу,
   // але ЗАВЖДИ робимо один фоновий fetch за сесію щоб порядок був актуальним.
@@ -2500,6 +2538,30 @@ function _mobNavShowMain() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
   // Replace state with 'main' level so back button can return here
   try { history.replaceState({ level: 'main', catId: 0, parentId: 0, vType: '' }, '', location.href); } catch(_){}
+}
+
+// Bootstrap tiles do not assume database IDs. Resolve their slug against the
+// live hierarchy only when the user opens one before the idle refresh.
+function _mobNavShowSubBySlug(slug) {
+  if (!_isMobileView()) return;
+  const key = String(slug || '').trim();
+  const findLive = () => (_mainCategories || []).find(category =>
+    Number(category.id) > 0 &&
+    (String(category.slug || '') === key || slugify(category.name || '') === key)
+  );
+  const live = findLive();
+  if (live && _allCategories.length) {
+    _mobNavShowSub(live.id);
+    return;
+  }
+  const nav = document.getElementById('mob-cat-nav');
+  const heading = document.getElementById('mobCatHeading');
+  if (nav) nav.style.display = 'block';
+  if (heading) heading.textContent = 'Завантаження категорії…';
+  _refreshCategoriesInBackground().then(ok => {
+    const category = ok && findLive();
+    if (category) _mobNavShowSub(category.id);
+  });
 }
 
 function _mobNavShowSub(parentId, _skipHistory) {

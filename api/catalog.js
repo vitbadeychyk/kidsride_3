@@ -14,6 +14,33 @@ const MAIN_CATEGORIES_MARKER = '<!-- SSR_MAIN_CATEGORIES -->';
 const CATALOG_CACHE_CONTROL =
   'public, max-age=0, s-maxage=300, stale-while-revalidate=86400';
 
+// Small deploy-time bootstrap for the landing screen. This is deliberately
+// limited to the nine main category tiles; it is not product/catalog data.
+// The live query below still refreshes the category hierarchy after the first
+// response chunk, so changes in the database are picked up without making the
+// first mobile paint depend on Supabase.
+const BOOTSTRAP_MAIN_CATEGORIES = [
+  ['Електромобілі', 'elektromobili', 'main/elektromobili-600.webp', 1],
+  ['Дитячий транспорт', 'dytiachyi-transport', 'main/dytiachyi-transport-600.webp', 2],
+  ['Товари для дівчаток', 'tovary-dlia-divchatok', 'main/tovary-dlia-divchatok-600.webp', 3],
+  ['Меблі', 'mebli', 'main/mebli-600.webp', 4],
+  ['Товари для немовлят', 'tovary-dlia-nemovliat', 'main/tovary-dlia-nemovliat-600.webp', 5],
+  ['Активний відпочинок', 'aktyvnyi-vidpochynok', 'main/aktyvnyi-vidpochynok-600.webp', 6],
+  ['Басейни', 'baseiny', 'main/baseiny-600.webp', 7],
+  ['Коляски', 'koliasky', 'main/koliasky-600.webp', 8],
+  ['Надходження за тиждень', 'hadkhodzhennia-za-tyzhden', 'main/hadkhodzhennia-za-tyzhden-600.webp', 9],
+].map(([name, slug, image, sort_order], index) => ({
+  // Negative IDs cannot collide with database IDs. Tiles with these IDs use
+  // their slug for navigation until the live category list is available.
+  id: -(index + 1),
+  name,
+  slug,
+  image_url: 'https://gwslintdrtnvbfjvivbb.supabase.co/storage/v1/object/public/category-images/' + image,
+  sort_order,
+}));
+
+let mainCategoriesCache = BOOTSTRAP_MAIN_CATEGORIES;
+
 function escHtml(value) {
   return String(value || '')
     .replace(/&/g, '&amp;')
@@ -160,14 +187,17 @@ function buildMainCategoryTiles(categories) {
         media = '<div class="mob-cat-tile-icon">' + escHtml(category.icon || '') + '</div>';
       }
 
-      return [
+       const clickAction = id > 0
+         ? '_mobNavShowSub(' + id + ')'
+         : "_mobNavShowSubBySlug('" + escHtml(slug) + "')";
+       return [
         '<div class="mob-cat-tile" data-ssr-main-category="true"',
         ' data-main-category-id="' + id + '"',
         ' data-main-category-name="' + escHtml(name) + '"',
         ' data-main-category-slug="' + escHtml(slug) + '"',
         ' data-main-category-image-url="' + escHtml(imageUrl) + '"',
         ' data-main-category-sort-order="' + escHtml(sortOrder) + '"',
-        ' onclick="_mobNavShowSub(' + id + ')">',
+        ' onclick="' + clickAction + '">',
         media,
         '<div class="mob-cat-tile-grad"></div>',
         '<div class="mob-cat-tile-name">' + escHtml(name) + '</div>',
@@ -243,22 +273,14 @@ export default async function handler(req, res) {
     return res.status(200).send(html);
   }
 
-  if (supaUrl && supaKey) {
-    // Send the category landing screen as soon as its small query completes.
-    // SEO product links are still emitted in this response, but their
-    // potentially large products query no longer delays the first HTML chunk.
-    let categories = [];
-    try {
-      categories = await fetchActiveMainCategories(supaUrl, supaKey);
-      diagnostics.mainCategories = categories.length;
-      html = html.replace(MAIN_CATEGORIES_MARKER, buildMainCategoryTiles(categories));
-      const preload = buildCategoryPreload(categories);
-      if (preload) html = html.replace('</head>', preload + '</head>');
-    } catch (error) {
-      console.error('[catalog SSR] main_categories fetch failed:', error?.message || error);
-      html = html.replace(MAIN_CATEGORIES_MARKER, '');
-    }
+  // Bootstrap the nine-tile landing screen from deploy-time cached data.
+  // Supabase is intentionally not awaited before this HTML is written.
+  diagnostics.mainCategories = mainCategoriesCache.length;
+  html = html.replace(MAIN_CATEGORIES_MARKER, buildMainCategoryTiles(mainCategoriesCache));
+  const preload = buildCategoryPreload(mainCategoriesCache);
+  if (preload) html = html.replace('</head>', preload + '</head>');
 
+  if (supaUrl && supaKey) {
     const seoIndex = html.indexOf(SEO_MARKER);
     const canStream = seoIndex >= 0 && typeof res.write === 'function' && typeof res.end === 'function';
     if (canStream) {
@@ -275,14 +297,26 @@ export default async function handler(req, res) {
       if (typeof res.flushHeaders === 'function') res.flushHeaders();
       res.write(html.slice(0, seoIndex));
 
+      // Refresh both SEO/category data only after the first HTML chunk is out.
+      // The product links remain in the response; they are simply not on the
+      // critical path for the category landing screen.
+      const [categoriesResult, productsResult] = await Promise.allSettled([
+        fetchActiveMainCategories(supaUrl, supaKey),
+        fetchActiveProductLinks(supaUrl, supaKey),
+      ]);
+      if (categoriesResult.status === 'fulfilled' && categoriesResult.value.length) {
+        mainCategoriesCache = categoriesResult.value;
+      } else if (categoriesResult.status === 'rejected') {
+        console.error('[catalog SSR] main_categories refresh failed:', categoriesResult.reason?.message || categoriesResult.reason);
+      }
       let productLinks = '';
-      try {
-        const products = await fetchActiveProductLinks(supaUrl, supaKey);
+      if (productsResult.status === 'fulfilled') {
+        const products = productsResult.value;
         productLinks = buildProductLinks(products);
         diagnostics.products = products.length;
         diagnostics.productLinks = products.filter(product => String(product.slug || '').trim()).length;
-      } catch (error) {
-        console.error('[catalog SSR] products fetch failed:', error?.message || error);
+      } else {
+        console.error('[catalog SSR] products fetch failed:', productsResult.reason?.message || productsResult.reason);
       }
       console.error('[catalog SSR] diagnostics:', JSON.stringify(diagnostics));
       res.write(productLinks);
@@ -290,21 +324,26 @@ export default async function handler(req, res) {
       return;
     }
 
-    // Test/local response objects may not support streaming. Keep the same
-    // HTML and SEO output with a safe non-streaming fallback.
-    try {
-      const products = await fetchActiveProductLinks(supaUrl, supaKey);
+    // Test/local response objects may not support streaming. Preserve the
+    // same SEO output with a safe non-streaming fallback.
+    const [categoriesResult, productsResult] = await Promise.allSettled([
+      fetchActiveMainCategories(supaUrl, supaKey),
+      fetchActiveProductLinks(supaUrl, supaKey),
+    ]);
+    if (categoriesResult.status === 'fulfilled' && categoriesResult.value.length) {
+      mainCategoriesCache = categoriesResult.value;
+    }
+    if (productsResult.status === 'fulfilled') {
+      const products = productsResult.value;
       diagnostics.products = products.length;
       diagnostics.productLinks = products.filter(product => String(product.slug || '').trim()).length;
       html = html.replace(SEO_MARKER, buildProductLinks(products));
-    } catch (error) {
-      console.error('[catalog SSR] products fetch failed:', error?.message || error);
+    } else {
       html = html.replace(SEO_MARKER, '');
     }
     diagnostics.htmlLength = html.length;
   } else {
     html = html.replace(SEO_MARKER, '');
-    html = html.replace(MAIN_CATEGORIES_MARKER, '');
     diagnostics.htmlLength = html.length;
   }
 
