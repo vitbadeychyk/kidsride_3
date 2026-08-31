@@ -23,6 +23,29 @@ function escHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
+function getCategoryImageAttrs(imageUrl) {
+  const marker = '/storage/v1/object/public/';
+  const markerIndex = imageUrl.indexOf(marker);
+  if (markerIndex < 0) return { src: imageUrl, srcset: '', sizes: '' };
+
+  const renderBase =
+    imageUrl.slice(0, markerIndex) +
+    '/storage/v1/render/image/public/' +
+    imageUrl.slice(markerIndex + marker.length);
+  const widths = [320, 480, 600];
+  const srcset = widths.map(width =>
+    renderBase + '?width=' + width + '&height=' + width +
+    '&resize=cover&format=webp&quality=90 ' + width + 'w'
+  ).join(', ');
+
+  return {
+    // Keep the original, cache-busted URL as the fallback/source of truth.
+    src: imageUrl,
+    srcset,
+    sizes: '(min-width: 1280px) 18vw, (min-width: 768px) 30vw, 48vw',
+  };
+}
+
 async function fetchActiveMainCategories(supaUrl, supaKey) {
   const query =
     '/rest/v1/main_categories?select=id,name,slug,image_url,sort_order&active=eq.true&order=sort_order.asc,name.asc';
@@ -40,6 +63,66 @@ async function fetchActiveMainCategories(supaUrl, supaKey) {
 
   const categories = await response.json();
   return Array.isArray(categories) ? categories : [];
+}
+
+async function fetchActiveProductLinks(supaUrl, supaKey) {
+  const pageSize = 1000;
+  const baseQuery =
+    '/rest/v1/products?select=id,name,slug&active=eq.true&slug=not.is.null' +
+    '&order=created_at.desc';
+  const getPage = async offset => {
+    const response = await fetch(
+      supaUrl + baseQuery + '&limit=' + pageSize + '&offset=' + offset,
+      {
+        headers: {
+          apikey: supaKey,
+          Authorization: 'Bearer ' + supaKey,
+          Prefer: 'count=exact',
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const message = await response.text().catch(() => '');
+      throw new Error('Supabase ' + response.status + ': ' + message.slice(0, 240));
+    }
+
+    const rows = await response.json();
+    return {
+      rows: Array.isArray(rows) ? rows : [],
+      total: Number(response.headers.get('content-range')?.split('/')[1]),
+    };
+  };
+
+  const first = await getPage(0);
+  const total = Number.isFinite(first.total) ? first.total : first.rows.length;
+  const offsets = [];
+  for (let offset = pageSize; offset < total; offset += pageSize) {
+    offsets.push(offset);
+  }
+  const rest = await Promise.all(offsets.map(getPage));
+  return [first, ...rest].flatMap(page => page.rows);
+}
+
+function buildProductLinks(products) {
+  const seen = new Set();
+  const links = products
+    .map(product => {
+      const slug = String(product.slug || '').trim();
+      if (!slug || seen.has(slug)) return '';
+      seen.add(slug);
+      return '<a href="/product/' + encodeURIComponent(slug) + '">' +
+        escHtml(product.name || slug) + '</a>';
+    })
+    .filter(Boolean)
+    .join('');
+
+  if (!links) return '';
+
+  // Keep these links available to crawlers without rendering a second
+  // product catalogue for visitors. The catalogue itself remains client-side.
+  return '<nav aria-label="Товари каталогу" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0">' +
+    links + '</nav>';
 }
 
 function buildMainCategoryTiles(categories) {
@@ -64,10 +147,13 @@ function buildMainCategoryTiles(categories) {
         const loading = eagerImages < 2 ? 'eager' : 'lazy';
         eagerImages += 1;
         const fetchPriority = isLcpImage ? ' fetchpriority="high"' : '';
+        const image = getCategoryImageAttrs(imageUrl);
         media =
           '<img class="mob-cat-tile-img" src="' + escHtml(imageUrl) +
           '" alt="' + escHtml(name) + '" loading="' + loading +
-          '" decoding="async"' + fetchPriority + '>';
+          '" decoding="async"' + fetchPriority +
+          (image.srcset ? '" srcset="' + escHtml(image.srcset) +
+            '" sizes="' + escHtml(image.sizes) : '') + '">';
       } else {
         media = '<div class="mob-cat-tile-icon">' + escHtml(category.icon || '') + '</div>';
       }
@@ -146,12 +232,12 @@ export default async function handler(req, res) {
   }
 
   if (supaUrl && supaKey) {
-    // На стартовій сторінці каталогу потрібні лише 9 основних категорій.
-    // Не завантажуємо весь список товарів і не показуємо SEO-блок
-    // «Товари каталогу» під картками.
-    const categoriesResult = await Promise.allSettled([
+    // Категорії та SEO-посилання не залежать одне від одного. Запускаємо
+    // обидва запити паралельно, щоб один не додавався до TTFB іншого.
+    const [categoriesResult, productsResult] = await Promise.allSettled([
       fetchActiveMainCategories(supaUrl, supaKey),
-    ]).then(results => results[0]);
+      fetchActiveProductLinks(supaUrl, supaKey),
+    ]);
 
     if (categoriesResult.status === 'fulfilled') {
       const categories = categoriesResult.value;
@@ -163,7 +249,17 @@ export default async function handler(req, res) {
       console.error('[catalog SSR] main_categories fetch failed:', categoriesResult.reason?.message || categoriesResult.reason);
       html = html.replace(MAIN_CATEGORIES_MARKER, '');
     }
-    html = html.replace(SEO_MARKER, '');
+
+    if (productsResult.status === 'fulfilled') {
+      const products = productsResult.value;
+      const productLinks = buildProductLinks(products);
+      diagnostics.products = products.length;
+      diagnostics.productLinks = products.filter(product => String(product.slug || '').trim()).length;
+      html = html.replace(SEO_MARKER, productLinks);
+    } else {
+      console.error('[catalog SSR] products fetch failed:', productsResult.reason?.message || productsResult.reason);
+      html = html.replace(SEO_MARKER, '');
+    }
     diagnostics.htmlLength = html.length;
   } else {
     html = html.replace(SEO_MARKER, '');

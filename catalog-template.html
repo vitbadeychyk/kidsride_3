@@ -2357,13 +2357,36 @@ function _hydrateMainCategoriesFromSSR() {
   return true;
 }
 
+function _categoryImageAttrs(imageUrl) {
+  const marker = '/storage/v1/object/public/';
+  const markerIndex = imageUrl.indexOf(marker);
+  if (markerIndex < 0) return { src: imageUrl, srcset: '', sizes: '' };
+
+  const renderBase =
+    imageUrl.slice(0, markerIndex) +
+    '/storage/v1/render/image/public/' +
+    imageUrl.slice(markerIndex + marker.length);
+  const widths = [320, 480, 600];
+  const srcset = widths.map(width =>
+    renderBase + '?width=' + width + '&height=' + width +
+    '&resize=cover&format=webp&quality=90 ' + width + 'w'
+  ).join(', ');
+
+  return {
+    src: imageUrl,
+    srcset,
+    sizes: '(min-width: 1280px) 18vw, (min-width: 768px) 30vw, 48vw',
+  };
+}
+
 function _renderMainCategoryGrid(grid) {
   let eagerImages = 0;
   grid.innerHTML = (_mainCategories || []).map(mc => {
     const imageUrl = String(mc.image_url || '').trim();
     const loading = imageUrl && eagerImages++ < 2 ? 'eager' : 'lazy';
+    const image = imageUrl ? _categoryImageAttrs(imageUrl) : null;
     const thumb = imageUrl
-      ? `<img class="mob-cat-tile-img" src="${escAttr(imageUrl)}" alt="${escAttr(mc.name)}" loading="${loading}" decoding="async">`
+      ? `<img class="mob-cat-tile-img" src="${escAttr(image.src)}" alt="${escAttr(mc.name)}" loading="${loading}" decoding="async"${image.srcset ? ` srcset="${escAttr(image.srcset)}" sizes="${escAttr(image.sizes)}"` : ''}>`
       : `<div class="mob-cat-tile-icon">${_getCatIcon(mc.name)}</div>`;
     return `<div class="mob-cat-tile" data-ssr-main-category="true"
       data-main-category-id="${mc.id}"
